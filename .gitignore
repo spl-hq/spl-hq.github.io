@@ -1,0 +1,9 @@
+# Never commit secrets or private exports
+.env
+*.secret
+*cookies*
+espn_raw/
+*.zip
+.DS_Store
+Thumbs.db
+node_modules/

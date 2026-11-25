@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#111311">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SPL HQ">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>SPL HQ</title>
+<!-- SPL HQ app · v0.1 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<style>
+:root{
+  --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
+  --chalk:#EDEFE8; --muted:#9CA59C; --soft:#C2C9C0;
+  --lime:#B8E04A; --coral:#FF7A59; --gold:#D9A94A;
+  --head:"Big Shoulders Display","Bahnschrift","Arial Narrow","Roboto Condensed","Helvetica Neue",sans-serif;
+  --body:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --top:env(safe-area-inset-top,0px); --bot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--night);color:var(--chalk);font:15px/1.45 var(--body)}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--lime)}
+header{position:fixed;top:0;left:0;right:0;z-index:10;background:var(--night);border-bottom:1px solid var(--line);
+  padding:calc(var(--top) + 10px) 16px 10px;display:flex;align-items:center;gap:10px}
+.crest{width:34px;height:40px;flex:none;cursor:pointer}
+header h1{margin:0;font:800 22px/1 var(--head);letter-spacing:.04em;text-transform:uppercase;flex:1}
+header h1 small{display:block;font:500 11px/1.4 var(--mono);color:var(--muted);letter-spacing:.06em}
+.pill{font:600 11px var(--mono);padding:4px 8px;border-radius:99px;background:var(--raised);color:var(--muted);border:1px solid var(--line)}
+.pill.ok{color:var(--lime)} .pill.bad{color:var(--coral)}
+main{padding:calc(var(--top) + 76px) 14px calc(var(--bot) + 86px);max-width:560px;margin:0 auto}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
+  display:flex;padding:6px 4px calc(var(--bot) + 6px)}
+nav.tabs button{flex:1;background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--muted);font:600 11px var(--body);cursor:pointer}
+nav.tabs button span{font-size:20px;line-height:1}
+nav.tabs button.on{color:var(--lime)}
+h2{font:800 26px/1.05 var(--head);text-transform:uppercase;letter-spacing:.03em;margin:4px 0 12px}
+h3{font:800 18px/1.1 var(--head);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+.eyebrow{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card.lead{background:var(--lime);color:var(--night);border-color:var(--lime)}
+.card.lead .eyebrow{color:#2a3313}
+.card p{margin:6px 0 0;color:var(--soft)} .card.lead p{color:#1f2610}
+.btn{display:inline-block;border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--lime);color:var(--night);text-decoration:none}
+.btn.ghost{background:var(--raised);color:var(--chalk);border:1px solid var(--line)}
+.btn.dark{background:var(--night);color:var(--lime)}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}
+.back{background:none;border:0;color:var(--lime);font-weight:700;padding:0;margin-bottom:8px;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;cursor:pointer;min-height:84px}
+.tile b{display:block;font:800 16px var(--head);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 2px}
+.tile small{color:var(--muted);font-size:12px}
+.tile.soon{opacity:.55}
+.big{font:800 44px/1 var(--head)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+td{padding:9px 4px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right;font-family:var(--mono)}
+.muted{color:var(--muted)} .coral{color:var(--coral)} .lime{color:var(--lime)} .gold{color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 8px}
+.chip{border:1px solid var(--line);background:var(--raised);border-radius:99px;padding:7px 12px;font-size:13px;cursor:pointer}
+.chip.on{background:var(--lime);color:var(--night);border-color:var(--lime);font-weight:700}
+textarea,input[type=text],select{width:100%;background:var(--night);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px}
+textarea{min-height:64px;resize:vertical}
+.q{counter-increment:q}
+.q h3{font-size:16px;line-height:1.2}
+.q h3::before{content:counter(q) ". ";color:var(--lime)}
+.qlist{counter-reset:q}
+.saved{font:600 11px var(--mono);color:var(--lime)}
+.sticky{position:sticky;bottom:calc(var(--bot) + 76px);background:linear-gradient(transparent,var(--night) 30%);padding:18px 0 4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bot) + 84px);background:var(--chalk);color:var(--night);
+  padding:10px 16px;border-radius:12px;font-weight:700;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+.toast.show{opacity:1}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border:0}
+.kv span:last-child{text-align:right}
+pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
+</style>
+</head>
+<body>
+<header>
+  <svg class="crest" viewBox="0 0 34 40" onclick="go('home')" aria-label="SPL crest, back to Home" role="link">
+    <path d="M17 1 L32 6 V20 C32 30 25 36 17 39 C9 36 2 30 2 20 V6 Z" fill="#fff" stroke="#1d2b55" stroke-width="2"/>
+    <path d="M3 7 L17 2 L31 7 V16 H3 Z" fill="#1d2b55"/>
+    <ellipse cx="11" cy="10.5" rx="4.2" ry="2.6" fill="#8a5a2b"/><path d="M8.5 10.5h5" stroke="#fff" stroke-width=".8"/>
+    <circle cx="23" cy="10.5" r="3" fill="#d9a94a"/>
+    <text x="17" y="31" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="11" fill="#c8102e">SPL</text>
+  </svg>
+  <h1>SPL HQ<small id="sub">State Penn League</small></h1>
+  <span class="pill" id="conn">…</span>
+</header>
+<main id="view"></main>
+<nav class="tabs" id="tabs">
+  <button data-t="home"><span>🏠</span>Home</button>
+  <button data-t="match"><span>⚔️</span>Match</button>
+  <button data-t="team"><span>🏈</span>Team</button>
+  <button data-t="chat"><span>💬</span>Chat</button>
+  <button data-t="league"><span>🏆</span>League</button>
+</nav>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+// ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
+var API_URL = "";
+var APP_VERSION = "0.1";
+
+// ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
+var OWNERS = [
+  ["reilly","Joe","Reeling RaMPaGe","East Coast"],["murello","Mike","Bad Attitude Gang","East Coast"],
+  ["farrington","Al","Farrington's FREELANCERS","East Coast"],["glen","Glen","Fluff Muffins","North"],
+  ["chappie","Drew","BlaKK BoCCes","North"],["sikora","Pete","The Gunz","North"],
+  ["hoosier","Hoos","Hoosier's Dynamos","Philly"],["patel","Amit","Cheater's Streakers","Philly"],
+  ["salerno","Owen","Ween's Machine","Philly"],["moyer","Rich","Kimble's Finast","West Coast"],
+  ["bucher","Seth","Los Beasters Big Sky","West Coast"],["smith","Matt","Tijuana Trojans","West Coast"]
+].map(function (r) { return { id: r[0], name: r[1], team: r[2], div: r[3] }; });
+
+// ---- Questions for Joe (decisions the trade center + keeper engine need). Add new ones at the end; never reuse a qid.
+var QUESTIONS = [
+  { qid: "espn_lm", q: "Will you make Mike's team a league manager (co-commish) in SPL on ESPN?",
+    why: "The app executes approved trades on ESPN by itself. ESPN only allows that from a league manager's login.",
+    choices: ["Yes, now", "Yes, after the demo", "Let's talk"] },
+  { qid: "test_league", q: "Will you join the test league as co-commish for the demo?",
+    why: "We prove trades end to end in a throwaway ESPN league first. Nothing touches the real SPL league until you sign off.",
+    choices: ["Yes, send the invite", "Show me first"] },
+  { qid: "keeper_travels", q: "When a player under a keeper contract is traded, what happens to the contract?",
+    why: "The trade center has to move picks and keeper contracts along with players.",
+    choices: ["Contract travels as-is (KP, years)", "Contract resets", "Depends (explain below)"] },
+  { qid: "pick_years", q: "How many seasons ahead can draft picks be traded?",
+    why: "Sets which future picks show up in the trade builder.",
+    choices: ["Next season only", "2 seasons", "3 seasons", "No limit"] },
+  { qid: "trade_review", q: "How should trade approval work?",
+    why: "Every accepted trade lands on your desk in the app.",
+    choices: ["I approve every trade", "Auto-approve after a review window", "League veto vote", "Other (explain)"] },
+  { qid: "review_window", q: "If there's a review window, how long?",
+    why: "The robot waits this long before executing on ESPN.",
+    choices: ["None", "12 hours", "24 hours", "48 hours"] },
+  { qid: "deadlines", q: "What are the key dates? (trade deadline, keeper deadline, Slot + Divisional draft)",
+    why: "Deadlines lock buttons in the app and drive reminder cards.",
+    choices: [] },
+  { qid: "chat", q: "Chat: should the app have league chat, or keep the group text?",
+    why: "Trade talk will live in the app either way (DMs on each offer).",
+    choices: ["Full league chat in the app", "Trade DMs only, keep the group text", "Not sure yet"] },
+  { qid: "al_name", q: "ESPN lists Al's team under \"James Farrington\". Same person?",
+    why: "Owner names are the join key across all history.",
+    choices: ["Yes, Al = James", "No (explain)"] },
+  { qid: "first_wish", q: "If the app could do one thing for you as commish, what would it be?",
+    why: "Your answer goes to the top of the build list.", choices: [] }
+];
+
+// ---- tiny helpers
+function $(s) { return document.querySelector(s); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function toast(t) { var el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove("show"); }, 2600); }
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem("spl_" + k) || "null"); localStorage.setItem("spl_" + k, JSON.stringify(v)); } catch (e) { return null; } }
+function owner(id) { return OWNERS.filter(function (o) { return o.id === id; })[0]; }
+function teamOwner(name) { var n = String(name || "").toLowerCase(); return OWNERS.filter(function (o) { return o.team.toLowerCase() === n; })[0]; }
+function api(action, body) {
+  if (!API_URL) return Promise.reject(new Error("Backend not connected yet"));
+  if (!body) return fetch(API_URL + "?action=" + action).then(function (r) { return r.json(); });
+  body.action = action;
+  return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
+}
+var cache = {};
+function load(action, maxAgeMs) {
+  var c = cache[action]; if (c && Date.now() - c.at < (maxAgeMs || 60000)) return Promise.resolve(c.data);
+  return api(action).then(function (d) { cache[action] = { at: Date.now(), data: d }; return d; });
+}
+
+// ---- router
+var SCREENS = {}, TAB_OF = { home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league" };
+function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
+function render() {
+  var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
+  if (!SCREENS[name]) name = "home";
+  document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === TAB_OF[name]); });
+  $("#view").innerHTML = SCREENS[name](arg); window.scrollTo(0, 0);
+  if (SCREENS[name].after) SCREENS[name].after(arg);
+}
+window.addEventListener("hashchange", render);
+document.querySelectorAll("#tabs button").forEach(function (b) { b.onclick = function () { go(b.dataset.t); }; });
+function back(to, label) { return '<button class="back" onclick="go(\'' + to + '\')">‹ ' + label + '</button>'; }
+
+// ---- Home
+SCREENS.home = function () {
+  var answered = Object.keys(store("answers") || {}).length;
+  return '<div class="card lead"><div class="eyebrow">🏗️ Under construction · v' + APP_VERSION + '</div>' +
+    '<h2 style="margin:0">The SPL, in your pocket.</h2><p>Trades with picks and keeper contracts that execute on ESPN by themselves, the keeper room, 25 years of history, and a desk for the commish.</p></div>' +
+    '<div class="card"><div class="eyebrow">📋 For Joe</div><h3>Questions for the commish</h3>' +
+    '<p>' + QUESTIONS.length + ' quick calls that shape how trades and keepers work in the app.' + (answered ? ' <span class="lime">' + answered + ' answered on this phone.</span>' : '') + '</p>' +
+    '<p style="margin-top:12px"><button class="btn" onclick="go(\'joe\')">Answer them</button></p></div>' +
+    '<div class="card" id="homeStand"><div class="eyebrow">📊 Live from ESPN · SPL ' + 2026 + '</div><h3>Standings</h3><p class="muted">Loading…</p></div>' +
+    '<div class="card"><div class="eyebrow">💡 Ideas &amp; feedback</div><h3>Tell us what you want</h3><p>Anything: ideas, gripes, what you\'d love to see.</p>' +
+    '<p style="margin-top:12px"><button class="btn ghost" onclick="go(\'feedback\')">Send a note</button></p></div>';
+};
+SCREENS.home.after = function () {
+  load("standings", 300000).then(function (d) {
+    var el = $("#homeStand"); if (!el) return;
+    if (!d.ok) throw new Error(d.error);
+    var t = sortTeams(d.teams).slice(0, 4);
+    el.innerHTML = '<div class="eyebrow">📊 Live from ESPN · ' + esc(d.name || "SPL") + (d.week ? " · Week " + d.week : "") + '</div><h3>Top of the table</h3>' +
+      '<table>' + t.map(function (x, i) { return '<tr><td class="muted">' + (i + 1) + '</td><td>' + esc(x.name) + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td></tr>'; }).join("") + '</table>' +
+      '<p style="margin-top:10px"><button class="btn ghost" onclick="go(\'standings\')">Full standings</button></p>';
+  }).catch(function (e) { var el = $("#homeStand"); if (el) el.querySelector("p").textContent = e.message; });
+};
+
+// ---- placeholders for tabs not built yet
+function soon(title, what) {
+  return '<h2>' + title + '</h2><div class="card"><div class="eyebrow">Coming soon</div><p>' + what + '</p></div>';
+}
+SCREENS.match = function () { return soon("Match", "Your game this week, live from ESPN: scores, lineups side by side, and the rivalry history between you two."); };
+SCREENS.team = function () { return soon("Team", "Your roster with keeper contracts and KP costs, the draft picks you own, and the trade center: players + picks + contracts in one offer, executed on ESPN when the commish approves."); };
+SCREENS.chat = function () { return soon("Chat", "League chat, division rooms and DMs. Every trade offer opens its own thread."); };
+
+// ---- League grid
+var LEAGUE_TILES = [
+  ["standings", "📊", "Standings", "Live from ESPN"], ["joe", "📋", "Questions", "For the commish"],
+  ["soon=keepers", "🔒", "Keepers", "Contracts + forecaster", 1], ["soon=draft", "📝", "Draft", "Every pick by year", 1],
+  ["soon=history", "📚", "History", "Seasons + champions", 1], ["soon=gm", "🎓", "GM Rankings", "Glen's report", 1],
+  ["soon=rivalry", "⚔️", "Rivalry", "Head to head", 1], ["soon=rules", "📖", "Rules", "Constitution + timeline", 1],
+  ["feedback", "💡", "Ideas", "Feedback to the site"], ["ops", "🛠️", "Ops desk", "Is everything working?"]
+];
+SCREENS.league = function () {
+  return '<h2>League</h2><div class="grid">' + LEAGUE_TILES.map(function (t) {
+    return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span style="font-size:22px">' + t[1] + '</span><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></button>';
+  }).join("") + '</div>';
+};
+SCREENS.soon = function (what) {
+  var t = LEAGUE_TILES.filter(function (x) { return x[0] === "soon=" + what; })[0] || ["", "", "Coming soon", ""];
+  return back("league", "League") + soon(t[2], t[3] + ". Being built from the league's own history files.");
+};
+
+// ---- Standings
+function sortTeams(ts) {
+  return ts.slice().sort(function (a, b) {
+    if (a.seed && b.seed) return a.seed - b.seed;
+    return (b.w - b.l) - (a.w - a.l) || b.pf - a.pf;
+  });
+}
+SCREENS.standings = function () { return back("league", "League") + '<h2>Standings</h2><div id="stand" class="card"><p class="muted">Loading from ESPN…</p></div>'; };
+SCREENS.standings.after = function () {
+  load("standings", 300000).then(function (d) {
+    if (!d.ok) throw new Error(d.error);
+    var byDiv = {}; d.teams.forEach(function (t) { (byDiv[t.div || "League"] = byDiv[t.div || "League"] || []).push(t); });
+    var all = sortTeams(d.teams);
+    var html = '<div class="eyebrow">' + esc(d.name) + (d.week ? " · Week " + d.week : "") + ' · ESPN</div><h3>Overall</h3><table><tr><th>#</th><th>Team</th><th class="n">W–L</th><th class="n">PF</th></tr>' +
+      all.map(function (x, i) { var o = teamOwner(x.name); return '<tr><td class="muted">' + (i + 1) + '</td><td>' + esc(x.name) + (o ? ' <span class="muted">· ' + esc(o.name) + '</span>' : '') + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td><td class="n">' + x.pf + '</td></tr>'; }).join("") + '</table>';
+    Object.keys(byDiv).sort().forEach(function (k) {
+      if (k === "League") return;
+      html += '<h3 style="margin-top:18px">' + esc(k) + '</h3><table>' + sortTeams(byDiv[k]).map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td></tr>'; }).join("") + '</table>';
+    });
+    html += '<p class="muted" style="margin-top:10px;font-size:12px">Updated ' + new Date(d.at).toLocaleString() + '. Refreshes every 15 min.</p>';
+    $("#stand").innerHTML = html;
+  }).catch(function (e) { $("#stand").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+};
+
+// ---- Who's using this phone (no passwords yet: sign-in comes with the trade center)
+function whoPicker(id) {
+  var me = store("who") || (location.hash.indexOf("joe") >= 0 ? "reilly" : "");
+  return '<select id="' + id + '" onchange="store(\'who\',this.value)"><option value="">Who are you?</option>' +
+    OWNERS.map(function (o) { return '<option value="' + o.id + '"' + (o.id === me ? " selected" : "") + '>' + esc(o.name) + ' · ' + esc(o.team) + '</option>'; }).join("") + '</select>';
+}
+
+// ---- Questions for Joe
+SCREENS.joe = function () {
+  var draft = store("answers") || {};
+  return back("league", "League") + '<h2>Questions for the commish</h2>' +
+    '<div class="card"><p style="margin:0">Joe, these decide how trades, picks and keeper contracts work in the app. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime.</p>' +
+    '<div style="margin-top:12px">' + whoPicker("joeWho") + '</div></div>' +
+    '<div class="qlist">' + QUESTIONS.map(function (q) {
+      var a = draft[q.qid] || {};
+      return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px">' + esc(q.why) + '</p>' +
+        (q.choices.length ? '<div class="chips">' + q.choices.map(function (c) { return '<button class="chip' + (a.choice === c ? " on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join("") + '</div>' : '<div style="height:10px"></div>') +
+        '<textarea placeholder="' + (q.choices.length ? "Note (optional)" : "Your answer") + '">' + esc(a.note || "") + '</textarea>' +
+        (a.sent ? '<div class="saved">✓ sent</div>' : '') + '</div>';
+    }).join("") + '</div>' +
+    '<div class="sticky"><button class="btn" style="width:100%" id="sendAns">Send answers</button></div>';
+};
+SCREENS.joe.after = function () {
+  var draft = store("answers") || {};
+  document.querySelectorAll(".q").forEach(function (card) {
+    var qid = card.dataset.q;
+    card.querySelectorAll(".chip").forEach(function (ch) {
+      ch.onclick = function () {
+        var on = !ch.classList.contains("on");
+        card.querySelectorAll(".chip").forEach(function (x) { x.classList.remove("on"); });
+        if (on) ch.classList.add("on");
+        draft[qid] = draft[qid] || {}; draft[qid].choice = on ? ch.dataset.c : ""; draft[qid].sent = false; store("answers", draft);
+      };
+    });
+    card.querySelector("textarea").oninput = function (e) { draft[qid] = draft[qid] || {}; draft[qid].note = e.target.value; draft[qid].sent = false; store("answers", draft); };
+  });
+  $("#sendAns").onclick = function () {
+    var who = $("#joeWho").value; if (!who) { toast("Pick who you are first"); return; }
+    var items = QUESTIONS.filter(function (q) { var a = draft[q.qid]; return a && !a.sent && ((a.choice || "").trim() || (a.note || "").trim()); })
+      .map(function (q) { var a = draft[q.qid]; return { qid: q.qid, question: q.q, choice: a.choice || "", note: a.note || "" }; });
+    if (!items.length) { toast("Nothing new to send"); return; }
+    var btn = this; btn.disabled = true; btn.textContent = "Sending…";
+    api("answers", { who: who, items: items }).then(function (r) {
+      if (!r.ok) throw new Error(r.error);
+      items.forEach(function (it) { draft[it.qid].sent = true; }); store("answers", draft);
+      toast("✓ Sent " + r.saved + " answer" + (r.saved > 1 ? "s" : "") + ". Thanks!"); render();
+    }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = "Send answers"; });
+  };
+};
+
+// ---- Ideas & feedback
+SCREENS.feedback = function () {
+  return back("league", "League") + '<h2>Ideas &amp; feedback</h2><div class="card">' +
+    '<div style="margin-bottom:10px">' + whoPicker("fbWho") + '</div>' +
+    '<div class="chips" id="fbMood">' + ["😍 Love it", "👍 Good", "🤔 Confusing", "👎 Not for me"].map(function (m) { return '<button class="chip" data-m="' + m + '">' + m + '</button>'; }).join("") + '</div>' +
+    '<textarea id="fbNote" placeholder="Ideas, gripes, kudos, what you want to see…" style="min-height:120px"></textarea>' +
+    '<p style="margin-top:12px"><button class="btn" id="fbSend">Send</button></p></div>';
+};
+SCREENS.feedback.after = function () {
+  var mood = "";
+  document.querySelectorAll("#fbMood .chip").forEach(function (c) { c.onclick = function () { document.querySelectorAll("#fbMood .chip").forEach(function (x) { x.classList.remove("on"); }); c.classList.add("on"); mood = c.dataset.m; }; });
+  $("#fbSend").onclick = function () {
+    var btn = this; btn.disabled = true;
+    api("feedback", { who: $("#fbWho").value, mood: mood, note: $("#fbNote").value, kind: "idea", where: "feedback" }).then(function (r) {
+      if (!r.ok) throw new Error(r.error); toast("✓ Sent. Thanks!"); go("home");
+    }).catch(function (e) { toast(e.message); btn.disabled = false; });
+  };
+};
+
+// ---- 🛠️ Ops desk (Mike): is everything connected and working?
+SCREENS.ops = function () {
+  return back("league", "League") + '<h2>🛠️ Ops desk</h2>' +
+    '<div class="card" id="opsHealth"><div class="eyebrow">System</div><p class="muted">Checking…</p></div>' +
+    '<div class="card" id="opsAns"><div class="eyebrow">📋 Joe\'s answers</div><p class="muted">Loading…</p></div>' +
+    '<div class="card"><div class="eyebrow">App</div><div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
+    '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
+    '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div></div>';
+};
+SCREENS.ops.after = function () {
+  var ok = function (b, t) { return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
+  api("health").then(function (h) {
+    var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };
+    $("#opsHealth").innerHTML = '<div class="eyebrow">System · checked ' + new Date(h.at).toLocaleTimeString() + '</div>' +
+      '<div class="kv"><span>Backend</span><span>' + ok(true, "logic v" + h.version) + '</span></div>' +
+      '<div class="kv"><span>Sheet</span><span>' + ok(h.sheet, h.sheetName || "not reachable") + '</span></div>' +
+      '<div class="kv"><span>ESPN · SPL (read)</span><span>' + e(h.espnRead) + '</span></div>' +
+      '<div class="kv"><span>ESPN · test league</span><span>' + e(h.espnTest) + '</span></div>' +
+      '<div class="kv"><span>ESPN writes</span><span>' + (h.espnWrites ? '<span class="gold">ON</span>' : '<span class="muted">off</span>') + '</span></div>' +
+      '<div class="kv"><span>Emails left today</span><span>' + (h.mailLeft == null ? "?" : h.mailLeft) + '</span></div>' +
+      '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>';
+  }).catch(function (e) { $("#opsHealth").innerHTML = '<div class="eyebrow">System</div>' + ok(false, e.message); });
+  api("answers").then(function (d) {
+    if (!d.ok) throw new Error(d.error);
+    var byQ = {}; d.answers.forEach(function (a) { (byQ[a.qid] = byQ[a.qid] || []).push(a); });
+    var html = '<div class="eyebrow">📋 Answers · ' + d.total + ' saved</div>' + QUESTIONS.map(function (q) {
+      var list = byQ[q.qid] || [];
+      return '<div class="kv" style="display:block"><b style="font-size:13px">' + esc(q.q) + '</b><br>' +
+        (list.length ? list.map(function (a) { var o = owner(a.who); return '<span class="lime">' + esc(o ? o.name : a.who) + ':</span> ' + esc(a.choice || "") + (a.note ? ' <span class="muted">“' + esc(a.note) + '”</span>' : ''); }).join("<br>") : '<span class="muted">no answer yet</span>') + '</div>';
+    }).join("");
+    if (d.feedback.length) html += '<div class="eyebrow" style="margin-top:14px">💡 Latest feedback</div>' + d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("");
+    $("#opsAns").innerHTML = html;
+  }).catch(function (e) { $("#opsAns").innerHTML = '<div class="eyebrow">📋 Joe\'s answers</div><p class="coral">' + esc(e.message) + '</p>'; });
+};
+
+// ---- connection pill + boot
+function pingConn() {
+  var el = $("#conn");
+  if (!API_URL) { el.textContent = "offline"; el.className = "pill bad"; return; }
+  api("health").then(function (h) { el.textContent = h.healthy ? "live" : "check"; el.className = "pill " + (h.healthy ? "ok" : "bad"); })
+    .catch(function () { el.textContent = "offline"; el.className = "pill bad"; });
+}
+render(); pingConn();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+</script>
+</body>
+</html>
