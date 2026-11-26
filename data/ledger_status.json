@@ -1,7 +1,8 @@
 {
- "at": "2026-11-26T04:07+00:00",
+ "at": "2026-11-26T11:50+00:00",
+ "drafts": 0,
  "mode": "test",
- "backend": "0.6",
+ "backend": "0.8.0",
  "trades": 0,
  "picks": 204,
  "rules": {
@@ -10,7 +11,7 @@
   ],
   "pickYearsFrom": "default",
   "contracts": "travels",
-  "contractsFrom": "default"
+  "contractsFrom": "commish"
  },
  "contractMoves": []
 }
