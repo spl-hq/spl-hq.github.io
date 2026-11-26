@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **🧢 GM desk = the Team tab** (Mike). An owner's roster, trades and keepers are one desk with a 3-way bar
+  (🏈 Roster · 🔁 Trades · 🔒 Keepers) on top of each page, each with a live status line; the Team tab stays lit across all three.
+  No owner pill rows: other teams sit behind an 👀 Other teams picker. League → Keepers on your own team lands at the same desk.
 - 2026-11-26 · **Show the last copy, then refresh** (Mike: load times). App shell is cached-first (update check covers new versions);
   Home/Match/rosters/standings draw from the phone's last answer and refresh behind. Live actions (trades, desk, votes) always fetch.
 - 2026-11-26 · **Keeper calculator → Signing Day declarations in the app** (Mike: "love the scenarios that turn into declare keepers… posts to

@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Team tab overhaul + keeper prices v0.17.2–.4)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Team tab → 🧢 GM desk v0.17.2–0.18.0)
 
 ## Now
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
@@ -19,6 +19,12 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.18.0 · 🧢 **GM desk** (Mike: one owner desk instead of separate trade + keeper portals, and an obvious way back to your team).
+  The Team tab is now your GM desk: a 3-way bar **🏈 Roster · 🔁 Trades · 🔒 Keepers** sits on top of your team, the Trades page, the trade
+  grid + builder, and your Keepers page; the one you're on is navy, each shows a live line (record · "1 needs you" in gold / open offers /
+  picks · KP left + keepers of 3 / "Declare now" in gold / ✅ Declared). The Team tab stays lit on all of them (your Keepers too, even from
+  League). Replaces v0.17.2's two tiles and the grid's "‹ Trades" back. Keepers page: owner pill row gone; someone else's keepers get
+  "‹ Your keepers" + an 👀 Other teams picker at the bottom. SW `splhq-v36`.
 - 2026-11-26 · v0.17.4 · 🏷️ **Keeper price on every roster row** (Mike: the trade grid must show where each player was drafted). New `kpBadge()` on the
   trade grid, the trade builder and the Team roster: 🔒 gold = carries a contract (next season's KP → final year, TAG for a franchise year);
   blue **R3 · 6 KP** = what keeping him costs, from his round in last season's SPL Draft (UD · 2 KP = undrafted); grey **✗ no ext.** / **✗ cut**

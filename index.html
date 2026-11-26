@@ -323,7 +323,14 @@ a.btn.ghost{text-decoration:none}
 .kseg button.on{background:#1E407C;color:#fff;border-color:#1E407C} tr.kx .kpl{text-decoration:line-through;color:var(--muted)} tr.kon td{background:#EEF3FA}
 .kdec{margin-top:10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFBFD} .kerr{margin-top:10px;color:#C8102E;font-weight:700;font-size:13px} .kerr p{margin:4px 0}
 .kbd{border-bottom:1px solid var(--line)} .kbd:last-of-type{border:0} .kbd summary{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;list-style:none} .kbd summary::-webkit-details-marker{display:none}
-.kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .tiles2.tq{margin:0 0 12px} .tq2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px} .tq2 .btn{width:100%;margin:0} .card.needsb,.tile.needsb{border-color:var(--gold)} .tile.needsb small{color:var(--gold);font-weight:700} .mono{font-family:var(--mono)}
+.kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .gmhd{margin:0 0 6px} .gmbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
+.gmbar button{background:#fff;border:1px solid #D9DCE0;border-radius:12px;padding:8px 8px 7px;text-align:left;cursor:pointer;min-width:0;box-shadow:0 1px 2px rgba(30,35,40,.06)}
+.gmbar b{display:block;font:800 13px var(--head);text-transform:uppercase;letter-spacing:.03em;color:#041E42;white-space:nowrap}
+.gmbar small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.gmbar button.on{background:#041E42;border-color:#041E42} .gmbar button.on b{color:#fff} .gmbar button.on small{color:#96BEE6}
+.gmbar button.needsb{border-color:var(--gold)} .gmbar button.needsb small{color:var(--gold);font-weight:700} .gmbar button.on.needsb small{color:#E8C77A}
+.gmtop{flex:none;padding:12px 14px 0}
+.tiles2.tq{margin:0 0 12px} .tq2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px} .tq2 .btn{width:100%;margin:0} .card.needsb,.tile.needsb{border-color:var(--gold)} .tile.needsb small{color:var(--gold);font-weight:700} .mono{font-family:var(--mono)}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -378,7 +385,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.17.4";
+var APP_VERSION = "0.18.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -511,10 +518,12 @@ function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
   if (!SCREENS[name]) name = "home";
-  document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === TAB_OF[name]); });
+  var tab = name === "keepers" && ME && (!arg || arg === ME.owner) ? "team" : TAB_OF[name]; // your keepers = your GM desk
+  document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === tab); });
   var dk = $("#deskBtn"); if (dk) dk.classList.toggle("on", name === "desk" || name === "ops" || name === "joe");
   $("#view").innerHTML = SCREENS[name](arg); $("#view").scrollTop = 0;
   if (SCREENS[name].after) SCREENS[name].after(arg);
+  if ($("#gmK")) gmFill();
 }
 window.addEventListener("hashchange", render);
 document.querySelectorAll("#tabs button").forEach(function (b) { b.onclick = function () { go(b.dataset.t); }; });
@@ -768,8 +777,7 @@ SCREENS.team = function (arg) {
   if (!ME) return '<h2>Team</h2>' + needSignIn("to see rosters");
   var id = arg || ME.owner, mine = id === ME.owner, o = owner(id) || {};
   // Your team: Trades + Keepers one tap away. Someone else's: back to yours + what you'd do with them.
-  var top = mine ? '<div class="tiles2 tq"><button class="tile" id="tqT" onclick="go(\'trades\')"><span style="font-size:22px">🔁</span><b>Trades</b><small>Offers · picks · new trade</small></button>' +
-      '<button class="tile" id="tqK" onclick="go(\'keepers\')"><span style="font-size:22px">🔒</span><b>Keepers</b><small>' + esc(teamKeepTxt().t) + '</small></button></div>'
+  var top = mine ? gmBar("team")
     : '<div class="gtop">' + back("team", "Your team") + '</div><div class="tq2"><button class="btn" onclick="go(\'trade\',\'' + id + '\')">🔁 Propose a trade</button>' +
       '<button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message</button><button class="btn ghost" onclick="go(\'rivalry\',\'' + ME.owner + ',' + id + '\')">⚔️ Rivalry</button>' +
       '<button class="btn ghost" onclick="go(\'keepers\',\'' + id + '\')">🔒 Keepers</button></div><div id="ct"></div>';
@@ -780,25 +788,32 @@ SCREENS.team = function (arg) {
 // Keepers tile line: Signing Day first (declare / declared), else your current plan's room.
 function teamKeepTxt() {
   var me = ME.owner, W = kwinOpen(), dec = kdeclOf(me);
-  if (dec) return { t: "✅ Declared" + (W ? " · change until close" : "") };
-  if (W) return { t: "Signing Day open: declare", needs: true };
-  try { var list = kscn(me), sc = list[ksel(me)], C = kcalc(me, sc); return { t: C.yrs[KP_YRS[0]].room + " KP left '" + String(KP_YRS[0]).slice(2) + " · " + C.count + " of 3" + (list.length > 1 ? " · " + list.length + " plans" : "") }; }
+  if (dec) return { t: "✅ Declared" };
+  if (W) return { t: "Declare now", needs: true };
+  try { var list = kscn(me), sc = list[ksel(me)], C = kcalc(me, sc); return { t: C.yrs[KP_YRS[0]].room + " KP left · " + C.count + "/3" }; }
   catch (e) { return { t: "Plans · cap · Signing Day" }; }
 }
-function teamQuick() {
-  var k = $("#tqK"); if (!k || !ME) return;
-  loadKeep().then(function () { var k = $("#tqK"); if (!k) return; var x = teamKeepTxt(); k.querySelector("small").textContent = x.t; k.classList.toggle("needsb", !!x.needs); }).catch(function () {});
-  loadTrades().then(function (t) { var b = $("#tqT"); if (!b) return; var me = ME.owner,
+// 🧢 GM desk (Mike 11/26): your team, your trades and your keepers are one desk. The same 3-way bar sits on top of each
+// (#team, #trades, #trade, your #keepers), so you always know you're at your desk and one tap gets you back to the roster.
+function gmBar(on) {
+  var k = teamKeepTxt(), it = [["team", "🏈", "Roster", "", "gmR"], ["trades", "🔁", "Trades", "Offers · picks", "gmT"], ["keepers", "🔒", "Keepers", k.t, "gmK"]];
+  return '<div class="gmhd"><span class="eyebrow">🧢 GM desk · ' + esc((owner(ME.owner) || {}).team || "") + '</span></div><div class="gmbar">' + it.map(function (x) {
+    return '<button id="' + x[4] + '" class="' + (x[0] === on ? "on" : "") + (x[4] === "gmK" && k.needs ? " needsb" : "") + '" onclick="go(\'' + x[0] + '\')"><b>' + x[1] + ' ' + x[2] + '</b><small>' + esc(x[3]) + '</small></button>'; }).join("") + '</div>';
+}
+function gmFill() {
+  if (!ME || !$("#gmK")) return;
+  var R = $("#gmR"); if (R) { var st = ((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).filter(function (x) { return x.owner === ME.owner; })[0]; R.querySelector("small").textContent = st ? st.w + "–" + st.l + (st.t ? "–" + st.t : "") : "Your roster"; }
+  loadKeep().then(function () { var k = $("#gmK"); if (!k) return; var x = teamKeepTxt(); k.querySelector("small").textContent = x.t; k.classList.toggle("needsb", !!x.needs); }).catch(function () {});
+  loadTrades().then(function (t) { var b = $("#gmT"); if (!b) return; var me = ME.owner,
       inb = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }).length,
       out = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.from === me; }).length,
       pk = t.picks.filter(function (p) { return p.owner === me; }).length;
-    b.querySelector("small").textContent = inb ? inb + " need" + (inb > 1 ? "" : "s") + " your answer" : out ? out + " open offer" + (out > 1 ? "s" : "") + " · " + pk + " picks" : pk + " picks · new trade";
+    b.querySelector("small").textContent = inb ? inb + " need" + (inb > 1 ? "" : "s") + " you" : out ? out + " open · " + pk + " picks" : pk + " picks";
     b.classList.toggle("needsb", inb > 0); }).catch(function () {});
 }
 SCREENS.team.after = function (arg) {
   if (!$("#tm")) return;
   var id = arg || ME.owner, o = owner(id) || {};
-  if (id === ME.owner) teamQuick();
   var draw = function (d) {
     if (!$("#tm")) return;
     if (!d.ok) throw new Error(d.error);
@@ -894,7 +909,7 @@ function deskTrade(id, d) {
 function testBanner(t) { return t && t.mode === "test" ? '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small class="gold">🧪 Test mode: trades here are practice. Mike can wipe them. Trades between Mike, Joe, Al and Glen move on the ESPN test league when Mike has ESPN writes on; nothing ever touches the real SPL league. Rules use defaults until Joe answers his questions.</small></div>' : ''; }
 SCREENS.trades = function (focus) {
   if (!ME) return '<h2>Trades</h2>' + needSignIn("to trade");
-  return '<h2>Trades</h2><div id="trd"><div class="card"><p class="muted">Loading…</p></div></div>';
+  return gmBar("trades") + '<div id="trd"><div class="card"><p class="muted">Loading…</p></div></div>';
 };
 SCREENS.trades.after = function (focus) {
   if (!$("#trd")) return;
@@ -927,9 +942,10 @@ function grouped(players, cell) {
 }
 SCREENS.trade = function (arg) {
   if (!ME) return '<h2>Trade</h2>' + needSignIn("to trade");
-  if (!arg) return '<div class="gridwrap" id="tg"><p class="muted" style="padding:14px">Loading every roster…</p></div>';
+  var gw = function (inner) { return '<div class="gridwrap"><div class="gmtop">' + gmBar("trades") + '</div><div style="flex:1;position:relative;min-height:0">' + inner + '</div></div>'; };
+  if (!arg) return gw('<div class="gridwrap" id="tg"><p class="muted" style="padding:14px">Loading every roster…</p></div>');
   var other = String(arg).split(":")[0];
-  return '<div class="gridwrap" id="tb"><p class="muted" style="padding:14px">Loading rosters…</p></div>';
+  return gw('<div class="gridwrap" id="tb"><p class="muted" style="padding:14px">Loading rosters…</p></div>');
 };
 SCREENS.trade.after = function (arg) {
   if (!ME) return;
@@ -938,7 +954,7 @@ SCREENS.trade.after = function (arg) {
     Promise.all([loadRosters(), loadTrades()]).then(function (res) {
       var ro = res[0], t = res[1], st = sortTeams((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).map(function (x) { return x.owner; });
       var ids = [me].concat(OWNERS.map(function (o) { return o.id; }).filter(function (id) { return id !== me; }).sort(function (a, b) { var ia = st.indexOf(a), ib = st.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }));
-      var html = '<div class="gtop">' + back("trades", "Trades") + '<span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted).</span></div><div class="tgrid2">' + ids.map(function (id) {
+      var html = '<div class="gtop"><span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted).</span></div><div class="tgrid2">' + ids.map(function (id) {
         var tm = teamRoster(ro, id); if (!tm) return ""; var mine = id === me, np = t.picks.filter(function (p) { return p.owner === id; }).length;
         var head = mine ? '<div class="ghead me"><b>You</b><small>' + esc(tm.rec) + ' · 🎟️ ' + np + ' picks</small></div>'
           : '<button class="ghead" onclick="go(\'trade\',\'' + id + '\')"><b>' + esc(tm.team) + '</b><small>' + esc(oname(id)) + ' · ' + esc(tm.rec) + ' · 🎟️ ' + np + '</small><span class="gtrade">Trade ›</span></button>';
@@ -1290,7 +1306,7 @@ SCREENS.keepers = function (arg) {
   var id = arg || (ME ? ME.owner : OWNERS[0].id), o = owner(id) || {}, mine = kmine(id), y0 = KP_YRS[0];
   if (ME && !KEEP) { loadKeep().then(function () { if (/^#keepers/.test(location.hash)) render(); }).catch(function () {}); }
   var list = kscn(id), si = ksel(id), sc = list[si], C = kcalc(id, sc), t0 = C.yrs[y0], cuts = sc.cuts || [], W = kwinOpen(), dec = kdeclOf(id), sd = signingDay();
-  var html = back("league", "League") + '<h2>Keepers</h2><div class="hscroll">' + OWNERS.map(function (x) { return '<button class="chip' + (x.id === id ? " on" : "") + '" onclick="go(\'keepers\',\'' + x.id + '\')">' + esc(x.name) + '</button>'; }).join("") + '</div>';
+  var html = mine ? gmBar("keepers") : back(ME ? "keepers" : "league", ME ? "Your keepers" : "League") + '<h2>Keepers · ' + esc(o.name || "") + '</h2>';
   // ⏳ Signing Day: the window (rehearsal / open / done) or the countdown
   var KW = KEEP && KEEP.window && +KEEP.window.season === y0 ? KEEP.window : null;
   html += '<div class="card' + (W && mine && !dec ? " needsb" : "") + '"><div class="eyebrow">⏳ Keeper Signing Day ' + y0 + (KW && KW.mode === "test" ? ' · 🧪 rehearsal' : '') + '</div>' +
@@ -1344,6 +1360,8 @@ SCREENS.keepers = function (arg) {
     LD("contracts").slice().sort(function (a, b) { return a.owner < b.owner ? -1 : a.owner > b.owner ? 1 : 0; }).map(function (c) { var v = c.status === "active" ? c.kp[y0 - 1] : c.pen[y0 - 1];
       return '<tr><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + (c.status !== "active" ? ' <span class="tag" style="color:var(--coral)">' + esc(c.status.toUpperCase()) + '</span>' : '') + '</td><td>' + esc(oname(c.owner)) + '</td><td class="n">' + c.signed + '+' + c.term + '</td><td class="n' + (c.status !== "active" ? " coral" : "") + '">' + (v == null ? "·" : v) + '</td></tr>'; }).join("") +
     '</table><p class="muted" style="font-size:12px">Contracts follow traded players, and Signing Day declarations become contracts, automatically (ledger robot).</p></details>';
+  html += '<div class="card"><div class="eyebrow">👀 ' + (mine ? "Other teams" : "Another team") + '</div><select style="width:100%" onchange="if(this.value)go(\'keepers\',this.value)"><option value="">See another team\'s cap + plans…</option>' +
+    OWNERS.filter(function (x) { return x.id !== id; }).map(function (x) { return '<option value="' + x.id + '">' + esc(x.name) + ' · ' + esc(x.team) + '</option>'; }).join("") + '</select></div>';
   return html;
 };
 function kplanTxt(id, x) {
