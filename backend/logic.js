@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.6.1";
+var VERSION = "0.7.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -28,6 +28,9 @@ function rules_() {
   return { pickSeasons: seasons, pickYearsFrom: py ? "commish" : "default", contracts: /resets/i.test(kt || "") ? "resets" : "travels", contractsFrom: kt ? "commish" : "default" };
 }
 var APP_URL = "https://spl-hq.github.io/";
+// 📥 Desks + roles (WS1, Mike 11/26). Joe (commish) runs the Commish desk. Mike (ops + commish) sees it as "Joe's view", read-only,
+// except where the rules need him: trades Joe is in (no self-approval) and backup once a trade has waited BACKUP_WAIT_H on Joe.
+var BACKUP_WAIT_H = 48;
 var MAX_FAILS_PER_HOUR = 30; // league-wide wrong passphrases before sign-in pauses for the hour (signed-in phones keep working)
 
 // Owners (names + teams only; contacts never live here). Seeded into the Owners tab by "Run setup check".
@@ -97,7 +100,7 @@ function doPost(e) {
       case "offer":    return json(offer_(me, b));
       case "respond":  return json(respond_(me, b));
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
-      case "pickfix":  return json(desk ? pickFix_(me, b) : { ok: false, error: "Commish only" });
+      case "pickfix":  return json(!desk ? { ok: false, error: "Commish only" } : isBackup_(me) ? { ok: false, error: "Pick fixes are Joe's call (read-only in Joe's view)." } : pickFix_(me, b));
       case "wipetrades": return json(isRole_(me, "ops") ? wipeTrades_(me) : { ok: false, error: "Ops only" });
       default:         return json({ ok: false, error: "unknown action" });
     }
@@ -174,6 +177,20 @@ function seedOwners_() {
   return added;
 }
 function isRole_(o, r) { return String(o.role || "").split(/[,\s]+/).indexOf(r) >= 0; }
+function isBackup_(o) { return isRole_(o, "ops"); } // Mike: commish powers only as backup on Joe's desk
+// Why `me` can't approve/negate this accepted trade right now ("" = can act).
+function deskLock_(me, r) {
+  if (!(isRole_(me, "commish") || isRole_(me, "ops"))) return "Commish only";
+  var byId = {}; owners_().forEach(function (o) { byId[o.owner] = o; });
+  var desk = function (id) { var o = byId[id]; return o && (isRole_(o, "commish") || isRole_(o, "ops")); };
+  var mine = r.from === me.owner || r.to === me.owner;
+  if (mine && !(desk(r.from) && desk(r.to))) return "You're in this trade: the other commish approves it.";
+  if (!isBackup_(me) || mine) return "";
+  var primaryIn = [r.from, r.to].some(function (id) { var o = byId[id]; return o && isRole_(o, "commish") && !isBackup_(o); });
+  if (primaryIn) return "";
+  var h = (Date.now() - new Date(r.updated_ts || r.ts).getTime()) / 36e5;
+  return h >= BACKUP_WAIT_H ? "" : "Joe's call. You can step in as backup after " + BACKUP_WAIT_H + " h (" + Math.ceil(BACKUP_WAIT_H - h) + " h to go).";
+}
 function pub_(o) { return { owner: o.owner, name: o.name, team: o.team, role: String(o.role || "owner") }; }
 function auth_(token) {
   var t = String(token || ""), id = t.split(".")[0]; if (!id || t.indexOf(".") < 0) return null;
@@ -240,7 +257,8 @@ function desk_(me) {
     issued: o.issued_ts || null, lastSeen: o.last_seen || null }; });
   var offs = rows_("Offers").map(function (r) { r.giveO = parseJ_(r.give); r.getO = parseJ_(r.get); return pub_offer_(r); });
   return { ok: true, total: total, answers: Object.keys(latest).map(function (k) { return latest[k]; }), feedback: fb, owners: owners, mode: TRADE_MODE,
-    review: offs.filter(function (o) { return o.status === "ACCEPTED"; }), espn: offs.filter(function (o) { return o.status === "APPROVED" && o.espn === "todo"; }),
+    review: offers_().filter(function (r) { return r.status === "ACCEPTED"; }).map(function (r) { var o = pub_offer_(r); o.lock = deskLock_(me, r); return o; }),
+    backupWaitH: BACKUP_WAIT_H, espn: offs.filter(function (o) { return o.status === "APPROVED" && o.espn === "todo"; }),
     recent: offs.filter(function (o) { return o.status === "APPROVED" || o.status === "NEGATED"; }).reverse().slice(0, 10) };
 }
 
@@ -536,7 +554,7 @@ function trades_(me) {
   var rl = rules_();
   return { ok: true, mode: TRADE_MODE, seasons: rl.pickSeasons, rounds: PICK_ROUNDS, rules: rl,
     picks: picks.map(function (p) { return { pid: p.pid, season: Number(p.season), round: Number(p.round), original: p.original, owner: p.owner, via: p.via }; }),
-    offers: mine.map(pub_offer_).reverse().slice(0, 80), moves: moves };
+    offers: mine.map(function (r) { var o = pub_offer_(r); if (desk && r.status === "ACCEPTED") o.lock = deskLock_(me, r); return o; }).reverse().slice(0, 80), moves: moves };
 }
 function offer_(me, b) {
   var to = String(b.to || ""); if (!oid_(to) || to === me.owner) return { ok: false, error: "Pick a team to trade with." };
@@ -588,8 +606,8 @@ function tradeAct_(me, b) {
   // Nobody approves their own trade. A Joe ↔ Mike trade has no neutral commish: either may approve, and the league card says so
   // (until Joe answers the "commish_trades" question in the app).
   var deskOf = function (id) { var o = owners_().filter(function (x) { return x.owner === id; })[0]; return o && (isRole_(o, "commish") || isRole_(o, "ops")); };
-  var bothDesk = deskOf(r.from) && deskOf(r.to);
-  if ((r.from === me.owner || r.to === me.owner) && !bothDesk) return { ok: false, error: "You're in this trade: the other commish approves it." };
+  var bothDesk = deskOf(r.from) && deskOf(r.to), lock = deskLock_(me, r);
+  if (lock) return { ok: false, error: lock };
   if (d === "negate") { if (!String(b.reason || "").trim()) return { ok: false, error: "Give a reason for the league." }; r.status = "NEGATED"; r.reason = clip_(b.reason, 200); }
   else if (d === "approve") {
     var picks = seedPicks_(), err = checkSide_(r.from, r.giveO, picks) || checkSide_(r.to, r.getO, picks); if (err) return { ok: false, error: "Can't approve: " + err };

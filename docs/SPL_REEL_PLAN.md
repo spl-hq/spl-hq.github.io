@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **Desks behind the login, not in League** (Mike, WS1). Header Desk button for desk roles only. Joe (commish) sees the Commish desk only; Mike (ops + commish) gets the Ops desk plus Joe's Commish desk as "Joe's view", read-only except trades Joe is in and backup after `BACKUP_WAIT_H` = 48 h (default until Joe answers otherwise). Pick ledger fixes are Joe's. Questions live inside the desk.
 - 2026-11-25 · **League history = ESPN 19583, 2006–2026** in gold `data/SPL_Matchups.csv` (robot-written). Missing: 2004–05 (pre-ESPN) and 2020–21 (no scores on ESPN). Ask Joe/Glen for those seasons' results to backfill by hand.
 - 2026-11-25 · **Theme: "Nittany"** (Penn State blue + white) replaces Stadium Lights (black/neon). Supersedes the wireframe doc's theme choice.
 - 2026-11-25 · **Trade center v1 in test mode** with defaults until Joe answers: 2027 picks only (17 rounds), contracts travel with the player, commish approves every trade, no self-approval (Joe ↔ Mike trades: either approves, flagged). Live pick ledger = Sheet Picks tab (export to gold `Draft_Pick_Ownership.csv` comes with the ledger robot).

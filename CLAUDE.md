@@ -56,7 +56,7 @@ Icons sit on Nittany Navy.
 
 ## Layout
 ```
-index.html            the app (single page, hash routes: #home #standings #joe #feedback #ops …)
+index.html            the app (single page, hash routes: #home #standings #rivalry #feedback …; desks #desk #ops #joe behind the header Desk button)
 manifest.json sw.js   Home Screen install + offline cache (never caches the backend)
 icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)

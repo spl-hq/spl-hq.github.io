@@ -171,6 +171,7 @@ ok(e.mails.some(m => /waiting on the commish/.test(m.s)), "ops emailed: trade wa
 ok(e.post({ action: "tradeact", token: glen, id: tid, decision: "approve" }).error === "Commish only", "owners can't approve");
 ok(e.post({ action: "tradeact", token: glen, id: tid, decision: "approve" }).error === "Commish only", "owners can't approve");
 r = e.post({ action: "desk", token: joeTok }); ok(r.ok && r.review.length === 1, "trade shows on the commish desk");
+ok(r.review[0].lock === "" && e.post({ action: "desk", token: mike }).review[0].lock === "", "Mike↔Joe trade: both may act (no neutral commish)");
 // Joe is in it too: neither commish can approve their own → make Glen a commish? No: Mike vs Joe trades need a third. Use a Glen↔Joe trade for approval.
 const g = e.post({ action: "offer", token: glen, to: "reilly", give: { picks: ["2027-R3-glen"] }, get: { picks: ["2027-R2-reilly"] } });
 ok(g.ok, "Glen offers a pick swap to Joe");
@@ -191,6 +192,16 @@ const c2 = e.post({ action: "offer", token: joeTok, to: "glen", counterOf: c1.of
 ok(c2.ok && e.post({ action: "trades", token: glen }).offers.find(o => o.id === c1.offer.id).reason === "Countered", "counter declines the original");
 ok(e.post({ action: "respond", token: glen, id: c2.offer.id, decision: "withdraw" }).ok === false, "only the sender withdraws");
 ok(e.post({ action: "respond", token: joeTok, id: c2.offer.id, decision: "withdraw" }).ok, "Joe withdraws his counter");
+// WS1 · Joe's view: Mike is read-only on trades Joe isn't in, until they've waited BACKUP_WAIT_H on Joe
+const sm = e.post({ action: "login", pin: e.post({ action: "issue", token: mike, owner: "smith" }).phrase }).token;
+const b1 = e.post({ action: "offer", token: glen, to: "smith", give: { picks: ["2027-R6-glen"] }, get: { picks: ["2027-R6-smith"] } });
+e.post({ action: "respond", token: sm, id: b1.offer.id, decision: "accept" });
+ok(/backup after 48 h/.test(e.post({ action: "tradeact", token: mike, id: b1.offer.id, decision: "approve" }).error), "Mike can't approve Glen↔Smith yet: Joe's call");
+r = e.post({ action: "desk", token: mike }); ok(/Joe's call/.test(r.review.find(o => o.id === b1.offer.id).lock) && r.backupWaitH === 48, "desk tells Mike why it's locked");
+ok(e.post({ action: "desk", token: joeTok }).review.find(o => o.id === b1.offer.id).lock === "", "Joe can act on it");
+ok(/Joe's call/.test(e.post({ action: "trades", token: mike }).offers.find(o => o.id === b1.offer.id).lock), "trades feed carries the lock (reel card count)");
+const oc = e.sheets.Offers.rows[0].indexOf("updated_ts"), orow = e.sheets.Offers.rows.find(x => x[0] === b1.offer.id); orow[oc] = new Date(Date.now() - 49 * 36e5);
+ok(e.post({ action: "tradeact", token: mike, id: b1.offer.id, decision: "approve" }).ok, "after 48 h Mike steps in as backup");
 // wipe
 ok(e.post({ action: "wipetrades", token: joeTok }).ok === false, "only ops wipes");
 ok(e.post({ action: "wipetrades", token: mike }).ok && e.post({ action: "trades", token: mike }).offers.length === 0, "ops wipes test trades + reseeds picks");
@@ -221,10 +232,11 @@ let L = e.get({ action: "ledger" });
 ok(L.ok && L.mode === "test" && L.picks.length === 2 * 12 * 17 && Array.isArray(L.trades), "ledger feed: picks + approved trades + rules");
 ok(!JSON.stringify(L).includes("let's deal") && !JSON.stringify(L).includes("@example.com"), "ledger feed carries no notes or contacts");
 ok(e.post({ action: "pickfix", token: glen, pid: "2027-R1-smith", to: "glen", reason: "x" }).error === "Commish only", "owners can't fix picks");
-ok(e.post({ action: "pickfix", token: mike, pid: "2027-R1-smith", to: "glen" }).error.includes("reason"), "pick fix needs a reason");
-ok(e.post({ action: "pickfix", token: mike, pid: "2027-R1-smith", to: "glen", reason: "Traded in August" }).ok, "commish moves a pick");
+ok(/Joe's call/.test(e.post({ action: "pickfix", token: mike, pid: "2027-R1-smith", to: "glen", reason: "x" }).error), "pick fixes are Joe's (Mike read-only)");
+ok(e.post({ action: "pickfix", token: joeTok, pid: "2027-R1-smith", to: "glen" }).error.includes("reason"), "pick fix needs a reason");
+ok(e.post({ action: "pickfix", token: joeTok, pid: "2027-R1-smith", to: "glen", reason: "Traded in August" }).ok, "commish moves a pick");
 L = e.get({ action: "ledger" });
-ok(L.picks.find(p => p.pid === "2027-R1-smith").owner === "glen" && /^fix:murello/.test(L.picks.find(p => p.pid === "2027-R1-smith").via), "fix shows in the ledger with who did it");
+ok(L.picks.find(p => p.pid === "2027-R1-smith").owner === "glen" && /^fix:reilly/.test(L.picks.find(p => p.pid === "2027-R1-smith").via), "fix shows in the ledger with who did it");
 ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Pick ledger fix/.test(r[4])), "league told about the fix");
 // Joe answers "Contract resets" → rule flips
 e.post({ action: "answers", token: joeTok, items: [{ qid: "keeper_travels", question: "q", choice: "Contract resets" }] });

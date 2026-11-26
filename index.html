@@ -38,6 +38,7 @@ header h1{margin:0;font:800 22px/1 var(--head);letter-spacing:.04em;text-transfo
 header h1 small{display:block;font:500 11px/1.4 var(--mono);color:var(--muted);letter-spacing:.06em}
 .pill{font:600 11px var(--mono);padding:4px 8px;border-radius:99px;background:var(--raised);color:var(--muted);border:1px solid var(--line)}
 .pill.ok{color:var(--lime)} .pill.bad{color:var(--coral)}
+.dk{border:1px solid #96BEE6;border-radius:99px;background:transparent;color:#fff;font:800 12px var(--body);padding:6px 10px;cursor:pointer;white-space:nowrap}.dk[hidden]{display:none}.dk.on{background:#1E407C}
 .me{border:0;border-radius:99px;background:var(--lime);color:var(--night);font:800 12px var(--body);padding:7px 11px;cursor:pointer;min-width:34px}
 .phrase{font:700 22px var(--mono);letter-spacing:.04em;color:var(--lime);background:var(--night);border:1px dashed var(--lime);border-radius:12px;padding:14px;text-align:center;margin:10px 0;word-break:break-all}
 main{flex:1;min-height:0;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:14px max(14px, calc(50% - 266px)) 28px}
@@ -240,6 +241,7 @@ a.btn.ghost{text-decoration:none}
   <img class="crest" src="icons/crest.png?v=3" alt="SPL crest, back to Home" role="link" onclick="go('home')">
   <h1>SPL HQ<small id="sub">State Penn League</small></h1>
   <span class="pill" id="conn">…</span>
+  <button class="dk" id="deskBtn" type="button" onclick="goDesk()" hidden></button>
   <button class="me" id="meBtn" onclick="go(ME ? 'you' : 'signin')">Sign in</button>
 </header>
 <main id="view"></main>
@@ -273,7 +275,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.8.3";
+var APP_VERSION = "0.9";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -344,26 +346,38 @@ function load(action, maxAgeMs) {
 var ME = store("me"), MY = {};
 function isRole(r) { return !!ME && String(ME.role || "").split(/[,\s]+/).indexOf(r) >= 0; }
 function isDesk() { return isRole("commish") || isRole("ops"); }
+// 📥/🛠️ Desks live behind the login (WS1, Mike 11/26), not in League. Joe (commish) → Commish desk. Mike (ops) → Ops desk + Joe's view.
+function isOps() { return isRole("ops"); }
+function goDesk() { go(isOps() ? "ops" : "desk"); }
+function deskTop(which) {
+  if (!isOps()) return '<h2>📥 Commish desk</h2>';
+  return '<div class="hscroll" style="margin-bottom:4px"><button class="chip' + (which === "ops" ? " on" : "") + '" onclick="go(\'ops\')">🛠️ Ops desk</button><button class="chip' + (which === "desk" ? " on" : "") + '" onclick="go(\'desk\')">📥 Commish · Joe\'s view</button></div>' +
+    '<h2>' + (which === "ops" ? "🛠️ Ops desk" : "📥 Commish desk") + '</h2>';
+}
 function authed(action, body) {
   body = body || {}; body.token = store("token");
   return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
 }
 function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; paintMe(); }
 function signOut(quiet) { store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
-function paintMe() { var b = $("#meBtn"); if (b) b.textContent = ME ? ME.name.slice(0, 2).toUpperCase() : "Sign in"; }
+function paintMe() {
+  var b = $("#meBtn"); if (b) b.textContent = ME ? ME.name.slice(0, 2).toUpperCase() : "Sign in";
+  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk"; d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
+}
 function needSignIn(what) {
   return '<div class="card"><div class="eyebrow">🔑 Owners only</div><h3>Sign in ' + what + '</h3><p>Use the passphrase the commish sent you.</p>' +
     '<p style="margin-top:12px"><button class="btn" onclick="go(\'signin\')">Sign in</button></p></div>';
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league", trades: "team", trade: "team", desk: "league", rivalry: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
   if (!SCREENS[name]) name = "home";
   document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === TAB_OF[name]); });
+  var dk = $("#deskBtn"); if (dk) dk.classList.toggle("on", name === "desk" || name === "ops" || name === "joe");
   $("#view").innerHTML = SCREENS[name](arg); $("#view").scrollTop = 0;
   if (SCREENS[name].after) SCREENS[name].after(arg);
 }
@@ -404,7 +418,7 @@ function buildFeed(d) {
       cards.push({ id: "offer:" + o.id, needs: 1, scope: "me", eb: "🔁 Trade offer · from " + esc(oname(o.from)), title: esc(oname(o.from)) + " wants to deal",
         body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">You get</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">You send</div>' + sideList(o.get, o.to) + '</div></div>' + (o.note ? '<p class="story">“' + esc(o.note) + '”</p>' : ''),
         action: ["Answer it", "go('trades','" + o.id + "')"] }); });
-    var rv = T.offers.filter(function (o) { return o.status === "ACCEPTED"; });
+    var rv = T.offers.filter(function (o) { return o.status === "ACCEPTED" && !o.lock; });
     if (isDesk() && rv.length) cards.push({ id: "review:" + rv.map(function (o) { return o.id; }).join(","), needs: 1, scope: "me", eb: "📥 Commish desk", title: rv.length + " trade" + (rv.length > 1 ? "s" : "") + " to approve",
       body: rv.slice(0, 3).map(function (o) { return '<div class="kv"><span>' + esc(oname(o.from)) + ' ⇄ ' + esc(oname(o.to)) + '</span><span class="gold">agreed</span></div>'; }).join(""), action: ["Open the desk", "go('desk')"] });
     T.offers.filter(function (o) { return o.status === "APPROVED" && Date.now() - new Date(o.updated).getTime() < 7 * 864e5; }).slice(0, 3).forEach(function (o) {
@@ -692,13 +706,14 @@ function offerCard(o) {
   var st = STATUS[o.status] || [o.status, "muted"], me = ME.owner, btns = "";
   if (o.status === "PROPOSED" && o.to === me) btns = '<button class="btn" onclick="answerOffer(\'' + o.id + '\',\'accept\')">Accept</button><button class="btn ghost" onclick="go(\'trade\',\'' + o.from + ':' + o.id + '\')">Counter</button><button class="btn ghost" onclick="answerOffer(\'' + o.id + '\',\'decline\')">Decline</button>';
   if (o.status === "PROPOSED" && o.from === me) btns = '<button class="btn ghost" onclick="answerOffer(\'' + o.id + '\',\'withdraw\')">Withdraw</button>';
-  if (o.status === "ACCEPTED" && isDesk()) btns = '<button class="btn" onclick="deskTrade(\'' + o.id + '\',\'approve\')">Approve</button><button class="btn ghost" onclick="deskTrade(\'' + o.id + '\',\'negate\')">Negate</button>';
+  if (o.status === "ACCEPTED" && isDesk() && !o.lock) btns = '<button class="btn" onclick="deskTrade(\'' + o.id + '\',\'approve\')">Approve</button><button class="btn ghost" onclick="deskTrade(\'' + o.id + '\',\'negate\')">Negate</button>';
   if (o.status === "APPROVED" && o.espn === "todo" && isDesk()) btns = '<button class="btn" onclick="deskTrade(\'' + o.id + '\',\'espndone\')">✓ Done on ESPN</button>';
   var other = o.from === me ? o.to : o.from;
   return '<div class="card offer" id="o-' + esc(o.id) + '"><div class="row" style="justify-content:space-between"><div class="eyebrow" style="margin:0">' + (o.counterOf ? "↩️ Counter · " : "🔁 ") + esc(oname(o.from)) + ' ⇄ ' + esc(oname(o.to)) + '</div><span class="' + st[1] + '" style="font:700 11px var(--mono)">' + st[0] + '</span></div>' +
     '<div class="grid" style="margin-top:10px;gap:12px"><div><div class="eyebrow">' + esc(oname(o.from)) + ' sends</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">' + esc(oname(o.to)) + ' sends</div>' + sideList(o.get, o.to) + '</div></div>' +
     (o.note ? '<p style="font-size:13px">“' + esc(o.note) + '”</p>' : '') + (o.reason && o.status !== "PROPOSED" ? '<p class="muted" style="font-size:13px">' + esc(o.reason) + '</p>' : '') +
     (o.status === "APPROVED" && o.espn === "todo" ? '<p class="gold" style="font-size:13px">Players still to move on ESPN.</p>' : '') +
+    (o.status === "ACCEPTED" && isDesk() && o.lock ? '<p class="muted" style="font-size:13px;margin-top:10px">👀 ' + esc(o.lock) + '</p>' : '') +
     (btns ? '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + btns + '</div>' : '') +
     (other !== me && (o.from === me || o.to === me) ? '<p style="margin-top:8px"><button class="back" onclick="go(\'chat\',\'' + dmRoom(other) + '\')">💬 Talk it over with ' + esc(oname(other)) + '</button></p>' : '') +
     '<p class="muted" style="font-size:11px;margin-top:6px">' + new Date(o.updated || o.ts).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + (o.mode === "test" ? " · test" : "") + '</p></div>';
@@ -814,27 +829,30 @@ SCREENS.trade.after = function (arg) {
 // 📥 Commish desk (Joe; Mike too): trades to approve, ESPN steps, recent decisions, questions
 SCREENS.desk = function () {
   if (!ME) return '<h2>Commish desk</h2>' + needSignIn("to open the desk");
-  if (!isDesk()) return back("league", "League") + '<h2>Commish desk</h2><div class="card"><p style="margin:0">Commish only.</p></div>';
-  return back("league", "League") + '<h2>📥 Commish desk</h2><div id="dsk"><div class="card"><p class="muted">Loading…</p></div></div>';
+  if (!isDesk()) return back("home", "Home") + '<h2>Commish desk</h2><div class="card"><p style="margin:0">Commish only.</p></div>';
+  return deskTop("desk") + (isOps() ? '<div class="card" style="border-color:var(--pugh,#96BEE6);padding:10px 14px"><small>👀 <b>Joe\'s view.</b> What Joe sees, read-only. You can act on trades Joe is in, and as backup on any trade that has waited 48 h on him.</small></div>' : '') +
+    '<div id="dsk"><div class="card"><p class="muted">Loading…</p></div></div>';
 };
 SCREENS.desk.after = function () {
   if (!$("#dsk")) return;
   authed("desk").then(function (d) {
     if (!d.ok) throw new Error(d.error);
     var mineIn = function (o) { return o.from === ME.owner || o.to === ME.owner; };
-    var html = testBanner(d);
-    html += '<div class="eyebrow">⏳ Trades to approve · ' + d.review.length + '</div>' + (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"') + (mineIn(o) ? '' : ''); }).join("") : '<div class="card"><p class="muted" style="margin:0">Nothing waiting on you.</p></div>');
+    var html = testBanner(d), wait = d.backupWaitH || 48;
+    html += '<div class="eyebrow">⏳ Trades to approve · ' + d.review.length + '</div>' + (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<div class="card"><p class="muted" style="margin:0">Nothing waiting on ' + (isOps() ? "Joe" : "you") + '.</p></div>');
     if (d.espn.length) html += '<div class="eyebrow">🏈 Do on ESPN · ' + d.espn.length + '</div>' + d.espn.map(offerCard).join("");
-    var n = Object.keys(MY || {}).length;
-    html += '<div class="card"><div class="eyebrow">📋 Questions</div><p style="margin:0">' + n + ' of ' + QUESTIONS.length + ' answered on your login.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">Open questions</button></p></div>';
+    var joeIds = d.owners.filter(function (o) { return /commish/.test(o.role) && !/ops/.test(o.role); }).map(function (o) { return o.owner; });
+    var joeN = {}; d.answers.forEach(function (a) { if (joeIds.indexOf(a.who) >= 0) joeN[a.qid] = 1; });
+    var n = isOps() ? Object.keys(joeN).length : Object.keys(MY || {}).length;
+    html += '<div class="card"><div class="eyebrow">📋 Questions</div><p style="margin:0">' + n + ' of ' + QUESTIONS.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
     if (d.recent.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Recent decisions</summary>' + d.recent.map(offerCard).join("") + '</details>';
-    html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason; the ledger robot copies it into the official file.</p>' +
+    if (isOps()) html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p class="muted" style="margin:0;font-size:13px">Joe\'s tool: he moves a pick traded before the app (or fixes a mistake) with a reason the league sees. Read-only in Joe\'s view.</p></div>';
+    else html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason; the ledger robot copies it into the official file.</p>' +
       '<div class="row" style="flex-wrap:wrap"><select id="pfS" style="flex:1"></select><select id="pfR" style="flex:1"></select></div><div class="row" style="margin-top:6px"><select id="pfO" style="flex:1"><option value="">Whose pick (original team)</option>' + OWNERS.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + "'s</option>"; }).join("") + '</select>' +
       '<select id="pfT" style="flex:1"><option value="">Now belongs to</option>' + OWNERS.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + '</option>'; }).join("") + '</select></div>' +
       '<input type="text" id="pfWhy" maxlength="160" placeholder="Reason (e.g. traded in August: Glen got it for Kelce)" style="margin-top:6px"><p style="margin-top:8px"><button class="btn ghost" onclick="pickFix()">Move the pick</button></p></div>';
-    if (isRole("ops") && d.mode === "test") html += '<div class="card"><div class="eyebrow">🧪 Ops</div><p style="margin:0">Wipe every test trade and reset the pick ledger.</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p></div>';
     $("#dsk").innerHTML = html;
-    loadTrades().then(function (t) { var S = $("#pfS"), R = $("#pfR"); if (!S) return;
+    if (!isOps()) loadTrades().then(function (t) { var S = $("#pfS"), R = $("#pfR"); if (!S) return;
       S.innerHTML = t.seasons.map(function (y) { return '<option>' + y + '</option>'; }).join(""); R.innerHTML = Array.apply(null, Array(t.rounds)).map(function (_, i) { return '<option value="' + (i + 1) + '">Round ' + (i + 1) + '</option>'; }).join(""); }).catch(function () {});
   }).catch(function (e) { if ($("#dsk")) $("#dsk").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
@@ -974,14 +992,13 @@ SCREENS.chat.after = function (room) {
 // ---- League grid
 var LEAGUE_TILES = [
   ["standings", "📊", "Standings", "Live from ESPN"], ["trades", "🔁", "Trades", "Offers + trade wire"],
-  ["desk", "📥", "Commish desk", "Approve trades", 0, "desk"], ["joe", "📋", "Questions", "For the commish", 0, "desk"],
   ["soon=keepers", "🔒", "Keepers", "Contracts + forecaster", 1], ["soon=draft", "📝", "Draft", "Every pick by year", 1],
   ["soon=history", "📚", "History", "Seasons + champions", 1], ["soon=gm", "🎓", "GM Rankings", "Glen's report", 1],
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["soon=rules", "📖", "Rules", "Constitution + timeline", 1],
-  ["feedback", "💡", "Ideas", "Feedback to the site"], ["ops", "🛠️", "Ops desk", "Owners, answers, health", 0, "desk"]
+  ["feedback", "💡", "Ideas", "Feedback to the site"]
 ];
 SCREENS.league = function () {
-  return '<h2>League</h2><div class="grid">' + LEAGUE_TILES.filter(function (t) { return t[5] !== "desk" || isDesk(); }).map(function (t) {
+  return '<h2>League</h2><div class="grid">' + LEAGUE_TILES.map(function (t) {
     return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span style="font-size:22px">' + t[1] + '</span><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></button>';
   }).join("") + '</div>';
 };
@@ -1089,9 +1106,9 @@ function joeDraft() {
 }
 SCREENS.joe = function () {
   if (!ME) return back("home", "Home") + '<h2>Questions for the commish</h2>' + needSignIn("to answer");
-  if (!isDesk()) return back("league", "League") + '<h2>Questions</h2><div class="card"><p style="margin:0">These are for the commish.</p></div>';
+  if (!isDesk()) return back("home", "Home") + '<h2>Questions</h2><div class="card"><p style="margin:0">These are for the commish.</p></div>';
   var draft = joeDraft();
-  return back("league", "League") + '<h2>Questions for the commish</h2>' +
+  return back("desk", "Commish desk") + '<h2>Questions for the commish</h2>' +
     '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, these" : "These") + ' decide how trades, picks and keeper contracts work in the app. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
     '<div class="qlist">' + QUESTIONS.map(function (q) {
       var a = draft[q.qid] || {};
@@ -1152,16 +1169,17 @@ SCREENS.feedback.after = function () {
 
 // ---- 🛠️ Ops desk (Mike): is everything connected and working?
 SCREENS.ops = function () {
-  if (!ME) return back("league", "League") + '<h2>🛠️ Ops desk</h2>' + needSignIn("to open the desk");
-  if (!isDesk()) return back("league", "League") + '<h2>🛠️ Ops desk</h2><div class="card"><p style="margin:0">Commish and ops only.</p></div>';
-  return back("league", "League") + '<h2>🛠️ Ops desk</h2>' +
+  if (!ME) return '<h2>🛠️ Ops desk</h2>' + needSignIn("to open the desk");
+  if (!isOps()) return back(isDesk() ? "desk" : "home", isDesk() ? "Commish desk" : "Home") + '<h2>🛠️ Ops desk</h2><div class="card"><p style="margin:0">Ops only (Mike).</p></div>';
+  return deskTop("ops") +
     '<div id="issued"></div>' +
     '<div class="card" id="opsOwners"><div class="eyebrow">🔑 Owners &amp; passphrases</div><p class="muted">Loading…</p></div>' +
     '<div class="card" id="opsHealth"><div class="eyebrow">System</div><p class="muted">Checking…</p></div>' +
     '<div class="card" id="opsAns"><div class="eyebrow">📋 Joe\'s answers</div><p class="muted">Loading…</p></div>' +
     '<div class="card"><div class="eyebrow">App</div><div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
     '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
-    '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div></div>';
+    '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div></div>' +
+    '<div class="card"><div class="eyebrow">🧪 Test trades</div><p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p></div>';
 };
 function ago(ts) {
   if (!ts) return "never"; var m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
