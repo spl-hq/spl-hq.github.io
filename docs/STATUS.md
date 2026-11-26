@@ -27,7 +27,7 @@ One more question cleanup before the list goes to Joe.
   is clear**. Ops desk: new 🤖 **Robots & watchdog** card (each robot's last good run, ❌ failed + open run, late, "GitHub's schedule hasn't
   fired yet", watchdog log, Run checks now, Back up now). Fixes: History robot freshness now from its own pull stamp (was masked by other
   robots rebuilding league-data.js); service worker deletes old caches (phones kept v1…v27); `robot_push.sh` runs the app check before
-  any robot push (robot pushes never start CI); card lines no longer chain off a failed history pull; emails left goes gold under 20.
+  any robot push (robot pushes never start CI); card lines no longer chain off a failed history pull; robots get one concurrency group each (the shared group made GitHub cancel robots fired by the same push); emails left goes gold under 20.
   Runbook: `GH_TOKEN`, trigger, backup + restore, UptimeRobot, launch checklist. Smoke test +21 (watchdog, alerts on change, backup, desk feed). SW `splhq-v30`.
 - 2026-11-26 · v0.15.1 · 🩹 Your avatar on reel cards was a stretched oval (its class `me` also matched the header avatar button's pill style). Renamed to `avme`.
 - 2026-11-26 · v0.15 · 🎨 **Reel card facelift** (Mike: the cards are the main experience; many wasted space, read oddly or were formatted wrong).

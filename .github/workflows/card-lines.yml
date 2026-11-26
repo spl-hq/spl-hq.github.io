@@ -18,7 +18,9 @@ on:
     paths: [".github/workflows/card-lines.yml", "tools/card_lines.py"]
 permissions:
   contents: write
-concurrency: { group: data-robots, cancel-in-progress: false }
+# One run per robot at a time. NOT one shared group: GitHub keeps only one pending run per group, so robots fired by the same push
+# cancelled each other (11/26: history pull + build cancelled). Different robots racing is fine: tools/robot_push.sh rebases + rebuilds.
+concurrency: { group: "${{ github.workflow }}", cancel-in-progress: false }
 jobs:
   lines:
     # chained run: only after a history pull that succeeded (a failed pull already went red and emailed)
