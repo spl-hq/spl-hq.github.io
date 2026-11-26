@@ -1,5 +1,5 @@
 # SPL_Matchups.csv  --  GOLD (robot-written by tools/pull_history.py from ESPN league 19583; re-run to refresh).
-# Pulled 2026-11-26T03:49Z. One row per game; byes and unplayed games skipped.
+# Pulled 2026-11-26T03:50Z. One row per game; byes and unplayed games skipped.
 # playoff_tier: NONE = regular season, WINNERS_BRACKET = playoffs, others = consolation. owner_id blank = unresolved (see report).
 season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away_pts,winner,source
 2006,1,NONE,moyer,Kimble's Finast,106.8,chappie,Happiest Slappies,55.0,HOME,espn-leagueHistory
@@ -287,29 +287,29 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2009,1,NONE,chappie,Scrappy Chappies,60.6,moyer,Kimble's Finast,109.8,AWAY,espn-leagueHistory
 2009,1,NONE,hoosier,Hoosier's Dynamos,111.4,patel,Cheater's Streakers,122.2,AWAY,espn-leagueHistory
 2009,1,NONE,murello,Bad Attitude Gang,59.5,glen,Fluff Muffins,113.7,AWAY,espn-leagueHistory
-2009,1,NONE,reilly,Reilly's RaMPaGe,94.6,,Domz Dynasty,102.8,AWAY,espn-leagueHistory
+2009,1,NONE,reilly,Reilly's RaMPaGe,94.6,farrington,Domz Dynasty,102.8,AWAY,espn-leagueHistory
 2009,1,NONE,sikora,Manayunk Gunz,73.8,salerno,Ween's Machine,70.5,HOME,espn-leagueHistory
 2009,1,NONE,smith,Tijuana Trojans,118.7,bucher,S.D. Beasters,106.0,HOME,espn-leagueHistory
 2009,2,NONE,bucher,S.D. Beasters,118.6,chappie,Scrappy Chappies,108.0,HOME,espn-leagueHistory
 2009,2,NONE,glen,Fluff Muffins,97.1,hoosier,Hoosier's Dynamos,73.4,HOME,espn-leagueHistory
 2009,2,NONE,moyer,Kimble's Finast,89.4,sikora,Manayunk Gunz,76.6,HOME,espn-leagueHistory
 2009,2,NONE,murello,Bad Attitude Gang,91.4,reilly,Reilly's RaMPaGe,132.6,AWAY,espn-leagueHistory
-2009,2,NONE,patel,Cheater's Streakers,87.4,,Domz Dynasty,82.2,HOME,espn-leagueHistory
+2009,2,NONE,patel,Cheater's Streakers,87.4,farrington,Domz Dynasty,82.2,HOME,espn-leagueHistory
 2009,2,NONE,salerno,Ween's Machine,76.9,smith,Tijuana Trojans,155.0,AWAY,espn-leagueHistory
-2009,3,NONE,,Domz Dynasty,77.9,murello,Bad Attitude Gang,94.3,AWAY,espn-leagueHistory
 2009,3,NONE,bucher,S.D. Beasters,80.6,salerno,Ween's Machine,130.8,AWAY,espn-leagueHistory
+2009,3,NONE,farrington,Domz Dynasty,77.9,murello,Bad Attitude Gang,94.3,AWAY,espn-leagueHistory
 2009,3,NONE,patel,Cheater's Streakers,71.1,glen,Fluff Muffins,106.8,AWAY,espn-leagueHistory
 2009,3,NONE,reilly,Reilly's RaMPaGe,86.5,hoosier,Hoosier's Dynamos,73.3,HOME,espn-leagueHistory
 2009,3,NONE,sikora,Manayunk Gunz,63.4,chappie,Scrappy Chappies,90.5,AWAY,espn-leagueHistory
 2009,3,NONE,smith,Tijuana Trojans,76.0,moyer,Kimble's Finast,118.6,AWAY,espn-leagueHistory
 2009,4,NONE,bucher,S.D. Beasters,96.0,patel,Cheater's Streakers,97.0,AWAY,espn-leagueHistory
-2009,4,NONE,chappie,Scrappy Chappies,120.0,,Domz Dynasty,83.0,HOME,espn-leagueHistory
+2009,4,NONE,chappie,Scrappy Chappies,120.0,farrington,Domz Dynasty,83.0,HOME,espn-leagueHistory
 2009,4,NONE,moyer,Kimble's Finast,98.2,reilly,Reilly's RaMPaGe,100.7,AWAY,espn-leagueHistory
 2009,4,NONE,salerno,Ween's Machine,67.4,glen,Fluff Muffins,112.1,AWAY,espn-leagueHistory
 2009,4,NONE,sikora,Manayunk Gunz,105.0,murello,Bad Attitude Gang,103.0,HOME,espn-leagueHistory
 2009,4,NONE,smith,Tijuana Trojans,110.4,hoosier,Hoosier's Dynamos,82.6,HOME,espn-leagueHistory
-2009,5,NONE,,Domz Dynasty,95.6,moyer,Kimble's Finast,106.0,AWAY,espn-leagueHistory
 2009,5,NONE,chappie,Scrappy Chappies,100.0,murello,Bad Attitude Gang,88.4,HOME,espn-leagueHistory
+2009,5,NONE,farrington,Domz Dynasty,95.6,moyer,Kimble's Finast,106.0,AWAY,espn-leagueHistory
 2009,5,NONE,glen,Fluff Muffins,75.9,bucher,S.D. Beasters,105.8,AWAY,espn-leagueHistory
 2009,5,NONE,hoosier,Hoosier's Dynamos,119.0,sikora,Manayunk Gunz,64.6,HOME,espn-leagueHistory
 2009,5,NONE,patel,Cheater's Streakers,132.4,smith,Tijuana Trojans,71.2,HOME,espn-leagueHistory
@@ -318,9 +318,9 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2009,6,NONE,chappie,Scrappy Chappies,96.7,hoosier,Hoosier's Dynamos,53.0,HOME,espn-leagueHistory
 2009,6,NONE,murello,Bad Attitude Gang,137.0,moyer,Kimble's Finast,99.2,HOME,espn-leagueHistory
 2009,6,NONE,patel,Cheater's Streakers,112.6,sikora,Manayunk Gunz,157.6,AWAY,espn-leagueHistory
-2009,6,NONE,salerno,Ween's Machine,118.8,,Domz Dynasty,112.8,HOME,espn-leagueHistory
+2009,6,NONE,salerno,Ween's Machine,118.8,farrington,Domz Dynasty,112.8,HOME,espn-leagueHistory
 2009,6,NONE,smith,Tijuana Trojans,104.0,glen,Fluff Muffins,140.7,AWAY,espn-leagueHistory
-2009,7,NONE,,Domz Dynasty,97.7,bucher,S.D. Beasters,115.0,AWAY,espn-leagueHistory
+2009,7,NONE,farrington,Domz Dynasty,97.7,bucher,S.D. Beasters,115.0,AWAY,espn-leagueHistory
 2009,7,NONE,glen,Fluff Muffins,119.8,sikora,Manayunk Gunz,85.0,HOME,espn-leagueHistory
 2009,7,NONE,moyer,Kimble's Finast,139.7,hoosier,Hoosier's Dynamos,86.3,HOME,espn-leagueHistory
 2009,7,NONE,murello,Bad Attitude Gang,125.1,salerno,Ween's Machine,68.6,HOME,espn-leagueHistory
@@ -331,9 +331,9 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2009,8,NONE,patel,Cheater's Streakers,79.8,moyer,Kimble's Finast,98.7,AWAY,espn-leagueHistory
 2009,8,NONE,salerno,Ween's Machine,112.0,hoosier,Hoosier's Dynamos,93.2,HOME,espn-leagueHistory
 2009,8,NONE,sikora,Manayunk Gunz,66.2,reilly,Reilly's RaMPaGe,115.9,AWAY,espn-leagueHistory
-2009,8,NONE,smith,Tijuana Trojans,97.5,,Domz Dynasty,87.2,HOME,espn-leagueHistory
-2009,9,NONE,,Domz Dynasty,92.0,sikora,Manayunk Gunz,138.6,AWAY,espn-leagueHistory
+2009,8,NONE,smith,Tijuana Trojans,97.5,farrington,Domz Dynasty,87.2,HOME,espn-leagueHistory
 2009,9,NONE,chappie,Scrappy Chappies,73.0,reilly,Reilly's RaMPaGe,98.1,AWAY,espn-leagueHistory
+2009,9,NONE,farrington,Domz Dynasty,92.0,sikora,Manayunk Gunz,138.6,AWAY,espn-leagueHistory
 2009,9,NONE,glen,Fluff Muffins,99.9,moyer,Kimble's Finast,88.9,HOME,espn-leagueHistory
 2009,9,NONE,hoosier,Hoosier's Dynamos,79.2,bucher,S.D. Beasters,103.4,AWAY,espn-leagueHistory
 2009,9,NONE,murello,Bad Attitude Gang,92.4,smith,Tijuana Trojans,83.6,HOME,espn-leagueHistory
@@ -341,28 +341,28 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2009,10,NONE,bucher,S.D. Beasters,86.2,moyer,Kimble's Finast,103.6,AWAY,espn-leagueHistory
 2009,10,NONE,chappie,Scrappy Chappies,48.6,sikora,Manayunk Gunz,83.6,AWAY,espn-leagueHistory
 2009,10,NONE,glen,Fluff Muffins,80.4,hoosier,Hoosier's Dynamos,79.4,HOME,espn-leagueHistory
-2009,10,NONE,murello,Bad Attitude Gang,157.0,,Domz Dynasty,112.9,HOME,espn-leagueHistory
+2009,10,NONE,murello,Bad Attitude Gang,157.0,farrington,Domz Dynasty,112.9,HOME,espn-leagueHistory
 2009,10,NONE,reilly,Reilly's RaMPaGe,144.9,patel,Cheater's Streakers,77.9,HOME,espn-leagueHistory
 2009,10,NONE,smith,Tijuana Trojans,105.8,salerno,Ween's Machine,98.3,HOME,espn-leagueHistory
 2009,11,NONE,bucher,S.D. Beasters,72.0,sikora,Manayunk Gunz,137.8,AWAY,espn-leagueHistory
 2009,11,NONE,chappie,Scrappy Chappies,108.9,smith,Tijuana Trojans,110.6,AWAY,espn-leagueHistory
-2009,11,NONE,hoosier,Hoosier's Dynamos,56.7,,Domz Dynasty,98.9,AWAY,espn-leagueHistory
+2009,11,NONE,hoosier,Hoosier's Dynamos,56.7,farrington,Domz Dynasty,98.9,AWAY,espn-leagueHistory
 2009,11,NONE,murello,Bad Attitude Gang,93.6,patel,Cheater's Streakers,131.4,AWAY,espn-leagueHistory
 2009,11,NONE,reilly,Reilly's RaMPaGe,92.8,glen,Fluff Muffins,110.1,AWAY,espn-leagueHistory
 2009,11,NONE,salerno,Ween's Machine,119.0,moyer,Kimble's Finast,92.9,HOME,espn-leagueHistory
-2009,12,NONE,,Domz Dynasty,115.0,reilly,Reilly's RaMPaGe,99.2,HOME,espn-leagueHistory
+2009,12,NONE,farrington,Domz Dynasty,115.0,reilly,Reilly's RaMPaGe,99.2,HOME,espn-leagueHistory
 2009,12,NONE,glen,Fluff Muffins,135.2,patel,Cheater's Streakers,83.5,HOME,espn-leagueHistory
 2009,12,NONE,moyer,Kimble's Finast,74.2,chappie,Scrappy Chappies,88.9,AWAY,espn-leagueHistory
 2009,12,NONE,murello,Bad Attitude Gang,106.2,hoosier,Hoosier's Dynamos,64.0,HOME,espn-leagueHistory
 2009,12,NONE,salerno,Ween's Machine,53.8,bucher,S.D. Beasters,82.6,AWAY,espn-leagueHistory
 2009,12,NONE,smith,Tijuana Trojans,141.8,sikora,Manayunk Gunz,74.0,HOME,espn-leagueHistory
-2009,13,NONE,,Domz Dynasty,72.2,glen,Fluff Muffins,84.8,AWAY,espn-leagueHistory
 2009,13,NONE,bucher,S.D. Beasters,99.2,smith,Tijuana Trojans,81.9,HOME,espn-leagueHistory
+2009,13,NONE,farrington,Domz Dynasty,72.2,glen,Fluff Muffins,84.8,AWAY,espn-leagueHistory
 2009,13,NONE,hoosier,Hoosier's Dynamos,84.2,patel,Cheater's Streakers,97.8,AWAY,espn-leagueHistory
 2009,13,NONE,reilly,Reilly's RaMPaGe,142.5,murello,Bad Attitude Gang,105.2,HOME,espn-leagueHistory
 2009,13,NONE,salerno,Ween's Machine,105.8,chappie,Scrappy Chappies,96.0,HOME,espn-leagueHistory
 2009,13,NONE,sikora,Manayunk Gunz,93.0,moyer,Kimble's Finast,69.9,HOME,espn-leagueHistory
-2009,14,LOSERS_CONSOLATION_LADDER,,Domz Dynasty,106.6,hoosier,Hoosier's Dynamos,69.8,HOME,espn-leagueHistory
+2009,14,LOSERS_CONSOLATION_LADDER,farrington,Domz Dynasty,106.6,hoosier,Hoosier's Dynamos,69.8,HOME,espn-leagueHistory
 2009,14,WINNERS_BRACKET,moyer,Kimble's Finast,118.2,bucher,S.D. Beasters,90.5,HOME,espn-leagueHistory
 2009,14,LOSERS_CONSOLATION_LADDER,patel,Cheater's Streakers,96.1,sikora,Manayunk Gunz,57.4,HOME,espn-leagueHistory
 2009,14,WINNERS_BRACKET,reilly,Reilly's RaMPaGe,109.9,murello,Bad Attitude Gang,110.6,AWAY,espn-leagueHistory
@@ -371,9 +371,9 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2009,15,LOSERS_CONSOLATION_LADDER,patel,Cheater's Streakers,89.4,chappie,Scrappy Chappies,106.5,AWAY,espn-leagueHistory
 2009,15,WINNERS_CONSOLATION_LADDER,reilly,Reilly's RaMPaGe,94.1,bucher,S.D. Beasters,101.6,AWAY,espn-leagueHistory
 2009,15,LOSERS_CONSOLATION_LADDER,salerno,Ween's Machine,145.0,hoosier,Hoosier's Dynamos,70.6,HOME,espn-leagueHistory
-2009,15,LOSERS_CONSOLATION_LADDER,sikora,Manayunk Gunz,50.4,,Domz Dynasty,88.2,AWAY,espn-leagueHistory
+2009,15,LOSERS_CONSOLATION_LADDER,sikora,Manayunk Gunz,50.4,farrington,Domz Dynasty,88.2,AWAY,espn-leagueHistory
 2009,15,WINNERS_BRACKET,smith,Tijuana Trojans,114.7,moyer,Kimble's Finast,98.0,HOME,espn-leagueHistory
-2009,16,LOSERS_CONSOLATION_LADDER,chappie,Scrappy Chappies,124.7,,Domz Dynasty,83.6,HOME,espn-leagueHistory
+2009,16,LOSERS_CONSOLATION_LADDER,chappie,Scrappy Chappies,124.7,farrington,Domz Dynasty,83.6,HOME,espn-leagueHistory
 2009,16,WINNERS_CONSOLATION_LADDER,glen,Fluff Muffins,84.5,moyer,Kimble's Finast,79.1,HOME,espn-leagueHistory
 2009,16,LOSERS_CONSOLATION_LADDER,patel,Cheater's Streakers,99.6,salerno,Ween's Machine,107.0,AWAY,espn-leagueHistory
 2009,16,WINNERS_CONSOLATION_LADDER,reilly,Reilly's RaMPaGe,137.6,bucher,S.D. Beasters,101.0,HOME,espn-leagueHistory
@@ -667,29 +667,29 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2013,1,NONE,chappie,BlaKK BoCCes,92.1,moyer,Kimble's Finast,118.9,AWAY,espn-leagueHistory
 2013,1,NONE,hoosier,Hoosier's Dynamos,150.6,patel,Cheater's Streakers,87.3,HOME,espn-leagueHistory
 2013,1,NONE,murello,Bad Attitude Gang,61.8,glen,Fluff Muffins,101.0,AWAY,espn-leagueHistory
-2013,1,NONE,reilly,Reilly's RaMPaGe,120.0,,RockyTop RHINOS,94.2,HOME,espn-leagueHistory
+2013,1,NONE,reilly,Reilly's RaMPaGe,120.0,farrington,RockyTop RHINOS,94.2,HOME,espn-leagueHistory
 2013,1,NONE,sikora,Manayunk Gunz,124.0,salerno,Ween's Machine,132.9,AWAY,espn-leagueHistory
 2013,1,NONE,smith,Tijuana Trojans,113.1,bucher,Los Beasters,120.0,AWAY,espn-leagueHistory
 2013,2,NONE,bucher,Los Beasters,93.4,chappie,BlaKK BoCCes,102.2,AWAY,espn-leagueHistory
 2013,2,NONE,glen,Fluff Muffins,97.5,hoosier,Hoosier's Dynamos,129.7,AWAY,espn-leagueHistory
 2013,2,NONE,moyer,Kimble's Finast,135.6,sikora,Manayunk Gunz,85.9,HOME,espn-leagueHistory
 2013,2,NONE,murello,Bad Attitude Gang,68.8,reilly,Reilly's RaMPaGe,118.0,AWAY,espn-leagueHistory
-2013,2,NONE,patel,Cheater's Streakers,118.9,,RockyTop RHINOS,100.7,HOME,espn-leagueHistory
+2013,2,NONE,patel,Cheater's Streakers,118.9,farrington,RockyTop RHINOS,100.7,HOME,espn-leagueHistory
 2013,2,NONE,salerno,Ween's Machine,84.9,smith,Tijuana Trojans,81.4,HOME,espn-leagueHistory
-2013,3,NONE,,RockyTop RHINOS,110.2,murello,Bad Attitude Gang,52.7,HOME,espn-leagueHistory
 2013,3,NONE,bucher,Los Beasters,102.3,salerno,Ween's Machine,82.0,HOME,espn-leagueHistory
+2013,3,NONE,farrington,RockyTop RHINOS,110.2,murello,Bad Attitude Gang,52.7,HOME,espn-leagueHistory
 2013,3,NONE,patel,Cheater's Streakers,115.0,glen,Fluff Muffins,101.6,HOME,espn-leagueHistory
 2013,3,NONE,reilly,Reilly's RaMPaGe,105.8,hoosier,Hoosier's Dynamos,67.5,HOME,espn-leagueHistory
 2013,3,NONE,sikora,Manayunk Gunz,105.7,chappie,BlaKK BoCCes,122.6,AWAY,espn-leagueHistory
 2013,3,NONE,smith,Tijuana Trojans,67.8,moyer,Kimble's Finast,64.8,HOME,espn-leagueHistory
 2013,4,NONE,bucher,Los Beasters,120.7,patel,Cheater's Streakers,126.0,AWAY,espn-leagueHistory
-2013,4,NONE,chappie,BlaKK BoCCes,137.6,,RockyTop RHINOS,124.1,HOME,espn-leagueHistory
+2013,4,NONE,chappie,BlaKK BoCCes,137.6,farrington,RockyTop RHINOS,124.1,HOME,espn-leagueHistory
 2013,4,NONE,moyer,Kimble's Finast,89.6,reilly,Reilly's RaMPaGe,90.8,AWAY,espn-leagueHistory
 2013,4,NONE,salerno,Ween's Machine,125.3,glen,Fluff Muffins,111.8,HOME,espn-leagueHistory
 2013,4,NONE,sikora,Manayunk Gunz,137.4,murello,Bad Attitude Gang,71.5,HOME,espn-leagueHistory
 2013,4,NONE,smith,Tijuana Trojans,139.1,hoosier,Hoosier's Dynamos,134.5,HOME,espn-leagueHistory
-2013,5,NONE,,RockyTop RHINOS,120.6,moyer,Kimble's Finast,85.2,HOME,espn-leagueHistory
 2013,5,NONE,chappie,BlaKK BoCCes,131.2,murello,Bad Attitude Gang,91.0,HOME,espn-leagueHistory
+2013,5,NONE,farrington,RockyTop RHINOS,120.6,moyer,Kimble's Finast,85.2,HOME,espn-leagueHistory
 2013,5,NONE,glen,Fluff Muffins,134.9,bucher,Los Beasters,87.9,HOME,espn-leagueHistory
 2013,5,NONE,hoosier,Hoosier's Dynamos,73.5,sikora,Manayunk Gunz,106.7,AWAY,espn-leagueHistory
 2013,5,NONE,patel,Cheater's Streakers,106.8,smith,Tijuana Trojans,103.2,HOME,espn-leagueHistory
@@ -698,9 +698,9 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2013,6,NONE,chappie,BlaKK BoCCes,126.9,hoosier,Hoosier's Dynamos,92.9,HOME,espn-leagueHistory
 2013,6,NONE,murello,Bad Attitude Gang,72.4,moyer,Kimble's Finast,87.1,AWAY,espn-leagueHistory
 2013,6,NONE,patel,Cheater's Streakers,129.0,sikora,Manayunk Gunz,54.4,HOME,espn-leagueHistory
-2013,6,NONE,salerno,Ween's Machine,104.6,,RockyTop RHINOS,127.2,AWAY,espn-leagueHistory
+2013,6,NONE,salerno,Ween's Machine,104.6,farrington,RockyTop RHINOS,127.2,AWAY,espn-leagueHistory
 2013,6,NONE,smith,Tijuana Trojans,91.8,glen,Fluff Muffins,62.5,HOME,espn-leagueHistory
-2013,7,NONE,,RockyTop RHINOS,106.3,bucher,Los Beasters,95.0,HOME,espn-leagueHistory
+2013,7,NONE,farrington,RockyTop RHINOS,106.3,bucher,Los Beasters,95.0,HOME,espn-leagueHistory
 2013,7,NONE,glen,Fluff Muffins,118.8,sikora,Manayunk Gunz,142.0,AWAY,espn-leagueHistory
 2013,7,NONE,moyer,Kimble's Finast,80.6,hoosier,Hoosier's Dynamos,88.1,AWAY,espn-leagueHistory
 2013,7,NONE,murello,Bad Attitude Gang,56.7,salerno,Ween's Machine,109.2,AWAY,espn-leagueHistory
@@ -711,9 +711,9 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2013,8,NONE,patel,Cheater's Streakers,96.5,moyer,Kimble's Finast,66.5,HOME,espn-leagueHistory
 2013,8,NONE,salerno,Ween's Machine,160.5,hoosier,Hoosier's Dynamos,107.5,HOME,espn-leagueHistory
 2013,8,NONE,sikora,Manayunk Gunz,63.0,reilly,Reilly's RaMPaGe,150.1,AWAY,espn-leagueHistory
-2013,8,NONE,smith,Tijuana Trojans,73.3,,RockyTop RHINOS,98.5,AWAY,espn-leagueHistory
-2013,9,NONE,,RockyTop RHINOS,76.0,sikora,Manayunk Gunz,106.7,AWAY,espn-leagueHistory
+2013,8,NONE,smith,Tijuana Trojans,73.3,farrington,RockyTop RHINOS,98.5,AWAY,espn-leagueHistory
 2013,9,NONE,chappie,BlaKK BoCCes,104.6,reilly,Reilly's RaMPaGe,149.9,AWAY,espn-leagueHistory
+2013,9,NONE,farrington,RockyTop RHINOS,76.0,sikora,Manayunk Gunz,106.7,AWAY,espn-leagueHistory
 2013,9,NONE,glen,Fluff Muffins,90.7,moyer,Kimble's Finast,64.4,HOME,espn-leagueHistory
 2013,9,NONE,hoosier,Hoosier's Dynamos,51.6,bucher,Los Beasters,132.3,AWAY,espn-leagueHistory
 2013,9,NONE,murello,Bad Attitude Gang,79.3,smith,Tijuana Trojans,131.5,AWAY,espn-leagueHistory
@@ -721,23 +721,23 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2013,10,NONE,bucher,Los Beasters,139.7,moyer,Kimble's Finast,124.5,HOME,espn-leagueHistory
 2013,10,NONE,chappie,BlaKK BoCCes,117.6,sikora,Manayunk Gunz,82.0,HOME,espn-leagueHistory
 2013,10,NONE,glen,Fluff Muffins,81.3,hoosier,Hoosier's Dynamos,120.3,AWAY,espn-leagueHistory
-2013,10,NONE,murello,Bad Attitude Gang,75.8,,RockyTop RHINOS,75.5,HOME,espn-leagueHistory
+2013,10,NONE,murello,Bad Attitude Gang,75.8,farrington,RockyTop RHINOS,75.5,HOME,espn-leagueHistory
 2013,10,NONE,reilly,Reilly's RaMPaGe,118.3,patel,Cheater's Streakers,79.6,HOME,espn-leagueHistory
 2013,10,NONE,smith,Tijuana Trojans,89.2,salerno,Ween's Machine,60.7,HOME,espn-leagueHistory
 2013,11,NONE,bucher,Los Beasters,94.5,sikora,Manayunk Gunz,80.6,HOME,espn-leagueHistory
 2013,11,NONE,chappie,BlaKK BoCCes,133.0,smith,Tijuana Trojans,104.0,HOME,espn-leagueHistory
-2013,11,NONE,hoosier,Hoosier's Dynamos,102.4,,RockyTop RHINOS,131.6,AWAY,espn-leagueHistory
+2013,11,NONE,hoosier,Hoosier's Dynamos,102.4,farrington,RockyTop RHINOS,131.6,AWAY,espn-leagueHistory
 2013,11,NONE,murello,Bad Attitude Gang,71.6,patel,Cheater's Streakers,121.0,AWAY,espn-leagueHistory
 2013,11,NONE,reilly,Reilly's RaMPaGe,131.9,glen,Fluff Muffins,82.0,HOME,espn-leagueHistory
 2013,11,NONE,salerno,Ween's Machine,74.6,moyer,Kimble's Finast,84.1,AWAY,espn-leagueHistory
-2013,12,NONE,,RockyTop RHINOS,96.7,reilly,Reilly's RaMPaGe,80.7,HOME,espn-leagueHistory
+2013,12,NONE,farrington,RockyTop RHINOS,96.7,reilly,Reilly's RaMPaGe,80.7,HOME,espn-leagueHistory
 2013,12,NONE,glen,Fluff Muffins,80.3,patel,Cheater's Streakers,111.9,AWAY,espn-leagueHistory
 2013,12,NONE,moyer,Kimble's Finast,84.1,chappie,BlaKK BoCCes,102.6,AWAY,espn-leagueHistory
 2013,12,NONE,murello,Bad Attitude Gang,93.9,hoosier,Hoosier's Dynamos,89.6,HOME,espn-leagueHistory
 2013,12,NONE,salerno,Ween's Machine,114.0,bucher,Los Beasters,144.7,AWAY,espn-leagueHistory
 2013,12,NONE,smith,Tijuana Trojans,104.1,sikora,Manayunk Gunz,65.6,HOME,espn-leagueHistory
-2013,13,NONE,,RockyTop RHINOS,102.0,glen,Fluff Muffins,107.2,AWAY,espn-leagueHistory
 2013,13,NONE,bucher,Los Beasters,133.7,smith,Tijuana Trojans,107.1,HOME,espn-leagueHistory
+2013,13,NONE,farrington,RockyTop RHINOS,102.0,glen,Fluff Muffins,107.2,AWAY,espn-leagueHistory
 2013,13,NONE,hoosier,Hoosier's Dynamos,82.1,patel,Cheater's Streakers,115.4,AWAY,espn-leagueHistory
 2013,13,NONE,reilly,Reilly's RaMPaGe,154.1,murello,Bad Attitude Gang,110.4,HOME,espn-leagueHistory
 2013,13,NONE,salerno,Ween's Machine,60.3,chappie,BlaKK BoCCes,82.1,AWAY,espn-leagueHistory
@@ -745,15 +745,15 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2013,14,WINNERS_BRACKET,bucher,Los Beasters,153.5,smith,Tijuana Trojans,140.6,HOME,espn-leagueHistory
 2013,14,LOSERS_CONSOLATION_LADDER,hoosier,Hoosier's Dynamos,81.5,glen,Fluff Muffins,99.6,AWAY,espn-leagueHistory
 2013,14,LOSERS_CONSOLATION_LADDER,moyer,Kimble's Finast,85.4,murello,Bad Attitude Gang,82.1,HOME,espn-leagueHistory
-2013,14,WINNERS_BRACKET,patel,Cheater's Streakers,117.8,,RockyTop RHINOS,129.2,AWAY,espn-leagueHistory
+2013,14,WINNERS_BRACKET,patel,Cheater's Streakers,117.8,farrington,RockyTop RHINOS,129.2,AWAY,espn-leagueHistory
 2013,14,LOSERS_CONSOLATION_LADDER,salerno,Ween's Machine,94.7,sikora,Manayunk Gunz,88.6,HOME,espn-leagueHistory
 2013,15,WINNERS_BRACKET,chappie,BlaKK BoCCes,118.0,bucher,Los Beasters,139.0,AWAY,espn-leagueHistory
 2013,15,LOSERS_CONSOLATION_LADDER,hoosier,Hoosier's Dynamos,115.8,murello,Bad Attitude Gang,77.8,HOME,espn-leagueHistory
 2013,15,WINNERS_CONSOLATION_LADDER,patel,Cheater's Streakers,166.9,smith,Tijuana Trojans,61.6,HOME,espn-leagueHistory
-2013,15,WINNERS_BRACKET,reilly,Reilly's RaMPaGe,126.8,,RockyTop RHINOS,129.9,AWAY,espn-leagueHistory
+2013,15,WINNERS_BRACKET,reilly,Reilly's RaMPaGe,126.8,farrington,RockyTop RHINOS,129.9,AWAY,espn-leagueHistory
 2013,15,LOSERS_CONSOLATION_LADDER,salerno,Ween's Machine,91.2,glen,Fluff Muffins,80.4,HOME,espn-leagueHistory
 2013,15,LOSERS_CONSOLATION_LADDER,sikora,Manayunk Gunz,93.2,moyer,Kimble's Finast,44.0,HOME,espn-leagueHistory
-2013,16,WINNERS_BRACKET,bucher,Los Beasters,137.8,,RockyTop RHINOS,113.2,HOME,espn-leagueHistory
+2013,16,WINNERS_BRACKET,bucher,Los Beasters,137.8,farrington,RockyTop RHINOS,113.2,HOME,espn-leagueHistory
 2013,16,LOSERS_CONSOLATION_LADDER,hoosier,Hoosier's Dynamos,58.4,glen,Fluff Muffins,86.0,AWAY,espn-leagueHistory
 2013,16,LOSERS_CONSOLATION_LADDER,moyer,Kimble's Finast,52.8,murello,Bad Attitude Gang,75.9,AWAY,espn-leagueHistory
 2013,16,WINNERS_CONSOLATION_LADDER,patel,Cheater's Streakers,88.4,smith,Tijuana Trojans,55.1,HOME,espn-leagueHistory
@@ -1799,3 +1799,9 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2026,11,NONE,murello,Bad Attitude Gang,98.1,sikora,The Gunz,113.2,AWAY,espn-season
 2026,11,NONE,patel,Cheater's Streakers,158.9,reilly,Reilly's RaMPaGe,96.5,HOME,espn-season
 2026,11,NONE,smith,Tijuana Trojans,121.8,moyer,Kimble's Finast,108.8,HOME,espn-season
+2026,12,NONE,glen,Fluff Muffins,9.5,patel,Cheater's Streakers,14.5,UNDECIDED,espn-season
+2026,12,NONE,moyer,Kimble's Finast,4.4,hoosier,Hoosier's Dynamos,0.0,UNDECIDED,espn-season
+2026,12,NONE,murello,Bad Attitude Gang,0.0,farrington,Farrington's FREELANCERS,2.0,UNDECIDED,espn-season
+2026,12,NONE,salerno,Ween's Machine,16.8,reilly,Reilly's RaMPaGe,0.0,UNDECIDED,espn-season
+2026,12,NONE,sikora,The Gunz,12.5,chappie,BlaKK BoCCes,0.0,UNDECIDED,espn-season
+2026,12,NONE,smith,Tijuana Trojans,8.0,bucher,Los Beasters Big Sky,0.0,UNDECIDED,espn-season
