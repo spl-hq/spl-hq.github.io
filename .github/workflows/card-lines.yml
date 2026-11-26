@@ -1,0 +1,47 @@
+name: Card lines
+# ✍️ WS4: Claude writes the few words on the reel cards for the newest finished week (tools/card_lines.py → gold data/Card_Lines.json →
+# league-data.js). Replaces the retired Weekly Pulse (Mike 11/26: the cards are the update). Runs after every ESPN history pull, Tuesday
+# 7:07 AM ET backstop, when the writer changes, or by hand (Run workflow; "force" rewrites a published week).
+# Needs the CLAUDE_CODE_OAUTH_TOKEN secret; without it nothing is written and the cards show plain facts. Safe to re-run: a published
+# week is kept. Fails loudly (red Action + email) if Claude was expected but failed.
+on:
+  workflow_dispatch:
+    inputs:
+      force: { description: "Rewrite this week's published lines", type: boolean, default: false }
+  workflow_run:
+    workflows: ["ESPN history pull"]
+    types: [completed]
+  schedule:
+    - cron: "7 12 * * 2"
+  push:
+    branches: [main]
+    paths: [".github/workflows/card-lines.yml", "tools/card_lines.py"]
+permissions:
+  contents: write
+concurrency: { group: data-robots, cancel-in-progress: false }
+jobs:
+  lines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Install Claude Code (only if the token is set)
+        env: { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" }
+        run: |
+          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then npm i -g @anthropic-ai/claude-code >/dev/null && claude --version; else echo "No CLAUDE_CODE_OAUTH_TOKEN secret, cards show plain facts"; fi
+      - name: Write the card lines
+        id: write
+        env: { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" }
+        run: python3 tools/card_lines.py ${{ inputs.force && '--force' || '' }} || echo "failed=1" >> "$GITHUB_OUTPUT"
+      - run: python3 tools/build_data.py
+      - name: Commit if changed
+        run: |
+          git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
+          git add data/Card_Lines.json league-data.js
+          git diff --cached --quiet || (git commit -m "Card lines: data/Card_Lines.json + league-data.js" && bash tools/robot_push.sh)
+      - name: Fail loudly if the writer failed
+        if: steps.write.outputs.failed == '1'
+        run: |
+          echo "tools/card_lines.py failed (see 'Write the card lines' above). Nothing was published; the cards show plain facts."; exit 1

@@ -303,6 +303,14 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "💩" })
 ok(e.post({ action: "react", token: glen, key: "=HYPERLINK(1)", emoji: "🔥" }).ok === false, "bad card keys refused");
 ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false, "signed-in only");
 
+// 5c · 🗳️ votes (Game of the Week + quizzes): one per owner, locked, results only after you vote
+r = e.post({ action: "social", token: glen, refs: ["quiz:2026-11"] }); ok(r.ok && r.votes["quiz:2026-11"].total === 0 && !r.votes["quiz:2026-11"].counts, "no results before you vote");
+r = e.post({ action: "vote", token: owen, ref: "quiz:2026-11", choice: "patel" }); ok(r.ok && r.votes["quiz:2026-11"].mine === "patel" && r.votes["quiz:2026-11"].counts.patel === 1, "Owen votes and sees results");
+ok(/can't be changed/.test(e.post({ action: "vote", token: owen, ref: "quiz:2026-11", choice: "glen" }).error), "votes are locked");
+r = e.post({ action: "social", token: glen, refs: ["quiz:2026-11"], keys: ["2026-12:slate"] }); ok(r.votes["quiz:2026-11"].total === 1 && !r.votes["quiz:2026-11"].counts && r.reacts["2026-12:slate"], "Glen sees a count but not the split until he votes");
+ok(/closed/.test(e.post({ action: "vote", token: glen, ref: "gotw:2026-2", choice: "a~b" }).error), "Game of the Week closes Thursday");
+ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }).ok, "series trays: 🏆 allowed");
+
 
 // 6b · 🏈 WS5: 4-team test league mirrors 4 SPL rosters; approved demo trades execute on ESPN (test league only) + read back
 {

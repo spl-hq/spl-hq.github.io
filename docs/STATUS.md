@@ -1,10 +1,10 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Ops desk accordions)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS4 reel science)
 
 ## Now
+- **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
-- **WS4 live (v0.12, backend v0.9.0):** the reel gained 🗓️ Up next, 🔥 reactions, 📰 Weekly Pulse (+ 🎙️ your week in a line), 🎟️ pick wire, 💸 cap impact, 🔒 Signing Day. **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (run `claude setup-token`, then org/repo → Settings → Secrets → Actions) so Claude writes the Pulse; until then a plain template edition ships every Tuesday. Then Actions → Weekly Pulse → Run workflow (force) to get Week 11 in Claude's voice.
 - **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
@@ -17,6 +17,20 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.14 (backend v0.11.0) · 🎞️ **The reel's science** (Mike: the Pulse is no longer a thing; the cards are the update; follow
+  MAFFL REEL's latest docs). New catalog `docs/SPL_REEL_SERIES.md`: every series with its group, drop, lifespan, writer and reaction tray.
+  **Drops** (ET, from the Tuesday after the week): 🗞️ Edition Tue 7 AM (🏁 Your result · 📣 The week · 🏅 Week awards · ⭐ Power 5 ·
+  📊 The table), 🎯 Play Tue 5 PM (🗳️ Game of the Week: thriller / upset / shootout, one locked vote, results after you vote, closes Thu
+  5 PM · 🧠 Quiz: one a week, luckiest win / unluckiest loss), 🗄️ Vault Wed 7 AM (⚔️ Rivalry of the week · 💰 Keeper economy · 🔒 Your
+  keepers), ⏭️ Preview Thu 5 PM (⏭️ Up next: next opponent + the two weeks after · 📅 This week in SPL history). Instant: offers, drafts,
+  🧮 your live game, 🏟️ live scoreboard, trade + pick wire, cap impact, Signing Day, chat. Weekly budget (you 7 · league 10 · play 3 ·
+  vault 4), Needs you first, then newest drop first, you → league → play → vault. Card anatomy everywhere (tag row · hero · story ·
+  ≤5 rows · one action · reactions); one fact one card (the top score lives on Week awards only); no "you" in shared headlines.
+  **Reactions** only on shared cards, each series with its own tray (MAFFL's). **Votes**: backend Votes tab, `vote` + `social`
+  (reactions + votes in one read). 📰 Weekly Pulse **retired**: tile, page, `weekly-pulse.yml`, `data/Weekly_Pulse.json` gone.
+  ✍️ New robot `card-lines.yml` → `tools/card_lines.py` → gold `data/Card_Lines.json`: Claude writes the few words on the cards (league
+  headline/hot/cold, a result + next line per owner, Power 5), once per week and kept; no token → plain facts. Ops desk: Card lines
+  robot line.
 - 2026-11-26 · v0.13.6 · 🗂️ **Ops desk accordions (Mike).** Every Ops desk card now folds: 🩺 System & robots · 🔑 Passphrases · 📋 Joe's answers ·
   💡 Feedback (split out of answers) · 🏈 Test league · 🧪 Test trades · 📱 App. Each header carries a status badge so the desk reads at a glance closed
   (blue = fine, gold = needs a look e.g. "1 of 12 set up" / "3 to mirror", red = broken, e.g. "❌ 2 problems"). A red section opens itself.

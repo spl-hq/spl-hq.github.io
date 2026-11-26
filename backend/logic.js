@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.10.2";
+var VERSION = "0.11.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -70,8 +70,8 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1 }; // never wait on the script lock
-var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, react: 1 }; // rate-limited per owner
+var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1, social: 1 }; // never wait on the script lock
+var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, react: 1, vote: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
@@ -104,6 +104,8 @@ function doPost(e) {
       case "drafts":   return json(drafts_(me));
       case "reacts":   return json(reacts_(b.keys));
       case "react":    return json(react_(me, b));
+      case "social":   return json(social_(me, b));
+      case "vote":     return json(vote_(me, b));
       case "draftpick": return json(draftPick_(me, b, desk));
       case "draftopen": return json(desk ? draftOpen_(me, b) : { ok: false, error: "Commish only" });
       case "draftundo": return json(desk ? draftUndo_(me, b) : { ok: false, error: "Commish only" });
@@ -133,7 +135,8 @@ var HEADS = {
   Drafts:   ["draft_id", "ts", "kind", "season", "mode", "status", "order", "note", "by", "updated_ts"],
   DraftPicks: ["draft_id", "n", "owner", "choice", "ts", "by", "note"],
   Reactions: ["ts", "key", "owner", "emoji"],
-  EspnLog:  ["ts", "by", "kind", "ref", "items", "code", "msg"]
+  EspnLog:  ["ts", "by", "kind", "ref", "items", "code", "msg"],
+  Votes:     ["ts", "ref", "owner", "choice"]
 };
 function sheet_(name) {
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
@@ -445,9 +448,9 @@ function chatSend_(me, b) {
   else owners_().forEach(function (o) { if (o.owner !== me.owner && new RegExp("@" + handleOf_(o) + "\\b", "i").test(text)) notify_(o.owner, "chat", me.name + " mentioned you", text, b.room); });
   return { ok: true, msg: { id: id, ts: now, who: me.owner, text: text } };
 }
-// 🔥 Reel reactions (WS4): one tap per owner per emoji per league card; tap again to take it back. Keys come from the app
-// (season-week:card id), never shown raw. Everyone signed in sees every reaction on league cards.
-var REACTS = ["🔥", "😂", "😬", "👏", "💀", "🐐"];
+// 🔥 Reel reactions (WS4): one tap per owner per emoji per shared card; tap again to take it back. Keys come from the app
+// (season-week:card id), never shown raw. Each series has its own tray (MAFFL REEL); this is every emoji any tray uses.
+var REACTS = ["🔥", "😂", "😬", "👏", "💀", "🐐", "😱", "🥱", "🤡", "🏆", "🧠", "🤯", "👀", "💸", "🤑", "📈", "😤", "🙏", "🥶", "🫡"];
 function reactKey_(k) { k = String(k || ""); return /^[A-Za-z0-9:._,\-]{1,80}$/.test(k) ? k : ""; }
 function reacts_(keys) {
   var want = {}; (Array.isArray(keys) ? keys : []).slice(0, 80).forEach(function (k) { k = reactKey_(k); if (k) want[k] = 1; });
@@ -461,6 +464,27 @@ function react_(me, b) {
   list.forEach(function (r, i) { if (String(r.key) === k && String(r.owner) === me.owner && String(r.emoji) === em) idx = i; });
   if (idx >= 0) sh.deleteRow(idx + 2); else append_("Reactions", [new Date(), k, me.owner, em]);
   var r = reacts_([k]); return { ok: true, on: idx < 0, key: k, reacts: r.reacts[k] || {} };
+}
+// 🗳️ Votes (Game of the Week, quizzes, polls): one per owner per ref, locked once cast (MAFFL commish 11/7). Results only
+// come back to an owner who has voted, or once the vote has closed. Game of the Week closes Thursday 5 PM ET of that week.
+var WEEK1_TUE = Date.UTC(2026, 8, 15, 12); // Tuesday after NFL Week 1 (2026), 7 AM ET: the Edition drop
+function closesAt_(ref) { var m = /^gotw:(\d{4})-(\d+)$/.exec(ref); return m ? WEEK1_TUE + (Number(m[2]) - 1) * 7 * 864e5 + 58 * 3600e3 : 0; }
+function social_(me, b) {
+  var out = { ok: true, reacts: b.keys ? reacts_(b.keys).reacts : {}, votes: {}, emojis: REACTS };
+  var want = {}; (Array.isArray(b.refs) ? b.refs : []).slice(0, 40).forEach(function (k) { k = reactKey_(k); if (k) want[k] = 1; });
+  if (!Object.keys(want).length) return out;
+  var all = {}; rows_("Votes").forEach(function (r) { var k = String(r.ref); if (!want[k]) return; (all[k] = all[k] || []).push(r); });
+  Object.keys(want).forEach(function (k) { var list = all[k] || [], mine = list.filter(function (r) { return String(r.owner) === me.owner; })[0], c = closesAt_(k), closed = c && Date.now() > c;
+    var v = out.votes[k] = { mine: mine ? String(mine.choice) : "", total: list.length, closes: c ? new Date(c).toISOString() : "", closed: !!closed };
+    if (mine || closed) { v.counts = {}; list.forEach(function (r) { v.counts[r.choice] = (v.counts[r.choice] || 0) + 1; }); } });
+  return out;
+}
+function vote_(me, b) {
+  var k = reactKey_(b.ref), choice = clip_(b.choice, 60).trim(); if (!k || !choice) return { ok: false, error: "Unknown vote" };
+  var c = closesAt_(k); if (c && Date.now() > c) return { ok: false, error: "Voting has closed." };
+  if (rows_("Votes").some(function (r) { return String(r.ref) === k && String(r.owner) === me.owner; })) return { ok: false, error: "Your vote is in. Votes can't be changed." };
+  append_("Votes", [new Date(), k, me.owner, choice]);
+  return social_(me, { refs: [k] });
 }
 function botPost_(room, text, ref) { // 🤖 HQ posts (trade cards) into a room
   append_("Chat", ["M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), new Date(), room, "hq", clip_(text, 500), "", ref || ""]);

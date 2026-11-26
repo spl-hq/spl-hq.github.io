@@ -2,7 +2,7 @@
 
 SPL HQ is a phone-first app for Joe Reilly's State Penn League (SPL), served by GitHub Pages at
 **https://spl-hq.github.io/** with a Google Apps Script backend bound to the "SPL HQ App" Sheet
-(owned by `spl.hq.ops@gmail.com`). Plan and decision journal: `docs/SPL_REEL_PLAN.md`. Ops: `docs/OPS_RUNBOOK.md`.
+(owned by `spl.hq.ops@gmail.com`). Plan and decision journal: `docs/SPL_REEL_PLAN.md`. Reel cards: `docs/SPL_REEL_SERIES.md` (no Pulse: the cards are the update). Ops: `docs/OPS_RUNBOOK.md`.
 Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`), but SPL's own repo, data and rules.
 
 ## Who decides
@@ -25,7 +25,7 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 The site keeps itself current: anything that changes with the season gets a robot, not a reminder. Every robot is a GitHub Action
 or the Apps Script backend, is safe to re-run, shows its last run on the 🛠️ Ops desk, and fails loudly (GitHub emails the org owner
 on a failed Action; backend problems email ops). When you add data that goes stale, add its robot in the same change.
-Current robots: `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (daily: ESPN finals → `data/SPL_Matchups.csv`, games still to play → `data/SPL_Schedule.csv` → `league-data.js`); `weekly-pulse.yml` (after each history pull: Claude writes the week's 📰 Pulse → `data/Weekly_Pulse.json`; template if no `CLAUDE_CODE_OAUTH_TOKEN`);
+Current robots: `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (daily: ESPN finals → `data/SPL_Matchups.csv`, games still to play → `data/SPL_Schedule.csv` → `league-data.js`); `card-lines.yml` (after each history pull: Claude writes the reel card lines for the newest final week → `data/Card_Lines.json`, once per week; nothing without `CLAUDE_CODE_OAUTH_TOKEN`);
 `ledger-sync.yml` (every 2 h: backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow
 traded players in `data/Keeper_Contracts.csv`, finished off-season drafts → `data/Offseason_Drafts.csv`; test mode / rehearsals write `data/test/` instead). League rules the robots and app follow
 (pick seasons, contracts travel/reset) come from Joe's answers in the app via backend `rules_()`; defaults until he answers.
@@ -58,14 +58,14 @@ Icons sit on Nittany Navy.
 
 ## Layout
 ```
-index.html            the app (single page, hash routes: #home #standings #rivalry #offseason #droom=ID #pulse #feedback …; desks #desk #ops #joe behind the header Desk button)
+index.html            the app (single page, hash routes: #home #standings #rivalry #offseason #droom=ID #feedback …; desks #desk #ops #joe behind the header Desk button)
 manifest.json sw.js   Home Screen install + offline cache (never caches the backend)
 icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)
 backend/logic.js      backend core (pushed = deployed)
 tests/                backend smoke test (mocked Apps Script)
 data/                 gold: Keeper_Contracts, Owner Registry, SPL_Matchups (robot), Draft_Picks, SPL_Rulebook.md,
-                      Rules_Conflicts, Season_Calendar, Season_Results_Manual, Offseason_Drafts (robot), SPL_Schedule (robot), Weekly_Pulse.json (robot) (any change → build-data.yml rebuilds league-data.js)
+                      Rules_Conflicts, Season_Calendar, Season_Results_Manual, Offseason_Drafts (robot), SPL_Schedule (robot), Card_Lines.json (robot) (any change → build-data.yml rebuilds league-data.js)
 league-data.js        DERIVED from data/ by tools/build_data.py (never hand-edit)
 docs/                 plan, runbook, status
 ```

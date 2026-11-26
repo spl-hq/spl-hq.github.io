@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **No Pulse: the cards are the update** (Mike). The reel follows MAFFL REEL's card science (REEL_SERIES v2.1): series,
+  drops, weekly budget, card anatomy, one fact one card, reactions on shared cards only (per-series trays), votes on play cards (one,
+  locked, results after you vote). Catalog: `docs/SPL_REEL_SERIES.md`. Claude writes card lines only (`card-lines.yml`), once per week,
+  kept. Supersedes the WS4 Pulse entry below.
 - 2026-11-26 · **Commish questions are desk inbox items, not reel cards** (Mike). The reel is for the league; Joe's to-dos live on the Commish desk,
   with the open count on the header Desk button.
 - 2026-11-26 · **Mike's answers in the app (pending Joe's OK):** traded keeper contracts travel as-is; only next season's picks trade; Divisional Draft
@@ -105,7 +109,7 @@ SPL-only: pick-your-opponent playoff pick → ESPN `/schedule` write; keeper dea
 5. ✅ Trade center on the test league (v0.13: mirror + ESPN trade write) → ⬜ demo to Joe (`docs/SPL_DEMO_SCRIPT.md`).
 6. Joe signs off → `WRITE_LEAGUE` = 19583.
 7. Reel robots + playoff-pick write (2027 season).
-8. ✅ WS4 Reel cards (v0.12): Up next + rivalry grade, reactions, Weekly Pulse robot + page, pick wire, cap impact, Signing Day.
+8. ✅ WS4 Reel cards (v0.12–0.13): series catalog + drops + budget, Edition/Play/Vault/Preview cards, votes, reactions, card-lines robot, Up next + rivalry grade, pick wire, cap impact, Signing Day.
 9. WS3 off-season in the app: ✅ Divisional + Slot draft rooms (v0.11) · ⬜ SPL Draft room · ⬜ Keeper declarations · ⬜ Shoot Out Draft + Seed 3 pick (ESPN `/schedule` write).
 
 ## 8. Open (asked in the app: League → 📋 Questions)

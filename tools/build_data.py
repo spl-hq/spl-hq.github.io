@@ -163,19 +163,19 @@ if os.path.exists(sp):
     schedule = {"season": num("season"), "regWeeks": num("reg_weeks"), "playoffTeams": num("playoff_teams"), "current": num("current_week"),
                 "games": [[int(r["week"]), "R" if r["playoff_tier"] == "NONE" else "P" if r["playoff_tier"] == "WINNERS_BRACKET" else "C", r["home_owner"], r["away_owner"]]
                           for r in rows("SPL_Schedule.csv") if r["week"]]}
-# 📰 Weekly Pulse (WS4): editions written by tools/pulse.py (robot), newest first; the app shows the latest 6.
-pp = os.path.join(ROOT, "data", "Weekly_Pulse.json")
-pulse = (json.load(open(pp, encoding="utf-8")).get("editions") or [])[:6] if os.path.exists(pp) else []
+# ✍️ Card lines (WS4): the robot's few words on the reel cards per finished week (tools/card_lines.py), newest first; the app keeps 3.
+cp = os.path.join(ROOT, "data", "Card_Lines.json")
+lines = (json.load(open(cp, encoding="utf-8")).get("weeks") or [])[:3] if os.path.exists(cp) else []
 ls = os.path.join(ROOT, "data", "ledger_status.json")
 ledger = json.load(open(ls)) if os.path.exists(ls) else None
 payload = {'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts,
            'seasons': seasons, 'ledger': ledger, 'games': games, 'history': history, 'draft': draft, 'rules': rules,
-           'conflicts': conflicts, 'calendar': calendar, 'offseason': offseason, 'schedule': schedule, 'pulse': pulse}
+           'conflicts': conflicts, 'calendar': calendar, 'offseason': offseason, 'schedule': schedule, 'lines': lines}
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
        "// Sources: data/Keeper_Contracts.csv, SPL_Owner_Registry.csv, SPL_Matchups.csv, Season_Results_Manual.csv, Draft_Picks.csv,\n"
        f"//   SPL_Rulebook.md, Rules_Conflicts.csv, Season_Calendar.csv, Offseason_Drafts.csv,\n"
-       f"//   SPL_Schedule.csv, Weekly_Pulse.json. Generated {datetime.date.today()}.\n"
+       f"//   SPL_Schedule.csv, Card_Lines.json. Generated {datetime.date.today()}.\n"
        f"var LEAGUE_DATA = {json.dumps(payload, ensure_ascii=False, separators=(',', ':'))};\n")
 open(os.path.join(ROOT, "league-data.js"), "w", encoding="utf-8").write(out)
 print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:], "·", len(history), "seasons of history ·",
-      len(draft), "draft picks ·", len(rules), "rule sections ·", len(conflicts), "conflicts ·", len(calendar), "dates ·", len((schedule or {}).get("games") or []), "scheduled ·", len(pulse), "pulse editions")
+      len(draft), "draft picks ·", len(rules), "rule sections ·", len(conflicts), "conflicts ·", len(calendar), "dates ·", len((schedule or {}).get("games") or []), "scheduled ·", len(lines), "weeks of card lines")
