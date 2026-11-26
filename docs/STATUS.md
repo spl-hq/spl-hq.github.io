@@ -19,6 +19,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.17.1 (backend v0.13.1) · ⚡ **Faster everywhere** (Mike: lots of load times). Measured: every backend call costs ~1 s of
+  Google overhead, +~1 s per Sheet read, +2–5 s when ESPN is asked; Home waited on the slowest of 5 calls and the app itself waited on the
+  network at every launch. Now: **the app opens from the phone's copy** (service worker cached-first, fresh copy fetched behind it; the ✨
+  update check still catches new versions in seconds); **Home draws your last reel instantly** and refreshes in place; **Match** shows the
+  last copy of the live week while ESPN answers; **rosters + standings** show the last copy and refresh behind (kept per owner, cleared on
+  sign-out). Backend: each tab is read once per request instead of once per helper (sign-in, rules, desk each re-read Owners/Answers).
+  SW `splhq-v32`.
 - 2026-11-26 · v0.17 (backend v0.13.0) · 🔒 **Keeper calculator → Signing Day in the app** (Mike). League → 🔒 Keepers rebuilt around **plans**:
   up to 3 named scenarios (＋ Plan · Copy · Rename · Delete), yours saved with your sign-in (any phone, private until you declare; other
   teams' plans stay on the phone). Per plan: **✂️ terminate?** on any carried contract (half of each year left lands as a cap penalty),

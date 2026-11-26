@@ -84,7 +84,7 @@ function draftUndo_(me, b) { // commish: take back the last pick (reopens a fini
   var sel = rows_("DraftPicks"), last = -1; sel.forEach(function (p, i) { if (p.draft_id === f.row.draft_id && (last < 0 || Number(p.n) > Number(sel[last].n))) last = i; });
   if (last < 0) return { ok: false, error: "No picks to undo." };
   if (f.row.status === "cancelled") return { ok: false, error: "This draft was cancelled." };
-  var p = sel[last]; sheet_("DraftPicks").deleteRow(last + 2);
+  var p = sel[last]; dirty_("DraftPicks"); sheet_("DraftPicks").deleteRow(last + 2);
   var r = f.row; r.status = "open"; r.updated_ts = new Date(); delete r.orderA; setRow_("Drafts", f.idx, r);
   botPost_("league", "↩️ " + (r.mode === "test" ? "🧪 " : "") + (DRAFT_KINDS[r.kind] || {}).name + ": pick " + p.n + " (" + oName_(p.owner) + ") taken back by " + me.name + ". " + oName_(p.owner) + " is on the clock again.", r.draft_id);
   log_("draftundo", r.draft_id + " #" + p.n + " by " + me.owner);

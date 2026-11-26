@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.13.0";
+var VERSION = "0.13.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -59,6 +59,7 @@ var WORDS_B = ["HAMMER","TORNADO","EXPRESS","RAMPAGE","CANNON","THUNDER","STAMPE
 
 // ---------------------------------------------------------------- HTTP
 function doGet(e) {
+  SH_ = {}; ROWS_ = {}; // fresh memo per request
   var p = (e && e.parameter) || {};
   try {
     if (p.action === "health") { var hh = health_(p.fresh === "1"); maybeTick_(); return json(hh); } // no tick trigger yet? the health pings drive it (mod_ops)
@@ -73,6 +74,7 @@ function doGet(e) {
 var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1, social: 1, opsx: 1, keepers: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
 var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1 }; // rate-limited per owner
 function doPost(e) {
+  SH_ = {}; ROWS_ = {};
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
   var lock = null;
@@ -143,7 +145,12 @@ var HEADS = {
   EspnLog:  ["ts", "by", "kind", "ref", "items", "code", "msg"],
   Votes:     ["ts", "ref", "owner", "choice"]
 };
+// ⚡ Per-request memo (one backend run = one request): a tab is opened and read once, not once per helper (auth_, rules_, desk_ …
+// each re-read Owners/Answers). Any write through append_/setRow_/dirty_ drops the tab's memo, so reads after a write are fresh.
+var SH_ = {}, ROWS_ = {};
+function dirty_(name) { delete ROWS_[name]; }
 function sheet_(name) {
+  if (SH_[name]) return SH_[name];
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
   if (!sh) {
     sh = ss.insertSheet(name); sh.appendRow(HEADS[name]); sh.setFrozenRows(1);
@@ -151,19 +158,20 @@ function sheet_(name) {
   }
   var h = HEADS[name], have = sh.getLastColumn ? sh.getLastColumn() : h.length;
   if (have && have < h.length) sh.getRange(1, have + 1, 1, h.length - have).setValues([h.slice(have)]); // new columns get their header
-  return sh;
+  return (SH_[name] = sh);
 }
 function rows_(name) {
-  var sh = sheet_(name), v = sh.getDataRange().getValues(), h = v.shift();
+  if (!ROWS_[name]) ROWS_[name] = sheet_(name).getDataRange().getValues();
+  var v = ROWS_[name].slice(), h = v.shift();
   return v.map(function (r) { var o = {}; h.forEach(function (k, i) { o[k] = r[i]; }); return o; });
 }
 function setRow_(name, idx, obj) { // idx = 0-based data row (row idx+2 in the Sheet)
-  var sh = sheet_(name), h = HEADS[name];
+  var sh = sheet_(name), h = HEADS[name]; dirty_(name);
   sh.getRange(idx + 2, 1, 1, h.length).setValues([h.map(function (k) { var v = obj[k]; return typeof v === "string" ? safe_(v) : (v == null ? "" : v); })]);
 }
 function safe_(s) { s = String(s == null ? "" : s); return /^[=+\-@]/.test(s) ? "'" + s : s; }
 function clip_(s, n) { return String(s == null ? "" : s).replace(/[\u0000-\u0008\u000b-\u001f]/g, "").slice(0, n); }
-function append_(name, row) { sheet_(name).appendRow(row.map(function (v) { return typeof v === "string" ? safe_(v) : v; })); }
+function append_(name, row) { dirty_(name); sheet_(name).appendRow(row.map(function (v) { return typeof v === "string" ? safe_(v) : v; })); }
 function log_(kind, detail) { try { append_("Log", [new Date(), kind, clip_(detail, 500)]); } catch (e) {} }
 function rate_(who) {
   var c = CacheService.getScriptCache(), k = "rate:" + who + ":" + Math.floor(Date.now() / 3.6e6), n = Number(c.get(k) || 0);
@@ -301,6 +309,7 @@ function health_(fresh) {
   return out;
 }
 function menuCheck() {
+  SH_ = {}; ROWS_ = {};
   var added = seedOwners_(), boot = "";
   var mike = owners_().filter(function (o) { return o.owner === "murello"; })[0];
   // Until Mike has signed in once, every setup check makes him a fresh passphrase (the alert is easy to close by accident).
@@ -313,7 +322,7 @@ function menuCheck() {
     "\nESPN · test " + WRITE_LEAGUE + ": " + line(h.espnTest) +
     "\nEmails left today: " + h.mailLeft + boot);
 }
-function tick() { ops_tick_("trigger"); try { keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
+function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
 
 // ---------------------------------------------------------------- parts: the rest of the backend, in this same scope
 // logic.js is the CORE (config, routing, Sheet helpers, sign-in, questions, health). The other parts live next to it as

@@ -378,7 +378,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.17";
+var APP_VERSION = "0.17.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -451,9 +451,15 @@ function api(action, body) {
     function () { if (typeof pingConn === "function") pingConn(); throw new Error(navigator.onLine ? "Couldn't reach SPL HQ. Check your signal and try again." : "You're offline: nothing was sent. Try again when you have signal."); });
 }
 var cache = {};
+// ⚡ Speed (Mike 11/26: "lots of load times"): screens draw from the last copy kept on this phone, then refresh in the background.
+// keep/kept: last good answers per signed-in owner (cleared on sign-out). Live data (week) is redrawn as soon as the fresh copy lands.
+function keep(k, v) { if (v && v.ok !== false) store("c_" + k, { o: ME ? ME.owner : "", at: Date.now(), v: v }); }
+function kept(k, maxH) { var c = store("c_" + k); return c && c.o === (ME ? ME.owner : "") && Date.now() - c.at < (maxH || 24) * 36e5 ? c.v : null; }
 function load(action, maxAgeMs) {
   var c = cache[action]; if (c && Date.now() - c.at < (maxAgeMs || 60000)) return Promise.resolve(c.data);
-  return api(action).then(function (d) { cache[action] = { at: Date.now(), data: d }; return d; });
+  var fresh = api(action).then(function (d) { cache[action] = { at: Date.now(), data: d }; keep("g_" + action, d); return d; });
+  var old = !c && kept("g_" + action, 24); if (old) { cache[action] = { at: 0, data: old }; fresh.catch(function () {}); return Promise.resolve(old); } // stale now, fresh next time
+  return fresh;
 }
 
 // ---- session: passphrase once → device token kept on this phone (a new passphrase signs old phones out)
@@ -473,7 +479,7 @@ function authed(action, body) {
   return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
 }
 function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; paintMe(); }
-function signOut(quiet) { store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
+function signOut(quiet) { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("spl_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
 function fullOf(id) { var o = (window.LEAGUE_DATA && LEAGUE_DATA.owners || []).filter(function (x) { return x.id === id; })[0]; return o && o.full; } // Owner Registry canonical_name
 function initials() { // Michael Murello → MM
   var w = String(fullOf(ME.owner) || ME.name || "").trim().split(/\s+/);
@@ -615,7 +621,9 @@ SCREENS.home.after = function () {
     jobs.push(loadTrades(true).then(function (t) { d.trades = t; }).catch(function () {}));
     jobs.push(loadDrafts(true).then(function (x) { d.drafts = x; }).catch(function () {}));
     jobs.push(loadKeep(true).then(function (k) { d.keep = k; }).catch(function () {})); }
-  Promise.all(jobs).then(function () { if (!$("#feed")) return; HOME_D = d; drawFeed(0); });
+  var drawn = false; if (!HOME_D && ME) { var kd = kept("home", 24); if (kd) HOME_D = kd; }
+  if (HOME_D) { drawFeed(0); drawn = true; } // instant: last reel (memory or this phone), refreshed below
+  Promise.all(jobs).then(function () { if (!$("#feed")) return; HOME_D = d; if (ME) keep("home", d); drawFeed(drawn ? FPOS : 0); });
 };
 var HOME_D = null;
 function drawFeed(keep) {
@@ -748,7 +756,8 @@ SCREENS.match.after = function (arg) {
     }).join("") + '</div><p class="muted" style="font-size:12px">From ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</p>';
     $("#mt").innerHTML = html;
   };
-  var pull = function () { authed("week", { week: wk }).then(draw).catch(function (e) { if ($("#mt")) $("#mt").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; }); };
+  var last = WEEK || kept("week", 12); if (last && last.ok && (wk ? last.week === wk : last.week === last.current)) draw(last); // instant, then fresh
+  var pull = function () { authed("week", { week: wk }).then(function (d) { if (d.ok && d.week === d.current) keep("week", d); draw(d); }).catch(function (e) { if ($("#mt")) $("#mt").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; }); };
   pull(); timers.push(setInterval(function () { if (WEEK && WEEK.week === WEEK.current && !document.hidden) pull(); }, 60000));
 };
 
@@ -813,7 +822,12 @@ function loadTrades(fresh) {
   if (!fresh && TRADES && Date.now() - TRADES._at < 20000) return Promise.resolve(TRADES);
   return authed("trades").then(function (t) { if (!t.ok) throw new Error(t.error); t._at = Date.now(); TRADES = t; return t; });
 }
-function loadRosters() { return ROSTERS && Date.now() - new Date(ROSTERS.at).getTime() < 600000 ? Promise.resolve(ROSTERS) : authed("rosters").then(function (d) { if (!d.ok) throw new Error(d.error); ROSTERS = d; return d; }); }
+function loadRosters() {
+  if (ROSTERS && Date.now() - new Date(ROSTERS.at).getTime() < 600000) return Promise.resolve(ROSTERS);
+  var fresh = authed("rosters").then(function (d) { if (!d.ok) throw new Error(d.error); ROSTERS = d; keep("rosters", d); return d; });
+  var old = !ROSTERS && kept("rosters", 24); if (old) { ROSTERS = old; fresh.catch(function () {}); return Promise.resolve(old); } // rosters move slowly: show, refresh behind
+  return fresh;
+}
 function pickInfo(pid) { var m = /^(\d+)-R(\d+)-(\w+)$/.exec(pid) || []; return { season: m[1], round: +m[2], original: m[3] }; }
 function pickLabel(pid, holder) { var p = pickInfo(pid); return "'" + String(p.season).slice(2) + " Rd " + p.round + (p.original !== holder ? " (" + oname(p.original) + "'s)" : ""); }
 function contractOf(name) { // the keeper contract that travels with this player, if any

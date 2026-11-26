@@ -7,6 +7,8 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **Show the last copy, then refresh** (Mike: load times). App shell is cached-first (update check covers new versions);
+  Home/Match/rosters/standings draw from the phone's last answer and refresh behind. Live actions (trades, desk, votes) always fetch.
 - 2026-11-26 · **Keeper calculator → Signing Day declarations in the app** (Mike: "love the scenarios that turn into declare keepers… posts to
   league message board, hits owner cards"). Up to 3 named plans per owner, saved with the sign-in (private until declared). Declaring = the
   official Signing Day act: the backend re-prices from gold + the ESPN roster, enforces 10 KP / three keepers / one tag, posts to league chat

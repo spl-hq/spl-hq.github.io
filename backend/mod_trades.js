@@ -151,6 +151,6 @@ function tradeAct_(me, b) {
 }
 function wipeTrades_(me) {
   if (TRADE_MODE !== "test") return { ok: false, error: "Only test trades can be wiped." };
-  var ss = SpreadsheetApp.getActive(); ["Offers", "Picks"].forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); });
+  var ss = SpreadsheetApp.getActive(); ["Offers", "Picks"].forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); delete SH_[n]; dirty_(n); });
   seedPicks_(); log_("wipetrades", me.owner); return { ok: true };
 }

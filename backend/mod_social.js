@@ -50,7 +50,7 @@ function react_(me, b) {
   var k = reactKey_(b.key), em = String(b.emoji || ""); if (!k || REACTS.indexOf(em) < 0) return { ok: false, error: "Unknown reaction" };
   var sh = sheet_("Reactions"), list = rows_("Reactions"), idx = -1;
   list.forEach(function (r, i) { if (String(r.key) === k && String(r.owner) === me.owner && String(r.emoji) === em) idx = i; });
-  if (idx >= 0) sh.deleteRow(idx + 2); else append_("Reactions", [new Date(), k, me.owner, em]);
+  if (idx >= 0) { dirty_("Reactions"); sh.deleteRow(idx + 2); } else append_("Reactions", [new Date(), k, me.owner, em]);
   var r = reacts_([k]); return { ok: true, on: idx < 0, key: k, reacts: r.reacts[k] || {} };
 }
 // 🗳️ Votes (Game of the Week, quizzes, polls): one per owner per ref, locked once cast (MAFFL commish 11/7). Results only
