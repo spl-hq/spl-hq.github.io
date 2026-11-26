@@ -7,6 +7,8 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **Limestone gray joins the Nittany theme** (Mike). Gray carries structure (canvas, lines, labels, tab bar, header rule);
+  blue stays the action/ownership color. Kept as a separate override block so it can be tuned or removed without touching Nittany.
 - 2026-11-26 · **WS5: a 4-team test league, not 12** (Mike). The test league's 4 teams mirror Mike, Joe, Al and Glen's real SPL rosters (Mike's own ESPN
   team = Mike, by his SWID). ESPN writes are a switch on the Ops desk (Script property, off by default) and can only reach `WRITE_LEAGUE`. Mirroring is
   run by Mike from the Ops desk (on demand, to set up and to reset after demos), not a scheduled robot: the test league only changes when someone

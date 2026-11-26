@@ -49,6 +49,8 @@ Never hand-edit robot-written gold: fix at the source (the app) and let the robo
 Nittany Navy `#041E42` (header bar, headings feel) · Beaver Blue `#1E407C` (buttons, accents, wins, your stuff) ·
 Pugh Blue `#96BEE6` (small accents on navy) · White cards on `#F2F5FA` · Text `#0B1F3A` · Muted `#5D6E89` · Line `#D6DFEC` ·
 Gold `#B88A2E` (Needs you, keeper tags, champions) · Red `#C8102E` (injuries, alerts only).
+**Limestone gray layer** (Mike 11/26): page canvas `#E8EAED`, lines `#D9DCE0`, muted text `#5F666D`, tab bar `#F7F8F9` (inactive `#7A8288`),
+Limestone `#A2AAAD` rule under the header. Gray = structure; blue = anything you tap, win or own. Lives in the "Limestone" block at the very end of `<style>` (delete it to revert).
 The theme lives in the "Nittany" block at the end of the `<style>` (CSS variables `--lime` = Beaver Blue, `--night` = white).
 Headings condensed uppercase 800; numbers monospace. Bottom tabs: Home · Match · Team · Chat · League. SPL crest top-left → Home.
 Icons sit on Nittany Navy.

@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS5 ESPN writes + Joe demo)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Limestone gray layer)
 
 ## Now
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **First live write is the proof:** the LM trade write uses `TRADE_PROPOSAL` + `EXECUTE` (MAFFL's shape as recorded in the plan; Claude couldn't open the MAFFL repo to copy it). If the first demo trade comes back "Do on ESPN" with ESPN's reason, check the write log on the Ops desk; the type can be switched with Script property `ESPN_TRADE_TYPE` without a deploy.
@@ -14,6 +14,10 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS5 E
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.13.1 · 🎨 **Limestone gray layer (Mike).** A splash of Penn State's gray on top of Nittany blue + white: page canvas is now a cool
+  neutral gray (`#E8EAED`) so white cards and tiles pop, lines/labels/muted text go neutral gray, tab bar is off-white with gray inactive tabs
+  (active = navy), and a thin Limestone `#A2AAAD` rule sits under the navy header. Blue still marks everything you tap, win or own; gold/red
+  unchanged. All in one "Limestone" CSS block at the end of `<style>`: delete it to go back. SW cache `splhq-v21`.
 - 2026-11-26 · v0.13 (backend v0.10.0) · 🏈 **WS5: ESPN writes on the test league + the Joe demo.** Test league 1722387564 keeps **4 teams** (Mike: no need for 12):
   Mike's own ESPN team (found by his SWID) = Mike, the other three by team id = Joe, Al, Glen (`DEMO_OWNERS`). New Ops desk card **🏈 ESPN test league**:
   **ESPN writes** switch (Script property `ESPN_WRITES`, off by default; writes can only ever go to `WRITE_LEAGUE`), each test team vs its SPL roster

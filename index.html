@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.12 · 2026-11-26. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.13.1 · 2026-11-26. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -270,6 +270,20 @@ mark{background:#FFE9A8;color:inherit;border-radius:3px}
 a.btn.ghost{text-decoration:none}
 .upd{display:none;position:fixed;left:50%;top:calc(var(--top) + 74px);transform:translateX(-50%);z-index:60;background:#041E42;color:#fff;border:2px solid #96BEE6;border-radius:22px;padding:9px 16px;font:700 14px var(--body);box-shadow:0 6px 20px rgba(0,0,0,.25);transition:transform .3s;white-space:nowrap;cursor:pointer}
 .upd.on{display:block;animation:updIn .3s ease-out}@keyframes updIn{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%)}}.upd b{color:#96BEE6}
+
+/* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
+   Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
+:root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
+main{background:#E8EAED}
+header{box-shadow:inset 0 -3px 0 #A2AAAD}
+nav.tabs{background:#F7F8F9;border-top-color:#D9DCE0;box-shadow:0 -2px 12px rgba(30,35,40,.06)}
+nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
+.card,.dcard,.tile{border-color:#E1E4E8;box-shadow:0 1px 2px rgba(30,35,40,.06),0 2px 8px rgba(30,35,40,.04)}
+.card.lead .eyebrow{color:#C5CBD0}
+.btn.ghost{border-color:#CDD2D7} .chip{border-color:#D9DCE0}
+.tag{background:#F1F2F4} .fin{background:#ECEEF0} .rnote{background:#F3F4F6}
+.grade{background:#E1E4E8} .meter{background:#E8EAED}
+.gcol.mine{background:#E8EAED} .composer{background:#F7F8F9}
 </style>
 </head>
 <body>
@@ -311,7 +325,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.13";
+var APP_VERSION = "0.13.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
