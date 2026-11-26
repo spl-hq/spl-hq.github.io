@@ -64,15 +64,18 @@ e.M.menuCheck();
 ok(e.sheets.Owners && e.sheets.Owners.rows.length === 13, "12 owners seeded");
 const phrase = (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(e.alerts[0]) || [])[1];
 ok(!!phrase, "Mike's passphrase shown in the setup alert");
-e.M.menuCheck(); ok(e.sheets.Owners.rows.length === 13 && !/passphrase/.test(e.alerts[1]), "second check: no dupes, no new passphrase");
-ok(!JSON.stringify(e.sheets.Owners.rows).includes(phrase), "passphrase never stored in plain text");
+e.M.menuCheck(); const phrase2 = (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(e.alerts[1]) || [])[1];
+ok(e.sheets.Owners.rows.length === 13 && phrase2, "second check before Mike signs in: no dupes, fresh passphrase");
+ok(!e.post({ action: "login", pin: phrase }).ok, "the missed passphrase no longer works");
+ok(!JSON.stringify(e.sheets.Owners.rows).includes(phrase2), "passphrase never stored in plain text");
 
 // 5 · sign-in
 let r = e.post({ action: "login", pin: "wrong-wrong-111" });
 ok(!r.ok, "wrong passphrase refused");
-r = e.post({ action: "login", pin: phrase.toLowerCase().replace(/-/g, " ") });
+r = e.post({ action: "login", pin: phrase2.toLowerCase().replace(/-/g, " ") });
 ok(r.ok && r.me.owner === "murello" && /ops/.test(r.me.role), "Mike signs in (case/dashes ignored)");
 const mike = r.token;
+e.M.menuCheck(); ok(!/passphrase/.test(e.alerts[2]), "after Mike signs in, setup check leaves his passphrase alone");
 ok(e.post({ action: "me", token: "murello.bogus" }).auth === true, "bad token refused");
 ok(e.post({ action: "answers", items: [{ qid: "x", choice: "y" }] }).auth === true, "answers need sign-in");
 

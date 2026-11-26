@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.2";
+var VERSION = "0.2.2";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -257,7 +257,8 @@ function health_(fresh) {
 function menuCheck() {
   var added = seedOwners_(), boot = "";
   var mike = owners_().filter(function (o) { return o.owner === "murello"; })[0];
-  if (mike && !mike.pin_hash) { var r = issue_({ owner: "setup" }, "murello"); boot = "\n\n🔑 Mike's passphrase (shown once, write it down):\n" + r.phrase + "\n\nSign in at " + APP_URL; }
+  // Until Mike has signed in once, every setup check makes him a fresh passphrase (the alert is easy to close by accident).
+  if (mike && (!mike.pin_hash || !mike.last_seen)) { var r = issue_({ owner: "setup" }, "murello"); boot = "\n\n🔑 Mike's passphrase (write it down now):\n" + r.phrase + "\n\nSign in at " + APP_URL + "\nMissed it? Run this check again: it makes a new one until you've signed in."; }
   var h = health_(true);
   var line = function (x) { return x.ok ? "✅ " + x.name + " (" + x.teams + " teams)" : "❌ " + x.error; };
   SpreadsheetApp.getUi().alert("SPL HQ logic v" + VERSION +
