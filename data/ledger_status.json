@@ -1,15 +1,15 @@
 {
- "at": "2026-11-26T11:50+00:00",
+ "at": "2026-11-26T13:22+00:00",
  "drafts": 0,
  "mode": "test",
- "backend": "0.8.0",
+ "backend": "0.12.0",
  "trades": 0,
  "picks": 204,
  "rules": {
   "pickSeasons": [
    2027
   ],
-  "pickYearsFrom": "default",
+  "pickYearsFrom": "commish",
   "contracts": "travels",
   "contractsFrom": "commish"
  },
