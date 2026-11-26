@@ -7,7 +7,7 @@ on:
     - cron: "41 */2 * * *"
   push:
     branches: [main]
-    paths: [".github/workflows/ledger-sync.yml", "tools/ledger_sync.py"]
+    paths: [".github/workflows/ledger-sync.yml", "tools/ledger_sync.py", "tools/robot_push.sh"]
 permissions:
   contents: write
 concurrency: { group: data-robots, cancel-in-progress: false }
@@ -27,4 +27,4 @@ jobs:
             last=$(git log -1 --format=%ct -- data/ledger_status.json 2>/dev/null || echo 0); now=$(date +%s)
             if [ $((now - last)) -lt 86000 ]; then git reset -q; echo "nothing new"; exit 0; fi
           fi
-          git commit -m "Ledger sync: picks, trades, keeper contracts, drafts" && git pull --rebase && git push
+          git commit -m "Ledger sync: picks, trades, keeper contracts, drafts" && bash tools/robot_push.sh

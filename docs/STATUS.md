@@ -12,6 +12,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS3 p
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · 🤖 Robot fix: two robots fired by one push both rebuilt `league-data.js` and the second failed its rebase (ledger-sync on the v0.11 push). New `tools/robot_push.sh` (used by all three robots): rebase, keep the robot's own gold, rebuild `league-data.js` from the merged data, push; 3 tries; stops if the rebuild fails.
 - 2026-11-26 · v0.11 (backend v0.8.0) · 🗓️ **WS3 part 1: the April drafts run live in the app.** New League tile **Off-season**: countdown to the
   2027 off-season, every event in order (Winter Meeting, Divisional, Slot, Signing Day, SPL Draft, Shoot Out) with the 2027 orders computed from
   the 2026 finish ("if the season ended today" until the SPL Bowl is final; checked against 2025: the computed orders match what the league did).
