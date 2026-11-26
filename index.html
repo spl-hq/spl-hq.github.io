@@ -303,7 +303,7 @@ mark{background:#FFE9A8;color:inherit;border-radius:3px}
 .gtrade{display:inline-block;margin-top:5px;background:#96BEE6;color:#041E42;border-radius:5px;padding:2px 7px;font:800 11px var(--head);text-transform:uppercase;letter-spacing:.06em}
 .gpos{font:700 10px var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
 .gp{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
-.gp b{display:block;font-size:12.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gp small{font-size:10.5px;color:var(--muted)}
+.kpb{display:inline-block;font:700 10px var(--mono);color:var(--lime);border:1px solid #C9D6EA;background:#EEF3FA;border-radius:5px;padding:1px 5px;margin:2px 0 1px;white-space:nowrap} .kpb.kc{color:#7A5A14;background:#F7EED9;border-color:#E3CD9A} .kpb.kx{color:var(--muted);background:#F1F2F4;border-color:var(--line)} .gp .kpb{display:table;margin:3px 0 2px} .gp b{display:block;font-size:12.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gp small{font-size:10.5px;color:var(--muted)}
 .gp.sel{cursor:pointer}.gp.sel.on{background:#1E407C;border-color:#1E407C;color:#fff}.gp.sel.on small{color:#cfe0f5}
 .gp.pk b{font:600 12px var(--mono)}
 .bfoot{flex:none;background:#fff;border-top:1px solid var(--line);padding:10px 14px;display:flex;flex-direction:column;gap:8px}
@@ -378,7 +378,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.17.3";
+var APP_VERSION = "0.17.4";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -813,7 +813,7 @@ SCREENS.team.after = function (arg) {
       return '<div class="card" style="padding:12px 14px"><div class="eyebrow">' + label + '</div><table class="ro"><tr><th></th><th>Player</th><th class="n">Pts</th><th class="n">Avg</th></tr>' +
         list.map(function (p) {
           var k = kept[p.n.toLowerCase()];
-          return '<tr><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (k ? ' <span class="tag">🔒 ' + (k.kp["2026"] === "F" ? "TAG" : k.kp["2026"] + " KP") + '</span>' : '') +
+          return '<tr><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? '' : ' ' + kpBadge(p.n)) +
             '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + (p.acq ? ' · ' + esc(p.acq) : '') + '</small>' + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '') + '</td>' +
             '<td class="n">' + fmtPts(p.sp) + '</td><td class="n">' + fmtPts(p.avg) + '</td></tr>';
         }).join("") + '</table></div>';
@@ -844,6 +844,14 @@ function loadRosters() {
 }
 function pickInfo(pid) { var m = /^(\d+)-R(\d+)-(\w+)$/.exec(pid) || []; return { season: m[1], round: +m[2], original: m[3] }; }
 function pickLabel(pid, holder) { var p = pickInfo(pid); return "'" + String(p.season).slice(2) + " Rd " + p.round + (p.original !== holder ? " (" + oname(p.original) + "'s)" : ""); }
+// Keeper price on any roster row: 🔒 the contract he carries (next season's KP, through when), else what keeping him would cost
+// (KP by the round he went in last season's SPL Draft; undrafted = 2), or ✗ if he can't be kept (no extensions, terminated).
+function kpBadge(name) {
+  var y0 = KP_YRS[0], c = contractOf(name);
+  if (c) { var v = c.kp[y0], last = Math.max.apply(null, Object.keys(c.kp).map(Number)); return '<span class="kpb kc">🔒 ' + (v === "F" ? "TAG" : v + " KP") + (last > y0 ? " → '" + String(last).slice(2) : "") + '</span>'; }
+  var why = kblocked(name, ""); if (why && !/under contract/.test(why)) return '<span class="kpb kx" title="' + esc(why) + '">✗ ' + (/terminated/.test(why) ? "cut" : "no ext.") + '</span>';
+  var r = draftedRound(name, y0 - 1); return '<span class="kpb">' + (r ? "R" + r : "UD") + ' · ' + KP_ROUND(r) + ' KP</span>';
+}
 function contractOf(name) { // the keeper contract that travels with this player, if any
   var c = ((window.LEAGUE_DATA || {}).contracts || []).filter(function (x) { return x.status === "active" && x.player.toLowerCase() === String(name).toLowerCase(); })[0];
   if (!c) return null; var fut = Object.keys(c.kp).filter(function (y) { return +y >= 2027; }); return fut.length ? c : null;
@@ -930,12 +938,12 @@ SCREENS.trade.after = function (arg) {
     Promise.all([loadRosters(), loadTrades()]).then(function (res) {
       var ro = res[0], t = res[1], st = sortTeams((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).map(function (x) { return x.owner; });
       var ids = [me].concat(OWNERS.map(function (o) { return o.id; }).filter(function (id) { return id !== me; }).sort(function (a, b) { var ia = st.indexOf(a), ib = st.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }));
-      var html = '<div class="gtop">' + back("trades", "Trades") + '<span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade. 🔒 = keeper contract.</span></div><div class="tgrid2">' + ids.map(function (id) {
+      var html = '<div class="gtop">' + back("trades", "Trades") + '<span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted).</span></div><div class="tgrid2">' + ids.map(function (id) {
         var tm = teamRoster(ro, id); if (!tm) return ""; var mine = id === me, np = t.picks.filter(function (p) { return p.owner === id; }).length;
         var head = mine ? '<div class="ghead me"><b>You</b><small>' + esc(tm.rec) + ' · 🎟️ ' + np + ' picks</small></div>'
           : '<button class="ghead" onclick="go(\'trade\',\'' + id + '\')"><b>' + esc(tm.team) + '</b><small>' + esc(oname(id)) + ' · ' + esc(tm.rec) + ' · 🎟️ ' + np + '</small><span class="gtrade">Trade ›</span></button>';
         return '<div class="gcol' + (mine ? " mine" : "") + '">' + head + grouped(tm.players.filter(function (p) { return p.slot !== "IR"; }), function (p) {
-          return '<div class="gp"><b>' + esc(p.n) + (contractOf(p.n) ? " 🔒" : "") + '</b><small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(p.inj) + '</span>' : '') + '</small></div>'; }) + '</div>';
+          return '<div class="gp"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(p.inj) + '</span>' : '') + '</small></div>'; }) + '</div>';
       }).join("") + '</div>';
       if ($("#tg")) $("#tg").innerHTML = html;
     }).catch(function (e) { if ($("#tg")) $("#tg").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });
@@ -953,7 +961,7 @@ SCREENS.trade.after = function (arg) {
     var col = function (s, team, owner) {
       return '<div class="bcol"><div class="ghead' + (s === "give" ? " me" : "") + '"><b>' + (s === "give" ? "You send" : esc(oname(owner)) + " sends") + '</b><small>' + esc(team.team) + '</small></div>' +
         grouped(team.players.filter(function (p) { return p.slot !== "IR"; }), function (p) { var on = !!TB[s].players[p.n];
-          return '<button class="gp sel' + (on ? " on" : "") + '" data-s="' + s + '" data-p="' + esc(p.n) + '" data-pos="' + esc(p.pos) + '" data-tm="' + esc(p.tm) + '" data-id="' + (p.id || "") + '"><b>' + esc(p.n) + (contractOf(p.n) ? " 🔒" : "") + '</b><small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + '</small></button>'; }) +
+          return '<button class="gp sel' + (on ? " on" : "") + '" data-s="' + s + '" data-p="' + esc(p.n) + '" data-pos="' + esc(p.pos) + '" data-tm="' + esc(p.tm) + '" data-id="' + (p.id || "") + '"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + '</small></button>'; }) +
         '<div class="gpos">🎟️ Picks</div>' + picksOf(owner).map(function (pk) { var on = !!TB[s].picks[pk.pid];
           return '<button class="gp sel pk' + (on ? " on" : "") + '" data-s="' + s + '" data-k="' + esc(pk.pid) + '"><b>' + esc(pickLabel(pk.pid, owner)) + '</b></button>'; }).join("") + '</div>';
     };
