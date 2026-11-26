@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-25 · **Home = the REEL feed**, same mechanics as MAFFL (swipe ← done / → save, Saved/Done buckets, Undo, needs-you cards locked, caught-up end card). SPL card series start from live ESPN + keeper data; drops, reactions and Claude card lines follow MAFFL REEL_SERIES once the trade center is in.
 - 2026-11-25 · **Joe gets a real login** (Mike), same as every owner will: passphrase made on the Ops desk, texted by Mike, device token on the phone. No `#joe` shortcut or name picker. Roles live in the Owners tab (`role`: owner / commish / ops).
 - 2026-11-25 · **Full service: Claude pushes straight to `main`** (Mike). No Claude Code prompts / GitHub Desktop step. "PR first" on request.
 - 2026-11-25 · **The app manages the app.** Questions for Joe, feedback and ops status live in the app (League → 📋 Questions, 💡 Ideas, 🛠️ Ops desk), Sheet-backed, emailed to ops. v0.1 shipped.
