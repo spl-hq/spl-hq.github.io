@@ -8,6 +8,8 @@ for i in 1 2 3; do
     python3 tools/build_data.py >/dev/null || { echo "robot_push: build_data failed"; exit 1; }
     git add league-data.js
     git diff --cached --quiet || git commit -q -m "Rebuild league-data.js after rebase"
+    # Robot pushes never start CI (GitHub doesn't run workflows for GITHUB_TOKEN pushes), so check the app here: a bad league-data.js = blank app.
+    node tests/app_check.js >/dev/null || { echo "robot_push: app check failed (league-data.js?), not pushing"; node tests/app_check.js | grep FAIL; exit 1; }
     git push -q && exit 0
   else
     git rebase --abort 2>/dev/null || true

@@ -160,7 +160,7 @@ if os.path.exists(sp):
     for l in open(sp, encoding="utf-8"):
         if l.startswith("# season="): meta = dict(kv.split("=", 1) for kv in l[2:].split())
     num = lambda k: int(meta[k]) if meta.get(k, "").isdigit() else None
-    schedule = {"season": num("season"), "regWeeks": num("reg_weeks"), "playoffTeams": num("playoff_teams"), "current": num("current_week"),
+    schedule = {"season": num("season"), "regWeeks": num("reg_weeks"), "playoffTeams": num("playoff_teams"), "current": num("current_week"), "pulled": meta.get("pulled") or None,
                 "games": [[int(r["week"]), "R" if r["playoff_tier"] == "NONE" else "P" if r["playoff_tier"] == "WINNERS_BRACKET" else "C", r["home_owner"], r["away_owner"]]
                           for r in rows("SPL_Schedule.csv") if r["week"]]}
 # ✍️ Card lines (WS4): the robot's few words on the reel cards per finished week (tools/card_lines.py), newest first; the app keeps 3.

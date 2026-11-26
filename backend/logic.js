@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.11.2";
+var VERSION = "0.12.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -61,7 +61,7 @@ var WORDS_B = ["HAMMER","TORNADO","EXPRESS","RAMPAGE","CANNON","THUNDER","STAMPE
 function doGet(e) {
   var p = (e && e.parameter) || {};
   try {
-    if (p.action === "health") return json(health_(p.fresh === "1"));
+    if (p.action === "health") { var hh = health_(p.fresh === "1"); maybeTick_(); return json(hh); } // no tick trigger yet? the health pings drive it (mod_ops)
     if (p.action === "standings") return json(standings_());
     if (p.action === "ledger") return json(ledger_());
     return json({ ok: true, app: "SPL HQ", version: VERSION });
@@ -70,7 +70,7 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1, social: 1 }; // never wait on the script lock
+var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1, social: 1, opsx: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
 var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, react: 1, vote: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
@@ -115,6 +115,7 @@ function doPost(e) {
       case "mirror":   return json(isRole_(me, "ops") ? mirror_(me, b) : { ok: false, error: "Ops only" });
       case "espnwrites": return json(isRole_(me, "ops") ? espnSwitch_(me, b) : { ok: false, error: "Ops only" });
       case "wipetrades": return json(isRole_(me, "ops") ? wipeTrades_(me) : { ok: false, error: "Ops only" });
+      case "opsx":     return json(isRole_(me, "ops") ? opsx_(me, b) : { ok: false, error: "Ops only" });
       default:         return json({ ok: false, error: "unknown action" });
     }
   } catch (err) { return json({ ok: false, error: String(err && err.message || err) }); }
@@ -308,7 +309,7 @@ function menuCheck() {
     "\nESPN · test " + WRITE_LEAGUE + ": " + line(h.espnTest) +
     "\nEmails left today: " + h.mailLeft + boot);
 }
-function tick() { /* v0.1: nothing scheduled yet */ }
+function tick() { ops_tick_("trigger"); } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops)
 
 // ---------------------------------------------------------------- parts: the rest of the backend, in this same scope
 // logic.js is the CORE (config, routing, Sheet helpers, sign-in, questions, health). The other parts live next to it as
@@ -317,7 +318,7 @@ function tick() { /* v0.1: nothing scheduled yet */ }
 // this is its pattern, WS6). Each part is cached 5 min under VERSION (bump VERSION when you change any part) with a 6-hour
 // last-good copy; a part that won't compile is skipped for its last good copy and ops is emailed (once an hour).
 var REPO = "spl-hq/spl-hq.github.io";
-var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts"];
+var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_ops"];
 function compiles_(src) { try { new Function(src); return true; } catch (e) { return false; } }
 function badPush_(name, r) {
   if (!r || r.getResponseCode() !== 200) return; var c = CacheService.getScriptCache(); if (c.get("badpush_" + name)) return; c.put("badpush_" + name, "1", 3600);

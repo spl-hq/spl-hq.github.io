@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **WS7: the backend watches the robots** (Mike: ops ready before Joe). GitHub's cron never fired on this repo, so an hourly
+  Apps Script `tick` (`mod_ops.js`) reads the robots' runs via the GitHub API (`GH_TOKEN`, Actions-only token) and runs late ones; alerts email
+  ops on change only; failures are never retried blindly. Sheet backup = daily CSV zip to the ops inbox (no new Google scopes, no loader
+  re-paste) over a Drive copy (needs Drive scope + re-paste) or a GitHub artifact (public repo). UptimeRobot stays the one outside watcher.
 - 2026-11-26 · **WS6: parity is a living doc + port by priority** (`docs/MAFFL_PARITY.md`). Backend now splits into `mod_*.js` parts the way MAFFL
   does (no loader change); CI runs on every push (alarm on main, gate on PRs). MAFFL-only systems (credits, dues, Survivor, tiers, Ghost,
   auction cards, headline pick) are not ported. SPL → MAFFL items are batched for a MAFFL chat when REEL wakes (this side can't push there).

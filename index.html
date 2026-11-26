@@ -373,7 +373,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.15.1";
+var APP_VERSION = "0.16";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2019,6 +2019,7 @@ SCREENS.ops = function () {
     '<div id="issued"></div>' +
     '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
     opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
+    opsSec("robots", "🤖 Robots &amp; watchdog", "opsRob", '<p class="muted">Asking GitHub…</p>', "…") +
     opsSec("owners", "🔑 Passphrases", "opsOwners", load, "…") +
     opsSec("answers", "📋 Joe's answers", "opsAns", load, "…") +
     opsSec("feedback", "💡 Feedback", "opsFb", load, "…") +
@@ -2124,9 +2125,38 @@ function loadDesk() {
     $("#opsFb").innerHTML = d.feedback.length ? d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("") : '<p class="muted" style="margin:0">No feedback yet.</p>';
   }).catch(function (e) { ["opsOwners", "opsAns", "opsFb"].forEach(function (id) { var el = $("#" + id); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge(id, "error", "stale"); }); });
 }
+// 🤖 WS7: the robots as GitHub sees them + the backend's hourly watchdog (mod_ops): who ran when, who failed, who GitHub's schedule
+// skipped (the watchdog runs those by hand), backups, Pages, ESPN cookie age, GitHub token, Sheet size. Red opens the section.
+function loadRobots(run) {
+  var el = $("#opsRob"); if (!el) return; if (run) el.innerHTML = '<p class="muted">' + (run === "backup" ? "Backing up…" : "Running the checks…") + '</p>';
+  authed("opsx", run ? { run: run } : {}).then(function (d) {
+    if (!d.ok) throw new Error(d.error); var el = $("#opsRob"); if (!el) return;
+    var bad = 0, look = 0, R = d.robots, li = function (cls, t) { if (cls === "coral") bad++; if (cls === "gold") look++; return '<span class="' + cls + '">' + t + '</span>'; };
+    var rows = R.list.map(function (x) {
+      var st = x.error ? li("coral", "❌ " + esc(x.error)) : x.failing ? li("coral", "❌ failed " + ago(x.failAt)) + (x.url ? ' · <a href="' + esc(x.url) + '" target="_blank" rel="noopener">open run ›</a>' : '')
+        : x.running ? li("lime", "⏳ running now") : x.late ? li("gold", "late · last ran " + ago(x.lastAt)) : x.okAt ? li("lime", "✅ " + ago(x.okAt)) : li("muted", "not run yet");
+      var note = x.every ? (x.scheduled ? "GitHub's schedule fires" : "GitHub's schedule hasn't fired yet: the watchdog runs it") + (x.watchdog ? " · watchdog ran it " + x.watchdog + "× this week" : "") : esc(x.why);
+      return '<div class="kv" style="display:block"><b>' + esc(x.name) + '</b> <span style="float:right">' + st + '</span><br><small class="muted">' + note + '</small></div>'; }).join("");
+    var t = d.tick || {}, tAge = t.at ? (Date.now() - new Date(t.at).getTime()) / 36e5 : 99, B = d.backup || {}, P = d.pages || {}, K = d.cookie || {}, S = d.sheet || {};
+    var expD = R.tokenExp ? Math.round((new Date(R.tokenExp.replace(" UTC", "Z").replace(" ", "T")).getTime() - Date.now()) / 864e5) : null;
+    rows += '<div class="kv"><span>Hourly watchdog</span><span>' + (!t.at ? li("coral", "❌ never ran") : tAge > 3 ? li("coral", "❌ last " + ago(t.at)) : t.by === "lazy" ? li("gold", ago(t.at) + " · riding health pings: add the trigger") : li("lime", "✅ " + ago(t.at))) + '</span></div>' +
+      '<div class="kv"><span>GitHub token</span><span>' + (!R.token ? li("gold", "add GH_TOKEN (runbook §2)") : expD == null ? li("lime", "✅ set") : expD < 14 ? li("coral", "❌ expires in " + expD + " d") : li("lime", "✅ " + expD + " days left")) + '</span></div>' +
+      '<div class="kv"><span>Sheet backup</span><span>' + (B.error ? li("coral", "❌ " + esc(B.error)) : B.sentAt ? li("lime", "✅ emailed " + ago(B.sentAt)) + (B.at !== B.sentAt ? ' <small class="muted">· checked ' + ago(B.at) + ', no changes</small>' : '') : li("gold", "not yet")) + '</span></div>' +
+      '<div class="kv"><span>Pages = main</span><span>' + (P.same ? li("lime", "✅ app v" + esc(P.live)) : P.at ? li((Date.now() - new Date(P.since).getTime()) > 36e5 ? "coral" : "gold", "live v" + esc(P.live || "?") + " · main v" + esc(P.main || "?")) : li("muted", "not checked yet")) + '</span></div>' +
+      '<div class="kv"><span>ESPN cookies</span><span>' + (!K.set ? li("coral", "❌ not set") : K.days >= 300 ? li("gold", K.days + " days old: refresh soon") : li("lime", "✅ " + K.days + " days on these")) + '</span></div>' +
+      '<div class="kv"><span>Sheet size</span><span>' + (S.pct >= 50 ? li("gold", S.pct + "% of Google's limit") : li("lime", "✅ " + (S.pct || 0) + "% of Google's limit")) + ' <small class="muted">· ' + (S.tabs || []).slice(0, 3).map(function (x) { return esc(x.name) + " " + x.rows; }).join(" · ") + '</small></span></div>' +
+      (d.watchdog.length ? '<details style="margin-top:8px"><summary class="eyebrow" style="cursor:pointer">Watchdog log · last ' + d.watchdog.length + '</summary>' + d.watchdog.map(function (w) { return '<div class="kv" style="font-size:12px"><span>' + esc(w.name) + '</span><span class="' + (w.ok ? "muted" : "coral") + '">' + (w.ok ? "run by hand " : "refused ") + ago(w.at) + '</span></div>'; }).join("") + '</details>' : '') +
+      '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="loadRobots(\'tick\')">Run checks now</button><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="loadRobots(\'backup\')">Back up now</button></div>' +
+      '<p class="muted" style="font-size:12px;margin:6px 0 0">Problems email ops when they start and when they clear. Robots run on GitHub; the watchdog runs every hour in the backend.</p>';
+    el.innerHTML = rows;
+    opsBadge("opsRob", bad ? "❌ " + bad + (bad > 1 ? " problems" : " problem") : look ? look + " to set up" : "✅ all good", bad ? "stale" : look ? "confirm" : "ok");
+    if (run === "backup") toast(d.did && d.did.sentAt ? "Backup emailed to the ops account" : "Backup: " + ((d.did && d.did.error) || "?"));
+  }).catch(function (e) { var el = $("#opsRob"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge("opsRob", "error", "stale"); });
+}
+window.loadRobots = loadRobots;
 SCREENS.ops.after = function () {
   if (!$("#opsHealth")) return;
-  loadDesk(); loadTL();
+  loadDesk(); loadTL(); loadRobots();
   var bad = 0, ok = function (b, t) { if (!b) bad++; return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };
@@ -2136,12 +2166,12 @@ SCREENS.ops.after = function () {
       '<div class="kv"><span>ESPN · SPL (read)</span><span>' + e(h.espnRead) + '</span></div>' +
       '<div class="kv"><span>ESPN · test league</span><span>' + e(h.espnTest) + '</span></div>' +
       '<div class="kv"><span>ESPN writes</span><span>' + (h.espnWrites ? '<span class="gold">ON</span>' : '<span class="muted">off</span>') + '</span></div>' +
-      '<div class="kv"><span>Emails left today</span><span>' + (h.mailLeft == null ? "?" : h.mailLeft) + '</span></div>' +
+      '<div class="kv"><span>Emails left today</span><span>' + (h.mailLeft == null ? "?" : h.mailLeft < 20 ? '<span class="gold">' + h.mailLeft + ' (Google allows 100 a day)</span>' : h.mailLeft) + '</span></div>' +
       '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>' +
       '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>' +
-      (function () { var L = window.LEAGUE_DATA || {}, g = L.games || [], last = g.length ? g[g.length - 1] : null, age = L.generated ? (Date.now() - new Date(L.generated).getTime()) / 864e5 : 99;
+      (function () { var L = window.LEAGUE_DATA || {}, g = L.games || [], last = g.length ? g[g.length - 1] : null, hp = (L.schedule && L.schedule.pulled) || null, age = hp ? (Date.now() - new Date(hp).getTime()) / 864e5 : 99;
         var lg = L.ledger, la = lg ? (Date.now() - new Date(lg.at).getTime()) / 864e5 : 99;
-        return '<div class="kv"><span>History robot</span><span>' + ok(age < 9, (L.generated ? "updated " + ago(L.generated) : "never") + (last ? " · through " + last[0] + " wk " + last[1] : "")) + '</span></div>' +
+        return '<div class="kv"><span>History robot</span><span>' + ok(age < 2, (hp ? "pulled " + ago(hp) : "not stamped yet") + (last ? " · through " + last[0] + " wk " + last[1] : "")) + '</span></div>' +
           '<div class="kv"><span>Ledger robot</span><span>' + ok(la < 1.5, lg ? "synced " + ago(lg.at) + " · " + lg.trades + " trades · " + (lg.mode === "test" ? "test files" : "gold") : "not run yet") + '</span></div>' +
           (function () { var P = (L.lines || [])[0], S = L.schedule, pa = P ? (Date.now() - new Date(P.at).getTime()) / 864e5 : 99;
             return '<div class="kv"><span>Card lines robot</span><span>' + (P ? ok(pa < 9, "Week " + P.week + " · " + ago(P.at)) : '<span class="muted">off · add the CLAUDE_CODE_OAUTH_TOKEN secret (cards show plain facts)</span>') + '</span></div>' +

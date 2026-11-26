@@ -23,7 +23,7 @@ one locked vote, results after you vote) · ✅ 📅 This week in SPL history ·
 | 1 | **Commish-posted polls** on the Votes engine (closes at a set time, league or subset) | desk `dkpollnew`, 📊 Poll card, Polls tab | The **league veto vote** is a poll on a trade (Joe's `veto_vote`: 24 h / 6 vetoes in season, 72 h off-season). Votes engine exists; add commish-created polls with a close time, then wire trades to it when Joe answers. | ⏭️ |
 | 2 | **📣 Commish alert / announcements** (reel card + pinned in chat + Board) | `alert` series, `board_`, `chatmod` | SPL has the `announce` email toggle but no way for Joe to post one. | ⬜ |
 | 3 | **Passphrase request** from the sign-in screen (Requests tab, commish emailed) | `request_`, menu "Mark request done" | A new phone or lost passphrase today means texting Mike; make it a desk item. | ⬜ |
-| 4 | **Red CI / robot failure → desk** | `desk-notify.yml` | Mike sees a failed robot on the 🛠️ Ops desk, not only in a GitHub email. | ⬜ (WS7) |
+| 4 | **Red CI / robot failure → desk** | `desk-notify.yml` | Mike sees a failed robot on the 🛠️ Ops desk, not only in a GitHub email. | ✅ v0.16 (WS7), done SPL's way: the backend reads runs from the GitHub API (no commit per failure) |
 | 5 | **Regression mock + screenshots** (frozen fixture, `shoot.py` at 390 px against a mock) | `_ops/tests/mock.js`, `regress.js`, `shoot.py` | Makes CLAUDE.md's "screenshot at 390 px" repeatable and catches behavior drift the smoke test doesn't. | ⬜ |
 | 6 | **More Vault cards**: 🗄️ Throwback, 👋 Meet the owner, 🏷️ Name that team | REEL_SERIES "Vault", `gen_vault.py` → `vault-data.js` (weekly robot) | 20 seasons of games + team names already in gold; off-season reel filler (off-season vault budget is 6). | ⬜ |
 | 7 | **📈 Records watch** (league records within reach this week) | `records` series, `daily.js` | Same gold; tension card for the season. | ⬜ |
@@ -50,6 +50,7 @@ Batch these for a MAFFL chat; this session can read MAFFL but not push to it. Po
 | 7 | **Offline behavior**: chat outbox, everything else refuses up front; header pill only when offline | v0.12.1 | MAFFL shows a vague error offline. |
 | 8 | **Card lines from gold only, plain-fact fallback** when the Claude token is missing or Claude fails | `tools/card_lines.py`, `card-lines.yml` | Check MAFFL's card-lines + Pulse robots degrade the same way. |
 | 9 | Desks behind a header button, no role labels | v0.9, v0.12.1 | Taste call for MAFFL; offer it. |
+| 10 | **Robot watchdog** (hourly backend tick runs robots GitHub's cron skipped, alerts on change, robots card) + **daily Sheet backup to the ops inbox** + SW old-cache cleanup + app check in `robot_push.sh` | `backend/mod_ops.js`, v0.16 | Check MAFFL's scheduled runs actually fire; MAFFL's SW likely keeps old caches too. |
 
 ## Next
 Port #1: commish-posted polls in `backend/mod_social.js` (on the Votes tab) + a 📊 Poll card, then the veto vote on top once Joe answers `veto_vote`.

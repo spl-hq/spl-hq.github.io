@@ -1,8 +1,9 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, reel card facelift)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS7 ops + robots + architecture audit)
 
 ## Now
+- **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
 - **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
@@ -17,6 +18,17 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.16 (backend v0.12.0) · 🛠️ **WS7 Ops + robots, and the pre-Joe architecture audit** (`docs/OPS_AUDIT_2026-11-26.md`).
+  Found: GitHub's cron had never fired here (0 scheduled runs since the repo was made). New backend part `mod_ops.js` + hourly `tick`
+  (Apps Script trigger; rides health pings until it's installed): **watchdog** reads every robot's runs from GitHub (`GH_TOKEN`) and runs
+  any robot past its interval (ledger 2 h, history 24 h + Tue 6:17 AM ET must-run), never one that's running, just ran or failed;
+  **daily Sheet backup** (every tab as CSV, zipped, emailed to the ops account only, when anything changed); checks for Pages = main,
+  ESPN cookie age (first-seen tracking, alert at 330 d), GitHub token expiry, Sheet size; **ops emailed when a problem starts and when all
+  is clear**. Ops desk: new 🤖 **Robots & watchdog** card (each robot's last good run, ❌ failed + open run, late, "GitHub's schedule hasn't
+  fired yet", watchdog log, Run checks now, Back up now). Fixes: History robot freshness now from its own pull stamp (was masked by other
+  robots rebuilding league-data.js); service worker deletes old caches (phones kept v1…v27); `robot_push.sh` runs the app check before
+  any robot push (robot pushes never start CI); card lines no longer chain off a failed history pull; emails left goes gold under 20.
+  Runbook: `GH_TOKEN`, trigger, backup + restore, UptimeRobot, launch checklist. Smoke test +21 (watchdog, alerts on change, backup, desk feed). SW `splhq-v30`.
 - 2026-11-26 · v0.15.1 · 🩹 Your avatar on reel cards was a stretched oval (its class `me` also matched the header avatar button's pill style). Renamed to `avme`.
 - 2026-11-26 · v0.15 · 🎨 **Reel card facelift** (Mike: the cards are the main experience; many wasted space, read oddly or were formatted wrong).
   New card kit after MAFFL REEL's faces (`docs/SPL_REEL_SERIES.md` → The card kit): owner avatars (initials, yours gold-ringed), score bugs,

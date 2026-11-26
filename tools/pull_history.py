@@ -81,7 +81,7 @@ with open(out, "w", newline="", encoding="utf-8") as f:
 sched.sort(key=lambda r: (r["week"] or 0, r["home_owner"]))
 with open(os.path.join(ROOT, "data", "SPL_Schedule.csv"), "w", newline="", encoding="utf-8") as f:
     f.write("# SPL_Schedule.csv  --  GOLD (robot-written by tools/pull_history.py, daily): the newest season's games ESPN hasn't decided yet.\n")
-    f.write(f"# season={sched_meta.get('season','')} reg_weeks={sched_meta.get('reg_weeks') or ''} playoff_teams={sched_meta.get('playoff_teams') or ''} current_week={sched_meta.get('current') or ''}\n")
+    f.write(f"# season={sched_meta.get('season','')} reg_weeks={sched_meta.get('reg_weeks') or ''} playoff_teams={sched_meta.get('playoff_teams') or ''} current_week={sched_meta.get('current') or ''} pulled={datetime.datetime.utcnow().isoformat(timespec='minutes')}Z\n")
     f.write("# Week-14 Shoot Out rows are ESPN's placeholder until the Shoot Out Draft sets them; playoff rows appear once ESPN seeds them.\n")
     w = csv.DictWriter(f, fieldnames=["season", "week", "playoff_tier", "home_owner", "away_owner"]); w.writeheader(); w.writerows(sched)
 report.append(f"Schedule: {len(sched)} undecided games in {sched_meta.get('season')} (current week {sched_meta.get('current')})")

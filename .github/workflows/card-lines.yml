@@ -21,6 +21,8 @@ permissions:
 concurrency: { group: data-robots, cancel-in-progress: false }
 jobs:
   lines:
+    # chained run: only after a history pull that succeeded (a failed pull already went red and emailed)
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

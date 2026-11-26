@@ -7,6 +7,16 @@ const src = fs.readFileSync(path.join(__dirname, "..", "backend", "logic.js"), "
 const parts = {}; fs.readdirSync(path.join(__dirname, "..", "backend")).filter(f => /^mod_\w+\.js$/.test(f))
   .forEach(f => { parts[f.replace(/\.js$/, "")] = fs.readFileSync(path.join(__dirname, "..", "backend", f), "utf8"); });
 let partFetches = 0;
+// 🛠️ WS7 GitHub + Pages fakes: robots' runs, workflow dispatches, the live app vs main.
+const GH = { runs: {}, dispatched: [], code: 200, live: "0.14", main: "0.14", exp: "2027-11-26 12:00:00 UTC" };
+const iso = h => new Date(Date.now() - h * 3.6e6).toISOString();
+const ghRun = (h, conclusion, event) => ({ created_at: iso(h), status: "completed", conclusion: conclusion || "success", event: event || "schedule", html_url: "https://github.com/run/" + h });
+const ghFetch = (url, o) => {
+  const d = /actions\/workflows\/([\w.-]+)\/(runs|dispatches)/.exec(url);
+  if (d && d[2] === "dispatches") { GH.dispatched.push(d[1]); return { getResponseCode: () => 204, getContentText: () => "", getAllHeaders: () => ({}) }; }
+  const runs = GH.runs[d[1]] || [ghRun(1)];
+  return { getResponseCode: () => GH.code, getContentText: () => JSON.stringify({ workflow_runs: runs }), getAllHeaders: () => ({ "GitHub-Authentication-Token-Expiration": GH.exp }) };
+};
 let fails = 0; const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); if (!c) fails++; };
 
 function makeEnv(props, espn) {
@@ -23,14 +33,17 @@ function makeEnv(props, espn) {
     SpreadsheetApp: { getActive: () => ss, getUi: () => ({ alert: m => { alerts.push(m); } }) },
     ContentService: { createTextOutput: t => ({ t, setMimeType() { return this; } }), MimeType: { JSON: "json" } },
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null, setProperty: (k, v) => { props[k] = v; } }) },
-    Utilities: { getUuid: () => require("crypto").randomUUID(), sleep: () => {},
+    Utilities: { getUuid: () => require("crypto").randomUUID(), sleep: () => {}, newBlob: (t, ty, n) => ({ t, n }), zip: (b, n) => ({ zip: n, files: b.map(x => x.n) }),
       computeHmacSha256Signature: (t, k) => Array.from(require("crypto").createHmac("sha256", k).update(t).digest()).map(b => b > 127 ? b - 256 : b) },
     CacheService: { getScriptCache: () => ({ get: k => cache[k] || null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; } }) },
-    LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
-    MailApp: { getRemainingDailyQuota: () => 99, sendEmail: (to, s, b) => mails.push({ to, s, b }) },
+    LockService: { getScriptLock: () => ({ waitLock() {}, tryLock() { return true; }, releaseLock() {} }) },
+    MailApp: { getRemainingDailyQuota: () => 99, sendEmail: (to, s, b) => mails.push(typeof to === "object" ? { to: to.to, s: to.subject, b: to.body, att: to.attachments } : { to, s, b }) },
     Session: { getEffectiveUser: () => ({ getEmail: () => "spl.hq.ops@gmail.com" }) },
     UrlFetchApp: { fetch: (url, o) => { const m = /raw\.githubusercontent\.com\/spl-hq\/spl-hq\.github\.io\/main\/backend\/(mod_\w+)\.js/.exec(url);
-      if (m) { partFetches++; return { getResponseCode: () => 200, getContentText: () => parts[m[1]] }; } return espn(url, o); } }
+      if (m) { partFetches++; return { getResponseCode: () => 200, getContentText: () => parts[m[1]] }; }
+      if (/api\.github\.com/.test(url)) return ghFetch(url, o);
+      if (/spl-hq\.github\.io\/\?|main\/index\.html/.test(url)) { const v = /raw\.githubusercontent/.test(url) ? GH.main : GH.live; return { getResponseCode: () => 200, getContentText: () => 'var APP_VERSION = "' + v + '";' }; }
+      return espn(url, o); } }
   };
   const M = {};
   new Function(...Object.keys(G), "M", src)(...Object.values(G), M);
@@ -405,6 +418,59 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));
 h = e.get({ action: "health" });
 ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 reported");
+
+// 🛠️ WS7 · ops robots: watchdog, backup, alerts, desk feed
+{
+  const signMike = (w) => { w.M.menuCheck(); const ph = (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(w.alerts[w.alerts.length - 1]) || [])[1]; return w.post({ action: "login", pin: ph }).token; };
+  const reset = () => { GH.runs = {}; GH.dispatched = []; GH.code = 200; GH.live = GH.main = "0.14"; };
+  // lazy tick: no trigger yet → a health ping runs it once
+  reset(); let w = makeEnv({ ESPN_S2: "abc", SWID: "{X}", GH_TOKEN: "t" }, espnOk);
+  w.get({ action: "health", fresh: "1" });
+  ok(JSON.parse(w.props.OPS_TICK).by === "lazy", "no trigger: the health ping runs the tick");
+  const backups = w.mails.filter(m => /^SPL HQ backup/.test(m.s));
+  ok(backups.length === 1 && backups[0].to === "spl.hq.ops@gmail.com" && backups[0].att[0].zip && backups[0].att[0].files.includes("Owners.csv"), "daily backup zip mailed to the ops account only");
+  ok(!w.mails.some(m => /needs a look/.test(m.s)), "all green: no alert");
+  w.get({ action: "health", fresh: "1" }); ok(w.mails.filter(m => /^SPL HQ backup/.test(m.s)).length === 1, "second ping within 70 min: no second tick / backup");
+  // watchdog: ledger 5 h late + history 30 h late → run by hand once each; card lines (chained) left alone
+  reset(); GH.runs["ledger-sync.yml"] = [ghRun(5, "success", "workflow_dispatch")]; GH.runs["espn-history.yml"] = [ghRun(30)]; GH.runs["card-lines.yml"] = [ghRun(200)];
+  w.M.tick();
+  ok(GH.dispatched.join() === "ledger-sync.yml,espn-history.yml", "watchdog runs the robots GitHub's schedule skipped (" + GH.dispatched.join() + ")");
+  ok(JSON.parse(w.props.OPS_WATCHDOG).length === 2 && JSON.parse(w.props.OPS_TICK).by === "trigger", "watchdog log kept; tick by trigger");
+  ok(w.sheets.Log.rows.some(r => r[1] === "watchdog"), "watchdog logged in the Log tab");
+  GH.runs["ledger-sync.yml"] = [{ created_at: iso(0.1), status: "in_progress", event: "workflow_dispatch" }, ghRun(5)]; GH.dispatched = [];
+  GH.runs["espn-history.yml"] = [ghRun(0.1, "success", "workflow_dispatch")];
+  w.M.tick(); ok(GH.dispatched.length === 0, "never re-runs a robot that's running or just ran");
+  // a failing robot: one email when it breaks, none while it stays broken, "all clear" when fixed
+  const n0 = w.mails.length; GH.runs["ledger-sync.yml"] = [ghRun(1, "failure")];
+  w.M.tick(); const al = w.mails.slice(n0).filter(m => /needs a look/.test(m.s));
+  ok(al.length === 1 && /Ledger sync failed/.test(al[0].b) && GH.dispatched.length === 0, "robot failure → one alert email, no blind retry");
+  w.M.tick(); ok(w.mails.slice(n0).filter(m => /needs a look/.test(m.s)).length === 1, "still failing: no repeat email");
+  GH.runs["ledger-sync.yml"] = [ghRun(0.5)]; w.M.tick();
+  ok(w.mails.slice(n0).some(m => /all clear/.test(m.s)), "fixed → all clear email");
+  // no GH_TOKEN: can't run late robots → says so
+  reset(); let w2 = makeEnv({ ESPN_S2: "abc", SWID: "{X}" }, espnOk); GH.runs["ledger-sync.yml"] = [ghRun(9)];
+  w2.M.tick(); ok(GH.dispatched.length === 0 && w2.mails.some(m => /needs a look/.test(m.s) && /add GH_TOKEN/.test(m.b)), "no GH_TOKEN: late robot → alert asks for the token");
+  // Pages stuck on an old app for > 1 h
+  reset(); GH.live = "0.13"; w2.props.OPS_PAGES = JSON.stringify({ same: false, since: iso(2) }); w2.M.tick();
+  ok(w2.mails.some(m => /Pages serves app v0\.13 but main is v0\.14/.test(m.b)), "Pages behind main for 2 h → alert");
+  // ESPN cookie age: first seen now; a new cookie restarts the clock
+  ok(/\|/.test(w2.props.ESPN_S2_SEEN), "cookie first-seen date recorded");
+  w2.props.ESPN_S2_SEEN = w2.props.ESPN_S2_SEEN.split("|")[0] + "|" + iso(24 * 340); reset(); w2.M.tick();
+  ok(w2.mails.some(m => /ESPN cookies are 340 days old/.test(m.b)), "old ESPN cookies → refresh alert");
+  w2.props.ESPN_S2 = "new"; w2.M.tick(); ok(JSON.parse(JSON.stringify(w2.props.ESPN_S2_SEEN)).split("|")[1] > iso(1), "new cookies restart the clock");
+  // desk feed: ops only
+  reset(); const wm = signMike(w);
+  const joeT = w.post({ action: "login", pin: w.post({ action: "issue", token: wm, owner: "reilly" }).phrase }).token;
+  ok(w.post({ action: "opsx", token: joeT }).ok === false, "opsx is ops only");
+  let x = w.post({ action: "opsx", token: wm });
+  ok(x.ok && x.robots.list.length === 5 && x.robots.tokenExp === GH.exp && x.sheet.limit === 10000000 && x.cookie.set && x.tick.at, "Ops desk feed: robots, token expiry, sheet size, cookie, tick");
+  const nb = w.mails.length; x = w.post({ action: "opsx", token: wm, run: "backup" });
+  ok(x.did && x.did.sentAt && w.mails.length === nb + 1, "Back up now sends one");
+  x = w.post({ action: "opsx", token: wm, run: "tick" }); ok(x.did && x.did.ok && JSON.parse(w.props.OPS_TICK).by === "desk", "Run checks now from the desk");
+  GH.code = 401; x = w.post({ action: "opsx", token: wm, run: "tick" });
+  ok(/401/.test(x.robots.list[0].error), "GitHub token refused shows on the desk");
+  reset();
+}
 
 // 7 · size limit for the loader cache
 ok(src.length < 90000, "logic.js under 90 KB (" + src.length + ")");
