@@ -8,11 +8,15 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.3.1";
+var VERSION = "0.4";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
-var ESPN_WRITES = false;        // kill switch: no ESPN writes exist in v0.1
+var ESPN_WRITES = false;        // kill switch: no ESPN writes yet (approved trades become a "Do on ESPN" step)
+// 🔁 Trade center. TRADE_MODE "test" = demo trades: nothing is owed on ESPN and Ops can wipe them all. "live" after Joe signs off.
+// Defaults until Joe answers the in-app questions: 2027 picks only, 17 rounds, contracts travel with the player, commish approves.
+var TRADE_MODE = "test";
+var PICK_SEASONS = [2027], PICK_ROUNDS = 17;
 var APP_URL = "https://spl-hq.github.io/";
 var MAX_FAILS_PER_HOUR = 30; // league-wide wrong passphrases before sign-in pauses for the hour (signed-in phones keep working)
 
@@ -52,8 +56,8 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1 }; // never wait on the script lock
-var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1 }; // rate-limited per owner
+var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1 }; // never wait on the script lock
+var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
@@ -75,6 +79,11 @@ function doPost(e) {
       case "chat":     return json(chat_(me, b));
       case "chatsend": return json(chatSend_(me, b));
       case "chatdel":  return json(chatDel_(me, b));
+      case "trades":   return json(trades_(me));
+      case "offer":    return json(offer_(me, b));
+      case "respond":  return json(respond_(me, b));
+      case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
+      case "wipetrades": return json(isRole_(me, "ops") ? wipeTrades_(me) : { ok: false, error: "Ops only" });
       default:         return json({ ok: false, error: "unknown action" });
     }
   } catch (err) { return json({ ok: false, error: String(err && err.message || err) }); }
@@ -89,7 +98,9 @@ var HEADS = {
   Answers:  ["ts", "who", "qid", "question", "choice", "note", "source"],
   Feedback: ["ts", "who", "kind", "mood", "note", "where"],
   Log:      ["ts", "kind", "detail"],
-  Chat:     ["msg_id", "ts", "room", "owner", "text", "deleted"]
+  Chat:     ["msg_id", "ts", "room", "owner", "text", "deleted", "ref"],
+  Offers:   ["offer_id", "ts", "from", "to", "give", "get", "note", "status", "updated_ts", "reason", "by", "mode", "espn", "counter_of"],
+  Picks:    ["pid", "season", "round", "original", "owner", "updated_ts", "via"]
 };
 function sheet_(name) {
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
@@ -97,6 +108,8 @@ function sheet_(name) {
     sh = ss.insertSheet(name); sh.appendRow(HEADS[name]); sh.setFrozenRows(1);
     var blank = ss.getSheetByName("Sheet1"); if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);
   }
+  var h = HEADS[name], have = sh.getLastColumn ? sh.getLastColumn() : h.length;
+  if (have && have < h.length) sh.getRange(1, have + 1, 1, h.length - have).setValues([h.slice(have)]); // new columns get their header
   return sh;
 }
 function rows_(name) {
@@ -210,7 +223,10 @@ function desk_(me) {
   var fb = rows_("Feedback").slice(-20).reverse().map(function (r) { return { who: r.who, kind: r.kind, mood: r.mood, note: r.note, ts: r.ts }; });
   var owners = owners_().map(function (o) { return { owner: o.owner, name: o.name, team: o.team, role: String(o.role || "owner"), hasPass: !!o.pin_hash,
     issued: o.issued_ts || null, lastSeen: o.last_seen || null }; });
-  return { ok: true, total: total, answers: Object.keys(latest).map(function (k) { return latest[k]; }), feedback: fb, owners: owners };
+  var offs = rows_("Offers").map(function (r) { r.giveO = parseJ_(r.give); r.getO = parseJ_(r.get); return pub_offer_(r); });
+  return { ok: true, total: total, answers: Object.keys(latest).map(function (k) { return latest[k]; }), feedback: fb, owners: owners, mode: TRADE_MODE,
+    review: offs.filter(function (o) { return o.status === "ACCEPTED"; }), espn: offs.filter(function (o) { return o.status === "APPROVED" && o.espn === "todo"; }),
+    recent: offs.filter(function (o) { return o.status === "APPROVED" || o.status === "NEGATED"; }).reverse().slice(0, 10) };
 }
 
 // ---------------------------------------------------------------- ESPN (reads only in v0.1)
@@ -367,7 +383,7 @@ function chat_(me, b) {
     var since = b.since ? new Date(b.since).getTime() : 0;
     out.room = b.room;
     out.msgs = mine.filter(function (r) { return r.room === b.room && (!since || new Date(r.ts).getTime() > since); }).slice(-150).map(function (r) {
-      return { id: r.msg_id, ts: r.ts, who: r.owner, text: r.deleted ? "" : String(r.text), del: !!r.deleted }; });
+      return { id: r.msg_id, ts: r.ts, who: r.owner, text: r.deleted ? "" : String(r.text), del: !!r.deleted, ref: r.ref || "" }; });
   }
   return out;
 }
@@ -375,8 +391,11 @@ function chatSend_(me, b) {
   if (!roomOk_(me, b.room)) return { ok: false, error: "Not your room" };
   var text = clip_(b.text, 500).trim(); if (!text) return { ok: false, error: "Type a message first." };
   var id = "M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), now = new Date();
-  append_("Chat", [id, now, b.room, me.owner, text, ""]);
+  append_("Chat", [id, now, b.room, me.owner, text, "", ""]);
   return { ok: true, msg: { id: id, ts: now, who: me.owner, text: text } };
+}
+function botPost_(room, text, ref) { // 🤖 HQ posts (trade cards) into a room
+  append_("Chat", ["M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), new Date(), room, "hq", clip_(text, 500), "", ref || ""]);
 }
 function chatDel_(me, b) {
   var list = rows_("Chat"), idx = -1; list.forEach(function (r, i) { if (r.msg_id === b.id) idx = i; });
@@ -385,6 +404,130 @@ function chatDel_(me, b) {
   if (r.owner !== me.owner && !commish) return { ok: false, error: "You can only delete your own messages." };
   r.deleted = "Y"; setRow_("Chat", idx, r); log_("chatdel", me.owner + " " + r.msg_id);
   return { ok: true };
+}
+
+
+// ---------------------------------------------------------------- 🔁 Trade center: players + draft picks + keeper contracts
+// Flow: PROPOSED → (to) ACCEPTED / DECLINED · (from) WITHDRAWN → commish APPROVED / NEGATED. A counter declines the original.
+// Players are checked against live ESPN rosters (READ_LEAGUE); picks against the Picks tab (live ledger, seeded once);
+// a keeper contract travels with its player. Nobody approves a trade they're in.
+function oid_(id) { return OWNER_SEED.filter(function (r) { return r[0] === id; })[0]; }
+function oName_(id) { var r = oid_(id); return r ? r[1] : id; }
+function seedPicks_() {
+  var have = rows_("Picks"); if (have.length) return have;
+  var now = new Date();
+  PICK_SEASONS.forEach(function (y) { for (var r = 1; r <= PICK_ROUNDS; r++) OWNER_SEED.forEach(function (o) { append_("Picks", [y + "-R" + r + "-" + o[0], y, r, o[0], o[0], now, "seed"]); }); });
+  return rows_("Picks");
+}
+function offers_() { return rows_("Offers").map(function (r) { r.giveO = parseJ_(r.give); r.getO = parseJ_(r.get); return r; }); }
+function parseJ_(s) { try { return JSON.parse(s || "{}"); } catch (e) { return {}; } }
+function pub_offer_(r) { return { id: r.offer_id, ts: r.ts, from: r.from, to: r.to, give: r.giveO, get: r.getO, note: r.note, status: r.status, updated: r.updated_ts, reason: r.reason, by: r.by, mode: r.mode, espn: r.espn, counterOf: r.counter_of }; }
+function rosterOf_(id) { var t = rosters_().teams.filter(function (x) { return x.owner === id; })[0]; return t ? t.players : null; }
+function sideText_(side) {
+  var a = (side.players || []).map(function (p) { return p.n; }).concat((side.picks || []).map(function (pid) { var m = /^(\d+)-R(\d+)-(\w+)$/.exec(pid); return m ? "'" + m[1].slice(2) + " R" + m[2] + (m[3] ? " (" + oName_(m[3]) + ")" : "") : pid; }));
+  return a.length ? a.join(", ") : "nothing";
+}
+// Is this side still the owner's to give? Returns an error string or "".
+function checkSide_(ownerId, side, picks) {
+  var players = side.players || [], pk = side.picks || [];
+  if (players.length > 10 || pk.length > 10) return "Too many pieces in one trade.";
+  if (players.length) {
+    var ro = rosterOf_(ownerId); if (!ro) return "Couldn't read " + oName_(ownerId) + "'s roster on ESPN.";
+    for (var i = 0; i < players.length; i++) if (!ro.some(function (p) { return p.n === players[i].n; })) return players[i].n + " isn't on " + oName_(ownerId) + "'s ESPN roster.";
+  }
+  for (var j = 0; j < pk.length; j++) {
+    var row = picks.filter(function (x) { return x.pid === pk[j]; })[0];
+    if (!row) return "Unknown pick " + pk[j] + ".";
+    if (row.owner !== ownerId) return oName_(ownerId) + " doesn't own that " + row.season + " round " + row.round + " pick.";
+    if (Number(row.round) === 1 && row.original === ownerId && tagYear_(ownerId, String(row.season))) return oName_(ownerId) + " holds a franchise tag in " + row.season + ", so their own 1st can't be traded.";
+  }
+  return "";
+}
+function tagYear_(ownerId, y) { return (TAGS_ || []).some(function (t) { return t[0] === ownerId && t[1] === y; }); }
+var TAGS_ = []; // [owner, season] franchise-tag years that lock that owner's own 1st (none for 2027 in the 2026 Keeper Matrix)
+function cleanSide_(side) {
+  side = side || {};
+  return { players: (Array.isArray(side.players) ? side.players : []).slice(0, 10).map(function (p) { return { n: clip_(p.n, 60), pos: clip_(p.pos, 5), tm: clip_(p.tm, 4) }; }),
+    picks: (Array.isArray(side.picks) ? side.picks : []).slice(0, 10).map(function (x) { return clip_(x, 30); }) };
+}
+function trades_(me) {
+  var picks = seedPicks_(), all = offers_(), desk = isRole_(me, "commish") || isRole_(me, "ops");
+  var mine = all.filter(function (r) { return r.from === me.owner || r.to === me.owner || (desk && r.status === "ACCEPTED") || r.status === "APPROVED" || r.status === "ACCEPTED"; });
+  // contracts follow their player through approved trades
+  var moves = []; all.filter(function (r) { return r.status === "APPROVED"; }).forEach(function (r) {
+    (r.giveO.players || []).forEach(function (p) { moves.push({ player: p.n, to: r.to, at: r.updated_ts }); });
+    (r.getO.players || []).forEach(function (p) { moves.push({ player: p.n, to: r.from, at: r.updated_ts }); }); });
+  return { ok: true, mode: TRADE_MODE, seasons: PICK_SEASONS, rounds: PICK_ROUNDS,
+    picks: picks.map(function (p) { return { pid: p.pid, season: Number(p.season), round: Number(p.round), original: p.original, owner: p.owner, via: p.via }; }),
+    offers: mine.map(pub_offer_).reverse().slice(0, 80), moves: moves };
+}
+function offer_(me, b) {
+  var to = String(b.to || ""); if (!oid_(to) || to === me.owner) return { ok: false, error: "Pick a team to trade with." };
+  var give = cleanSide_(b.give), get = cleanSide_(b.get);
+  if (!(give.players.length + give.picks.length) || !(get.players.length + get.picks.length)) return { ok: false, error: "Both sides need at least one player or pick." };
+  var picks = seedPicks_(), e1 = checkSide_(me.owner, give, picks) || checkSide_(to, get, picks); if (e1) return { ok: false, error: e1 };
+  var all = offers_(), sig = JSON.stringify([me.owner, to, give, get]);
+  var dup = all.filter(function (r) { return r.status === "PROPOSED" && JSON.stringify([r.from, r.to, r.giveO, r.getO]) === sig; })[0];
+  if (dup) return { ok: true, offer: pub_offer_(dup), dup: true };
+  var id = "T" + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase(), now = new Date();
+  if (b.counterOf) { var oi = -1; all.forEach(function (r, i) { if (r.offer_id === b.counterOf && r.status === "PROPOSED" && r.to === me.owner) oi = i; });
+    if (oi >= 0) { var o = all[oi]; o.status = "DECLINED"; o.reason = "Countered"; o.updated_ts = now; o.by = me.owner; setRow_("Offers", oi, o); } }
+  append_("Offers", [id, now, me.owner, to, JSON.stringify(give), JSON.stringify(get), clip_(b.note, 300), "PROPOSED", now, "", me.owner, TRADE_MODE, "", clip_(b.counterOf, 20)]);
+  botPost_(dmRoom_(me.owner, to), "🔁 " + (b.counterOf ? "Counter" : "Trade offer") + " from " + me.name + ": sends " + sideText_(give) + " · gets " + sideText_(get) + (b.note ? " · “" + clip_(b.note, 120) + "”" : ""), id);
+  log_("offer", id + " " + me.owner + "→" + to);
+  return { ok: true, offer: { id: id, from: me.owner, to: to, give: give, get: get, status: "PROPOSED", ts: now } };
+}
+function dmRoom_(a, b) { var x = [a, b].sort(); return "dm:" + x[0] + "," + x[1]; }
+function findOffer_(id) { var all = offers_(), i = -1; all.forEach(function (r, k) { if (r.offer_id === id) i = k; }); return i < 0 ? null : { row: all[i], idx: i }; }
+function respond_(me, b) {
+  var f = findOffer_(b.id); if (!f) return { ok: false, error: "Offer not found" };
+  var r = f.row, d = b.decision, now = new Date();
+  if (r.status !== "PROPOSED") return { ok: false, error: "That offer is already " + String(r.status).toLowerCase() + "." };
+  if (d === "withdraw") { if (r.from !== me.owner) return { ok: false, error: "Only the sender can withdraw." }; r.status = "WITHDRAWN"; }
+  else if (d === "decline") { if (r.to !== me.owner) return { ok: false, error: "Not your offer to answer." }; r.status = "DECLINED"; r.reason = clip_(b.reason, 200); }
+  else if (d === "accept") {
+    if (r.to !== me.owner) return { ok: false, error: "Not your offer to answer." };
+    var picks = seedPicks_(), err = checkSide_(r.from, r.giveO, picks) || checkSide_(r.to, r.getO, picks); if (err) return { ok: false, error: err };
+    r.status = "ACCEPTED";
+  } else return { ok: false, error: "Unknown answer" };
+  r.updated_ts = now; r.by = me.owner; delete r.giveO; delete r.getO; setRow_("Offers", f.idx, r);
+  var o = findOffer_(b.id).row, room = dmRoom_(o.from, o.to);
+  botPost_(room, { accept: "✅ " + me.name + " accepted. It goes to the commish for approval.", decline: "❌ " + me.name + " declined" + (o.reason ? ": “" + o.reason + "”" : "."), withdraw: "↩️ " + me.name + " withdrew the offer." }[d], o.offer_id);
+  if (d === "accept") {
+    botPost_("league", "🤝 Trade agreed, waiting on the commish: " + oName_(o.from) + " sends " + sideText_(o.giveO) + " · " + oName_(o.to) + " sends " + sideText_(o.getO), o.offer_id);
+    mail_("SPL HQ · trade waiting on the commish", oName_(o.from) + " sends " + sideText_(o.giveO) + "\n" + oName_(o.to) + " sends " + sideText_(o.getO) + "\n\nApprove or negate: " + APP_URL + "#desk");
+  }
+  log_("respond", o.offer_id + " " + d + " by " + me.owner);
+  return { ok: true, offer: pub_offer_(o) };
+}
+function tradeAct_(me, b) {
+  var f = findOffer_(b.id); if (!f) return { ok: false, error: "Offer not found" };
+  var r = f.row, d = b.decision, now = new Date();
+  if (d === "espndone") { if (r.status !== "APPROVED" || r.espn !== "todo") return { ok: false, error: "Nothing to do on ESPN for this one." }; r.espn = "done"; r.updated_ts = now; delete r.giveO; delete r.getO; setRow_("Offers", f.idx, r); log_("espndone", r.offer_id + " by " + me.owner); return { ok: true }; }
+  if (r.status !== "ACCEPTED") return { ok: false, error: "Only accepted trades wait on the commish." };
+  // Nobody approves their own trade. A Joe ↔ Mike trade has no neutral commish: either may approve, and the league card says so
+  // (until Joe answers the "commish_trades" question in the app).
+  var deskOf = function (id) { var o = owners_().filter(function (x) { return x.owner === id; })[0]; return o && (isRole_(o, "commish") || isRole_(o, "ops")); };
+  var bothDesk = deskOf(r.from) && deskOf(r.to);
+  if ((r.from === me.owner || r.to === me.owner) && !bothDesk) return { ok: false, error: "You're in this trade: the other commish approves it." };
+  if (d === "negate") { if (!String(b.reason || "").trim()) return { ok: false, error: "Give a reason for the league." }; r.status = "NEGATED"; r.reason = clip_(b.reason, 200); }
+  else if (d === "approve") {
+    var picks = seedPicks_(), err = checkSide_(r.from, r.giveO, picks) || checkSide_(r.to, r.getO, picks); if (err) return { ok: false, error: "Can't approve: " + err };
+    var move = function (pid, to) { picks.forEach(function (p, i) { if (p.pid === pid) { p.owner = to; p.updated_ts = now; p.via = r.offer_id; setRow_("Picks", i, p); } }); };
+    (r.giveO.picks || []).forEach(function (pid) { move(pid, r.to); }); (r.getO.picks || []).forEach(function (pid) { move(pid, r.from); });
+    r.status = "APPROVED"; r.espn = r.mode === "test" ? "test" : ((r.giveO.players || []).length + (r.getO.players || []).length ? "todo" : "none");
+  } else return { ok: false, error: "Unknown decision" };
+  var gi = r.giveO, ge = r.getO; r.updated_ts = now; r.by = me.owner; delete r.giveO; delete r.getO; setRow_("Offers", f.idx, r);
+  var txt = d === "approve" ? "✅ Trade approved" + (bothDesk ? " (commish-to-commish trade, approved by " + me.name + ")" : "") + ": " + oName_(r.from) + " gets " + sideText_(ge) + " · " + oName_(r.to) + " gets " + sideText_(gi)
+                            : "🚫 Trade negated by the commish: “" + r.reason + "”";
+  botPost_("league", txt, r.offer_id); botPost_(dmRoom_(r.from, r.to), txt, r.offer_id);
+  log_("trade_" + d, r.offer_id + " by " + me.owner);
+  return { ok: true };
+}
+function wipeTrades_(me) {
+  if (TRADE_MODE !== "test") return { ok: false, error: "Only test trades can be wiped." };
+  var ss = SpreadsheetApp.getActive(); ["Offers", "Picks"].forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); });
+  seedPicks_(); log_("wipetrades", me.owner); return { ok: true };
 }
 
 // ---------------------------------------------------------------- Health (uptime monitor keyword: "healthy":true)

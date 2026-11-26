@@ -8,7 +8,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); 
 function makeEnv(props, espn) {
   const sheets = {}, mails = [], cache = {}, alerts = [];
   const mkSheet = (name) => ({ name, rows: [], appendRow(r) { this.rows.push(r); }, setFrozenRows() {},
-    getRange(r, c, nr, nc) { const s = this; return { setValues(v) { s.rows[r - 1] = v[0].slice(); } }; },
+    getRange(r, c, nr, nc) { const s = this; return { setValues(v) { const row = (s.rows[r - 1] || []).slice(); v[0].forEach((x, i) => { row[c - 1 + i] = x; }); s.rows[r - 1] = row; } }; },
+    getLastColumn() { return this.rows[0] ? this.rows[0].length : 0; },
     getLastRow() { return this.rows.length; }, getName() { return this.name; },
     getDataRange() { const s = this; return { getValues() { return s.rows.map(r => r.slice()); } }; } });
   sheets.Sheet1 = mkSheet("Sheet1");
@@ -37,9 +38,10 @@ const espnOk = (url) => {
   const pl = (name, pos, team, slot, pts) => ({ lineupSlotId: slot, acquisitionType: "DRAFT", playerPoolEntry: { appliedStatTotal: pts, player: { fullName: name, defaultPositionId: pos, proTeamId: team,
     stats: [{ scoringPeriodId: 12, statSourceId: 0, appliedTotal: pts, stats: { 53: 5, 58: 7, 42: 80 } }, { scoringPeriodId: 0, statSourceId: 0, appliedTotal: pts * 10, appliedAverage: pts }] } } });
   const roster = { entries: [pl("Josh Allen", 1, 2, 0, 24.5), pl("Bench Guy", 3, 21, 20, 3)] };
+  const roster2 = { entries: [pl("Omarion Hampton", 2, 24, 2, 12), pl("Chris Olave", 3, 18, 4, 9)] };
   if (lid === "19583" && /mMatchupScore|mRoster/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({
     scoringPeriodId: 12, status: { currentMatchupPeriod: 12 }, settings: { scheduleSettings: { matchupPeriodCount: 14 } },
-    teams: [{ id: 1, name: "Bad Attitude Gang", record: { overall: { wins: 9, losses: 3 } }, roster }, { id: 2, name: "Reilly's RaMPaGe", record: { overall: { wins: 8, losses: 4 } }, roster }],
+    teams: [{ id: 1, name: "Bad Attitude Gang", record: { overall: { wins: 9, losses: 3 } }, roster }, { id: 2, name: "Reilly's RaMPaGe", record: { overall: { wins: 8, losses: 4 } }, roster: roster2 }],
     schedule: [{ matchupPeriodId: 12, winner: "UNDECIDED", home: { teamId: 1, totalPoints: 24.5, rosterForCurrentScoringPeriod: roster }, away: { teamId: 2, totalPoints: 20, rosterForCurrentScoringPeriod: roster } },
                { matchupPeriodId: 11, home: { teamId: 1 }, away: { teamId: 2 } }] }) };
   const body = lid === "19583"
@@ -149,6 +151,48 @@ const mid = e.sheets.Chat.rows[1][0];
 ok(!e.post({ action: "chatdel", token: e.post({ action: "login", pin: (e.post({ action: "issue", token: mike, owner: "smith" })).phrase }).token, id: mid }).ok, "can't delete someone else's message");
 ok(e.post({ action: "chatdel", token: mike, id: mid }).ok, "commish deletes a league message");
 ok(e.post({ action: "chat", token: glen, room: "league" }).msgs[0].del === true, "deleted shows as deleted");
+
+// 12 · trade center: offer → accept → approve (no self-approval), picks move, chat cards
+let t = e.post({ action: "trades", token: mike });
+ok(t.ok && t.mode === "test" && t.picks.length === 12 * 17 && t.picks.every(p => p.owner === p.original), "picks ledger seeded: 2027 × 17 rounds × 12");
+r = e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Josh Allen" }], picks: ["2027-R1-murello"] }, get: { players: [{ n: "Chris Olave" }] }, note: "let's deal" });
+ok(r.ok && r.offer.status === "PROPOSED", "Mike offers Allen + his 2027 1st for Olave");
+const tid = r.offer.id;
+ok(e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Chris Olave" }] }, get: { picks: ["2027-R2-reilly"] } }).error.includes("isn't on Mike"), "can't give a player you don't have");
+ok(e.post({ action: "offer", token: mike, to: "reilly", give: { picks: ["2027-R1-glen"] }, get: { picks: ["2027-R2-reilly"] } }).error.includes("doesn't own"), "can't give a pick you don't own");
+ok(e.post({ action: "offer", token: mike, to: "reilly", give: { picks: [] }, get: { picks: ["2027-R2-reilly"] } }).ok === false, "both sides need something");
+ok(e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Josh Allen" }], picks: ["2027-R1-murello"] }, get: { players: [{ n: "Chris Olave" }] } }).dup === true, "double-tap returns the same offer");
+ok(e.post({ action: "respond", token: glen, id: tid, decision: "accept" }).ok === false, "only Joe can answer");
+ok(e.sheets.Chat.rows.some(r => r[3] === "hq" && r[2] === "dm:murello,reilly" && r[6] === tid), "offer card posted in the DM");
+r = e.post({ action: "respond", token: joeTok, id: tid, decision: "accept" });
+ok(r.ok && r.offer.status === "ACCEPTED", "Joe accepts");
+ok(e.mails.some(m => /waiting on the commish/.test(m.s)), "ops emailed: trade waiting");
+ok(e.post({ action: "tradeact", token: glen, id: tid, decision: "approve" }).error === "Commish only", "owners can't approve");
+ok(e.post({ action: "tradeact", token: glen, id: tid, decision: "approve" }).error === "Commish only", "owners can't approve");
+r = e.post({ action: "desk", token: joeTok }); ok(r.ok && r.review.length === 1, "trade shows on the commish desk");
+// Joe is in it too: neither commish can approve their own → make Glen a commish? No: Mike vs Joe trades need a third. Use a Glen↔Joe trade for approval.
+const g = e.post({ action: "offer", token: glen, to: "reilly", give: { picks: ["2027-R3-glen"] }, get: { picks: ["2027-R2-reilly"] } });
+ok(g.ok, "Glen offers a pick swap to Joe");
+e.post({ action: "respond", token: joeTok, id: g.offer.id, decision: "accept" });
+ok(e.post({ action: "tradeact", token: joeTok, id: g.offer.id, decision: "approve" }).error.includes("You're in this trade"), "Joe can't approve his own trade with Glen");
+ok(e.post({ action: "tradeact", token: mike, id: g.offer.id, decision: "negate" }).error.includes("reason"), "negate needs a reason");
+r = e.post({ action: "tradeact", token: mike, id: g.offer.id, decision: "approve" });
+ok(r.ok, "Mike approves Glen↔Joe");
+t = e.post({ action: "trades", token: glen });
+ok(t.picks.find(p => p.pid === "2027-R2-reilly").owner === "glen" && t.picks.find(p => p.pid === "2027-R3-glen").owner === "reilly", "picks moved on approval");
+ok(t.offers.find(o => o.id === g.offer.id).espn === "test", "test mode: nothing owed on ESPN");
+ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Trade approved/.test(r[4])), "league chat announces it");
+r = e.post({ action: "tradeact", token: joeTok, id: tid, decision: "approve" });
+ok(r.ok && e.sheets.Chat.rows.some(x => /commish-to-commish trade, approved by Joe/.test(x[4])), "Mike↔Joe trade: approvable, flagged to the league");
+// counter
+const c1 = e.post({ action: "offer", token: glen, to: "reilly", give: { picks: ["2027-R4-glen"] }, get: { players: [{ n: "Omarion Hampton" }] } });
+const c2 = e.post({ action: "offer", token: joeTok, to: "glen", counterOf: c1.offer.id, give: { players: [{ n: "Chris Olave" }] }, get: { picks: ["2027-R4-glen", "2027-R5-glen"] } });
+ok(c2.ok && e.post({ action: "trades", token: glen }).offers.find(o => o.id === c1.offer.id).reason === "Countered", "counter declines the original");
+ok(e.post({ action: "respond", token: glen, id: c2.offer.id, decision: "withdraw" }).ok === false, "only the sender withdraws");
+ok(e.post({ action: "respond", token: joeTok, id: c2.offer.id, decision: "withdraw" }).ok, "Joe withdraws his counter");
+// wipe
+ok(e.post({ action: "wipetrades", token: joeTok }).ok === false, "only ops wipes");
+ok(e.post({ action: "wipetrades", token: mike }).ok && e.post({ action: "trades", token: mike }).offers.length === 0, "ops wipes test trades + reseeds picks");
 
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));
