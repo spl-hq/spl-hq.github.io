@@ -35,10 +35,13 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 - Structural layout changes (tabs, navigation, page architecture) need Mike's OK. Content inside existing elements doesn't.
 - Keep each backend file under ~90 KB (Apps Script cache limit); split into parts like MAFFL when it grows.
 
-## Look and feel — "Stadium Lights"
-Night `#111311` · Surface `#1B1E1B` · Raised `#232823` · Line `#2C312C` · Chalk `#EDEFE8` · Muted `#9CA59C` ·
-Lime `#B8E04A` (accent, dark text on it) · Coral `#FF7A59` (alerts) · Gold `#D9A94A` (champions, tags).
+## Look and feel — "Nittany" (Penn State blue + white, Mike 11/25; replaced Stadium Lights)
+Nittany Navy `#041E42` (header bar, headings feel) · Beaver Blue `#1E407C` (buttons, accents, wins, your stuff) ·
+Pugh Blue `#96BEE6` (small accents on navy) · White cards on `#F2F5FA` · Text `#0B1F3A` · Muted `#5D6E89` · Line `#D6DFEC` ·
+Gold `#B88A2E` (Needs you, keeper tags, champions) · Red `#C8102E` (injuries, alerts only).
+The theme lives in the "Nittany" block at the end of the `<style>` (CSS variables `--lime` = Beaver Blue, `--night` = white).
 Headings condensed uppercase 800; numbers monospace. Bottom tabs: Home · Match · Team · Chat · League. SPL crest top-left → Home.
+Icons sit on Nittany Navy.
 
 ## Layout
 ```

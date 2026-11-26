@@ -4,17 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#111311">
+<meta name="theme-color" content="#041E42">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SPL HQ">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=2">
-<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=2">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png?v=3">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.5 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.5.1 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -165,11 +165,45 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 .offer .grid{grid-template-columns:1fr 1fr}
 .composer{position:fixed;left:0;right:0;bottom:calc(var(--bot) + 62px);background:var(--night);border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;z-index:9}
 .composer textarea{min-height:40px;max-height:120px;height:40px;flex:1;padding:9px 10px}
+/* ===== "Nittany" theme (Mike 11/25): Penn State blue + white. Replaces Stadium Lights. ===== */
+:root{
+  --night:#FFFFFF; --surface:#FFFFFF; --raised:#EEF3FA; --line:#D6DFEC;
+  --chalk:#0B1F3A; --muted:#5D6E89; --soft:#33465F;
+  --lime:#1E407C; --gold:#B88A2E; --coral:#C8102E;
+}
+html,body{background:#F2F5FA}
+header{background:#041E42;border-bottom:0;color:#fff}
+header h1 small{color:#96BEE6}
+header .pill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#cfe0f5}
+header .pill.ok{color:#96BEE6}
+header .me{background:#fff;color:#041E42}
+nav.tabs{background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 12px rgba(4,30,66,.06)}
+nav.tabs button.on{color:#041E42}
+.card,.dcard,.tile{box-shadow:0 1px 3px rgba(4,30,66,.08)}
+.card.lead{background:linear-gradient(135deg,#041E42,#1E407C);border:0;color:#fff}
+.card.lead .eyebrow{color:#96BEE6} .card.lead p{color:#dbe7f6}
+.dcard.hero{border:2px solid #1E407C} .dcard.needs{border:2px solid #B88A2E}
+.stamp.me{background:#1E407C;color:#fff} .stamp.lg{background:#041E42;color:#fff}
+.acttag{background:#B88A2E;color:#fff}
+.vs .win .sc,.lime{color:#1E407C}
+.zero{background:#1E407C;color:#fff}
+.irail i.on{background:#1E407C}
+.swu .dn{background:#1E407C;color:#fff} .swu .sv{background:#B88A2E;color:#fff}
+.undo{background:#041E42;color:#fff} .undo button{background:#96BEE6;color:#041E42}
+.saved{background:#FFF6E3} .saved.dnc{background:#E8F0FB;border-color:#1E407C;color:#1E407C}
+.game.mine{background:linear-gradient(90deg,rgba(30,64,124,.08),transparent)}
+.msg.me{background:#1E407C;color:#fff;border-color:#1E407C}
+.tag{background:#EEF3FA;color:#8A6516;border-color:#E3D3AE}
+textarea,input[type=text],select{background:#fff}
+.btn.ghost{background:#fff;color:#1E407C;border-color:#C9D6EA}
+.chip{background:#fff}
+.chip.on{background:#1E407C;color:#fff;border-color:#1E407C}
+.feedwrap{background:transparent}
 </style>
 </head>
 <body>
 <header>
-  <img class="crest" src="icons/crest.png?v=2" alt="SPL crest, back to Home" role="link" onclick="go('home')">
+  <img class="crest" src="icons/crest.png?v=3" alt="SPL crest, back to Home" role="link" onclick="go('home')">
   <h1>SPL HQ<small id="sub">State Penn League</small></h1>
   <span class="pill" id="conn">…</span>
   <button class="me" id="meBtn" onclick="go(ME ? 'you' : 'signin')">Sign in</button>
@@ -188,7 +222,7 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.5";
+var APP_VERSION = "0.5.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -314,7 +348,7 @@ function buildFeed(d) {
   if (ME && isDesk()) { var n = Object.keys(MY || {}).length;
     if (n < QUESTIONS.length) cards.push({ id: "questions", needs: 1, scope: "me", eb: "📋 For the commish", title: (me === "reilly" ? "Your questions, Joe" : "Questions for Joe"), body: '<div class="big">' + n + '<small class="muted" style="font-size:20px"> / ' + QUESTIONS.length + '</small></div><p>' + (me === "reilly" ? "Quick calls that decide how trades, picks and keeper contracts work in the app." : "Joe's answers shape the trade center. Answered so far.") + '</p>', action: [n ? "Keep going" : "Answer them", "go('joe')"] }); }
   var T = d.trades;
-  if (ME && T && T.ok) {
+  if (ME && T && T.ok && T.offers) {
     T.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }).forEach(function (o) {
       cards.push({ id: "offer:" + o.id, needs: 1, scope: "me", eb: "🔁 Trade offer · from " + esc(oname(o.from)), title: esc(oname(o.from)) + " wants to deal",
         body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">You get</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">You send</div>' + sideList(o.get, o.to) + '</div></div>' + (o.note ? '<p class="story">“' + esc(o.note) + '”</p>' : ''),
@@ -326,7 +360,7 @@ function buildFeed(d) {
       cards.push({ id: "wire:" + o.id, scope: "league", eb: "📰 Trade wire" + (o.mode === "test" ? " · test" : ""), title: esc(oname(o.from)) + " ⇄ " + esc(oname(o.to)),
         body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">' + esc(oname(o.to)) + ' gets</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">' + esc(oname(o.from)) + ' gets</div>' + sideList(o.get, o.to) + '</div></div>', action: ["Trade wire", "go('trades')"] }); });
   }
-  var mine = null, games = W && W.ok ? W.games : [];
+  var mine = null, games = W && W.ok && W.games ? W.games : [];
   games.forEach(function (g) { if (me && ((g.home && g.home.owner === me) || (g.away && g.away.owner === me))) mine = g; });
   // ⚔️ You: your game
   if (mine) {
@@ -357,7 +391,7 @@ function buildFeed(d) {
       action: ["Open it", "go('match','" + wk + ":" + games.indexOf(close) + "')"] });
   }
   // 📊 League: the table
-  if (d.stand && d.stand.ok) {
+  if (d.stand && d.stand.ok && d.stand.teams) {
     var t = sortTeams(d.stand.teams), myRank = -1; t.forEach(function (x, i) { if (me && x.owner === me) myRank = i; });
     cards.push({ id: "table", scope: "league", eb: "📊 The table · after Week " + (d.stand.week ? d.stand.week - 1 : ""),
       body: t.slice(0, 6).map(function (x, i) { return '<div class="kv' + (x.owner === me ? " mine" : "") + '"><span><span class="muted">' + (i + 1) + '</span> ' + esc(x.name) + '</span><span>' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</span></div>'; }).join("") +
