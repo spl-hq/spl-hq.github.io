@@ -16,6 +16,7 @@ _Owner: Mike (ops). Last updated 2026-11-25 (v0.1)._ Keep this current whenever 
 | Name | Where | Purpose |
 |---|---|---|
 | `ESPN_S2`, `SWID` | Apps Script → Project Settings → Script properties **and** GitHub repo → Settings → Secrets → Actions | ESPN reads/writes. Expire ~yearly: the Ops desk shows ❌ with "ESPN said 401" |
+| `PIN_PEPPER` | Script properties (auto-created) | Secret for passphrase hashes + device tokens. Never change |
 | `OPS_EMAIL` | Script properties (optional) | Extra address(es) copied on answer/feedback emails, e.g. Mike's personal Gmail |
 
 ## 3. First deploy (one time)
@@ -28,6 +29,13 @@ _Owner: Mike (ops). Last updated 2026-11-25 (v0.1)._ Keep this current whenever 
    **Advanced** → **Go to SPL HQ Backend (unsafe)** → **Allow**. (It's your own script; that warning is normal.)
 5. Copy the **Web app URL** (ends in `/exec`). Send it to Claude: it goes into `API_URL` in `index.html`.
 6. Back in the Sheet, reload the page → new menu **SPL HQ → Run setup check**. It should show ✅ for the Sheet and both ESPN leagues.
+
+## 3b. Passphrases
+- **Bootstrap:** Sheet → SPL HQ → **Run setup check** seeds the Owners tab and, the first time, shows **Mike's passphrase once** in the alert.
+- **Everyone else:** sign in → League → 🛠️ Ops desk → owner → **Make one** (or **Reset**) → passphrase shown once → **Text it**.
+  Only a peppered hash is stored. Reset = new passphrase and every old phone is signed out.
+- `PIN_PEPPER` (Script property, auto-made): **never delete or change it** — every passphrase and phone stops working.
+- Roles: Owners tab → `role` column (`owner`, `commish`, `ops`, comma-separated). Edit by hand in the Sheet if needed.
 
 ## 4. Everyday
 

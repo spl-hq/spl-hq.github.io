@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-25 · **Joe gets a real login** (Mike), same as every owner will: passphrase made on the Ops desk, texted by Mike, device token on the phone. No `#joe` shortcut or name picker. Roles live in the Owners tab (`role`: owner / commish / ops).
 - 2026-11-25 · **Full service: Claude pushes straight to `main`** (Mike). No Claude Code prompts / GitHub Desktop step. "PR first" on request.
 - 2026-11-25 · **The app manages the app.** Questions for Joe, feedback and ops status live in the app (League → 📋 Questions, 💡 Ideas, 🛠️ Ops desk), Sheet-backed, emailed to ops. v0.1 shipped.
 - 2026-11-25 · **Accounts created.** GitHub org `spl-hq` (repo renamed to `spl-hq.github.io`, site `https://spl-hq.github.io/`); league Google account `spl.hq.ops@gmail.com` with Sheet "SPL HQ App" + Apps Script "SPL HQ Backend". Work the league Google account in its own Chrome profile (Apps Script breaks with several Google accounts signed in).

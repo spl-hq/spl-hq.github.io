@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.1 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.2 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -35,6 +35,8 @@ header h1{margin:0;font:800 22px/1 var(--head);letter-spacing:.04em;text-transfo
 header h1 small{display:block;font:500 11px/1.4 var(--mono);color:var(--muted);letter-spacing:.06em}
 .pill{font:600 11px var(--mono);padding:4px 8px;border-radius:99px;background:var(--raised);color:var(--muted);border:1px solid var(--line)}
 .pill.ok{color:var(--lime)} .pill.bad{color:var(--coral)}
+.me{border:0;border-radius:99px;background:var(--lime);color:var(--night);font:800 12px var(--body);padding:7px 11px;cursor:pointer;min-width:34px}
+.phrase{font:700 22px var(--mono);letter-spacing:.04em;color:var(--lime);background:var(--night);border:1px dashed var(--lime);border-radius:12px;padding:14px;text-align:center;margin:10px 0;word-break:break-all}
 main{padding:calc(var(--top) + 76px) 14px calc(var(--bot) + 86px);max-width:560px;margin:0 auto}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
   display:flex;padding:6px 4px calc(var(--bot) + 6px)}
@@ -97,6 +99,7 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
   </svg>
   <h1>SPL HQ<small id="sub">State Penn League</small></h1>
   <span class="pill" id="conn">…</span>
+  <button class="me" id="meBtn" onclick="go(ME ? 'you' : 'signin')">Sign in</button>
 </header>
 <main id="view"></main>
 <nav class="tabs" id="tabs">
@@ -110,8 +113,8 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 <script>
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
-var API_URL = "";
-var APP_VERSION = "0.1";
+var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
+var APP_VERSION = "0.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -175,8 +178,24 @@ function load(action, maxAgeMs) {
   return api(action).then(function (d) { cache[action] = { at: Date.now(), data: d }; return d; });
 }
 
+// ---- session: passphrase once → device token kept on this phone (a new passphrase signs old phones out)
+var ME = store("me"), MY = {};
+function isRole(r) { return !!ME && String(ME.role || "").split(/[,\s]+/).indexOf(r) >= 0; }
+function isDesk() { return isRole("commish") || isRole("ops"); }
+function authed(action, body) {
+  body = body || {}; body.token = store("token");
+  return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
+}
+function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; paintMe(); }
+function signOut(quiet) { store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
+function paintMe() { var b = $("#meBtn"); if (b) b.textContent = ME ? ME.name.slice(0, 2).toUpperCase() : "Sign in"; }
+function needSignIn(what) {
+  return '<div class="card"><div class="eyebrow">🔑 Owners only</div><h3>Sign in ' + what + '</h3><p>Use the passphrase the commish sent you.</p>' +
+    '<p style="margin-top:12px"><button class="btn" onclick="go(\'signin\')">Sign in</button></p></div>';
+}
+
 // ---- router
-var SCREENS = {}, TAB_OF = { home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
@@ -191,12 +210,13 @@ function back(to, label) { return '<button class="back" onclick="go(\'' + to + '
 
 // ---- Home
 SCREENS.home = function () {
-  var answered = Object.keys(store("answers") || {}).length;
-  return '<div class="card lead"><div class="eyebrow">🏗️ Under construction · v' + APP_VERSION + '</div>' +
+  var answered = Object.keys(MY || {}).length;
+  return (ME ? '' : '<div class="card"><div class="eyebrow">🔑 SPL owners</div><h3>Sign in</h3><p>Got a passphrase from the commish? Sign in once on this phone.</p><p style="margin-top:12px"><button class="btn" onclick="go(\'signin\')">Sign in</button></p></div>') +
+    '<div class="card lead"><div class="eyebrow">🏗️ Under construction · v' + APP_VERSION + '</div>' +
     '<h2 style="margin:0">The SPL, in your pocket.</h2><p>Trades with picks and keeper contracts that execute on ESPN by themselves, the keeper room, 25 years of history, and a desk for the commish.</p></div>' +
-    '<div class="card"><div class="eyebrow">📋 For Joe</div><h3>Questions for the commish</h3>' +
-    '<p>' + QUESTIONS.length + ' quick calls that shape how trades and keepers work in the app.' + (answered ? ' <span class="lime">' + answered + ' answered on this phone.</span>' : '') + '</p>' +
-    '<p style="margin-top:12px"><button class="btn" onclick="go(\'joe\')">Answer them</button></p></div>' +
+    (isDesk() ? '<div class="card"><div class="eyebrow">📋 For the commish</div><h3>' + (ME.owner === "reilly" ? "Your questions, Joe" : "Questions for the commish") + '</h3>' +
+    '<p>' + QUESTIONS.length + ' quick calls that shape how trades and keepers work in the app.' + (answered ? ' <span class="lime">' + answered + ' of ' + QUESTIONS.length + ' answered.</span>' : '') + '</p>' +
+    '<p style="margin-top:12px"><button class="btn" onclick="go(\'joe\')">' + (answered ? "Review answers" : "Answer them") + '</button></p></div>' : '') +
     '<div class="card" id="homeStand"><div class="eyebrow">📊 Live from ESPN · SPL ' + 2026 + '</div><h3>Standings</h3><p class="muted">Loading…</p></div>' +
     '<div class="card"><div class="eyebrow">💡 Ideas &amp; feedback</div><h3>Tell us what you want</h3><p>Anything: ideas, gripes, what you\'d love to see.</p>' +
     '<p style="margin-top:12px"><button class="btn ghost" onclick="go(\'feedback\')">Send a note</button></p></div>';
@@ -222,14 +242,14 @@ SCREENS.chat = function () { return soon("Chat", "League chat, division rooms an
 
 // ---- League grid
 var LEAGUE_TILES = [
-  ["standings", "📊", "Standings", "Live from ESPN"], ["joe", "📋", "Questions", "For the commish"],
+  ["standings", "📊", "Standings", "Live from ESPN"], ["joe", "📋", "Questions", "For the commish", 0, "desk"],
   ["soon=keepers", "🔒", "Keepers", "Contracts + forecaster", 1], ["soon=draft", "📝", "Draft", "Every pick by year", 1],
   ["soon=history", "📚", "History", "Seasons + champions", 1], ["soon=gm", "🎓", "GM Rankings", "Glen's report", 1],
   ["soon=rivalry", "⚔️", "Rivalry", "Head to head", 1], ["soon=rules", "📖", "Rules", "Constitution + timeline", 1],
-  ["feedback", "💡", "Ideas", "Feedback to the site"], ["ops", "🛠️", "Ops desk", "Is everything working?"]
+  ["feedback", "💡", "Ideas", "Feedback to the site"], ["ops", "🛠️", "Ops desk", "Owners, answers, health", 0, "desk"]
 ];
 SCREENS.league = function () {
-  return '<h2>League</h2><div class="grid">' + LEAGUE_TILES.map(function (t) {
+  return '<h2>League</h2><div class="grid">' + LEAGUE_TILES.filter(function (t) { return t[5] !== "desk" || isDesk(); }).map(function (t) {
     return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span style="font-size:22px">' + t[1] + '</span><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></button>';
   }).join("") + '</div>';
 };
@@ -262,19 +282,45 @@ SCREENS.standings.after = function () {
   }).catch(function (e) { $("#stand").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
 };
 
-// ---- Who's using this phone (no passwords yet: sign-in comes with the trade center)
-function whoPicker(id) {
-  var me = store("who") || (location.hash.indexOf("joe") >= 0 ? "reilly" : "");
-  return '<select id="' + id + '" onchange="store(\'who\',this.value)"><option value="">Who are you?</option>' +
-    OWNERS.map(function (o) { return '<option value="' + o.id + '"' + (o.id === me ? " selected" : "") + '>' + esc(o.name) + ' · ' + esc(o.team) + '</option>'; }).join("") + '</select>';
-}
+// ---- Sign in / You
+SCREENS.signin = function () {
+  if (ME) return SCREENS.you();
+  return back("home", "Home") + '<h2>Sign in</h2><div class="card"><p style="margin:0">Type the passphrase the commish sent you (like <b class="lime">GRONK-PISTOL-427</b>). Capitals and dashes don\'t matter. You only do this once on each phone.</p>' +
+    '<input type="text" id="pin" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="PASSPHRASE" style="margin-top:14px;font:700 18px var(--mono);letter-spacing:.06em;text-transform:uppercase">' +
+    '<p style="margin-top:12px"><button class="btn" id="pinGo" style="width:100%">Sign in</button></p>' +
+    '<p class="muted" style="font-size:13px">No passphrase? Ask Joe or Mike. On iPhone, add the app to your Home Screen first (Share → Add to Home Screen), then sign in there.</p></div>';
+};
+SCREENS.signin.after = function () {
+  if (!$("#pin")) return;
+  var goIn = function () {
+    var btn = $("#pinGo"); btn.disabled = true; btn.textContent = "Checking…";
+    api("login", { pin: $("#pin").value }).then(function (r) {
+      if (!r.ok) throw new Error(r.error);
+      store("token", r.token); setMe(r); toast("Welcome, " + r.me.name + "!"); go("home");
+    }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = "Sign in"; });
+  };
+  $("#pinGo").onclick = goIn; $("#pin").onkeydown = function (e) { if (e.key === "Enter") goIn(); };
+};
+SCREENS.you = function () {
+  if (!ME) return SCREENS.signin();
+  var roles = String(ME.role || "owner").split(/[,\s]+/).map(function (r) { return { owner: "Owner", commish: "Commissioner", ops: "Ops (site)" }[r] || r; }).join(" · ");
+  return back("home", "Home") + '<h2>' + esc(ME.name) + '</h2><div class="card"><div class="kv"><span>Team</span><span>' + esc(ME.team) + '</span></div>' +
+    '<div class="kv"><span>Role</span><span>' + esc(roles) + '</span></div></div>' +
+    '<div class="card"><p style="margin:0">Signed in on this phone. A new passphrase from the commish signs every phone out.</p><p style="margin-top:12px"><button class="btn ghost" onclick="signOut()">Sign out</button></p></div>';
+};
 
 // ---- Questions for Joe
+function joeDraft() {
+  var d = store("answers") || {};
+  Object.keys(MY || {}).forEach(function (q) { if (!d[q] || d[q].sent) d[q] = { choice: MY[q].choice || "", note: MY[q].note || "", sent: true }; });
+  return d;
+}
 SCREENS.joe = function () {
-  var draft = store("answers") || {};
+  if (!ME) return back("home", "Home") + '<h2>Questions for the commish</h2>' + needSignIn("to answer");
+  if (!isDesk()) return back("league", "League") + '<h2>Questions</h2><div class="card"><p style="margin:0">These are for the commish.</p></div>';
+  var draft = joeDraft();
   return back("league", "League") + '<h2>Questions for the commish</h2>' +
-    '<div class="card"><p style="margin:0">Joe, these decide how trades, picks and keeper contracts work in the app. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime.</p>' +
-    '<div style="margin-top:12px">' + whoPicker("joeWho") + '</div></div>' +
+    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, these" : "These") + ' decide how trades, picks and keeper contracts work in the app. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
     '<div class="qlist">' + QUESTIONS.map(function (q) {
       var a = draft[q.qid] || {};
       return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px">' + esc(q.why) + '</p>' +
@@ -285,7 +331,8 @@ SCREENS.joe = function () {
     '<div class="sticky"><button class="btn" style="width:100%" id="sendAns">Send answers</button></div>';
 };
 SCREENS.joe.after = function () {
-  var draft = store("answers") || {};
+  if (!$("#sendAns")) return;
+  var draft = joeDraft();
   document.querySelectorAll(".q").forEach(function (card) {
     var qid = card.dataset.q;
     card.querySelectorAll(".chip").forEach(function (ch) {
@@ -299,14 +346,13 @@ SCREENS.joe.after = function () {
     card.querySelector("textarea").oninput = function (e) { draft[qid] = draft[qid] || {}; draft[qid].note = e.target.value; draft[qid].sent = false; store("answers", draft); };
   });
   $("#sendAns").onclick = function () {
-    var who = $("#joeWho").value; if (!who) { toast("Pick who you are first"); return; }
     var items = QUESTIONS.filter(function (q) { var a = draft[q.qid]; return a && !a.sent && ((a.choice || "").trim() || (a.note || "").trim()); })
       .map(function (q) { var a = draft[q.qid]; return { qid: q.qid, question: q.q, choice: a.choice || "", note: a.note || "" }; });
     if (!items.length) { toast("Nothing new to send"); return; }
     var btn = this; btn.disabled = true; btn.textContent = "Sending…";
-    api("answers", { who: who, items: items }).then(function (r) {
+    authed("answers", { items: items }).then(function (r) {
       if (!r.ok) throw new Error(r.error);
-      items.forEach(function (it) { draft[it.qid].sent = true; }); store("answers", draft);
+      items.forEach(function (it) { draft[it.qid].sent = true; }); store("answers", draft); MY = r.myAnswers || MY;
       toast("✓ Sent " + r.saved + " answer" + (r.saved > 1 ? "s" : "") + ". Thanks!"); render();
     }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = "Send answers"; });
   };
@@ -314,18 +360,19 @@ SCREENS.joe.after = function () {
 
 // ---- Ideas & feedback
 SCREENS.feedback = function () {
+  if (!ME) return back("league", "League") + '<h2>Ideas &amp; feedback</h2>' + needSignIn("to send a note");
   return back("league", "League") + '<h2>Ideas &amp; feedback</h2><div class="card">' +
-    '<div style="margin-bottom:10px">' + whoPicker("fbWho") + '</div>' +
     '<div class="chips" id="fbMood">' + ["😍 Love it", "👍 Good", "🤔 Confusing", "👎 Not for me"].map(function (m) { return '<button class="chip" data-m="' + m + '">' + m + '</button>'; }).join("") + '</div>' +
     '<textarea id="fbNote" placeholder="Ideas, gripes, kudos, what you want to see…" style="min-height:120px"></textarea>' +
     '<p style="margin-top:12px"><button class="btn" id="fbSend">Send</button></p></div>';
 };
 SCREENS.feedback.after = function () {
+  if (!$("#fbSend")) return;
   var mood = "";
   document.querySelectorAll("#fbMood .chip").forEach(function (c) { c.onclick = function () { document.querySelectorAll("#fbMood .chip").forEach(function (x) { x.classList.remove("on"); }); c.classList.add("on"); mood = c.dataset.m; }; });
   $("#fbSend").onclick = function () {
     var btn = this; btn.disabled = true;
-    api("feedback", { who: $("#fbWho").value, mood: mood, note: $("#fbNote").value, kind: "idea", where: "feedback" }).then(function (r) {
+    authed("feedback", { mood: mood, note: $("#fbNote").value, kind: "idea", where: "feedback" }).then(function (r) {
       if (!r.ok) throw new Error(r.error); toast("✓ Sent. Thanks!"); go("home");
     }).catch(function (e) { toast(e.message); btn.disabled = false; });
   };
@@ -333,14 +380,57 @@ SCREENS.feedback.after = function () {
 
 // ---- 🛠️ Ops desk (Mike): is everything connected and working?
 SCREENS.ops = function () {
+  if (!ME) return back("league", "League") + '<h2>🛠️ Ops desk</h2>' + needSignIn("to open the desk");
+  if (!isDesk()) return back("league", "League") + '<h2>🛠️ Ops desk</h2><div class="card"><p style="margin:0">Commish and ops only.</p></div>';
   return back("league", "League") + '<h2>🛠️ Ops desk</h2>' +
+    '<div id="issued"></div>' +
+    '<div class="card" id="opsOwners"><div class="eyebrow">🔑 Owners &amp; passphrases</div><p class="muted">Loading…</p></div>' +
     '<div class="card" id="opsHealth"><div class="eyebrow">System</div><p class="muted">Checking…</p></div>' +
     '<div class="card" id="opsAns"><div class="eyebrow">📋 Joe\'s answers</div><p class="muted">Loading…</p></div>' +
     '<div class="card"><div class="eyebrow">App</div><div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
     '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
     '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div></div>';
 };
+function ago(ts) {
+  if (!ts) return "never"; var m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+  return m < 2 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago";
+}
+function issuePass(id, name, had) {
+  if (!confirm(had ? "Give " + name + " a NEW passphrase? It signs out every phone they're signed in on." : "Make a passphrase for " + name + "?")) return;
+  authed("issue", { owner: id }).then(function (r) {
+    if (!r.ok) throw new Error(r.error);
+    var msg = name + ", you're in for SPL HQ. Open " + location.origin + location.pathname + " on your phone (iPhone: Share → Add to Home Screen first), tap Sign in, and use your passphrase: " + r.phrase;
+    $("#issued").innerHTML = '<div class="card" style="border-color:var(--lime)"><div class="eyebrow">🔑 New passphrase · shown once</div><h3>' + esc(name) + '</h3>' +
+      '<div class="phrase">' + esc(r.phrase) + '</div><p style="font-size:13px">Send it now. It isn\'t stored anywhere readable: if it\'s lost, make a new one.</p>' +
+      '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" id="shareP">Text it</button><button class="btn ghost" id="copyP">Copy message</button></div></div>';
+    $("#shareP").onclick = function () { if (navigator.share) navigator.share({ text: msg }).catch(function () {}); else location.href = "sms:&body=" + encodeURIComponent(msg); };
+    $("#copyP").onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function () { toast("Copied"); }, function () { prompt("Copy this:", msg); }); };
+    window.scrollTo(0, 0); loadDesk();
+  }).catch(function (e) { toast(e.message); });
+}
+function loadDesk() {
+  authed("desk").then(function (d) {
+    if (!d.ok) throw new Error(d.error);
+    $("#opsOwners").innerHTML = '<div class="eyebrow">🔑 Owners &amp; passphrases · ' + d.owners.filter(function (o) { return o.hasPass; }).length + ' of ' + d.owners.length + ' set up</div>' +
+      d.owners.map(function (o) {
+        var tag = /commish/.test(o.role) ? ' <span class="gold">★</span>' : '';
+        return '<div class="kv" style="align-items:center"><span><b>' + esc(o.name) + '</b>' + tag + '<br><small class="muted">' + esc(o.team) + ' · ' +
+          (o.hasPass ? (o.lastSeen ? "signed in " + ago(o.lastSeen) : "passphrase made, not signed in yet") : "no passphrase") + '</small></span>' +
+          '<span><button class="btn ' + (o.hasPass ? "ghost" : "") + '" style="padding:7px 10px;font-size:13px" onclick="issuePass(\'' + esc(o.owner) + '\',\'' + esc(o.name).replace(/&#39;/g, "") + '\',' + !!o.hasPass + ')">' + (o.hasPass ? "Reset" : "Make one") + '</button></span></div>';
+      }).join("");
+    var byQ = {}; d.answers.forEach(function (a) { (byQ[a.qid] = byQ[a.qid] || []).push(a); });
+    var html = '<div class="eyebrow">📋 Answers · ' + d.total + ' saved</div>' + QUESTIONS.map(function (q) {
+      var list = byQ[q.qid] || [];
+      return '<div class="kv" style="display:block"><b style="font-size:13px">' + esc(q.q) + '</b><br>' +
+        (list.length ? list.map(function (a) { var o = owner(a.who); return '<span class="lime">' + esc(o ? o.name : a.who) + ':</span> ' + esc(a.choice || "") + (a.note ? ' <span class="muted">“' + esc(a.note) + '”</span>' : ''); }).join("<br>") : '<span class="muted">no answer yet</span>') + '</div>';
+    }).join("");
+    if (d.feedback.length) html += '<div class="eyebrow" style="margin-top:14px">💡 Latest feedback</div>' + d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("");
+    $("#opsAns").innerHTML = html;
+  }).catch(function (e) { var el = $("#opsOwners"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+}
 SCREENS.ops.after = function () {
+  if (!$("#opsHealth")) return;
+  loadDesk();
   var ok = function (b, t) { return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };
@@ -351,19 +441,9 @@ SCREENS.ops.after = function () {
       '<div class="kv"><span>ESPN · test league</span><span>' + e(h.espnTest) + '</span></div>' +
       '<div class="kv"><span>ESPN writes</span><span>' + (h.espnWrites ? '<span class="gold">ON</span>' : '<span class="muted">off</span>') + '</span></div>' +
       '<div class="kv"><span>Emails left today</span><span>' + (h.mailLeft == null ? "?" : h.mailLeft) + '</span></div>' +
-      '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>';
+      '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>' +
+      '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>';
   }).catch(function (e) { $("#opsHealth").innerHTML = '<div class="eyebrow">System</div>' + ok(false, e.message); });
-  api("answers").then(function (d) {
-    if (!d.ok) throw new Error(d.error);
-    var byQ = {}; d.answers.forEach(function (a) { (byQ[a.qid] = byQ[a.qid] || []).push(a); });
-    var html = '<div class="eyebrow">📋 Answers · ' + d.total + ' saved</div>' + QUESTIONS.map(function (q) {
-      var list = byQ[q.qid] || [];
-      return '<div class="kv" style="display:block"><b style="font-size:13px">' + esc(q.q) + '</b><br>' +
-        (list.length ? list.map(function (a) { var o = owner(a.who); return '<span class="lime">' + esc(o ? o.name : a.who) + ':</span> ' + esc(a.choice || "") + (a.note ? ' <span class="muted">“' + esc(a.note) + '”</span>' : ''); }).join("<br>") : '<span class="muted">no answer yet</span>') + '</div>';
-    }).join("");
-    if (d.feedback.length) html += '<div class="eyebrow" style="margin-top:14px">💡 Latest feedback</div>' + d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("");
-    $("#opsAns").innerHTML = html;
-  }).catch(function (e) { $("#opsAns").innerHTML = '<div class="eyebrow">📋 Joe\'s answers</div><p class="coral">' + esc(e.message) + '</p>'; });
 };
 
 // ---- connection pill + boot
@@ -373,7 +453,8 @@ function pingConn() {
   api("health").then(function (h) { el.textContent = h.healthy ? "live" : "check"; el.className = "pill " + (h.healthy ? "ok" : "bad"); })
     .catch(function () { el.textContent = "offline"; el.className = "pill bad"; });
 }
-render(); pingConn();
+paintMe(); render(); pingConn();
+if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 </script>
 </body>

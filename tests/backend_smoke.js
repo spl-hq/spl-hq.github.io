@@ -6,17 +6,20 @@ const src = fs.readFileSync(path.join(__dirname, "..", "backend", "logic.js"), "
 let fails = 0; const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); if (!c) fails++; };
 
 function makeEnv(props, espn) {
-  const sheets = {}, mails = [], cache = {};
+  const sheets = {}, mails = [], cache = {}, alerts = [];
   const mkSheet = (name) => ({ name, rows: [], appendRow(r) { this.rows.push(r); }, setFrozenRows() {},
+    getRange(r, c, nr, nc) { const s = this; return { setValues(v) { s.rows[r - 1] = v[0].slice(); } }; },
     getLastRow() { return this.rows.length; }, getName() { return this.name; },
     getDataRange() { const s = this; return { getValues() { return s.rows.map(r => r.slice()); } }; } });
   sheets.Sheet1 = mkSheet("Sheet1");
   const ss = { getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = mkSheet(n)), getSheets: () => Object.values(sheets),
     deleteSheet: s => { delete sheets[s.name]; }, getName: () => "SPL HQ App" };
   const G = {
-    SpreadsheetApp: { getActive: () => ss, getUi: () => ({ alert() {} }) },
+    SpreadsheetApp: { getActive: () => ss, getUi: () => ({ alert: m => { alerts.push(m); } }) },
     ContentService: { createTextOutput: t => ({ t, setMimeType() { return this; } }), MimeType: { JSON: "json" } },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null }) },
+    PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null, setProperty: (k, v) => { props[k] = v; } }) },
+    Utilities: { getUuid: () => require("crypto").randomUUID(),
+      computeHmacSha256Signature: (t, k) => Array.from(require("crypto").createHmac("sha256", k).update(t).digest()).map(b => b > 127 ? b - 256 : b) },
     CacheService: { getScriptCache: () => ({ get: k => cache[k] || null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; } }) },
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     MailApp: { getRemainingDailyQuota: () => 99, sendEmail: (to, s, b) => mails.push({ to, s, b }) },
@@ -26,7 +29,7 @@ function makeEnv(props, espn) {
   const M = {};
   new Function(...Object.keys(G), "M", src)(...Object.values(G), M);
   const out = r => JSON.parse(r.t);
-  return { M, sheets, mails, get: p => out(M.doGet({ parameter: p })), post: b => out(M.doPost({ postData: { contents: JSON.stringify(b) } })) };
+  return { M, sheets, mails, alerts, props, get: p => out(M.doGet({ parameter: p })), post: b => out(M.doPost({ postData: { contents: JSON.stringify(b) } })) };
 }
 const espnOk = (url) => {
   const lid = /leagues\/(\d+)/.exec(url)[1];
@@ -56,21 +59,58 @@ ok(h.espnWrites === false, "ESPN writes off");
 const s = e.get({ action: "standings" });
 ok(s.ok && s.teams.length === 2 && s.teams[0].div === "East Coast" && s.teams[0].pf === 1500.4, "standings shape");
 
-// 4 · answers
-let r = e.post({ action: "answers", who: "reilly", items: [{ qid: "pick_years", question: "How many?", choice: "2 seasons", note: "=SUM(A1)" }, { qid: "bad id!", choice: "x" }] });
-ok(r.ok && r.saved === 1, "saves valid answers, drops bad qid");
-ok(e.sheets.Answers && e.sheets.Answers.rows[1][5] === "'=SUM(A1)", "formula guard on notes");
-ok(!e.sheets.Sheet1, "blank Sheet1 removed once real tabs exist");
-ok(e.mails.length === 1 && /reilly answered 1 question/.test(e.mails[0].s), "emails ops on answers");
-r = e.post({ action: "answers", who: "", items: [{ qid: "x", choice: "y" }] });
-ok(!r.ok, "answers need who");
-const a = e.get({ action: "answers" });
-ok(a.ok && a.total === 1 && a.answers[0].choice === "2 seasons", "answers readback");
+// 4 · setup check seeds owners + bootstraps Mike's passphrase (shown once)
+e.M.menuCheck();
+ok(e.sheets.Owners && e.sheets.Owners.rows.length === 13, "12 owners seeded");
+const phrase = (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(e.alerts[0]) || [])[1];
+ok(!!phrase, "Mike's passphrase shown in the setup alert");
+e.M.menuCheck(); ok(e.sheets.Owners.rows.length === 13 && !/passphrase/.test(e.alerts[1]), "second check: no dupes, no new passphrase");
+ok(!JSON.stringify(e.sheets.Owners.rows).includes(phrase), "passphrase never stored in plain text");
 
-// 5 · feedback
-r = e.post({ action: "feedback", who: "murello", mood: "👍 Good", note: "nice" });
-ok(r.ok && e.sheets.Feedback.rows.length === 2, "feedback saved");
-ok(e.post({ action: "nope" }).ok === false, "unknown action refused");
+// 5 · sign-in
+let r = e.post({ action: "login", pin: "wrong-wrong-111" });
+ok(!r.ok, "wrong passphrase refused");
+r = e.post({ action: "login", pin: phrase.toLowerCase().replace(/-/g, " ") });
+ok(r.ok && r.me.owner === "murello" && /ops/.test(r.me.role), "Mike signs in (case/dashes ignored)");
+const mike = r.token;
+ok(e.post({ action: "me", token: "murello.bogus" }).auth === true, "bad token refused");
+ok(e.post({ action: "answers", items: [{ qid: "x", choice: "y" }] }).auth === true, "answers need sign-in");
+
+// 6 · Mike issues Joe a passphrase from the desk; Joe signs in
+r = e.post({ action: "issue", token: mike, owner: "reilly" });
+ok(r.ok && /^[A-Z]+-[A-Z]+-\d{3}$/.test(r.phrase), "issue Joe's passphrase");
+const joePhrase = r.phrase;
+r = e.post({ action: "login", pin: joePhrase });
+ok(r.ok && r.me.name === "Joe" && r.me.role === "commish", "Joe signs in as commish");
+const joe = r.token;
+r = e.post({ action: "answers", token: joe, items: [{ qid: "pick_years", question: "How many?", choice: "2 seasons", note: "=SUM(A1)" }, { qid: "bad id!", choice: "x" }] });
+ok(r.ok && r.saved === 1 && r.myAnswers.pick_years.choice === "2 seasons", "Joe's answers saved under his name");
+ok(e.sheets.Answers.rows[1][1] === "reilly" && e.sheets.Answers.rows[1][5] === "'=SUM(A1)", "who from token + formula guard");
+ok(e.mails.some(m => /Joe answered 1 question/.test(m.s)), "emails ops on answers");
+r = e.post({ action: "me", token: joe });
+ok(r.ok && r.myAnswers.pick_years, "Joe sees his earlier answers");
+
+// 7 · re-issue signs the old phone out
+const amit = (() => { e.post({ action: "issue", token: mike, owner: "patel" }); return null; })();
+r = e.post({ action: "login", pin: "x" }); // noise
+const plain = e.post({ action: "issue", token: joe, owner: "reilly" });
+ok(plain.ok && e.post({ action: "me", token: joe }).auth === true, "new passphrase signs old phones out");
+
+// 8 · roles
+const p2 = e.post({ action: "issue", token: mike, owner: "glen" }).phrase;
+const glen = e.post({ action: "login", pin: p2 }).token;
+ok(e.post({ action: "desk", token: glen }).ok === false, "regular owner can't open the desk");
+ok(e.post({ action: "issue", token: glen, owner: "reilly" }).ok === false, "regular owner can't issue passphrases");
+r = e.post({ action: "desk", token: mike });
+ok(r.ok && r.owners.length === 12 && r.answers.length === 1 && r.owners.filter(o => o.hasPass).length === 4, "desk shows owners + answers");
+ok(!JSON.stringify(r).includes("pin_hash") && !JSON.stringify(r).includes("salt"), "desk never leaks hashes");
+
+// 9 · feedback
+r = e.post({ action: "feedback", token: glen, mood: "👍 Good", note: "nice" });
+ok(r.ok && e.sheets.Feedback.rows[1][1] === "glen", "feedback saved under the signed-in owner");
+ok(e.post({ action: "nope", token: mike }).ok === false, "unknown action refused");
+h = e.get({ action: "health", fresh: "1" });
+ok(h.owners === 12 && h.signedUp === 4, "health counts owners with passphrases");
 
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));
