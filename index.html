@@ -189,7 +189,7 @@ html.sa header{padding-top:calc(var(--top) + 26px)} html.sa .upd{top:calc(var(--
 header{background:#041E42;border-bottom:0;color:#fff}
 header h1 small{color:#96BEE6}
 header .pill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#cfe0f5}
-header .pill.ok{color:#96BEE6}
+header h1{min-width:0} header h1 small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} header .pill.ok{color:#96BEE6} .pill[hidden]{display:none} header .pill.bad{color:#ffc2ca;border-color:rgba(255,120,140,.5);cursor:pointer}
 header .me{background:#fff;color:#041E42}
 nav.tabs{background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 12px rgba(4,30,66,.06)}
 nav.tabs button.on{color:#041E42}
@@ -276,7 +276,7 @@ a.btn.ghost{text-decoration:none}
 <header>
   <img class="crest" src="icons/crest.png?v=3" alt="SPL crest, back to Home" role="link" onclick="go('home')">
   <h1>SPL HQ<small id="sub">State Penn League</small></h1>
-  <span class="pill" id="conn">…</span>
+  <span class="pill bad" id="conn" hidden onclick="toast(this.dataset.why || 'Offline')">offline</span>
   <button class="dk" id="deskBtn" type="button" onclick="goDesk()" hidden></button>
   <button class="me" id="meBtn" onclick="go(ME ? 'you' : 'signin')">Sign in</button>
 </header>
@@ -311,7 +311,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.12";
+var APP_VERSION = "0.12.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -373,7 +373,9 @@ function api(action, body) {
   if (!API_URL) return Promise.reject(new Error("Backend not connected yet"));
   if (!body) return fetch(API_URL + "?action=" + action).then(function (r) { return r.json(); });
   body.action = action;
-  return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
+  if (!navigator.onLine) return Promise.reject(new Error("You're offline: nothing was sent. Try again when you have signal."));
+  return fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }).then(function (r) { return r.json(); },
+    function () { if (typeof pingConn === "function") pingConn(); throw new Error(navigator.onLine ? "Couldn't reach SPL HQ. Check your signal and try again." : "You're offline: nothing was sent. Try again when you have signal."); });
 }
 var cache = {};
 function load(action, maxAgeMs) {
@@ -399,9 +401,24 @@ function authed(action, body) {
 }
 function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; paintMe(); }
 function signOut(quiet) { store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
+function fullOf(id) { var o = (window.LEAGUE_DATA && LEAGUE_DATA.owners || []).filter(function (x) { return x.id === id; })[0]; return o && o.full; } // Owner Registry canonical_name
+function initials() { // Michael Murello → MM
+  var w = String(fullOf(ME.owner) || ME.name || "").trim().split(/\s+/);
+  return (w.length > 1 ? w[0][0] + w[w.length - 1][0] : w[0].slice(0, 2)).toUpperCase();
+}
+function fullName() { return (ME && (fullOf(ME.owner) || ME.name)) || ""; }
 function paintMe() {
-  var b = $("#meBtn"); if (b) b.textContent = ME ? ME.name.slice(0, 2).toUpperCase() : "Sign in";
+  var b = $("#meBtn"); if (b) { b.textContent = ME ? initials() : "Sign in"; b.setAttribute("aria-label", ME ? "Your settings" : "Sign in"); }
   var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk"; d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
+}
+function flushOutbox() { // chat typed offline never reached the backend, so sending it now can't double-post
+  var ob = store("outbox") || []; if (!ob.length || !ME || !navigator.onLine || flushOutbox.busy) return; flushOutbox.busy = true;
+  var sent = 0, done = function () { flushOutbox.busy = false; if (sent) { toast("Back online: sent " + sent + " waiting message" + (sent > 1 ? "s" : "")); if (/^#chat/.test(location.hash)) render(); } },
+    next = function () {
+      var m = (store("outbox") || [])[0]; if (!m) return done();
+      authed("chatsend", { room: m.room, text: m.text }).then(function (r) { if (!r.ok) throw new Error(r.error); store("outbox", (store("outbox") || []).slice(1)); sent++; next(); }).catch(done);
+    };
+  next();
 }
 function needSignIn(what) {
   return '<div class="card"><div class="eyebrow">🔑 Owners only</div><h3>Sign in ' + what + '</h3><p>Use the passphrase the commish sent you.</p>' +
@@ -1021,18 +1038,21 @@ SCREENS.chat.after = function (room) {
         (!mine && room === "league" ? '<div class="who">' + esc(oname(m.who)) + '</div>' : '') + (m.del ? "Message deleted" : esc(m.text).replace(/\n/g, "<br>")) +
         '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
     }).join("") : '<p class="muted">No messages yet. Say something.</p>';
+    el.innerHTML += (store("outbox") || []).filter(function (m) { return m.room === room; }).map(function (m) {
+      return '<div class="msg me" style="opacity:.6">' + esc(m.text).replace(/\n/g, "<br>") + '<div class="t">⏳ Waiting for signal, sends when you\'re back</div></div>'; }).join("");
     if (atBottom || !last) V.scrollTop = V.scrollHeight;
   };
   var pull = function () {
     return authed("chat", { room: room }).then(function (r) {
       if (!r.ok) throw new Error(r.error);
       msgs = r.msgs; last = msgs.length ? msgs[msgs.length - 1].ts : last; CHAT.rooms = r.rooms; seen(room, Date.now()); paintBadge(); draw();
-    }).catch(function (e) { if ($("#msgs")) $("#msgs").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+    }).catch(function (e) { if (!navigator.onLine) return draw(); if ($("#msgs")) $("#msgs").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
   };
   pull(); timers.push(setInterval(function () { if (!document.hidden) pull(); }, 8000));
   window.delMsg = function (id) { if (!confirm("Delete this message?")) return; authed("chatdel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); pull(); }).catch(function (e) { toast(e.message); }); };
   var send = function () {
     var ta = $("#cmsg"), text = ta.value.trim(); if (!text) return;
+    if (!navigator.onLine) { var ob = store("outbox") || []; ob.push({ room: room, text: text, ts: new Date().toISOString() }); store("outbox", ob); ta.value = ""; draw(); toast("Offline: it'll send when you're back"); return; }
     var btn = $("#csend"); btn.disabled = true;
     authed("chatsend", { room: room, text: text }).then(function (r) {
       if (!r.ok) throw new Error(r.error); ta.value = ""; msgs.push(r.msg); draw(); $("#view").scrollTop = $("#view").scrollHeight;
@@ -1661,7 +1681,7 @@ SCREENS.standings.after = function () {
 var NOTIFY = [["Trades", [["received", "Offer received", "Someone sends you a trade offer"], ["countered", "Counter-offer", "They counter your offer"],
   ["accepted", "Offer accepted", "They accept your offer"], ["declined", "Offer declined", "They pass on your offer"], ["commish", "Commish decision", "A trade you're in is approved or negated"]]],
   ["Chat & league", [["chat", "DMs and @mentions", "Someone messages or @mentions you (one email per chat every 30 min)"], ["announce", "Commish announcements", "📣 Alerts from the commish (deadlines, rules, drafts)"], ["draft", "On the clock", "⏱️ It's your pick in a Divisional or Slot draft"]]]];
-SCREENS.settings = function () { if (!ME) return SCREENS.signin(); return back("you", ME.name) + '<h2>⚙️ Settings</h2><div id="set"><div class="card"><p class="muted">Loading your settings…</p></div></div>'; };
+SCREENS.settings = function () { return SCREENS.you(); }; // old links land on the same screen
 SCREENS.settings.after = function () {
   if (!$("#set")) return;
   authed("settings").then(function (S) {
@@ -1681,7 +1701,7 @@ SCREENS.settings.after = function () {
     $("#stSave").onclick = function () {
       var n = {}, btn = this; document.querySelectorAll("[data-nt]").forEach(function (x) { n[x.dataset.nt] = x.checked; }); btn.disabled = true;
       authed("savesettings", { handle: $("#stHandle").value, email: $("#stEmail").value, phone: $("#stPhone").value, notify: n }).then(function (r) {
-        if (!r.ok) throw new Error(r.error); CONTACTS = null; toast("Settings saved ✓"); go("you"); }).catch(function (e) { toast(e.message); btn.disabled = false; });
+        if (!r.ok) throw new Error(r.error); CONTACTS = null; toast("Settings saved ✓"); btn.disabled = false; }).catch(function (e) { toast(e.message); btn.disabled = false; });
     };
   }).catch(function (e) { $("#set").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
@@ -1714,15 +1734,14 @@ SCREENS.signin.after = function () {
   };
   $("#pinGo").onclick = goIn; $("#pin").onkeydown = function (e) { if (e.key === "Enter") goIn(); };
 };
-SCREENS.you = function () {
+SCREENS.you = function () { // the avatar opens this: your settings (Mike 11/26: no separate Open settings step, no role line)
   if (!ME) return SCREENS.signin();
-  var roles = String(ME.role || "owner").split(/[,\s]+/).map(function (r) { return { owner: "Owner", commish: "Commissioner", ops: "Ops (site)" }[r] || r; }).join(" · ");
-  return back("home", "Home") + '<h2>' + esc(ME.name) + '</h2><div class="card"><div class="kv"><span>Team</span><span>' + esc(ME.team) + '</span></div>' +
-    '<div class="kv"><span>Role</span><span>' + esc(roles) + '</span></div></div>' +
-    '<div class="card"><div class="eyebrow">⚙️ Settings</div><p style="margin:0">Your @handle, email + mobile (owners only) and which emails you get.</p><p style="margin-top:12px"><button class="btn" onclick="go(\'settings\')">Open settings</button></p></div>' +
+  return back("home", "Home") + '<h2>' + esc(fullName()) + '</h2><p class="muted" style="margin:-6px 0 12px">' + esc(ME.team) + '</p>' +
+    '<div id="set"><div class="card"><p class="muted">Loading your settings…</p></div></div>' +
     '<div class="card"><p style="margin:0">Signed in on this phone. A new passphrase from the commish signs every phone out.</p><p style="margin-top:12px"><button class="btn ghost" onclick="signOut()">Sign out</button></p></div>' +
     '<p class="muted" style="font-size:12px;text-align:center">SPL HQ app v' + APP_VERSION + '</p>';
 };
+SCREENS.you.after = SCREENS.settings.after;
 
 // ---- Questions for Joe
 function joeDraft() {
@@ -1870,14 +1889,18 @@ SCREENS.ops.after = function () {
   }).catch(function (e) { $("#opsHealth").innerHTML = '<div class="eyebrow">System</div>' + ok(false, e.message); });
 };
 
-// ---- connection pill + boot
+// ---- connection pill + boot. The header says nothing while all is well (Mike 11/26: "live" belongs on Match/Roster, not the header);
+// the pill shows only when the phone is offline or SPL HQ can't be reached. Chat messages typed offline wait in an outbox and send on reconnect.
+function setConn(bad, why) { var el = $("#conn"); if (!el) return; el.hidden = !bad; el.dataset.why = why || ""; }
 function pingConn() {
-  var el = $("#conn");
-  if (!API_URL) { el.textContent = "offline"; el.className = "pill bad"; return; }
-  api("health").then(function (h) { el.textContent = h.healthy ? "live" : "check"; el.className = "pill " + (h.healthy ? "ok" : "bad"); })
-    .catch(function () { el.textContent = "offline"; el.className = "pill bad"; });
+  if (!navigator.onLine) return setConn(true, "No signal. Chat waits and sends when you're back; anything else asks you to retry.");
+  if (!API_URL) return setConn(true, "Backend not connected yet");
+  api("health").then(function (h) { setConn(!h.healthy, h.healthy ? "" : "SPL HQ is having trouble. Ops has been told."); })
+    .catch(function () { setConn(true, "Can't reach SPL HQ right now."); });
 }
-paintMe(); render(); pingConn();
+window.addEventListener("offline", function () { pingConn(); toast("You're offline. Chat messages will wait and send when you're back."); });
+window.addEventListener("online", function () { pingConn(); flushOutbox(); });
+paintMe(); render(); pingConn(); setTimeout(flushOutbox, 2500);
 setTimeout(function () { pollRooms().catch(function () {}); }, 1500); setInterval(function () { if (!document.hidden) pollRooms().catch(function () {}); }, 60000);
 if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});

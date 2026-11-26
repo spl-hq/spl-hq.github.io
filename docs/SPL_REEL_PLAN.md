@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **Header = identity + desk only** (Mike). Avatar = initials from the registry full name and opens settings directly; no role shown
+  anywhere. No connection pill unless offline/unreachable ("Live" belongs on Match/Roster, tied to ESPN). Offline: only chat queues (it never
+  reached the backend, so sending later can't double-post); trades, picks, drafts and settings refuse offline rather than queue, since a
+  late-arriving offer or pick could land on a changed board.
 - 2026-11-26 · **WS4: the Reel.** Reactions on league cards only (personal cards stay private). The Weekly Pulse is written by a robot from gold
   only (no ESPN call, no invented facts) and published automatically every Tuesday, no review step (Mike: the site maintains itself); Claude
   writes it when `CLAUDE_CODE_OAUTH_TOKEN` is set, else a template edition, so the reel never goes empty. Claude's card lines come from the

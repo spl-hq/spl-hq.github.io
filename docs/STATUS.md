@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS4 The Reel)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, header + settings cleanup)
 
 ## Now
 - **WS4 live (v0.12, backend v0.9.0):** the reel gained 🗓️ Up next, 🔥 reactions, 📰 Weekly Pulse (+ 🎙️ your week in a line), 🎟️ pick wire, 💸 cap impact, 🔒 Signing Day. **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (run `claude setup-token`, then org/repo → Settings → Secrets → Actions) so Claude writes the Pulse; until then a plain template edition ships every Tuesday. Then Actions → Weekly Pulse → Run workflow (force) to get Week 11 in Claude's voice.
@@ -13,6 +13,12 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS4 T
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.12.1 · 👤 **Header + settings cleanup (Mike).** Avatar shows real initials from the Owner Registry full name (Michael Murello → **MM**,
+  Joseph Reilly → JR …). Tapping it opens your settings directly (full name, team, @handle, contact info, email toggles, sign out): no "Open settings"
+  step, no Role line (desk access still comes from the Owners tab, just not shown). Header **"live" pill removed**: the header now only shows
+  **offline** (red, tap for why) when the phone has no signal or SPL HQ can't be reached; "Live" stays on Match where it means ESPN. Offline
+  behaviour (POPPY-style): chat messages typed offline wait in an outbox ("⏳ Waiting for signal"), send themselves when the phone is back
+  online and a toast says so; every other action refuses up front with "You're offline: nothing was sent" instead of a vague error.
 - 2026-11-26 · v0.12 (backend v0.9.0) · 🎞️ **WS4: The Reel (cards).** 🗓️ **Up next** (reel card + top of Your rivalries): your next 3 weeks after the current one:
   opponent, their record and last-3 form, the all-time series line ("You lead 12–10") and a **rivalry grade** (A Blood feud · B Real rivalry ·
   C Familiar foes · D Passing strangers: extra meetings, how even, playoff meetings, graded on the curve since everyone has met ~20 times);
