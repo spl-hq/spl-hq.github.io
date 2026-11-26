@@ -219,6 +219,7 @@ textarea,input[type=text],select{background:#fff}
 .st.current{background:#E8F0FB;color:#1E407C} .st.confirm{background:#FFF6E3;color:#8A6516} .st.stale{background:#FBE9EC;color:#C8102E} .st.ok{background:#E8F0FB;color:#1E407C}
 details.sec{padding:0} details.sec>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:8px;align-items:center}
 details.sec>summary::-webkit-details-marker{display:none}
+details.sec.ops>summary b{font-size:14px} details.ops .rbody p.coral{color:var(--coral)} details.ops .rbody .kv:first-child{border-top:0}
 details.sec>summary b{flex:1;font:800 16px/1.15 var(--head);text-transform:uppercase;letter-spacing:.03em}
 details.sec>summary::after{content:"›";color:var(--muted);font-size:20px;transition:transform .15s} details.sec[open]>summary::after{transform:rotate(90deg)}
 .rbody{padding:0 16px 14px;font-size:14px;line-height:1.5} .rbody ol,.rbody ul{padding-left:20px;margin:6px 0} .rbody li{margin:4px 0} .rbody p{margin:8px 0;color:var(--chalk)}
@@ -325,7 +326,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.13.5";
+var APP_VERSION = "0.13.6";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1835,17 +1836,33 @@ SCREENS.feedback.after = function () {
 SCREENS.ops = function () {
   if (!ME) return '<h2>🛠️ Ops desk</h2>' + needSignIn("to open the desk");
   if (!isOps()) return back(isDesk() ? "desk" : "home", isDesk() ? "Commish desk" : "Home") + '<h2>🛠️ Ops desk</h2><div class="card"><p style="margin:0">Ops only (Mike).</p></div>';
+  var load = '<p class="muted">Loading…</p>';
   return deskTop("ops") +
     '<div id="issued"></div>' +
-    '<div class="card" id="opsOwners"><div class="eyebrow">🔑 Owners &amp; passphrases</div><p class="muted">Loading…</p></div>' +
-    '<div class="card" id="opsHealth"><div class="eyebrow">System</div><p class="muted">Checking…</p></div>' +
-    '<div class="card" id="opsAns"><div class="eyebrow">📋 Joe\'s answers</div><p class="muted">Loading…</p></div>' +
-    '<div class="card"><div class="eyebrow">App</div><div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
-    '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
-    '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div></div>' +
-    '<div class="card" id="opsTL"><div class="eyebrow">🏈 ESPN test league</div><p class="muted">Loading…</p></div>' +
-    '<div class="card"><div class="eyebrow">🧪 Test trades</div><p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p></div>';
+    '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
+    opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
+    opsSec("owners", "🔑 Passphrases", "opsOwners", load, "…") +
+    opsSec("answers", "📋 Joe's answers", "opsAns", load, "…") +
+    opsSec("feedback", "💡 Feedback", "opsFb", load, "…") +
+    opsSec("tl", "🏈 Test league", "opsTL", load, "…") +
+    opsSec("trades", "🧪 Test trades", "opsTT", '<p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p>', "test only", "ok") +
+    opsSec("app", "📱 App", "opsApp", '<div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
+      '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
+      '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div>', "v" + APP_VERSION, API_URL ? "ok" : "stale");
 };
+// Ops desk accordions (Mike 11/26): every card folds; the badge in the header says how it's doing without opening it.
+// Open/closed is remembered on this phone. A section whose badge turns red opens itself so problems aren't hidden.
+function opsOpen() { return store("opsOpen") || {}; }
+function opsSec(k, title, id, body, badge, cls) {
+  return '<details class="card sec ops" data-k="' + k + '"' + (opsOpen()[k] ? " open" : "") + ' ontoggle="opsToggle(this)"><summary><b>' + title + '</b><span class="st ' + (cls || "current") + '" id="' + id + 'St">' + badge + '</span></summary>' +
+    '<div class="rbody" id="' + id + '">' + body + '</div></details>';
+}
+window.opsToggle = function (el) { if (el.dataset.auto) { delete el.dataset.auto; return; } var o = opsOpen(); o[el.dataset.k] = el.open; store("opsOpen", o); };
+window.opsAll = function (on) { var o = {}; document.querySelectorAll("details.ops").forEach(function (d) { o[d.dataset.k] = on; if (d.open !== on) { d.dataset.auto = 1; d.open = on; } }); store("opsOpen", o); };
+function opsBadge(id, text, cls) { // cls: ok (blue) · confirm (gold, needs a look) · stale (red, broken → opens itself)
+  var b = $("#" + id + "St"); if (!b) return; b.className = "st " + (cls || "ok"); b.textContent = text;
+  var d = b.closest("details"); if (cls === "stale" && d && !d.open) { d.dataset.auto = 1; d.open = true; }
+}
 function ago(ts) {
   if (!ts) return "never"; var m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
   return m < 2 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago";
@@ -1870,7 +1887,9 @@ function loadTL() {
   authed("testleague").then(function (d) {
     if (!d.ok) throw new Error(d.error); var el = $("#opsTL"); if (!el) return;
     var off = d.teams.filter(function (t) { return t.rename || t.drops || t.moves || t.adds; }).length;
-    el.innerHTML = '<div class="eyebrow">🏈 ESPN test league · ' + esc(d.name) + ' · week ' + d.week + '</div>' +
+    var fix = d.teams.filter(function (t) { return t.drops || t.moves || t.adds; }).length;
+    opsBadge("opsTL", (d.writes ? "writes on" : "writes off") + " · " + (fix ? fix + " to mirror" : "mirrored"), fix ? "confirm" : "ok");
+    el.innerHTML = '<div class="muted" style="font-size:12px">' + esc(d.name) + ' · week ' + d.week + '</div>' +
       '<div class="kv" style="align-items:center"><span>ESPN writes<br><small class="muted">test league ' + d.league + ' only</small></span><span><button class="btn ' + (d.writes ? "" : "ghost") + '" style="padding:7px 10px;font-size:13px" onclick="tlSwitch(' + !d.writes + ')">' + (d.writes ? "ON · turn off" : "Off · turn on") + '</button></span></div>' +
       d.teams.map(function (t) { var good = !t.drops && !t.moves && !t.adds;
         return '<div class="kv" style="display:block"><b>' + esc(oname(t.owner)) + '</b> <small class="muted">= ESPN “' + esc(t.team) + '”</small>' + (t.rename ? '<br><small class="gold">🏷️ to rename “' + esc(t.wantName) + '”</small>' : '') + '<br>' +
@@ -1882,7 +1901,7 @@ function loadTL() {
       (d.log.length ? '<details style="margin-top:10px"><summary class="eyebrow" style="cursor:pointer">ESPN write log · last ' + d.log.length + '</summary>' + d.log.map(function (l) {
         return '<div class="kv" style="display:block;font-size:12px"><span class="' + (l.code >= 200 && l.code < 300 ? "lime" : "coral") + '">' + esc(l.code) + '</span> ' + esc(l.kind) + ' · ' + esc(l.ref) + ' <span class="muted">' + ago(l.ts) + (l.msg ? ' · ' + esc(l.msg) : '') + '</span></div>'; }).join("") + '</details>' : '');
     var b = $("#tlMirror"); if (b) b.onclick = function () { tlMirror(d); };
-  }).catch(function (e) { var el = $("#opsTL"); if (el) el.innerHTML = '<div class="eyebrow">🏈 ESPN test league</div><p class="coral">' + esc(e.message) + '</p>'; });
+  }).catch(function (e) { var el = $("#opsTL"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge("opsTL", "error", "stale"); });
 }
 window.tlSwitch = function (on) {
   if (!confirm(on ? "Turn ESPN writes ON? The app can then change rosters in the test league (never the real SPL league)." : "Turn ESPN writes off?")) return;
@@ -1906,7 +1925,9 @@ function tlMirror(d) {
 function loadDesk() {
   authed("desk").then(function (d) {
     if (!d.ok) throw new Error(d.error);
-    $("#opsOwners").innerHTML = '<div class="eyebrow">🔑 Owners &amp; passphrases · ' + d.owners.filter(function (o) { return o.hasPass; }).length + ' of ' + d.owners.length + ' set up</div>' +
+    var setUp = d.owners.filter(function (o) { return o.hasPass; }).length;
+    opsBadge("opsOwners", setUp + " of " + d.owners.length + " set up", setUp < d.owners.length ? "confirm" : "ok");
+    $("#opsOwners").innerHTML =
       d.owners.map(function (o) {
         var tag = /commish/.test(o.role) ? ' <span class="gold">★</span>' : '';
         return '<div class="kv" style="align-items:center"><span><b>' + esc(o.name) + '</b>' + tag + '<br><small class="muted">' + esc(o.team) + ' · ' +
@@ -1914,22 +1935,24 @@ function loadDesk() {
           '<span><button class="btn ' + (o.hasPass ? "ghost" : "") + '" style="padding:7px 10px;font-size:13px" onclick="issuePass(\'' + esc(o.owner) + '\',\'' + esc(o.name).replace(/&#39;/g, "") + '\',' + !!o.hasPass + ')">' + (o.hasPass ? "Reset" : "Make one") + '</button></span></div>';
       }).join("");
     var byQ = {}; d.answers.forEach(function (a) { (byQ[a.qid] = byQ[a.qid] || []).push(a); });
-    var html = '<div class="eyebrow">📋 Answers · ' + d.total + ' saved · ' + ACTIVE_Q.length + ' open for Joe</div>' + ACTIVE_Q.concat(QUESTIONS.filter(function (q) { return q.retired; })).map(function (q) {
+    opsBadge("opsAns", d.total + " saved" + (ACTIVE_Q.length ? " · " + ACTIVE_Q.length + " open" : ""), ACTIVE_Q.length ? "confirm" : "ok");
+    var html = ACTIVE_Q.concat(QUESTIONS.filter(function (q) { return q.retired; })).map(function (q) {
       var list = byQ[q.qid] || [];
       return '<div class="kv" style="display:block' + (q.retired ? ';opacity:.6' : '') + '"><b style="font-size:13px">' + esc(q.q) + '</b>' + (q.retired ? '<br><small class="muted">Retired · ' + esc(q.retired) + '</small>' : '') + '<br>' +
         (list.length ? list.map(function (a) { var o = owner(a.who); return '<span class="lime">' + esc(o ? o.name : a.who) + ':</span> ' + esc(a.choice || "") + (a.note ? ' <span class="muted">“' + esc(a.note) + '”</span>' : ''); }).join("<br>") : '<span class="muted">no answer yet</span>') + '</div>';
     }).join("");
-    if (d.feedback.length) html += '<div class="eyebrow" style="margin-top:14px">💡 Latest feedback</div>' + d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("");
     $("#opsAns").innerHTML = html;
-  }).catch(function (e) { var el = $("#opsOwners"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+    opsBadge("opsFb", d.feedback.length ? d.feedback.length + " latest" : "none yet", "ok");
+    $("#opsFb").innerHTML = d.feedback.length ? d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("") : '<p class="muted" style="margin:0">No feedback yet.</p>';
+  }).catch(function (e) { ["opsOwners", "opsAns", "opsFb"].forEach(function (id) { var el = $("#" + id); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge(id, "error", "stale"); }); });
 }
 SCREENS.ops.after = function () {
   if (!$("#opsHealth")) return;
   loadDesk(); loadTL();
-  var ok = function (b, t) { return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
+  var bad = 0, ok = function (b, t) { if (!b) bad++; return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };
-    $("#opsHealth").innerHTML = '<div class="eyebrow">System · checked ' + new Date(h.at).toLocaleTimeString() + '</div>' +
+    $("#opsHealth").innerHTML = '<div class="muted" style="font-size:12px">Checked ' + new Date(h.at).toLocaleTimeString() + '</div>' +
       '<div class="kv"><span>Backend</span><span>' + ok(true, "logic v" + h.version) + '</span></div>' +
       '<div class="kv"><span>Sheet</span><span>' + ok(h.sheet, h.sheetName || "not reachable") + '</span></div>' +
       '<div class="kv"><span>ESPN · SPL (read)</span><span>' + e(h.espnRead) + '</span></div>' +
@@ -1946,7 +1969,8 @@ SCREENS.ops.after = function () {
             return '<div class="kv"><span>Pulse robot</span><span>' + ok(pa < 9, P ? "Week " + P.week + " · " + (P.writer === "claude" ? "Claude" : "template (no Claude token?)") + " · " + ago(P.at) : "no edition yet") + '</span></div>' +
               '<div class="kv"><span>Schedule (Up next)</span><span>' + ok(!!(S && S.season), S && S.season ? S.season + " · " + S.games.length + " games to play · week " + S.current : "not pulled yet") + '</span></div>'; })() +
           (lg ? '<div class="kv"><span>Rules in force</span><span>' + esc(lg.rules.pickSeasons.join(", ")) + ' picks (' + esc(lg.rules.pickYearsFrom) + ') · contracts ' + esc(lg.rules.contracts) + ' (' + esc(lg.rules.contractsFrom) + ')</span></div>' : ''); })();
-  }).catch(function (e) { $("#opsHealth").innerHTML = '<div class="eyebrow">System</div>' + ok(false, e.message); });
+    opsBadge("opsHealth", bad ? "❌ " + bad + (bad > 1 ? " problems" : " problem") : "✅ all good", bad ? "stale" : "ok");
+  }).catch(function (e) { $("#opsHealth").innerHTML = ok(false, e.message); opsBadge("opsHealth", "unreachable", "stale"); });
 };
 
 // ---- connection pill + boot. The header says nothing while all is well (Mike 11/26: "live" belongs on Match/Roster, not the header);

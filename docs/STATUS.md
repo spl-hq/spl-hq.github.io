@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Questions for Joe rebaselined)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Ops desk accordions)
 
 ## Now
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
@@ -17,6 +17,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.13.6 · 🗂️ **Ops desk accordions (Mike).** Every Ops desk card now folds: 🩺 System & robots · 🔑 Passphrases · 📋 Joe's answers ·
+  💡 Feedback (split out of answers) · 🏈 Test league · 🧪 Test trades · 📱 App. Each header carries a status badge so the desk reads at a glance closed
+  (blue = fine, gold = needs a look e.g. "1 of 12 set up" / "3 to mirror", red = broken, e.g. "❌ 2 problems"). A red section opens itself.
+  Open/closed is remembered per phone (default all closed); Open all / Close all chips on top. New passphrase card stays above, unfolded. SW cache `splhq-v26`.
 - 2026-11-26 · v0.13.5 · 📥 **Questions moved off the reel into the Commish desk inbox** (Mike): no more "Questions for Joe" card on Home. On Joe's
   Commish desk the 📋 Questions card sits at the top of the inbox, gold with "needs you" while any are open, and the header button reads
   **📥 Desk · N** (open questions). Mike's Ops desk view unchanged. SW cache `splhq-v25`.
