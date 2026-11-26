@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.5.1 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.5.2 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -26,10 +26,12 @@
   --top:env(safe-area-inset-top,0px); --bot:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--night);color:var(--chalk);font:15px/1.45 var(--body)}
+html,body{margin:0;height:100%;width:100%;overflow:hidden;overscroll-behavior:none;background:var(--night);color:var(--chalk);font:15px/1.45 var(--body)}
+/* App frame (from MAFFL REEL, iPhone-proven): header + scrolling middle + tab bar fill the screen; nothing floats over a scrolling page. */
+body{display:flex;flex-direction:column;height:100dvh}
 button,input,textarea,select{font:inherit;color:inherit}
 a{color:var(--lime)}
-header{position:fixed;top:0;left:0;right:0;z-index:10;background:var(--night);border-bottom:1px solid var(--line);
+header{position:relative;flex:none;z-index:10;background:var(--night);border-bottom:1px solid var(--line);
   padding:calc(var(--top) + 10px) 16px 10px;display:flex;align-items:center;gap:10px}
 .crest{width:auto;height:42px;flex:none;cursor:pointer;display:block}
 header h1{margin:0;font:800 22px/1 var(--head);letter-spacing:.04em;text-transform:uppercase;flex:1}
@@ -38,8 +40,8 @@ header h1 small{display:block;font:500 11px/1.4 var(--mono);color:var(--muted);l
 .pill.ok{color:var(--lime)} .pill.bad{color:var(--coral)}
 .me{border:0;border-radius:99px;background:var(--lime);color:var(--night);font:800 12px var(--body);padding:7px 11px;cursor:pointer;min-width:34px}
 .phrase{font:700 22px var(--mono);letter-spacing:.04em;color:var(--lime);background:var(--night);border:1px dashed var(--lime);border-radius:12px;padding:14px;text-align:center;margin:10px 0;word-break:break-all}
-main{padding:calc(var(--top) + 76px) 14px calc(var(--bot) + 86px);max-width:560px;margin:0 auto}
-nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
+main{flex:1;min-height:0;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:14px max(14px, calc(50% - 266px)) 28px}
+nav.tabs{position:relative;flex:none;z-index:10;background:var(--surface);border-top:1px solid var(--line);
   display:flex;padding:6px 4px calc(var(--bot) + 6px)}
 nav.tabs button{flex:1;background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;
   color:var(--muted);font:600 11px var(--body);cursor:pointer}
@@ -79,8 +81,8 @@ textarea{min-height:64px;resize:vertical}
 .q h3::before{content:counter(q) ". ";color:var(--lime)}
 .qlist{counter-reset:q}
 .saved{font:600 11px var(--mono);color:var(--lime)}
-.sticky{position:sticky;bottom:calc(var(--bot) + 76px);background:linear-gradient(transparent,var(--night) 30%);padding:18px 0 4px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bot) + 84px);background:var(--chalk);color:var(--night);
+.sticky{position:sticky;bottom:-28px;background:linear-gradient(transparent,var(--night) 30%);padding:18px 0 4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bot) + 80px);background:var(--chalk);color:var(--night);
   padding:10px 16px;border-radius:12px;font-weight:700;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
 .toast.show{opacity:1}
 .kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
@@ -88,7 +90,7 @@ textarea{min-height:64px;resize:vertical}
 .kv span:last-child{text-align:right}
 pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 /* 🏠 Reel (ported from MAFFL REEL) */
-.feedwrap{position:fixed;left:0;right:0;top:calc(var(--top) + 64px);bottom:calc(var(--bot) + 62px);display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+.feedwrap{position:absolute;inset:0;display:flex;flex-direction:column;max-width:560px;margin:0 auto}
 .ibar{display:flex;align-items:center;gap:6px;padding:8px 14px 4px;min-height:36px}
 .ihow{font:600 11px var(--body);color:var(--muted);margin-right:auto;margin-left:4px}
 .icount{font:600 11px var(--mono);color:var(--muted)}
@@ -155,7 +157,7 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 .inj{color:var(--coral);font:700 10px var(--mono)}
 .rooms .kv{cursor:pointer;align-items:center}
 .unread{background:var(--coral);color:#fff;border-radius:99px;font:700 11px var(--body);padding:2px 7px}
-.msgs{display:flex;flex-direction:column;gap:6px;padding-bottom:80px}
+.msgs{display:flex;flex-direction:column;gap:6px;padding-bottom:12px}
 .msg{max-width:80%;padding:8px 11px;border-radius:14px;background:var(--surface);border:1px solid var(--line);align-self:flex-start;word-wrap:break-word}
 .msg.me{align-self:flex-end;background:var(--lime);color:var(--night);border-color:var(--lime)}
 .msg .who{font:700 11px var(--body);color:var(--gold);margin-bottom:2px}
@@ -163,7 +165,7 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 .msg.del{opacity:.5;font-style:italic}
 .msg.hq{align-self:center;max-width:92%;background:var(--raised);border-color:var(--gold)}
 .offer .grid{grid-template-columns:1fr 1fr}
-.composer{position:fixed;left:0;right:0;bottom:calc(var(--bot) + 62px);background:var(--night);border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;z-index:9}
+.composer{position:sticky;bottom:-28px;margin:0 -14px;background:var(--night);border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;z-index:9}
 .composer textarea{min-height:40px;max-height:120px;height:40px;flex:1;padding:9px 10px}
 /* ===== "Nittany" theme (Mike 11/25): Penn State blue + white. Replaces Stadium Lights. ===== */
 :root{
@@ -171,7 +173,7 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
   --chalk:#0B1F3A; --muted:#5D6E89; --soft:#33465F;
   --lime:#1E407C; --gold:#B88A2E; --coral:#C8102E;
 }
-html,body{background:#F2F5FA}
+html{background:#041E42} body{background:#F2F5FA}
 header{background:#041E42;border-bottom:0;color:#fff}
 header h1 small{color:#96BEE6}
 header .pill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#cfe0f5}
@@ -222,7 +224,7 @@ textarea,input[type=text],select{background:#fff}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.5.1";
+var APP_VERSION = "0.5.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -313,7 +315,7 @@ function render() {
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
   if (!SCREENS[name]) name = "home";
   document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === TAB_OF[name]); });
-  $("#view").innerHTML = SCREENS[name](arg); window.scrollTo(0, 0);
+  $("#view").innerHTML = SCREENS[name](arg); $("#view").scrollTop = 0;
   if (SCREENS[name].after) SCREENS[name].after(arg);
 }
 window.addEventListener("hashchange", render);
@@ -793,7 +795,7 @@ SCREENS.chat.after = function (room) {
   var msgs = [], last = null;
   var draw = function () {
     var el = $("#msgs"); if (!el) return;
-    var atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 80;
+    var V = $("#view"), atBottom = V.scrollTop + V.clientHeight >= V.scrollHeight - 80;
     el.innerHTML = msgs.length ? msgs.map(function (m) {
       var mine = m.who === ME.owner, t = new Date(m.ts);
       if (m.who === "hq") return '<div class="msg hq"><div class="who">SPL HQ</div>' + esc(m.text) + (m.ref ? '<div style="margin-top:6px"><button class="back" onclick="go(\'trades\',\'' + esc(m.ref) + '\')">Open trade ›</button></div>' : '') + '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
@@ -801,7 +803,7 @@ SCREENS.chat.after = function (room) {
         (!mine && room === "league" ? '<div class="who">' + esc(oname(m.who)) + '</div>' : '') + (m.del ? "Message deleted" : esc(m.text).replace(/\n/g, "<br>")) +
         '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
     }).join("") : '<p class="muted">No messages yet. Say something.</p>';
-    if (atBottom || !last) window.scrollTo(0, document.body.scrollHeight);
+    if (atBottom || !last) V.scrollTop = V.scrollHeight;
   };
   var pull = function () {
     return authed("chat", { room: room }).then(function (r) {
@@ -815,7 +817,7 @@ SCREENS.chat.after = function (room) {
     var ta = $("#cmsg"), text = ta.value.trim(); if (!text) return;
     var btn = $("#csend"); btn.disabled = true;
     authed("chatsend", { room: room, text: text }).then(function (r) {
-      if (!r.ok) throw new Error(r.error); ta.value = ""; msgs.push(r.msg); draw(); window.scrollTo(0, document.body.scrollHeight);
+      if (!r.ok) throw new Error(r.error); ta.value = ""; msgs.push(r.msg); draw(); $("#view").scrollTop = $("#view").scrollHeight;
     }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
   };
   $("#csend").onclick = send;
@@ -988,7 +990,7 @@ function issuePass(id, name, had) {
       '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" id="shareP">Text it</button><button class="btn ghost" id="copyP">Copy message</button></div></div>';
     $("#shareP").onclick = function () { if (navigator.share) navigator.share({ text: msg }).catch(function () {}); else location.href = "sms:&body=" + encodeURIComponent(msg); };
     $("#copyP").onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function () { toast("Copied"); }, function () { prompt("Copy this:", msg); }); };
-    window.scrollTo(0, 0); loadDesk();
+    $("#view").scrollTop = 0; loadDesk();
   }).catch(function (e) { toast(e.message); });
 }
 function loadDesk() {

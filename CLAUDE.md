@@ -42,6 +42,7 @@ Gold `#B88A2E` (Needs you, keeper tags, champions) · Red `#C8102E` (injuries, a
 The theme lives in the "Nittany" block at the end of the `<style>` (CSS variables `--lime` = Beaver Blue, `--night` = white).
 Headings condensed uppercase 800; numbers monospace. Bottom tabs: Home · Match · Team · Chat · League. SPL crest top-left → Home.
 Icons sit on Nittany Navy.
+**Layout frame:** `body` is a full-height flex column (header · `main#view` scrolls · tab bar). Never `position:fixed` a bar over a scrolling page and never scroll `window`: scroll `#view` (iOS Home Screen apps float fixed bars and tint the status bar otherwise).
 
 ## Layout
 ```
