@@ -41,7 +41,7 @@ header h1 small{display:block;font:500 11px/1.4 var(--mono);color:var(--muted);l
 .me{border:0;border-radius:99px;background:var(--lime);color:var(--night);font:800 12px var(--body);padding:7px 11px;cursor:pointer;min-width:34px}
 .phrase{font:700 22px var(--mono);letter-spacing:.04em;color:var(--lime);background:var(--night);border:1px dashed var(--lime);border-radius:12px;padding:14px;text-align:center;margin:10px 0;word-break:break-all}
 main{flex:1;min-height:0;position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:14px max(14px, calc(50% - 266px)) 28px}
-nav.tabs{position:relative;flex:none;z-index:10;background:var(--surface);border-top:1px solid var(--line);
+nav.tabs{position:relative;flex:none;z-index:10;padding-bottom:max(6px, calc(var(--bot) - 12px)) !important;background:var(--surface);border-top:1px solid var(--line);
   display:flex;padding:6px 4px calc(var(--bot) + 6px)}
 nav.tabs button{flex:1;background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;
   color:var(--muted);font:600 11px var(--body);cursor:pointer}
@@ -173,7 +173,7 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
   --chalk:#0B1F3A; --muted:#5D6E89; --soft:#33465F;
   --lime:#1E407C; --gold:#B88A2E; --coral:#C8102E;
 }
-html{background:#041E42} body{background:#F2F5FA}
+html,body{background:#041E42} main{background:#F2F5FA} header{-webkit-backdrop-filter:none;backdrop-filter:none}
 header{background:#041E42;border-bottom:0;color:#fff}
 header h1 small{color:#96BEE6}
 header .pill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#cfe0f5}
@@ -229,8 +229,8 @@ textarea,input[type=text],select{background:#fff}
 .tg input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
 .tg input:checked{background:#1E407C}.tg input:checked::after{left:23px}
 a.btn.ghost{text-decoration:none}
-.upd{position:fixed;left:50%;top:calc(var(--top) + 8px);transform:translateX(-50%) translateY(-160%);z-index:60;background:#041E42;color:#fff;border:2px solid #96BEE6;border-radius:22px;padding:9px 16px;font:700 14px var(--body);box-shadow:0 6px 20px rgba(0,0,0,.25);transition:transform .3s;white-space:nowrap;cursor:pointer}
-.upd.on{transform:translateX(-50%)}.upd b{color:#96BEE6}
+.upd{display:none;position:fixed;left:50%;top:calc(var(--top) + 74px);transform:translateX(-50%);z-index:60;background:#041E42;color:#fff;border:2px solid #96BEE6;border-radius:22px;padding:9px 16px;font:700 14px var(--body);box-shadow:0 6px 20px rgba(0,0,0,.25);transition:transform .3s;white-space:nowrap;cursor:pointer}
+.upd.on{display:block;animation:updIn .3s ease-out}@keyframes updIn{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%)}}.upd b{color:#96BEE6}
 </style>
 </head>
 <body>
@@ -255,7 +255,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.8";
+var APP_VERSION = "0.8.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
