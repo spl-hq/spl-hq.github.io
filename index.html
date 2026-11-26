@@ -255,7 +255,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.7";
+var APP_VERSION = "0.7.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1184,7 +1184,9 @@ SCREENS.ops.after = function () {
       '<div class="kv"><span>ESPN writes</span><span>' + (h.espnWrites ? '<span class="gold">ON</span>' : '<span class="muted">off</span>') + '</span></div>' +
       '<div class="kv"><span>Emails left today</span><span>' + (h.mailLeft == null ? "?" : h.mailLeft) + '</span></div>' +
       '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>' +
-      '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>';
+      '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>' +
+      (function () { var L = window.LEAGUE_DATA || {}, g = L.games || [], last = g.length ? g[g.length - 1] : null, age = L.generated ? (Date.now() - new Date(L.generated).getTime()) / 864e5 : 99;
+        return '<div class="kv"><span>History robot</span><span>' + ok(age < 9, (L.generated ? "updated " + ago(L.generated) : "never") + (last ? " · through " + last[0] + " wk " + last[1] : "")) + '</span></div>'; })();
   }).catch(function (e) { $("#opsHealth").innerHTML = '<div class="eyebrow">System</div>' + ok(false, e.message); });
 };
 

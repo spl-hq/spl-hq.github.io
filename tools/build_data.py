@@ -28,6 +28,6 @@ if os.path.exists(mp):
 seasons = sorted({g[0] for g in games})
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
        f"// Sources: data/Keeper_Contracts.csv, data/SPL_Owner_Registry.csv, data/SPL_Matchups.csv. Generated {datetime.date.today()}.\n"
-       f"var LEAGUE_DATA = {json.dumps({'owners': owners, 'contracts': contracts, 'seasons': seasons, 'games': games}, ensure_ascii=False, separators=(',', ':'))};\n")
+       f"var LEAGUE_DATA = {json.dumps({'generated': datetime.datetime.utcnow().isoformat(timespec='minutes') + 'Z', 'owners': owners, 'contracts': contracts, 'seasons': seasons, 'games': games}, ensure_ascii=False, separators=(',', ':'))};\n")
 open(os.path.join(ROOT, "league-data.js"), "w", encoding="utf-8").write(out)
 print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:])

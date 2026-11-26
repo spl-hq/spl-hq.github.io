@@ -46,6 +46,11 @@ _Owner: Mike (ops). Last updated 2026-11-25 (v0.1)._ Keep this current whenever 
 - **Cookies expired:** copy fresh `espn_s2` / `SWID` from Chrome (fantasy.espn.com → F12 → Application → Cookies) into
   Script properties and GitHub secrets.
 
+## 4b. Robots (automated upkeep)
+| Robot | When | Does | If it fails |
+|---|---|---|---|
+| `ESPN history pull` (GitHub Action) | Tue ~6 AM ET + Wed backstop; also on change or by hand | ESPN 19583 finals → `data/SPL_Matchups.csv` (gold) → `league-data.js` | GitHub emails the org owner; Ops desk "History robot" turns red after 9 days. Usual cause: ESPN cookies expired → refresh the `ESPN_S2`/`SWID` secrets |
+
 ## 5. Uptime monitor (after first deploy)
 UptimeRobot (free) → New monitor → Keyword → URL `<API_URL>?action=health` → keyword `"healthy":true` → alert to Mike's phone.
 

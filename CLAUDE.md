@@ -21,6 +21,12 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 - **Use the app to manage the app**: questions for Joe, feedback, ops status and approvals belong in the app
   (Sheet-backed), not in side channels.
 
+## Automated upkeep (Mike 11/25)
+The site keeps itself current: anything that changes with the season gets a robot, not a reminder. Every robot is a GitHub Action
+or the Apps Script backend, is safe to re-run, shows its last run on the 🛠️ Ops desk, and fails loudly (GitHub emails the org owner
+on a failed Action; backend problems email ops). When you add data that goes stale, add its robot in the same change.
+Current robots: `espn-history.yml` (Tue + Wed backstop: ESPN finals → `data/SPL_Matchups.csv` → `league-data.js`).
+
 ## Hard rules
 - **Public repo = public data.** Never commit emails, phone numbers, payment handles, cookies, tokens or passphrases.
   Owner contacts live only in the Sheet. ESPN cookies live only in Apps Script Script properties + GitHub secrets.

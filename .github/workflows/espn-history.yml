@@ -1,8 +1,13 @@
 name: ESPN history pull
 # Pulls every SPL season ESPN has into data/SPL_Matchups.csv (gold) and commits it.
-# Runs when this file or tools/pull_history.py changes on main, or by hand (Actions → ESPN history pull → Run workflow).
+# Runs every Tuesday (+ Wednesday backstop), when this file or tools/pull_history.py changes on main, or by hand.
 on:
   workflow_dispatch:
+  # Automated upkeep (Mike 11/25): Tuesday morning adds last week's finals; Wednesday is a backstop
+  # (GitHub schedules can run hours late). Re-running is safe: the file is rebuilt from ESPN each time.
+  schedule:
+    - cron: "17 11 * * 2"
+    - cron: "17 11 * * 3"
   push:
     branches: [main]
     paths: [".github/workflows/espn-history.yml", "tools/pull_history.py"]
