@@ -48,6 +48,7 @@ icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)
 backend/logic.js      backend core (pushed = deployed)
 tests/                backend smoke test (mocked Apps Script)
-data/                 gold CSVs
+data/                 gold CSVs (Keeper_Contracts, Owner Registry)
+league-data.js        DERIVED from data/ by tools/build_data.py (never hand-edit)
 docs/                 plan, runbook, status
 ```

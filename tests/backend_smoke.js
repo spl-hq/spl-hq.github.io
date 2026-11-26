@@ -32,9 +32,18 @@ function makeEnv(props, espn) {
   return { M, sheets, mails, alerts, props, get: p => out(M.doGet({ parameter: p })), post: b => out(M.doPost({ postData: { contents: JSON.stringify(b) } })) };
 }
 const espnOk = (url) => {
+  if (/proTeamSchedules/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ settings: { proTeams: [{ id: 2, proGamesByScoringPeriod: { 12: [{ homeProTeamId: 2, awayProTeamId: 21, date: 1 }] } }] } }) };
   const lid = /leagues\/(\d+)/.exec(url)[1];
+  const pl = (name, pos, team, slot, pts) => ({ lineupSlotId: slot, acquisitionType: "DRAFT", playerPoolEntry: { appliedStatTotal: pts, player: { fullName: name, defaultPositionId: pos, proTeamId: team,
+    stats: [{ scoringPeriodId: 12, statSourceId: 0, appliedTotal: pts, stats: { 53: 5, 58: 7, 42: 80 } }, { scoringPeriodId: 0, statSourceId: 0, appliedTotal: pts * 10, appliedAverage: pts }] } } });
+  const roster = { entries: [pl("Josh Allen", 1, 2, 0, 24.5), pl("Bench Guy", 3, 21, 20, 3)] };
+  if (lid === "19583" && /mMatchupScore|mRoster/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({
+    scoringPeriodId: 12, status: { currentMatchupPeriod: 12 }, settings: { scheduleSettings: { matchupPeriodCount: 14 } },
+    teams: [{ id: 1, name: "Bad Attitude Gang", record: { overall: { wins: 9, losses: 3 } }, roster }, { id: 2, name: "Reeling RaMPaGe", record: { overall: { wins: 8, losses: 4 } }, roster }],
+    schedule: [{ matchupPeriodId: 12, winner: "UNDECIDED", home: { teamId: 1, totalPoints: 24.5, rosterForCurrentScoringPeriod: roster }, away: { teamId: 2, totalPoints: 20, rosterForCurrentScoringPeriod: roster } },
+               { matchupPeriodId: 11, home: { teamId: 1 }, away: { teamId: 2 } }] }) };
   const body = lid === "19583"
-    ? { scoringPeriodId: 13, settings: { name: "SPL", scheduleSettings: { divisions: [{ id: 0, name: "East Coast" }] } },
+    ? { scoringPeriodId: 13, status: { currentMatchupPeriod: 12 }, settings: { name: "SPL", scheduleSettings: { divisions: [{ id: 0, name: "East Coast" }] } },
         teams: [{ id: 1, name: "Bad Attitude Gang", divisionId: 0, playoffSeed: 1, record: { overall: { wins: 9, losses: 3, pointsFor: 1500.44 } } },
                 { id: 2, name: "Reeling RaMPaGe", divisionId: 0, playoffSeed: 2, record: { overall: { wins: 8, losses: 4, pointsFor: 1400 } } }] }
     : { settings: { name: "Testing MAFFL HQ" }, teams: [{ id: 1 }, { id: 2 }] };
@@ -99,6 +108,7 @@ r = e.post({ action: "login", pin: "x" }); // noise
 const plain = e.post({ action: "issue", token: joe, owner: "reilly" });
 ok(plain.ok && e.post({ action: "me", token: joe }).auth === true, "new passphrase signs old phones out");
 
+const joeP = e.post({ action: "issue", token: mike, owner: "reilly" }).phrase; const joeTok = e.post({ action: "login", pin: joeP }).token; const joe2 = () => joeTok;
 // 8 · roles
 const p2 = e.post({ action: "issue", token: mike, owner: "glen" }).phrase;
 const glen = e.post({ action: "login", pin: p2 }).token;
@@ -114,6 +124,31 @@ ok(r.ok && e.sheets.Feedback.rows[1][1] === "glen", "feedback saved under the si
 ok(e.post({ action: "nope", token: mike }).ok === false, "unknown action refused");
 h = e.get({ action: "health", fresh: "1" });
 ok(h.owners === 12 && h.signedUp === 4, "health counts owners with passphrases");
+
+// 10 · Match + Team from ESPN (signed in)
+r = e.post({ action: "week", token: glen });
+ok(r.ok && r.week === 12 && r.games.length === 1 && r.games[0].home.owner === "murello" && r.games[0].away.owner === "reilly", "week: one game, owners matched by team name");
+ok(r.games[0].home.players[0].n === "Josh Allen" && r.games[0].home.players[0].opp === "vs PHI" && r.games[0].home.players[1].slot === "BE", "week: lineup order, opponent, bench");
+ok(e.post({ action: "week" }).auth === true, "week needs sign-in");
+r = e.post({ action: "rosters", token: glen });
+ok(r.ok && r.teams.length === 2 && r.teams[0].players[0].sp === 245 && r.teams[0].players[0].avg === 24.5 && r.teams[1].owner === "reilly", "rosters: season points + owners");
+
+// 11 · chat
+r = e.post({ action: "chatsend", token: glen, room: "league", text: "=1+1 trash talk" });
+ok(r.ok && e.sheets.Chat.rows[1][4] === "'=1+1 trash talk", "league message saved, formula-guarded");
+ok(!e.post({ action: "chatsend", token: glen, room: "dm:murello,reilly", text: "hi" }).ok, "can't post in someone else's DM");
+ok(!e.post({ action: "chatsend", token: glen, room: "dm:reilly,glen", text: "hi" }).ok, "DM room ids must be sorted");
+ok(e.post({ action: "chatsend", token: glen, room: "dm:glen,reilly", text: "trade?" }).ok, "DM to Joe");
+r = e.post({ action: "chat", token: joe2(), room: "dm:glen,reilly" });
+ok(r.ok && r.msgs.length === 1 && r.msgs[0].who === "glen" && r.rooms.length === 2, "Joe reads the DM + sees both rooms");
+r = e.post({ action: "chat", token: mike, room: "dm:glen,reilly" });
+ok(!r.ok, "Mike can't read Glen and Joe's DM");
+r = e.post({ action: "chat", token: mike });
+ok(r.ok && r.rooms.length === 1 && r.rooms[0].room === "league", "Mike sees only the league room");
+const mid = e.sheets.Chat.rows[1][0];
+ok(!e.post({ action: "chatdel", token: e.post({ action: "login", pin: (e.post({ action: "issue", token: mike, owner: "smith" })).phrase }).token, id: mid }).ok, "can't delete someone else's message");
+ok(e.post({ action: "chatdel", token: mike, id: mid }).ok, "commish deletes a league message");
+ok(e.post({ action: "chat", token: glen, room: "league" }).msgs[0].del === true, "deleted shows as deleted");
 
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));

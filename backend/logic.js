@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.2.2";
+var VERSION = "0.3";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -52,25 +52,33 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
+var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1 }; // never wait on the script lock
+var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
-  if (b.action !== "login" && b.action !== "me" && b.action !== "desk" && !rate_()) return json({ ok: false, error: "Too many requests this hour. Try again later." });
-  var lock = LockService.getScriptLock();
-  try { lock.waitLock(10000); } catch (err) { return json({ ok: false, busy: true, error: "The league server is busy. Try again in a few seconds." }); }
+  var lock = null;
   try {
-    if (b.action === "login") return json(login_(b.pin));
+    if (b.action === "login") { lock = LockService.getScriptLock(); try { lock.waitLock(10000); } catch (x) { lock = null; return json({ ok: false, busy: true, error: "The league server is busy. Try again in a few seconds." }); } return json(login_(b.pin)); }
     var me = auth_(b.token); if (!me) return json({ ok: false, auth: true, error: "Please sign in again." });
+    if (WRITES[b.action] && !rate_(me.owner)) return json({ ok: false, error: "Slow down a little: too many sends this hour." });
+    if (!READS[b.action]) { lock = LockService.getScriptLock(); try { lock.waitLock(10000); } catch (x) { lock = null; return json({ ok: false, busy: true, error: "The league server is busy. Try again in a few seconds." }); } }
+    var desk = isRole_(me, "commish") || isRole_(me, "ops");
     switch (b.action) {
       case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner) });
       case "answers":  return json(saveAnswers_(me, b));
       case "feedback": return json(saveFeedback_(me, b));
-      case "desk":     return json(isRole_(me, "commish") || isRole_(me, "ops") ? desk_(me) : { ok: false, error: "Commish only" });
-      case "issue":    return json(isRole_(me, "ops") || isRole_(me, "commish") ? issue_(me, b.owner) : { ok: false, error: "Commish only" });
+      case "desk":     return json(desk ? desk_(me) : { ok: false, error: "Commish only" });
+      case "issue":    return json(desk ? issue_(me, b.owner) : { ok: false, error: "Commish only" });
+      case "week":     return json(week_(b.week));
+      case "rosters":  return json(rosters_());
+      case "chat":     return json(chat_(me, b));
+      case "chatsend": return json(chatSend_(me, b));
+      case "chatdel":  return json(chatDel_(me, b));
       default:         return json({ ok: false, error: "unknown action" });
     }
   } catch (err) { return json({ ok: false, error: String(err && err.message || err) }); }
-  finally { lock.releaseLock(); }
+  finally { if (lock) lock.releaseLock(); }
 }
 
 function json(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
@@ -80,7 +88,8 @@ var HEADS = {
   Owners:   ["owner", "name", "team", "role", "pin_hash", "salt", "issued_ts", "issued_by", "last_seen"],
   Answers:  ["ts", "who", "qid", "question", "choice", "note", "source"],
   Feedback: ["ts", "who", "kind", "mood", "note", "where"],
-  Log:      ["ts", "kind", "detail"]
+  Log:      ["ts", "kind", "detail"],
+  Chat:     ["msg_id", "ts", "room", "owner", "text", "deleted"]
 };
 function sheet_(name) {
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
@@ -102,9 +111,9 @@ function safe_(s) { s = String(s == null ? "" : s); return /^[=+\-@]/.test(s) ? 
 function clip_(s, n) { return String(s == null ? "" : s).replace(/[\u0000-\u0008\u000b-\u001f]/g, "").slice(0, n); }
 function append_(name, row) { sheet_(name).appendRow(row.map(function (v) { return typeof v === "string" ? safe_(v) : v; })); }
 function log_(kind, detail) { try { append_("Log", [new Date(), kind, clip_(detail, 500)]); } catch (e) {} }
-function rate_() {
-  var c = CacheService.getScriptCache(), k = "rate:" + Math.floor(Date.now() / 3.6e6), n = Number(c.get(k) || 0);
-  if (n >= 60) return false; c.put(k, String(n + 1), 3700); return true;
+function rate_(who) {
+  var c = CacheService.getScriptCache(), k = "rate:" + who + ":" + Math.floor(Date.now() / 3.6e6), n = Number(c.get(k) || 0);
+  if (n >= 150) return false; c.put(k, String(n + 1), 3700); return true;
 }
 function prop_(k) { return PropertiesService.getScriptProperties().getProperty(k); }
 function setProp_(k, v) { PropertiesService.getScriptProperties().setProperty(k, v); }
@@ -238,6 +247,140 @@ function standings_() {
   var out = { ok: true, league: READ_LEAGUE, name: (d.settings || {}).name || "", week: d.scoringPeriodId || null, at: new Date().toISOString(), teams: teams };
   try { c.put("standings", JSON.stringify(out), 900); } catch (e) {}
   return out;
+}
+
+var POS = { 1: "QB", 2: "RB", 3: "WR", 4: "TE", 5: "K", 7: "P", 16: "D/ST" };
+var PRO = { 1: "ATL", 2: "BUF", 3: "CHI", 4: "CIN", 5: "CLE", 6: "DAL", 7: "DEN", 8: "DET", 9: "GB", 10: "TEN", 11: "IND", 12: "KC", 13: "LV", 14: "LAR", 15: "MIA", 16: "MIN", 17: "NE", 18: "NO", 19: "NYG", 20: "NYJ", 21: "PHI", 22: "ARI", 23: "PIT", 24: "LAC", 25: "SF", 26: "SEA", 27: "TB", 28: "WSH", 29: "CAR", 30: "JAX", 33: "BAL", 34: "HOU" };
+var SLOT = { 0: "QB", 2: "RB", 3: "RB/WR", 4: "WR", 5: "WR/TE", 6: "TE", 7: "OP", 16: "D/ST", 17: "K", 20: "BE", 21: "IR", 23: "FLEX" };
+var SLOT_ORDER = [0, 7, 2, 4, 6, 3, 5, 23, 16, 17, 20, 21];
+function norm_(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+function teamOwners_() { var m = {}; OWNER_SEED.forEach(function (r) { m[norm_(r[2])] = r[0]; }); try { owners_().forEach(function (o) { if (o.team) m[norm_(o.team)] = o.owner; }); } catch (e) {} return m; }
+function teamName_(t) { return t.name || ((t.location || "") + " " + (t.nickname || "")).trim(); }
+function cacheJson_(key, secs, fn) {
+  var c = CacheService.getScriptCache(), hit = c.get(key); if (hit) return JSON.parse(hit);
+  var out = fn(), str = JSON.stringify(out); if (str.length < 95000) { c.put(key, str, secs); c.put(key + ":last", str, 21600); }
+  return out;
+}
+function proGames_(sp) {
+  return cacheJson_("pro_" + SEASON + "_" + sp, 21600, function () {
+    var out = {};
+    try {
+      var r = UrlFetchApp.fetch("https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/" + SEASON + "?view=proTeamSchedules_wl", { muteHttpExceptions: true });
+      if (r.getResponseCode() === 200) (((JSON.parse(r.getContentText()).settings || {}).proTeams) || []).forEach(function (t) {
+        var g = ((t.proGamesByScoringPeriod || {})[sp] || [])[0]; if (!g) return;
+        var home = g.homeProTeamId === t.id, o = home ? g.awayProTeamId : g.homeProTeamId;
+        out[t.id] = { opp: (home ? "vs " : "@") + (PRO[o] || "?"), kick: g.date };
+      });
+    } catch (e) {}
+    return out;
+  });
+}
+// One short stat line from ESPN's raw stat map.
+function statLine_(pos, st) {
+  if (!st) return "";
+  function v(id) { return Math.round(Number(st[id]) || 0); }
+  var b = [];
+  if (pos === "QB") { if (v(0)) b.push(v(1) + "/" + v(0) + ", " + v(3) + " yd"); if (v(4)) b.push(v(4) + " TD"); if (v(20)) b.push(v(20) + " INT"); if (v(24)) b.push(v(23) + "-" + v(24) + " rush"); if (v(25)) b.push(v(25) + " rush TD"); }
+  else if (pos === "RB" || pos === "WR" || pos === "TE") {
+    var ru = v(23) ? v(23) + "-" + v(24) + " rush" : "", rc = v(53) || v(58) ? v(53) + "/" + v(58) + " rec, " + v(42) + " yd" : "";
+    (pos === "RB" ? [ru, rc] : [rc, ru]).forEach(function (x) { if (x) b.push(x); }); var td = v(25) + v(43); if (td) b.push(td + " TD");
+  } else if (pos === "D/ST") { if (v(120) || v(99) || v(95)) b.push(v(120) + " PA"); if (v(99)) b.push(v(99) + " sk"); if (v(95)) b.push(v(95) + " INT"); if (v(105)) b.push(v(105) + " TD"); }
+  if (v(72)) b.push(v(72) + " FUM");
+  return b.join(" · ");
+}
+// ⚔️ A week of games with both lineups (Match tab). Current week cached 60 s; past weeks 6 h.
+function week_(wk) {
+  var cur = cacheJson_("curwk", 600, function () { var d = espn_(READ_LEAGUE, "view=mSettings"); return { mp: (d.status && d.status.currentMatchupPeriod) || d.scoringPeriodId || 1, sp: d.scoringPeriodId || 1, last: ((d.settings || {}).scheduleSettings || {}).matchupPeriodCount || 14 }; });
+  wk = Math.floor(Number(wk) || cur.mp); if (wk < 1) wk = 1; if (wk > 17) wk = 17;
+  var past = wk < cur.mp;
+  return cacheJson_("wk_" + wk, past ? 21600 : 60, function () {
+    var d = espn_(READ_LEAGUE, "view=mTeam&view=mMatchupScore&view=mBoxscore&view=mScoreboard&scoringPeriodId=" + wk + "&matchupPeriodId=" + wk);
+    var names = {}, recs = {}, own = teamOwners_();
+    (d.teams || []).forEach(function (t) { names[t.id] = teamName_(t); var r = (t.record || {}).overall || {}; recs[t.id] = (r.wins || 0) + "–" + (r.losses || 0) + (r.ties ? "–" + r.ties : ""); });
+    var pro = proGames_(wk);
+    function side(sd) {
+      if (!sd) return null;
+      var ents = ((sd.rosterForCurrentScoringPeriod || sd.rosterForMatchupPeriod || {}).entries) || [];
+      var players = ents.map(function (e) {
+        var pl = (e.playerPoolEntry || {}).player || {}, st = pl.stats || [];
+        var act = st.filter(function (x) { return x.scoringPeriodId === wk && x.statSourceId === 0; })[0], prj = st.filter(function (x) { return x.scoringPeriodId === wk && x.statSourceId === 1; })[0];
+        var pos = POS[pl.defaultPositionId] || "", pg = pro[pl.proTeamId] || null;
+        return { n: pl.fullName || "?", pos: pos, slot: SLOT[e.lineupSlotId] || String(e.lineupSlotId), so: SLOT_ORDER.indexOf(e.lineupSlotId),
+          tm: PRO[pl.proTeamId] || "", opp: pg ? pg.opp : (pl.proTeamId ? "BYE" : ""), kick: pg ? pg.kick : null,
+          pts: Math.round(((act ? act.appliedTotal : (e.playerPoolEntry || {}).appliedStatTotal) || 0) * 100) / 100,
+          proj: prj ? Math.round(prj.appliedTotal * 10) / 10 : null, played: !!act, st: act ? statLine_(pos, act.stats) : "",
+          inj: pl.injuryStatus && pl.injuryStatus !== "ACTIVE" ? String(pl.injuryStatus).replace(/_/g, " ") : "" };
+      }).sort(function (a, b) { return a.so - b.so; });
+      var starters = players.filter(function (x) { return x.slot !== "BE" && x.slot !== "IR"; });
+      var score = sd.totalPointsLive != null ? sd.totalPointsLive : (sd.totalPoints != null ? sd.totalPoints : starters.reduce(function (a, x) { return a + x.pts; }, 0));
+      return { id: sd.teamId, team: names[sd.teamId] || ("Team " + sd.teamId), owner: own[norm_(names[sd.teamId])] || "", rec: recs[sd.teamId] || "",
+        pts: Math.round(score * 100) / 100, proj: sd.totalProjectedPointsLive != null ? Math.round(sd.totalProjectedPointsLive * 10) / 10 : null,
+        left: starters.filter(function (x) { return !x.played; }).length, players: players };
+    }
+    var games = (d.schedule || []).filter(function (g) { return g.matchupPeriodId === wk; }).map(function (g) {
+      return { home: side(g.home), away: side(g.away), winner: g.winner || "UNDECIDED", playoff: g.playoffTierType && g.playoffTierType !== "NONE" ? g.playoffTierType : "" }; });
+    return { ok: true, week: wk, current: cur.mp, last: cur.last, final: past, at: new Date().toISOString(), games: games };
+  });
+}
+// 🏈 Every SPL roster (Team tab). Cached 30 min; last good copy 6 h if ESPN hiccups.
+var ACQ = { DRAFT: "Drafted", ADD: "Waiver", TRADE: "Traded", FREEAGENT: "Free agent" };
+function rosters_() {
+  try {
+    return cacheJson_("rosters", 1800, function () {
+      var d = espn_(READ_LEAGUE, "view=mTeam&view=mRoster"), own = teamOwners_();
+      return { ok: true, at: new Date().toISOString(), teams: (d.teams || []).map(function (tm) {
+        var name = teamName_(tm), r = (tm.record || {}).overall || {};
+        return { id: tm.id, team: name, owner: own[norm_(name)] || "", rec: (r.wins || 0) + "–" + (r.losses || 0) + (r.ties ? "–" + r.ties : ""),
+          players: (((tm.roster || {}).entries) || []).map(function (e) {
+            var ppe = e.playerPoolEntry || {}, pl = ppe.player || {}, st = pl.stats || [];
+            var season = st.filter(function (x) { return x.scoringPeriodId === 0 && x.statSourceId === 0 && (!x.seasonId || x.seasonId === SEASON); })[0];
+            return { n: pl.fullName || "?", pos: POS[pl.defaultPositionId] || "", tm: PRO[pl.proTeamId] || "FA", slot: SLOT[e.lineupSlotId] || "", so: SLOT_ORDER.indexOf(e.lineupSlotId),
+              acq: ACQ[e.acquisitionType] || "", inj: pl.injuryStatus && pl.injuryStatus !== "ACTIVE" ? String(pl.injuryStatus).replace(/_/g, " ") : "",
+              sp: season ? Math.round(season.appliedTotal * 10) / 10 : null, avg: season && season.appliedAverage != null ? Math.round(season.appliedAverage * 10) / 10 : null,
+              own: pl.ownership && pl.ownership.percentOwned != null ? Math.round(pl.ownership.percentOwned) : null };
+          }).sort(function (a, b) { return a.so - b.so || (b.sp || 0) - (a.sp || 0); }) };
+      }) };
+    });
+  } catch (err) {
+    var last = CacheService.getScriptCache().get("rosters:last"); if (last) { var o = JSON.parse(last); o.stale = true; return o; } throw err;
+  }
+}
+
+// ---------------------------------------------------------------- 💬 Chat: league room + DMs
+// Rooms: "league" (every owner) or "dm:<a>,<b>" (owner ids sorted). The commish can't read DMs.
+function roomOk_(me, room) {
+  if (room === "league") return true;
+  var m = /^dm:([a-z]{2,20}),([a-z]{2,20})$/.exec(String(room || "")); if (!m || m[1] >= m[2]) return false;
+  if (m[1] !== me.owner && m[2] !== me.owner) return false;
+  var ids = OWNER_SEED.map(function (r) { return r[0]; }); return ids.indexOf(m[1]) >= 0 && ids.indexOf(m[2]) >= 0;
+}
+function chat_(me, b) {
+  var all = rows_("Chat"), mine = all.filter(function (r) { return roomOk_(me, r.room); }), rooms = {};
+  mine.forEach(function (r) { var x = rooms[r.room] = rooms[r.room] || { room: r.room, n: 0 }; x.n++; x.last = r.ts; x.who = r.owner; x.text = r.deleted ? "(deleted)" : String(r.text).slice(0, 80); });
+  var out = { ok: true, rooms: Object.keys(rooms).map(function (k) { return rooms[k]; }), at: new Date().toISOString() };
+  if (b.room) {
+    if (!roomOk_(me, b.room)) return { ok: false, error: "Not your room" };
+    var since = b.since ? new Date(b.since).getTime() : 0;
+    out.room = b.room;
+    out.msgs = mine.filter(function (r) { return r.room === b.room && (!since || new Date(r.ts).getTime() > since); }).slice(-150).map(function (r) {
+      return { id: r.msg_id, ts: r.ts, who: r.owner, text: r.deleted ? "" : String(r.text), del: !!r.deleted }; });
+  }
+  return out;
+}
+function chatSend_(me, b) {
+  if (!roomOk_(me, b.room)) return { ok: false, error: "Not your room" };
+  var text = clip_(b.text, 500).trim(); if (!text) return { ok: false, error: "Type a message first." };
+  var id = "M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), now = new Date();
+  append_("Chat", [id, now, b.room, me.owner, text, ""]);
+  return { ok: true, msg: { id: id, ts: now, who: me.owner, text: text } };
+}
+function chatDel_(me, b) {
+  var list = rows_("Chat"), idx = -1; list.forEach(function (r, i) { if (r.msg_id === b.id) idx = i; });
+  if (idx < 0) return { ok: false, error: "Message not found" };
+  var r = list[idx], commish = isRole_(me, "commish") && r.room === "league";
+  if (r.owner !== me.owner && !commish) return { ok: false, error: "You can only delete your own messages." };
+  r.deleted = "Y"; setRow_("Chat", idx, r); log_("chatdel", me.owner + " " + r.msg_id);
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- Health (uptime monitor keyword: "healthy":true)

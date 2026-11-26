@@ -1,0 +1,43 @@
+# Keeper_Contracts.csv  --  GOLD (hand-edited, authoritative). One row per contract.
+# v0.1 -- 2026-09-30. Source: SPL Packet 2026.xlsx, tab "2026 Keeper Matrix" (dated Aug 28, 2026),
+#   signed_season/year1 back-derived from the 2024 and 2025 Keeper Matrix tabs.
+# kp_by_season: season:KP pipes. F = franchise-tag year (0 KP, costs owner's 1st-round pick).
+# cap_penalty_by_season: 0.5 x scheduled KP for each season remaining after the cut.
+# owner_id = current holder (join to SPL_Owner_Registry.csv).
+contract_id,owner_id,player,position,signed_season,term_years,year1_kp,kp_by_season,is_franchise_tag,status,cap_penalty_by_season,notes
+C2025-sikora-nix,sikora,Bo Nix,QB,2025,2,3,2025:3|2026:4,N,active,,Matrix: "Nix"
+C2026-sikora-smithnjigba,sikora,Jaxon Smith-Njigba,WR,2026,1,6,2026:6,N,active,,Matrix: "JSN"
+C2025-murello-bowers,murello,Brock Bowers,TE,2025,3,3,2025:3|2026:4|2027:5,N,active,,Matrix: "Bowers"
+C2026-murello-shough,murello,Tyler Shough,QB,2026,3,2,2026:2|2027:3|2028:4,N,active,,Matrix: "Shough"
+C2026-murello-goff,murello,Jared Goff,QB,2026,1,4,2026:4,N,active,,Matrix: "Goff"
+C2024-hoosier-lamar,hoosier,Lamar Jackson,QB,2024,3,10,2024:10|2025:F|2026:F,Y,active,,2024 matrix shows "10*" in year one then F|F
+C2026-hoosier-tuten,hoosier,Bhayshul Tuten,RB,2026,1,2,2026:2,N,active,,Matrix: "Tuten"
+C2026-hoosier-stbrown,hoosier,Amon-Ra St. Brown,WR,2026,1,8,2026:8,N,active,,
+C2026-chappie-jones,chappie,Daniel Jones,QB,2026,2,3,2026:3|2027:4,N,active,,
+C2026-chappie-willis,chappie,Malik Willis,QB,2026,2,2,2026:2|2027:3,N,active,,
+C2026-chappie-odunze,chappie,Rome Odunze,WR,2026,1,4,2026:4,N,active,,Matrix: "R. Odunze"
+C2026-farrington-stafford,farrington,Matthew Stafford,QB,2026,1,3,2026:3,N,active,,Matrix: "Stafford"
+C2026-farrington-rice,farrington,Rashee Rice,WR,2026,1,4,2026:4,N,active,,Matrix: "Rice"
+C2026-farrington-loveland,farrington,Colston Loveland,TE,2026,3,2,2026:2|2027:3|2028:4,N,active,,Matrix: "Loveland"
+C2026-smith-warren,smith,Tyler Warren,TE,2026,1,3,2026:3,N,active,,
+C2026-smith-pickens,smith,George Pickens,WR,2026,1,4,2026:4,N,active,,
+C2025-smith-brown,smith,Chase Brown,RB,2025,2,2,2025:2|2026:3,N,active,,
+C2026-moyer-smith,moyer,DeVonta Smith,WR,2026,1,4,2026:4,N,active,,Matrix: "Devonta Smith"
+C2024-moyer-laporta,moyer,Sam LaPorta,TE,2024,3,2,2024:2|2025:3|2026:4,N,cut,2026:2,Cut before 2026 signing day
+C2026-moyer-burden,moyer,Luther Burden III,WR,2026,3,2,2026:2|2027:3|2028:4,N,active,,Matrix: "Luther Burden"
+C2026-moyer-kraft,moyer,Tucker Kraft,TE,2026,1,2,2026:2,N,active,,
+C2025-glen-jwilliams,glen,Jameson Williams,WR,2025,2,3,2025:3|2026:4,N,cut,2026:2,Signed by Rich (moyer) 2025; traded to Glen; cut before 2026
+C2024-glen-collins,glen,Nico Collins,WR,2024,3,2,2024:2|2025:3|2026:4,N,active,,
+C2026-glen-dart,glen,Jaxson Dart,QB,2026,3,2,2026:2|2027:3|2028:4,N,active,,Matrix: "Dart"
+C2026-glen-skattebo,glen,Cam Skattebo,RB,2026,1,2,2026:2,N,active,,Matrix: "Skattebo"
+C2024-patel-stroud,patel,C.J. Stroud,QB,2024,3,3,2024:3|2025:4|2026:5,N,active,,
+C2026-patel-jwilliams,patel,Javonte Williams,RB,2026,1,3,2026:3,N,active,,
+C2026-patel-watson,patel,Christian Watson,WR,2026,2,2,2026:2|2027:3,N,active,,Seth cut a prior Watson contract in 2025
+C2024-salerno-mcbride,salerno,Trey McBride,TE,2024,3,2,2024:2|2025:3|2026:4,N,active,,Held by Seth in 2025; acquired by Owen for 2026
+C2025-salerno-maye,salerno,Drake Maye,QB,2025,3,2,2025:2|2026:3|2027:4,N,active,,
+C2026-salerno-judkins,salerno,Quinshon Judkins,RB,2026,1,3,2026:3,N,active,,Matrix: "Judkins"
+C2026-reilly-hampton,reilly,Omarion Hampton,RB,2026,1,6,2026:6,N,active,,Matrix: "Hampton"
+C2026-reilly-olave,reilly,Chris Olave,WR,2026,1,4,2026:4,N,active,,Matrix: "Olave"
+C2025-bucher-penix,bucher,Michael Penix Jr.,QB,2025,3,2,2025:2|2026:3|2027:4,N,active,,Matrix: "Penix"
+C2024-bucher-murray,bucher,Kyler Murray,QB,2024,3,3,2024:3|2025:4|2026:5,N,active,,Held by Joe in 2025
+C2025-bucher-mccarthy,bucher,J.J. McCarthy,QB,2025,3,2,2025:2|2026:3|2027:4,N,cut,2026:1.5|2027:2,Cut before 2026 signing day. Matrix 2027 total reads 8; rows sum to 6

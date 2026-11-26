@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.2 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.3 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -87,6 +87,41 @@ textarea{min-height:64px;resize:vertical}
 .kv:last-child{border:0}
 .kv span:last-child{text-align:right}
 pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
+nav.tabs button{position:relative}
+nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color:#fff;font:700 10px var(--body);border-radius:99px;padding:1px 5px}
+.hscroll{display:flex;gap:6px;overflow-x:auto;margin:0 -14px 12px;padding:0 14px 4px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll .chip{flex:none}
+.stepper{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stepper button{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.stepper button:disabled{opacity:.3}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;text-align:center}
+.vs .sc{font:800 40px/1 var(--head)} .vs .tn{font:800 14px/1.15 var(--head);text-transform:uppercase;letter-spacing:.03em}
+.vs .meta{font:11px var(--mono);color:var(--muted)}
+.vs .win .sc{color:var(--lime)}
+.lu{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
+.lu td{padding:7px 3px;border-bottom:1px solid var(--line);vertical-align:top}
+.lu td.sl{width:42px;text-align:center;font:600 10px var(--mono);color:var(--muted);vertical-align:middle}
+.lu .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu .sub{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu .pt{font:700 13px var(--mono)} .lu .r{text-align:right}
+.game{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.game:last-child{border:0}
+.game .s{font:700 14px var(--mono);text-align:right}
+.game .w{color:var(--lime)} .game.mine{background:linear-gradient(90deg,rgba(184,224,74,.08),transparent)}
+.ro td{padding:8px 4px}
+.tag{display:inline-block;font:700 9.5px var(--mono);padding:2px 5px;border-radius:5px;background:var(--raised);color:var(--gold);border:1px solid var(--line);vertical-align:1px}
+.inj{color:var(--coral);font:700 10px var(--mono)}
+.rooms .kv{cursor:pointer;align-items:center}
+.unread{background:var(--coral);color:#fff;border-radius:99px;font:700 11px var(--body);padding:2px 7px}
+.msgs{display:flex;flex-direction:column;gap:6px;padding-bottom:80px}
+.msg{max-width:80%;padding:8px 11px;border-radius:14px;background:var(--surface);border:1px solid var(--line);align-self:flex-start;word-wrap:break-word}
+.msg.me{align-self:flex-end;background:var(--lime);color:var(--night);border-color:var(--lime)}
+.msg .who{font:700 11px var(--body);color:var(--gold);margin-bottom:2px}
+.msg .t{font:10px var(--mono);opacity:.6;margin-top:3px}
+.msg.del{opacity:.5;font-style:italic}
+.composer{position:fixed;left:0;right:0;bottom:calc(var(--bot) + 62px);background:var(--night);border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;z-index:9}
+.composer textarea{min-height:40px;max-height:120px;height:40px;flex:1;padding:9px 10px}
 </style>
 </head>
 <body>
@@ -105,11 +140,12 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
   <button data-t="league"><span>🏆</span>League</button>
 </nav>
 <div class="toast" id="toast"></div>
+<script src="league-data.js"></script>
 <script>
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.2";
+var APP_VERSION = "0.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -193,6 +229,7 @@ function needSignIn(what) {
 var SCREENS = {}, TAB_OF = { signin: "home", you: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
+  clearTimers();
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
   if (!SCREENS[name]) name = "home";
   document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === TAB_OF[name]); });
@@ -212,11 +249,22 @@ SCREENS.home = function () {
     (isDesk() ? '<div class="card"><div class="eyebrow">📋 For the commish</div><h3>' + (ME.owner === "reilly" ? "Your questions, Joe" : "Questions for the commish") + '</h3>' +
     '<p>' + QUESTIONS.length + ' quick calls that shape how trades and keepers work in the app.' + (answered ? ' <span class="lime">' + answered + ' of ' + QUESTIONS.length + ' answered.</span>' : '') + '</p>' +
     '<p style="margin-top:12px"><button class="btn" onclick="go(\'joe\')">' + (answered ? "Review answers" : "Answer them") + '</button></p></div>' : '') +
+    (ME ? '<div class="card" id="homeGame" onclick="go(\'match\')" style="cursor:pointer"><div class="eyebrow">⚔️ Your game</div><p class="muted">Loading…</p></div>' : '') +
     '<div class="card" id="homeStand"><div class="eyebrow">📊 Live from ESPN · SPL ' + 2026 + '</div><h3>Standings</h3><p class="muted">Loading…</p></div>' +
     '<div class="card"><div class="eyebrow">💡 Ideas &amp; feedback</div><h3>Tell us what you want</h3><p>Anything: ideas, gripes, what you\'d love to see.</p>' +
     '<p style="margin-top:12px"><button class="btn ghost" onclick="go(\'feedback\')">Send a note</button></p></div>';
 };
 SCREENS.home.after = function () {
+  if (ME && $("#homeGame")) authed("week", {}).then(function (d) {
+    var el = $("#homeGame"); if (!el || !d.ok) return; WEEK = d;
+    var g = d.games.filter(function (x) { return (x.home && x.home.owner === ME.owner) || (x.away && x.away.owner === ME.owner); })[0];
+    if (!g) { el.innerHTML = '<div class="eyebrow">⚔️ Week ' + d.week + '</div><p>No game for you this week.</p>'; return; }
+    var m = g.home.owner === ME.owner ? g.home : g.away, o = m === g.home ? g.away : g.home, up = m.pts >= o.pts;
+    el.innerHTML = '<div class="eyebrow">⚔️ Your game · Week ' + d.week + (d.final ? " · Final" : "") + '</div><div class="row" style="justify-content:space-between">' +
+      '<div><b class="big ' + (up ? "lime" : "") + '">' + fmtPts(m.pts) + '</b><br><small class="muted">You</small></div><div class="muted">vs</div>' +
+      '<div style="text-align:right"><b class="big">' + fmtPts(o.pts) + '</b><br><small class="muted">' + esc(oname(o.owner) || o.team) + '</small></div></div>' +
+      '<p style="margin-top:8px">' + (d.final ? (up ? "Win." : "Loss.") : (m.left + o.left ? m.left + " of yours and " + o.left + " of theirs still to play." : "All players done.")) + ' Tap for lineups.</p>';
+  }).catch(function () { var el = $("#homeGame"); if (el) el.remove(); });
   load("standings", 300000).then(function (d) {
     var el = $("#homeStand"); if (!el) return;
     if (!d.ok) throw new Error(d.error);
@@ -227,13 +275,187 @@ SCREENS.home.after = function () {
   }).catch(function (e) { var el = $("#homeStand"); if (el) el.querySelector("p").textContent = e.message; });
 };
 
+// ---- shared bits for Match / Team / Chat
+function oname(id) { var o = owner(id); return o ? o.name : (id || "?"); }
+function fmtPts(x) { return x == null ? "–" : (Math.round(x * 10) / 10).toFixed(1); }
+function kickTime(ms) { if (!ms) return ""; var d = new Date(ms); return d.toLocaleDateString([], { weekday: "short" }) + " " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+var timers = []; function clearTimers() { timers.forEach(clearInterval); timers = []; }
+
 // ---- placeholders for tabs not built yet
 function soon(title, what) {
   return '<h2>' + title + '</h2><div class="card"><div class="eyebrow">Coming soon</div><p>' + what + '</p></div>';
 }
-SCREENS.match = function () { return soon("Match", "Your game this week, live from ESPN: scores, lineups side by side, and the rivalry history between you two."); };
-SCREENS.team = function () { return soon("Team", "Your roster with keeper contracts and KP costs, the draft picks you own, and the trade center: players + picks + contracts in one offer, executed on ESPN when the commish approves."); };
-SCREENS.chat = function () { return soon("Chat", "League chat, division rooms and DMs. Every trade offer opens its own thread."); };
+// ---- ⚔️ Match: your game this week (live from ESPN) + every game
+var WEEK = null;
+SCREENS.match = function (arg) {
+  if (!ME) return '<h2>Match</h2>' + needSignIn("to see your matchup");
+  return '<h2>Match</h2><div id="mt"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>';
+};
+SCREENS.match.after = function (arg) {
+  if (!$("#mt")) return;
+  var parts = String(arg || "").split(":"), wk = Number(parts[0]) || null, gi = parts[1] != null && parts[1] !== "" ? Number(parts[1]) : null;
+  var draw = function (d) {
+    if (!$("#mt")) return;
+    if (!d.ok) { $("#mt").innerHTML = '<div class="card"><p class="coral">' + esc(d.error) + '</p></div>'; return; }
+    WEEK = d;
+    var mineIdx = -1; d.games.forEach(function (g, i) { if ((g.home && g.home.owner === ME.owner) || (g.away && g.away.owner === ME.owner)) mineIdx = i; });
+    var show = gi != null ? gi : mineIdx >= 0 ? mineIdx : 0, g = d.games[show];
+    var html = '<div class="stepper"><button ' + (d.week <= 1 ? "disabled" : "") + ' onclick="go(\'match\',' + (d.week - 1) + ')">‹</button>' +
+      '<div style="text-align:center"><b style="font:800 18px var(--head);text-transform:uppercase">Week ' + d.week + '</b><br><small class="muted">' + (d.final ? "Final" : d.week === d.current ? "Live · updates every minute" : "Upcoming") + '</small></div>' +
+      '<button ' + (d.week >= 17 ? "disabled" : "") + ' onclick="go(\'match\',' + (d.week + 1) + ')">›</button></div>';
+    if (!g) { $("#mt").innerHTML = html + '<div class="card"><p class="muted">No games this week.</p></div>'; return; }
+    var me = g.away && g.away.owner === ME.owner ? "away" : "home", L = g[me], R = g[me === "home" ? "away" : "home"];
+    if (show !== mineIdx) { L = g.home; R = g.away; }
+    var lead = function (a, b) { return a && b && a.pts > b.pts; };
+    var hdr = function (t, w) { return '<div class="' + (w ? "win" : "") + '"><div class="sc">' + fmtPts(t.pts) + '</div><div class="tn" style="margin-top:6px">' + esc(t.team) + '</div><div class="meta">' + esc(oname(t.owner)) + ' · ' + esc(t.rec) + (t.proj != null && !d.final ? '<br>proj ' + fmtPts(t.proj) : '') + (!d.final && t.left ? ' · ' + t.left + ' to play' : '') + '</div></div>'; };
+    html += '<div class="card"><div class="eyebrow">' + (show === mineIdx ? "⚔️ Your game" : "⚔️ Game") + (g.playoff ? " · Playoffs" : "") + '</div>' +
+      '<div class="vs">' + hdr(L, lead(L, R)) + '<div class="muted" style="font:800 14px var(--head)">VS</div>' + hdr(R, lead(R, L)) + '</div></div>';
+    var starters = function (t) { return t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }); };
+    var bench = function (t) { return t.players.filter(function (p) { return p.slot === "BE" || p.slot === "IR"; }); };
+    var cell = function (p, right) {
+      if (!p) return '<td></td>';
+      var sub = esc(p.pos + (p.tm ? " · " + p.tm : "")) + (p.opp ? " " + esc(p.opp) : "") + (p.st ? " · " + esc(p.st) : (!p.played && p.kick ? " · " + kickTime(p.kick) : "")) + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '');
+      var pts = '<span class="pt' + (p.played ? "" : " muted") + '">' + (p.played ? fmtPts(p.pts) : (p.proj != null ? fmtPts(p.proj) : "–")) + '</span>';
+      return right ? '<td class="r"><div class="nm">' + pts + ' ' + esc(p.n) + '</div><div class="sub">' + sub + '</div></td>'
+                   : '<td><div class="nm">' + esc(p.n) + ' ' + pts + '</div><div class="sub">' + sub + '</div></td>';
+    };
+    var table = function (a, b, label) {
+      var n = Math.max(a.length, b.length), rows = "";
+      for (var i = 0; i < n; i++) rows += '<tr>' + cell(a[i], false) + '<td class="sl">' + esc((a[i] || b[i]).slot) + '</td>' + cell(b[i], true) + '</tr>';
+      return '<div class="card" style="padding:12px"><div class="eyebrow">' + label + '</div><table class="lu">' + rows + '</table></div>';
+    };
+    html += table(starters(L), starters(R), "Lineups · grey = projected, not played yet");
+    html += '<details class="card" style="padding:12px"><summary class="eyebrow" style="cursor:pointer">Bench</summary>' + table(bench(L), bench(R), "").replace('<div class="card" style="padding:12px">', '<div>') + '</details>';
+    html += '<div class="card"><div class="eyebrow">🏟️ Every game · Week ' + d.week + '</div>' + d.games.map(function (x, i) {
+      var a = x.away || {}, h = x.home || {}, aw = a.pts > h.pts, hw = h.pts > a.pts;
+      return '<div class="game' + (i === mineIdx ? " mine" : "") + '" onclick="go(\'match\',\'' + d.week + ':' + i + '\')">' +
+        '<div class="' + (aw ? "w" : "") + '">' + esc(a.team) + ' <small class="muted">' + esc(oname(a.owner)) + '</small></div><div class="s ' + (aw ? "w" : "") + '">' + fmtPts(a.pts) + '</div>' +
+        '<div class="' + (hw ? "w" : "") + '">' + esc(h.team) + ' <small class="muted">' + esc(oname(h.owner)) + '</small></div><div class="s ' + (hw ? "w" : "") + '">' + fmtPts(h.pts) + '</div></div>';
+    }).join("") + '</div><p class="muted" style="font-size:12px">From ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</p>';
+    $("#mt").innerHTML = html;
+  };
+  var pull = function () { authed("week", { week: wk }).then(draw).catch(function (e) { if ($("#mt")) $("#mt").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; }); };
+  pull(); timers.push(setInterval(function () { if (WEEK && WEEK.week === WEEK.current && !document.hidden) pull(); }, 60000));
+};
+
+// ---- 🏈 Team: any SPL roster + keeper contracts
+var ROSTERS = null;
+function contractsOf(id) { return ((window.LEAGUE_DATA || {}).contracts || []).filter(function (c) { return c.owner === id; }); }
+SCREENS.team = function (arg) {
+  if (!ME) return '<h2>Team</h2>' + needSignIn("to see rosters");
+  var id = arg || ME.owner;
+  return '<div class="hscroll">' + OWNERS.map(function (o) { return '<button class="chip' + (o.id === id ? " on" : "") + '" onclick="go(\'team\',\'' + o.id + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div>' +
+    '<div id="tm"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>';
+};
+SCREENS.team.after = function (arg) {
+  if (!$("#tm")) return;
+  var id = arg || ME.owner, o = owner(id) || {};
+  var draw = function (d) {
+    if (!$("#tm")) return;
+    if (!d.ok) throw new Error(d.error);
+    ROSTERS = d;
+    var t = d.teams.filter(function (x) { return x.owner === id; })[0];
+    var cs = contractsOf(id), kept = {}; cs.forEach(function (c) { if (c.status === "active") kept[c.player.toLowerCase()] = c; });
+    var html = '<div class="card' + (id === ME.owner ? " lead" : "") + '"><div class="eyebrow">' + (id === ME.owner ? "🏈 Your team" : "🏈 " + esc(o.name) + "'s team") + ' · ' + esc(o.div || "") + '</div>' +
+      '<h2 style="margin:0">' + esc(t ? t.team : o.team) + '</h2><p>' + esc(o.full || o.name || "") + (t ? ' · ' + esc(t.rec) : '') + '</p></div>';
+    if (cs.length) {
+      var yrs = ["2026", "2027", "2028"];
+      html += '<div class="card"><div class="eyebrow">🔒 Keeper contracts</div><table><tr><th>Player</th>' + yrs.map(function (y) { return '<th class="n">' + y.slice(2) + '</th>'; }).join("") + '</tr>' +
+        cs.map(function (c) {
+          var cut = c.status === "cut";
+          return '<tr><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + (cut ? ' <span class="tag" style="color:var(--coral)">CUT</span>' : '') +
+            '<br><small class="muted">' + c.term + '-yr · signed ' + c.signed + '</small></td>' +
+            yrs.map(function (y) { var v = cut ? c.pen[y] : c.kp[y]; return '<td class="n' + (cut && v != null ? " coral" : "") + '">' + (v == null ? '<span class="muted">·</span>' : v === "F" ? '<span class="gold">F</span>' : v) + '</td>'; }).join("") + '</tr>';
+        }).join("") + '</table><p class="muted" style="font-size:12px">KP by season · F = franchise tag year · red = cap penalty from a cut. From the 2026 Keeper Matrix.</p></div>';
+    }
+    if (!t) { $("#tm").innerHTML = html + '<div class="card"><p class="muted">Couldn\'t match this team on ESPN.</p></div>'; return; }
+    var group = function (label, list) {
+      if (!list.length) return "";
+      return '<div class="card" style="padding:12px 14px"><div class="eyebrow">' + label + '</div><table class="ro"><tr><th></th><th>Player</th><th class="n">Pts</th><th class="n">Avg</th></tr>' +
+        list.map(function (p) {
+          var k = kept[p.n.toLowerCase()];
+          return '<tr><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (k ? ' <span class="tag">🔒 ' + (k.kp["2026"] === "F" ? "TAG" : k.kp["2026"] + " KP") + '</span>' : '') +
+            '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + (p.acq ? ' · ' + esc(p.acq) : '') + '</small>' + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '') + '</td>' +
+            '<td class="n">' + fmtPts(p.sp) + '</td><td class="n">' + fmtPts(p.avg) + '</td></tr>';
+        }).join("") + '</table></div>';
+    };
+    html += group("Starters", t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }));
+    html += group("Bench", t.players.filter(function (p) { return p.slot === "BE"; }));
+    html += group("IR", t.players.filter(function (p) { return p.slot === "IR"; }));
+    html += '<div class="card"><div class="eyebrow">🔁 Trade center · coming next</div><p style="margin:0">Players + draft picks + keeper contracts in one offer. Joe approves; the app makes the move on ESPN by itself.</p>' +
+      (id !== ME.owner ? '<p style="margin-top:12px"><button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message ' + esc(o.name) + '</button></p>' : '') + '</div>' +
+      '<p class="muted" style="font-size:12px">Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
+    $("#tm").innerHTML = html;
+  };
+  (ROSTERS && Date.now() - new Date(ROSTERS.at).getTime() < 600000 ? Promise.resolve(ROSTERS) : authed("rosters")).then(draw)
+    .catch(function (e) { if ($("#tm")) $("#tm").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
+};
+
+// ---- 💬 Chat: league room + DMs
+function dmRoom(other) { var a = [ME.owner, other].sort(); return "dm:" + a[0] + "," + a[1]; }
+function roomName(room) { if (room === "league") return "League chat"; var ids = room.slice(3).split(","); return oname(ids[0] === ME.owner ? ids[1] : ids[0]); }
+function seen(room, ts) { var s = store("seen") || {}; if (ts === undefined) return s[room] || 0; s[room] = ts; store("seen", s); }
+var CHAT = { rooms: [] };
+function unreadCount() { return (CHAT.rooms || []).filter(function (r) { return r.who !== (ME && ME.owner) && new Date(r.last).getTime() > seen(r.room); }).length; }
+function paintBadge() {
+  var b = document.querySelector('#tabs button[data-t="chat"]'), n = ME ? unreadCount() : 0, el = b.querySelector(".badge");
+  if (n && !el) { el = document.createElement("i"); el.className = "badge"; b.appendChild(el); }
+  if (el) { if (n) el.textContent = n; else el.remove(); }
+}
+function pollRooms() { if (!ME || !store("token")) return Promise.resolve(); return authed("chat").then(function (r) { if (r.ok) { CHAT.rooms = r.rooms; paintBadge(); } return r; }); }
+SCREENS.chat = function (room) {
+  if (!ME) return '<h2>Chat</h2>' + needSignIn("to chat");
+  if (room) return back("chat", "Chat") + '<h2>' + esc(roomName(room)) + '</h2><div class="msgs" id="msgs"><p class="muted">Loading…</p></div>' +
+    '<div class="composer"><textarea id="cmsg" placeholder="Message" maxlength="500"></textarea><button class="btn" id="csend">Send</button></div>';
+  return '<h2>Chat</h2><div class="card rooms" id="rooms"><p class="muted">Loading…</p></div>' +
+    '<div class="card"><div class="eyebrow">✉️ New message</div><div class="chips">' + OWNERS.filter(function (o) { return o.id !== ME.owner; }).map(function (o) {
+      return '<button class="chip" onclick="go(\'chat\',\'' + dmRoom(o.id) + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div></div>';
+};
+SCREENS.chat.after = function (room) {
+  if (!ME) return;
+  if (!room) {
+    var drawRooms = function () {
+      var list = CHAT.rooms.slice(); if (!list.some(function (r) { return r.room === "league"; })) list.unshift({ room: "league", n: 0 });
+      list.sort(function (a, b) { return (a.room === "league" ? -1 : 0) - (b.room === "league" ? -1 : 0) || new Date(b.last || 0) - new Date(a.last || 0); });
+      if ($("#rooms")) $("#rooms").innerHTML = '<div class="eyebrow">💬 Rooms</div>' + list.map(function (r) {
+        var un = r.who !== ME.owner && r.last && new Date(r.last).getTime() > seen(r.room);
+        return '<div class="kv" onclick="go(\'chat\',\'' + r.room + '\')"><span><b>' + (r.room === "league" ? "🏟️ " : "👤 ") + esc(roomName(r.room)) + '</b><br><small class="muted">' +
+          (r.text ? esc(oname(r.who)) + ': ' + esc(r.text) : "No messages yet") + '</small></span><span>' + (un ? '<span class="unread">new</span>' : (r.last ? '<small class="muted">' + ago(r.last) + '</small>' : '')) + '</span></div>';
+      }).join("");
+    };
+    drawRooms(); pollRooms().then(drawRooms); timers.push(setInterval(function () { if (!document.hidden) pollRooms().then(drawRooms); }, 20000));
+    return;
+  }
+  var msgs = [], last = null;
+  var draw = function () {
+    var el = $("#msgs"); if (!el) return;
+    var atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 80;
+    el.innerHTML = msgs.length ? msgs.map(function (m) {
+      var mine = m.who === ME.owner, t = new Date(m.ts);
+      return '<div class="msg' + (mine ? " me" : "") + (m.del ? " del" : "") + '" ' + (mine && !m.del ? 'onclick="delMsg(\'' + esc(m.id) + '\')"' : (isRole("commish") && room === "league" && !m.del ? 'onclick="delMsg(\'' + esc(m.id) + '\')"' : '')) + '>' +
+        (!mine && room === "league" ? '<div class="who">' + esc(oname(m.who)) + '</div>' : '') + (m.del ? "Message deleted" : esc(m.text).replace(/\n/g, "<br>")) +
+        '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
+    }).join("") : '<p class="muted">No messages yet. Say something.</p>';
+    if (atBottom || !last) window.scrollTo(0, document.body.scrollHeight);
+  };
+  var pull = function () {
+    return authed("chat", { room: room }).then(function (r) {
+      if (!r.ok) throw new Error(r.error);
+      msgs = r.msgs; last = msgs.length ? msgs[msgs.length - 1].ts : last; CHAT.rooms = r.rooms; seen(room, Date.now()); paintBadge(); draw();
+    }).catch(function (e) { if ($("#msgs")) $("#msgs").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+  };
+  pull(); timers.push(setInterval(function () { if (!document.hidden) pull(); }, 8000));
+  window.delMsg = function (id) { if (!confirm("Delete this message?")) return; authed("chatdel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); pull(); }).catch(function (e) { toast(e.message); }); };
+  var send = function () {
+    var ta = $("#cmsg"), text = ta.value.trim(); if (!text) return;
+    var btn = $("#csend"); btn.disabled = true;
+    authed("chatsend", { room: room, text: text }).then(function (r) {
+      if (!r.ok) throw new Error(r.error); ta.value = ""; msgs.push(r.msg); draw(); window.scrollTo(0, document.body.scrollHeight);
+    }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
+  };
+  $("#csend").onclick = send;
+  $("#cmsg").onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+};
 
 // ---- League grid
 var LEAGUE_TILES = [
@@ -449,6 +671,7 @@ function pingConn() {
     .catch(function () { el.textContent = "offline"; el.className = "pill bad"; });
 }
 paintMe(); render(); pingConn();
+setTimeout(function () { pollRooms().catch(function () {}); }, 1500); setInterval(function () { if (!document.hidden) pollRooms().catch(function () {}); }, 60000);
 if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 </script>
