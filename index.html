@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.5.2 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.6 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -201,6 +201,36 @@ textarea,input[type=text],select{background:#fff}
 .chip{background:#fff}
 .chip.on{background:#1E407C;color:#fff;border-color:#1E407C}
 .feedwrap{background:transparent}
+
+/* 🔁 trade grid + builder (MAFFL REEL), ⚙️ settings, ✨ update pill */
+.gridwrap{position:absolute;inset:0;display:flex;flex-direction:column}
+.gtop{display:flex;align-items:center;gap:12px;padding:10px 14px 6px;flex:none}
+.gtop .back{margin:0;white-space:nowrap;flex:none}
+.tgrid2,.bgrid{flex:1;min-height:0;display:flex;gap:8px;overflow:auto;padding:0 14px 14px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.gcol{flex:0 0 146px;display:flex;flex-direction:column;gap:4px}
+.gcol.mine{position:sticky;left:-14px;z-index:3;background:#F2F5FA;padding:0 6px 0 14px;margin-left:-14px;box-shadow:6px 0 8px -6px rgba(4,30,66,.25)}
+.bgrid .bcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ghead{position:sticky;top:0;z-index:2;display:block;width:100%;text-align:left;background:#041E42;color:#fff;border:0;border-radius:10px;padding:8px;cursor:pointer}
+.ghead.me{background:#1E407C;cursor:default}
+.ghead b{display:block;font:800 14px/1.05 var(--head);text-transform:uppercase;letter-spacing:.02em}.ghead small{font-size:10px;opacity:.85}
+.gtrade{display:inline-block;margin-top:5px;background:#96BEE6;color:#041E42;border-radius:5px;padding:2px 7px;font:800 11px var(--head);text-transform:uppercase;letter-spacing:.06em}
+.gpos{font:700 10px var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+.gp{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.gp b{display:block;font-size:12.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gp small{font-size:10.5px;color:var(--muted)}
+.gp.sel{cursor:pointer}.gp.sel.on{background:#1E407C;border-color:#1E407C;color:#fff}.gp.sel.on small{color:#cfe0f5}
+.gp.pk b{font:600 12px var(--mono)}
+.bfoot{flex:none;background:#fff;border-top:1px solid var(--line);padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.tsum{font-size:13px;line-height:1.35}
+.hfield{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;padding-left:10px;background:#fff}.hfield input{border:0;padding-left:4px}
+.lbl{display:block;font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 4px}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.tg div{flex:1}.tg b{display:block;font-size:14px}.tg small{display:block;color:var(--muted);font-size:12px}
+.tg input{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;flex:none;transition:background .15s;margin:0}
+.tg input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.tg input:checked{background:#1E407C}.tg input:checked::after{left:23px}
+a.btn.ghost{text-decoration:none}
+.upd{position:fixed;left:50%;top:calc(var(--top) + 8px);transform:translateX(-50%) translateY(-160%);z-index:60;background:#041E42;color:#fff;border:2px solid #96BEE6;border-radius:22px;padding:9px 16px;font:700 14px var(--body);box-shadow:0 6px 20px rgba(0,0,0,.25);transition:transform .3s;white-space:nowrap;cursor:pointer}
+.upd.on{transform:translateX(-50%)}.upd b{color:#96BEE6}
 </style>
 </head>
 <body>
@@ -219,12 +249,13 @@ textarea,input[type=text],select{background:#fff}
   <button data-t="league"><span>🏆</span>League</button>
 </nav>
 <div class="toast" id="toast"></div>
+<button class="upd" id="upd" type="button">✨ Update ready · <b>Tap to refresh</b></button>
 <script src="league-data.js"></script>
 <script>
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.5.2";
+var APP_VERSION = "0.6";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -308,7 +339,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league", trades: "team", trade: "team", desk: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league", trades: "team", trade: "team", desk: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
@@ -608,9 +639,10 @@ SCREENS.team.after = function (arg) {
     html += group("IR", t.players.filter(function (p) { return p.slot === "IR"; }));
     html += '<div class="card"><div class="eyebrow">🔁 Trade center</div><p style="margin:0">Players + draft picks + keeper contracts in one offer. The commish approves; the picks and contracts move with it.</p>' +
       '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + (id !== ME.owner ? '<button class="btn" onclick="go(\'trade\',\'' + id + '\')">Propose a trade</button><button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message ' + esc(o.name) + '</button>'
-        : '<button class="btn" onclick="go(\'trades\')">Your trades + picks</button>') + '</div></div>' +
+        : '<button class="btn" onclick="go(\'trades\')">Your trades + picks</button>') + '</div>' + (id !== ME.owner ? '<div id="ct"></div>' : '') + '</div>' +
       '<p class="muted" style="font-size:12px">Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
     $("#tm").innerHTML = html;
+    if (id !== ME.owner) loadContacts().then(function () { var c = $("#ct"); if (c) c.innerHTML = contactRow(id); }).catch(function () {});
   };
   (ROSTERS && Date.now() - new Date(ROSTERS.at).getTime() < 600000 ? Promise.resolve(ROSTERS) : authed("rosters")).then(draw)
     .catch(function (e) { if ($("#tm")) $("#tm").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
@@ -675,8 +707,7 @@ SCREENS.trades.after = function (focus) {
       wire = t.offers.filter(function (o) { return o.status === "ACCEPTED" || o.status === "APPROVED"; }),
       past = t.offers.filter(function (o) { return (o.from === me || o.to === me) && ["DECLINED", "WITHDRAWN", "NEGATED"].indexOf(o.status) >= 0; }).slice(0, 8),
       mine = t.picks.filter(function (p) { return p.owner === me; });
-    var html = testBanner(t) + '<div class="card"><div class="eyebrow">➕ New trade</div><p style="margin:0 0 4px">Pick a team:</p><div class="chips">' +
-      OWNERS.filter(function (o) { return o.id !== me; }).map(function (o) { return '<button class="chip" onclick="go(\'trade\',\'' + o.id + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div></div>';
+    var html = testBanner(t) + '<div class="card"><div class="eyebrow">➕ New trade</div><p style="margin:0">See every roster side by side, then tap a team.</p><p style="margin-top:12px"><button class="btn" onclick="go(\'trade\')">Browse all teams</button></p></div>';
     if (inb.length) html += '<div class="eyebrow">📥 Needs your answer</div>' + inb.map(offerCard).join("");
     if (out.length) html += '<div class="eyebrow">📤 Your open offers</div>' + out.map(offerCard).join("");
     html += '<div class="eyebrow">📰 Trade wire</div>' + (wire.length ? wire.map(offerCard).join("") : '<div class="card"><p class="muted" style="margin:0">No agreed trades yet.</p></div>');
@@ -687,52 +718,78 @@ SCREENS.trades.after = function (focus) {
     if (focus) { var el = document.getElementById("o-" + focus); if (el) { el.style.borderColor = "var(--lime)"; el.scrollIntoView({ block: "center" }); } }
   }).catch(function (e) { if ($("#trd")) $("#trd").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
-// Builder: #trade=<other>[:<offer to counter>]
-var TB = null;
+// Trade step 1 (#trade): every SPL roster side by side, scroll left/right, yours pinned on the left (MAFFL REEL grid).
+// Step 2 (#trade=<owner>[:<offer to counter>]): your roster | theirs side by side, tap to add, picks under each, send.
+var TB = null, POS_ORDER = ["QB", "RB", "WR", "TE", "D/ST"];
+function teamRoster(ro, id) { return ro.teams.filter(function (x) { return x.owner === id; })[0]; }
+function grouped(players, cell) {
+  return POS_ORDER.concat(["Other"]).map(function (pos) {
+    var ps = players.filter(function (p) { return pos === "Other" ? POS_ORDER.indexOf(p.pos) < 0 : p.pos === pos; }); if (!ps.length) return "";
+    return '<div class="gpos">' + esc(pos) + ' <small>' + ps.length + '</small></div>' + ps.map(cell).join("");
+  }).join("");
+}
 SCREENS.trade = function (arg) {
   if (!ME) return '<h2>Trade</h2>' + needSignIn("to trade");
-  var other = String(arg || "").split(":")[0];
-  return back("trades", "Trades") + '<h2>Trade with ' + esc(oname(other)) + '</h2><div id="tb"><div class="card"><p class="muted">Loading rosters…</p></div></div>';
+  if (!arg) return '<div class="gridwrap" id="tg"><p class="muted" style="padding:14px">Loading every roster…</p></div>';
+  var other = String(arg).split(":")[0];
+  return '<div class="gridwrap" id="tb"><p class="muted" style="padding:14px">Loading rosters…</p></div>';
 };
 SCREENS.trade.after = function (arg) {
-  if (!$("#tb")) return;
-  var parts = String(arg || "").split(":"), other = parts[0], counterOf = parts[1] || "", me = ME.owner;
+  if (!ME) return;
+  var me = ME.owner;
+  if (!arg) { // step 1: the all-rosters grid
+    Promise.all([loadRosters(), loadTrades()]).then(function (res) {
+      var ro = res[0], t = res[1], st = sortTeams((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).map(function (x) { return x.owner; });
+      var ids = [me].concat(OWNERS.map(function (o) { return o.id; }).filter(function (id) { return id !== me; }).sort(function (a, b) { var ia = st.indexOf(a), ib = st.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }));
+      var html = '<div class="gtop">' + back("trades", "Trades") + '<span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade. 🔒 = keeper contract.</span></div><div class="tgrid2">' + ids.map(function (id) {
+        var tm = teamRoster(ro, id); if (!tm) return ""; var mine = id === me, np = t.picks.filter(function (p) { return p.owner === id; }).length;
+        var head = mine ? '<div class="ghead me"><b>You</b><small>' + esc(tm.rec) + ' · 🎟️ ' + np + ' picks</small></div>'
+          : '<button class="ghead" onclick="go(\'trade\',\'' + id + '\')"><b>' + esc(tm.team) + '</b><small>' + esc(oname(id)) + ' · ' + esc(tm.rec) + ' · 🎟️ ' + np + '</small><span class="gtrade">Trade ›</span></button>';
+        return '<div class="gcol' + (mine ? " mine" : "") + '">' + head + grouped(tm.players.filter(function (p) { return p.slot !== "IR"; }), function (p) {
+          return '<div class="gp"><b>' + esc(p.n) + (contractOf(p.n) ? " 🔒" : "") + '</b><small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(p.inj) + '</span>' : '') + '</small></div>'; }) + '</div>';
+      }).join("") + '</div>';
+      if ($("#tg")) $("#tg").innerHTML = html;
+    }).catch(function (e) { if ($("#tg")) $("#tg").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });
+    return;
+  }
+  var parts = String(arg).split(":"), other = parts[0], counterOf = parts[1] || "";
   Promise.all([loadRosters(), loadTrades()]).then(function (res) {
-    var ro = res[0], t = res[1];
-    var mineT = ro.teams.filter(function (x) { return x.owner === me; })[0], theirT = ro.teams.filter(function (x) { return x.owner === other; })[0];
+    var ro = res[0], t = res[1], mineT = teamRoster(ro, me), theirT = teamRoster(ro, other);
     if (!mineT || !theirT) throw new Error("Couldn't find both rosters on ESPN.");
     TB = { give: { players: {}, picks: {} }, get: { players: {}, picks: {} } };
     if (counterOf) { var c = t.offers.filter(function (o) { return o.id === counterOf; })[0];
       if (c) { (c.get.players || []).forEach(function (p) { TB.give.players[p.n] = p; }); (c.get.picks || []).forEach(function (x) { TB.give.picks[x] = 1; });
         (c.give.players || []).forEach(function (p) { TB.get.players[p.n] = p; }); (c.give.picks || []).forEach(function (x) { TB.get.picks[x] = 1; }); } }
     var picksOf = function (id) { return t.picks.filter(function (p) { return p.owner === id; }).sort(function (a, b) { return a.season - b.season || a.round - b.round; }); };
-    var col = function (side, team, owner) {
-      return '<div class="card"><div class="eyebrow">' + (side === "give" ? "📤 You send" : "📥 You get") + ' · ' + esc(team.team) + '</div>' +
-        '<div class="chips">' + team.players.map(function (p) { var on = !!TB[side].players[p.n]; return '<button class="chip' + (on ? " on" : "") + '" data-s="' + side + '" data-p="' + esc(p.n) + '" data-pos="' + esc(p.pos) + '" data-tm="' + esc(p.tm) + '">' + esc(p.n) + ' <small>' + esc(p.pos) + '</small>' + (contractOf(p.n) ? " 🔒" : "") + '</button>'; }).join("") + '</div>' +
-        '<div class="eyebrow" style="margin-top:8px">🎟️ Picks</div><div class="chips">' + picksOf(owner).map(function (pk) { var on = !!TB[side].picks[pk.pid]; return '<button class="chip' + (on ? " on" : "") + '" data-s="' + side + '" data-k="' + esc(pk.pid) + '">' + esc(pickLabel(pk.pid, owner)) + '</button>'; }).join("") + '</div></div>';
+    var col = function (s, team, owner) {
+      return '<div class="bcol"><div class="ghead' + (s === "give" ? " me" : "") + '"><b>' + (s === "give" ? "You send" : esc(oname(owner)) + " sends") + '</b><small>' + esc(team.team) + '</small></div>' +
+        grouped(team.players.filter(function (p) { return p.slot !== "IR"; }), function (p) { var on = !!TB[s].players[p.n];
+          return '<button class="gp sel' + (on ? " on" : "") + '" data-s="' + s + '" data-p="' + esc(p.n) + '" data-pos="' + esc(p.pos) + '" data-tm="' + esc(p.tm) + '"><b>' + esc(p.n) + (contractOf(p.n) ? " 🔒" : "") + '</b><small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + '</small></button>'; }) +
+        '<div class="gpos">🎟️ Picks</div>' + picksOf(owner).map(function (pk) { var on = !!TB[s].picks[pk.pid];
+          return '<button class="gp sel pk' + (on ? " on" : "") + '" data-s="' + s + '" data-k="' + esc(pk.pid) + '"><b>' + esc(pickLabel(pk.pid, owner)) + '</b></button>'; }).join("") + '</div>';
     };
-    $("#tb").innerHTML = testBanner(t) + col("give", mineT, me) + col("get", theirT, other) +
-      '<div class="card" id="tsum"></div><div class="card"><textarea id="tnote" maxlength="300" placeholder="Note to ' + esc(oname(other)) + ' (optional)"></textarea>' +
-      '<p style="margin-top:10px"><button class="btn" id="tsend" style="width:100%">' + (counterOf ? "Send counter" : "Send offer") + '</button></p><p class="muted" style="font-size:12px">🔒 = keeper contract: it travels with the player. ' + esc(oname(other)) + ' gets a card in your DM and on their Home reel.</p></div>';
+    $("#tb").innerHTML = '<div class="gtop">' + back("trade", "All teams") + (t.mode === "test" ? '<span class="gold" style="font-size:12px">🧪 Test mode</span>' : '') + '</div>' +
+      '<div class="bgrid">' + col("give", mineT, me) + col("get", theirT, other) + '</div>' +
+      '<div class="bfoot"><div id="tsum" class="tsum"></div><div class="row"><input type="text" id="tnote" maxlength="300" placeholder="Note to ' + esc(oname(other)) + ' (optional)" style="flex:1"><button class="btn" id="tsend">' + (counterOf ? "Counter" : "Send") + '</button></div></div>';
     var side = function (s) { return { players: Object.keys(TB[s].players).map(function (n) { return TB[s].players[n]; }), picks: Object.keys(TB[s].picks) }; };
-    var sum = function () { $("#tsum").innerHTML = '<div class="grid" style="gap:12px"><div><div class="eyebrow">You send</div>' + sideList(side("give"), me) + '</div><div><div class="eyebrow">You get</div>' + sideList(side("get"), other) + '</div></div>'; };
+    var lbl = function (sd, owner) { return sd.players.map(function (p) { return p.n; }).concat(sd.picks.map(function (x) { return pickLabel(x, owner); })); };
+    var sum = function () { var g = lbl(side("give"), me), r = lbl(side("get"), other);
+      $("#tsum").innerHTML = (g.length || r.length) ? '<b>You send</b> ' + (esc(g.join(", ")) || '<span class="muted">—</span>') + '<br><b>You get</b> ' + (esc(r.join(", ")) || '<span class="muted">—</span>') : '<span class="muted">Tap players or picks on both sides.</span>'; };
     sum();
-    $("#tb").querySelectorAll(".chip[data-s]").forEach(function (b) { b.onclick = function () {
+    $("#tb").querySelectorAll(".gp.sel").forEach(function (b) { b.onclick = function () {
       var s = b.dataset.s; if (b.dataset.p) { if (TB[s].players[b.dataset.p]) delete TB[s].players[b.dataset.p]; else TB[s].players[b.dataset.p] = { n: b.dataset.p, pos: b.dataset.pos, tm: b.dataset.tm }; }
       else { if (TB[s].picks[b.dataset.k]) delete TB[s].picks[b.dataset.k]; else TB[s].picks[b.dataset.k] = 1; }
       b.classList.toggle("on"); sum(); }; });
     $("#tsend").onclick = function () {
       var g = side("give"), r = side("get");
       if (!(g.players.length + g.picks.length) || !(r.players.length + r.picks.length)) { toast("Pick something on both sides"); return; }
-      var txt = (counterOf ? "Send this counter to " : "Send this offer to ") + oname(other) + "?\n\nYou send: " + g.players.map(function (p) { return p.n; }).concat(g.picks.map(function (x) { return pickLabel(x, me); })).join(", ") +
-        "\nYou get: " + r.players.map(function (p) { return p.n; }).concat(r.picks.map(function (x) { return pickLabel(x, other); })).join(", ");
-      if (!confirm(txt)) return;
+      if (!confirm((counterOf ? "Send this counter to " : "Send this offer to ") + oname(other) + "?\n\nYou send: " + lbl(g, me).join(", ") + "\nYou get: " + lbl(r, other).join(", "))) return;
       var btn = this; btn.disabled = true; btn.textContent = "Sending…";
       authed("offer", { to: other, give: g, get: r, note: $("#tnote").value, counterOf: counterOf }).then(function (x) {
         if (!x.ok) throw new Error(x.error); TRADES = null; toast(x.dup ? "Already sent" : "✓ Offer sent to " + oname(other)); go("trades", x.offer.id);
-      }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = counterOf ? "Send counter" : "Send offer"; });
+      }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = counterOf ? "Counter" : "Send"; });
     };
-  }).catch(function (e) { if ($("#tb")) $("#tb").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
+  }).catch(function (e) { if ($("#tb")) $("#tb").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });
 };
 // 📥 Commish desk (Joe; Mike too): trades to approve, ESPN steps, recent decisions, questions
 SCREENS.desk = function () {
@@ -867,6 +924,44 @@ SCREENS.standings.after = function () {
   }).catch(function (e) { $("#stand").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
 };
 
+// ---- ⚙️ Settings (MAFFL REEL pattern): @handle, contact info, email toggles
+var NOTIFY = [["Trades", [["received", "Offer received", "Someone sends you a trade offer"], ["countered", "Counter-offer", "They counter your offer"],
+  ["accepted", "Offer accepted", "They accept your offer"], ["declined", "Offer declined", "They pass on your offer"], ["commish", "Commish decision", "A trade you're in is approved or negated"]]],
+  ["Chat & league", [["chat", "DMs and @mentions", "Someone messages or @mentions you (one email per chat every 30 min)"], ["announce", "Commish announcements", "📣 Alerts from the commish (deadlines, rules, drafts)"]]]];
+SCREENS.settings = function () { if (!ME) return SCREENS.signin(); return back("you", ME.name) + '<h2>⚙️ Settings</h2><div id="set"><div class="card"><p class="muted">Loading your settings…</p></div></div>'; };
+SCREENS.settings.after = function () {
+  if (!$("#set")) return;
+  authed("settings").then(function (S) {
+    if (!S.ok) throw new Error(S.error);
+    $("#set").innerHTML = '<div class="card"><div class="eyebrow">Your @handle</div><p style="margin:0 0 8px;font-size:13px">How owners tag you in chat. Letters and numbers, 2–20.</p>' +
+      '<div class="hfield"><span>@</span><input type="text" id="stHandle" maxlength="20" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + esc(S.handle) + '"></div></div>' +
+      '<div class="card"><div class="eyebrow">Your contact info</div><p style="margin:0 0 8px;font-size:13px">Only signed-in SPL owners see it, never the public site. Used for trade texts and emails.</p>' +
+      '<label class="lbl">Email <small>(two? separate with a comma)</small></label><input type="text" id="stEmail" inputmode="email" autocomplete="email" maxlength="120" value="' + esc(S.email) + '" placeholder="you@example.com">' +
+      '<label class="lbl">Mobile</label><input type="text" id="stPhone" inputmode="tel" autocomplete="tel" maxlength="20" value="' + esc(fmtPhone(S.phone)) + '" placeholder="(412) 555-0123"></div>' +
+      '<div class="card"><div class="eyebrow">Email me when…</div><p style="margin:0 0 8px;font-size:13px">Email only, for now. Commish announcements start on; the rest are off until you turn them on.</p>' +
+      '<div class="row"><button class="btn ghost" id="stOn">All on</button><button class="btn ghost" id="stOff">All off</button></div>' +
+      NOTIFY.map(function (g) { return '<label class="lbl" style="margin-top:14px">' + g[0] + '</label>' + g[1].map(function (n) {
+        return '<label class="tg"><div><b>' + n[1] + '</b><small>' + n[2] + '</small></div><input type="checkbox" data-nt="' + n[0] + '"' + (S.notify[n[0]] ? " checked" : "") + '></label>'; }).join(""); }).join("") + '</div>' +
+      '<p><button class="btn" id="stSave" style="width:100%">Save settings</button></p>';
+    var all = function (on) { document.querySelectorAll("[data-nt]").forEach(function (x) { x.checked = on; }); };
+    $("#stOn").onclick = function () { all(true); }; $("#stOff").onclick = function () { all(false); };
+    $("#stSave").onclick = function () {
+      var n = {}, btn = this; document.querySelectorAll("[data-nt]").forEach(function (x) { n[x.dataset.nt] = x.checked; }); btn.disabled = true;
+      authed("savesettings", { handle: $("#stHandle").value, email: $("#stEmail").value, phone: $("#stPhone").value, notify: n }).then(function (r) {
+        if (!r.ok) throw new Error(r.error); CONTACTS = null; toast("Settings saved ✓"); go("you"); }).catch(function (e) { toast(e.message); btn.disabled = false; });
+    };
+  }).catch(function (e) { $("#set").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
+};
+function fmtPhone(p) { var d = String(p || "").replace(/\D/g, "").replace(/^1(?=\d{10}$)/, ""); return d.length === 10 ? "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6) : (p || ""); }
+var CONTACTS = null;
+function loadContacts() { return CONTACTS ? Promise.resolve(CONTACTS) : authed("contacts").then(function (r) { if (r.ok) CONTACTS = r; return r; }); }
+function contactRow(id) { // Text / Call / Email buttons for another owner (signed-in only)
+  var c = CONTACTS && CONTACTS.owners.filter(function (x) { return x.owner === id; })[0]; if (!c || (!c.phone && !c.email)) return "";
+  var em = String(c.email).split(",")[0].trim();
+  return '<div class="row" style="margin-top:10px;flex-wrap:wrap">' + (c.phone ? '<a class="btn ghost" href="sms:' + esc(c.phone) + '">💬 Text</a><a class="btn ghost" href="tel:' + esc(c.phone) + '">📞 Call</a>' : '') +
+    (em ? '<a class="btn ghost" href="mailto:' + esc(em) + '">✉️ Email</a>' : '') + '</div>';
+}
+
 // ---- Sign in / You
 SCREENS.signin = function () {
   if (ME) return SCREENS.you();
@@ -891,7 +986,9 @@ SCREENS.you = function () {
   var roles = String(ME.role || "owner").split(/[,\s]+/).map(function (r) { return { owner: "Owner", commish: "Commissioner", ops: "Ops (site)" }[r] || r; }).join(" · ");
   return back("home", "Home") + '<h2>' + esc(ME.name) + '</h2><div class="card"><div class="kv"><span>Team</span><span>' + esc(ME.team) + '</span></div>' +
     '<div class="kv"><span>Role</span><span>' + esc(roles) + '</span></div></div>' +
-    '<div class="card"><p style="margin:0">Signed in on this phone. A new passphrase from the commish signs every phone out.</p><p style="margin-top:12px"><button class="btn ghost" onclick="signOut()">Sign out</button></p></div>';
+    '<div class="card"><div class="eyebrow">⚙️ Settings</div><p style="margin:0">Your @handle, email + mobile (owners only) and which emails you get.</p><p style="margin-top:12px"><button class="btn" onclick="go(\'settings\')">Open settings</button></p></div>' +
+    '<div class="card"><p style="margin:0">Signed in on this phone. A new passphrase from the commish signs every phone out.</p><p style="margin-top:12px"><button class="btn ghost" onclick="signOut()">Sign out</button></p></div>' +
+    '<p class="muted" style="font-size:12px;text-align:center">SPL HQ app v' + APP_VERSION + '</p>';
 };
 
 // ---- Questions for Joe
@@ -1042,6 +1139,33 @@ paintMe(); render(); pingConn();
 setTimeout(function () { pollRooms().catch(function () {}); }, 1500); setInterval(function () { if (!document.hidden) pollRooms().catch(function () {}); }, 60000);
 if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+</script>
+<script>
+// ✨ Update check (from MAFFL REEL): a Home-Screen app keeps running the copy it loaded. Fingerprint this copy's own inline
+// scripts + styles and compare with a fresh fetch of the page: 4 s after opening, on coming back (≥1 min apart) and every 10 min.
+// Newer copy → back after 10+ min away with nothing being typed: reload by itself; otherwise the tap-to-refresh pill.
+(function () {
+  "use strict";
+  function fp(doc) { var t = ""; Array.prototype.forEach.call(doc.querySelectorAll("script:not([src]),style"), function (e) { t += e.textContent; });
+    var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return h + ":" + t.length; }
+  var mine = fp(document), last = 0, hiddenAt = 0, ready = false, btn = document.getElementById("upd");
+  function busyTyping() { var a = document.activeElement; return !!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) || Array.prototype.some.call(document.querySelectorAll("textarea"), function (x) { return x.value.trim(); }); }
+  function show() { ready = true; btn.classList.add("on"); }
+  function check(auto) {
+    if (ready) { if (auto && !busyTyping()) location.reload(); return; }
+    if (Date.now() - last < 6e4) return; last = Date.now();
+    fetch(location.pathname + "?u=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (txt) {
+      if (!txt || txt.indexOf("</html>") < 0) return;
+      if (fp(new DOMParser().parseFromString(txt, "text/html")) === mine) return;
+      if (auto && !busyTyping()) location.reload(); else show(); }).catch(function () {});
+  }
+  btn.onclick = function () { location.reload(); };
+  setTimeout(function () { check(false); }, 4000);
+  setInterval(function () { if (!document.hidden) check(false); }, 6e5);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) { hiddenAt = Date.now(); return; }
+    var away = hiddenAt && Date.now() - hiddenAt >= 6e5; if (away) last = 0; check(away); });
+  window._updShow = show; // tests
+})();
 </script>
 </body>
 </html>

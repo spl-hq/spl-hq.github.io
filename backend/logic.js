@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.4";
+var VERSION = "0.5";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -56,8 +56,8 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1 }; // never wait on the script lock
-var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1 }; // rate-limited per owner
+var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1 }; // never wait on the script lock
+var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
@@ -80,6 +80,9 @@ function doPost(e) {
       case "chatsend": return json(chatSend_(me, b));
       case "chatdel":  return json(chatDel_(me, b));
       case "trades":   return json(trades_(me));
+      case "settings": return json(settings_(me));
+      case "savesettings": return json(saveSettings_(me, b));
+      case "contacts": return json(contacts_());
       case "offer":    return json(offer_(me, b));
       case "respond":  return json(respond_(me, b));
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
@@ -94,7 +97,7 @@ function json(o) { return ContentService.createTextOutput(JSON.stringify(o)).set
 
 // ---------------------------------------------------------------- Sheet helpers
 var HEADS = {
-  Owners:   ["owner", "name", "team", "role", "pin_hash", "salt", "issued_ts", "issued_by", "last_seen"],
+  Owners:   ["owner", "name", "team", "role", "pin_hash", "salt", "issued_ts", "issued_by", "last_seen", "handle", "email", "phone", "notify"],
   Answers:  ["ts", "who", "qid", "question", "choice", "note", "source"],
   Feedback: ["ts", "who", "kind", "mood", "note", "where"],
   Log:      ["ts", "kind", "detail"],
@@ -392,6 +395,9 @@ function chatSend_(me, b) {
   var text = clip_(b.text, 500).trim(); if (!text) return { ok: false, error: "Type a message first." };
   var id = "M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), now = new Date();
   append_("Chat", [id, now, b.room, me.owner, text, "", ""]);
+  var dm = /^dm:(\w+),(\w+)$/.exec(b.room);
+  if (dm) notify_(dm[1] === me.owner ? dm[2] : dm[1], "chat", "Message from " + me.name, text, b.room);
+  else owners_().forEach(function (o) { if (o.owner !== me.owner && new RegExp("@" + handleOf_(o) + "\\b", "i").test(text)) notify_(o.owner, "chat", me.name + " mentioned you", text, b.room); });
   return { ok: true, msg: { id: id, ts: now, who: me.owner, text: text } };
 }
 function botPost_(room, text, ref) { // 🤖 HQ posts (trade cards) into a room
@@ -406,6 +412,43 @@ function chatDel_(me, b) {
   return { ok: true };
 }
 
+
+
+// ---------------------------------------------------------------- ⚙️ Settings, contacts, owner emails (MAFFL REEL §4b)
+// Contacts live only in the Owners tab and only go to signed-in owners. Emails are opt-in per kind (announcements on by default).
+var NOTIFY_KEYS = ["received", "countered", "accepted", "declined", "commish", "chat", "announce"];
+var NOTIFY_DEFAULT_ON = { announce: true };
+var OWNER_EMAILS = "live"; // "off" = never email owners; "live" = email owners who turned a kind on
+function handleOf_(o) { return String(o.handle || o.name || o.owner).replace(/[^A-Za-z0-9]/g, "").slice(0, 20) || o.owner; }
+function notifyOf_(o) { var n = parseJ_(o.notify), out = {}; NOTIFY_KEYS.forEach(function (k) { out[k] = n[k] != null ? !!n[k] : !!NOTIFY_DEFAULT_ON[k]; }); return out; }
+function settings_(me) { return { ok: true, handle: handleOf_(me), email: String(me.email || ""), phone: String(me.phone || ""), notify: notifyOf_(me) }; }
+function saveSettings_(me, b) {
+  var list = owners_(), idx = -1; list.forEach(function (o, i) { if (o.owner === me.owner) idx = i; });
+  var o = list[idx], email = String(b.email || "").split(/[,;\s]+/).filter(Boolean).slice(0, 2);
+  for (var i = 0; i < email.length; i++) if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email[i])) return { ok: false, error: "That email doesn't look right: " + email[i] };
+  var phone = String(b.phone || "").replace(/[^0-9+]/g, ""); if (phone && phone.replace(/\D/g, "").length < 10) return { ok: false, error: "Mobile needs 10 digits." };
+  if (b.handle != null) { var h = String(b.handle).replace(/^@/, "").trim();
+    if (!/^[A-Za-z0-9]{2,20}$/.test(h)) return { ok: false, error: "Handle: 2–20 letters or numbers." };
+    if (list.some(function (x) { return x.owner !== me.owner && handleOf_(x).toLowerCase() === h.toLowerCase(); })) return { ok: false, error: "@" + h + " is taken." };
+    o.handle = h; }
+  var n = {}; NOTIFY_KEYS.forEach(function (k) { n[k] = !!(b.notify || {})[k]; });
+  o.email = email.join(", "); o.phone = phone; o.notify = JSON.stringify(n); setRow_("Owners", idx, o);
+  log_("settings", me.owner);
+  return settings_(o);
+}
+function contacts_() {
+  return { ok: true, owners: owners_().map(function (o) { return { owner: o.owner, name: o.name, team: o.team, handle: handleOf_(o), email: String(o.email || ""), phone: String(o.phone || "") }; }) };
+}
+// One email to an owner who turned this kind on. Chat emails: at most one per room every 30 minutes.
+function notify_(ownerId, kind, subject, body, room) {
+  if (OWNER_EMAILS === "off") return;
+  try {
+    var o = owners_().filter(function (x) { return x.owner === ownerId; })[0]; if (!o || !o.email || !notifyOf_(o)[kind]) return;
+    if (room) { var c = CacheService.getScriptCache(), k = "nchat:" + ownerId + ":" + room; if (c.get(k)) return; c.put(k, "1", 1800); }
+    if (MailApp.getRemainingDailyQuota() <= 10) return; // keep the last 10 for ops alerts
+    MailApp.sendEmail(String(o.email), "SPL HQ · " + subject, body + "\n\nOpen SPL HQ: " + APP_URL + "\n(Turn these off in SPL HQ → your initials → Settings.)");
+  } catch (e) { log_("notify_error", String(e)); }
+}
 
 // ---------------------------------------------------------------- 🔁 Trade center: players + draft picks + keeper contracts
 // Flow: PROPOSED → (to) ACCEPTED / DECLINED · (from) WITHDRAWN → commish APPROVED / NEGATED. A counter declines the original.
@@ -474,6 +517,7 @@ function offer_(me, b) {
     if (oi >= 0) { var o = all[oi]; o.status = "DECLINED"; o.reason = "Countered"; o.updated_ts = now; o.by = me.owner; setRow_("Offers", oi, o); } }
   append_("Offers", [id, now, me.owner, to, JSON.stringify(give), JSON.stringify(get), clip_(b.note, 300), "PROPOSED", now, "", me.owner, TRADE_MODE, "", clip_(b.counterOf, 20)]);
   botPost_(dmRoom_(me.owner, to), "🔁 " + (b.counterOf ? "Counter" : "Trade offer") + " from " + me.name + ": sends " + sideText_(give) + " · gets " + sideText_(get) + (b.note ? " · “" + clip_(b.note, 120) + "”" : ""), id);
+  notify_(to, b.counterOf ? "countered" : "received", (b.counterOf ? "Counter-offer from " : "Trade offer from ") + me.name, me.name + " sends " + sideText_(give) + "\nYou send " + sideText_(get) + (b.note ? "\n\n“" + clip_(b.note, 300) + "”" : ""));
   log_("offer", id + " " + me.owner + "→" + to);
   return { ok: true, offer: { id: id, from: me.owner, to: to, give: give, get: get, status: "PROPOSED", ts: now } };
 }
@@ -497,6 +541,8 @@ function respond_(me, b) {
     botPost_("league", "🤝 Trade agreed, waiting on the commish: " + oName_(o.from) + " sends " + sideText_(o.giveO) + " · " + oName_(o.to) + " sends " + sideText_(o.getO), o.offer_id);
     mail_("SPL HQ · trade waiting on the commish", oName_(o.from) + " sends " + sideText_(o.giveO) + "\n" + oName_(o.to) + " sends " + sideText_(o.getO) + "\n\nApprove or negate: " + APP_URL + "#desk");
   }
+  if (d === "accept" || d === "decline") notify_(o.from, d === "accept" ? "accepted" : "declined", me.name + (d === "accept" ? " accepted your trade" : " declined your offer"),
+    "You send " + sideText_(o.giveO) + "\n" + me.name + " sends " + sideText_(o.getO) + (d === "accept" ? "\n\nIt goes to the commish for approval." : (o.reason ? "\n\n“" + o.reason + "”" : "")));
   log_("respond", o.offer_id + " " + d + " by " + me.owner);
   return { ok: true, offer: pub_offer_(o) };
 }
@@ -521,6 +567,7 @@ function tradeAct_(me, b) {
   var txt = d === "approve" ? "✅ Trade approved" + (bothDesk ? " (commish-to-commish trade, approved by " + me.name + ")" : "") + ": " + oName_(r.from) + " gets " + sideText_(ge) + " · " + oName_(r.to) + " gets " + sideText_(gi)
                             : "🚫 Trade negated by the commish: “" + r.reason + "”";
   botPost_("league", txt, r.offer_id); botPost_(dmRoom_(r.from, r.to), txt, r.offer_id);
+  [r.from, r.to].forEach(function (id) { notify_(id, "commish", "Trade " + (d === "approve" ? "approved" : "negated"), txt); });
   log_("trade_" + d, r.offer_id + " by " + me.owner);
   return { ok: true };
 }

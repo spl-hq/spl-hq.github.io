@@ -194,6 +194,27 @@ ok(e.post({ action: "respond", token: joeTok, id: c2.offer.id, decision: "withdr
 ok(e.post({ action: "wipetrades", token: joeTok }).ok === false, "only ops wipes");
 ok(e.post({ action: "wipetrades", token: mike }).ok && e.post({ action: "trades", token: mike }).offers.length === 0, "ops wipes test trades + reseeds picks");
 
+// 13 · settings + contacts + opt-in emails
+r = e.post({ action: "settings", token: glen });
+ok(r.ok && r.handle === "Glen" && r.notify.announce === true && r.notify.received === false, "settings defaults: handle = short name, announcements on");
+ok(e.post({ action: "savesettings", token: glen, email: "not-an-email", notify: {} }).ok === false, "bad email refused");
+ok(e.post({ action: "savesettings", token: glen, handle: "Mike", email: "", notify: {} }).error.includes("taken"), "handles are unique");
+r = e.post({ action: "savesettings", token: glen, handle: "Muffins", email: "glen@example.com, karina@example.com", phone: "(412) 555-0123", notify: { received: true, chat: true } });
+ok(r.ok && r.handle === "Muffins" && r.email === "glen@example.com, karina@example.com" && r.phone === "4125550123" && r.notify.received && !r.notify.announce, "settings saved (2 emails, phone digits)");
+ok(e.post({ action: "contacts" }).auth === true, "contacts need sign-in");
+r = e.post({ action: "contacts", token: mike });
+ok(r.ok && r.owners.find(o => o.owner === "glen").phone === "4125550123", "signed-in owners see contacts");
+let before = e.mails.length;
+e.post({ action: "offer", token: mike, to: "glen", give: { picks: ["2027-R9-murello"] }, get: { picks: ["2027-R9-glen"] } });
+ok(e.mails.length === before + 1 && /Trade offer from Mike/.test(e.mails[e.mails.length - 1].s) && /glen@example.com/.test(e.mails[e.mails.length - 1].to), "Glen emailed: offer received");
+before = e.mails.length;
+e.post({ action: "chatsend", token: mike, room: "dm:glen,murello", text: "check your offers" });
+e.post({ action: "chatsend", token: mike, room: "dm:glen,murello", text: "again" });
+ok(e.mails.length === before + 1, "DM email once per 30 min");
+before = e.mails.length;
+e.post({ action: "chatsend", token: joeTok, room: "league", text: "hey @Muffins look" });
+ok(e.mails.length === before + 1 && /Joe mentioned you/.test(e.mails[e.mails.length - 1].s), "@Muffins in league chat emails Glen");
+
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));
 h = e.get({ action: "health" });
