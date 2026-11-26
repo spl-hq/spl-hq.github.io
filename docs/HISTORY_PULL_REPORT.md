@@ -1,4 +1,4 @@
-# ESPN history pull · 2026-11-26T11:49Z
+# ESPN history pull · 2026-11-26T12:08Z
 
 1803 games total.
 
@@ -32,6 +32,7 @@
 - 2002: no data (HTTP 404)
 - 2001: no data (HTTP 404)
 - 2000: no data (HTTP 404)
+- Schedule: 18 undecided games in 2026 (current week 12)
 
 ## Unresolved teams (owner_id left blank)
 - none

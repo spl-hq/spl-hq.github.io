@@ -1,0 +1,22 @@
+# SPL_Schedule.csv  --  GOLD (robot-written by tools/pull_history.py, daily): the newest season's games ESPN hasn't decided yet.
+# season=2026 reg_weeks=14 playoff_teams=6 current_week=12
+# Week-14 Shoot Out rows are ESPN's placeholder until the Shoot Out Draft sets them; playoff rows appear once ESPN seeds them.
+season,week,playoff_tier,home_owner,away_owner
+2026,12,NONE,glen,patel
+2026,12,NONE,moyer,hoosier
+2026,12,NONE,murello,farrington
+2026,12,NONE,salerno,reilly
+2026,12,NONE,sikora,chappie
+2026,12,NONE,smith,bucher
+2026,13,NONE,farrington,moyer
+2026,13,NONE,hoosier,patel
+2026,13,NONE,murello,glen
+2026,13,NONE,salerno,bucher
+2026,13,NONE,sikora,reilly
+2026,13,NONE,smith,chappie
+2026,14,NONE,chappie,reilly
+2026,14,NONE,hoosier,farrington
+2026,14,NONE,moyer,glen
+2026,14,NONE,murello,patel
+2026,14,NONE,sikora,bucher
+2026,14,NONE,smith,salerno
