@@ -39,7 +39,7 @@ const espnOk = (url) => {
   const roster = { entries: [pl("Josh Allen", 1, 2, 0, 24.5), pl("Bench Guy", 3, 21, 20, 3)] };
   if (lid === "19583" && /mMatchupScore|mRoster/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({
     scoringPeriodId: 12, status: { currentMatchupPeriod: 12 }, settings: { scheduleSettings: { matchupPeriodCount: 14 } },
-    teams: [{ id: 1, name: "Bad Attitude Gang", record: { overall: { wins: 9, losses: 3 } }, roster }, { id: 2, name: "Reeling RaMPaGe", record: { overall: { wins: 8, losses: 4 } }, roster }],
+    teams: [{ id: 1, name: "Bad Attitude Gang", record: { overall: { wins: 9, losses: 3 } }, roster }, { id: 2, name: "Reilly's RaMPaGe", record: { overall: { wins: 8, losses: 4 } }, roster }],
     schedule: [{ matchupPeriodId: 12, winner: "UNDECIDED", home: { teamId: 1, totalPoints: 24.5, rosterForCurrentScoringPeriod: roster }, away: { teamId: 2, totalPoints: 20, rosterForCurrentScoringPeriod: roster } },
                { matchupPeriodId: 11, home: { teamId: 1 }, away: { teamId: 2 } }] }) };
   const body = lid === "19583"

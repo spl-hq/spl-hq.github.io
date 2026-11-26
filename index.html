@@ -356,7 +356,7 @@ SCREENS.team.after = function (arg) {
     ROSTERS = d;
     var t = d.teams.filter(function (x) { return x.owner === id; })[0];
     var cs = contractsOf(id), kept = {}; cs.forEach(function (c) { if (c.status === "active") kept[c.player.toLowerCase()] = c; });
-    var html = '<div class="card' + (id === ME.owner ? " lead" : "") + '"><div class="eyebrow">' + (id === ME.owner ? "🏈 Your team" : "🏈 " + esc(o.name) + "'s team") + ' · ' + esc(o.div || "") + '</div>' +
+    var html = '<div class="card' + (id === ME.owner ? " lead" : "") + '"><div class="eyebrow">' + (id === ME.owner ? "🏈 Your team" : "🏈 " + esc(o.name) + "'s team") + ' · ' + esc((t && t.div) || "") + '</div>' +
       '<h2 style="margin:0">' + esc(t ? t.team : o.team) + '</h2><p>' + esc(o.full || o.name || "") + (t ? ' · ' + esc(t.rec) : '') + '</p></div>';
     if (cs.length) {
       var yrs = ["2026", "2027", "2028"];
@@ -489,7 +489,7 @@ SCREENS.standings.after = function () {
     var byDiv = {}; d.teams.forEach(function (t) { (byDiv[t.div || "League"] = byDiv[t.div || "League"] || []).push(t); });
     var all = sortTeams(d.teams);
     var html = '<div class="eyebrow">' + esc(d.name) + (d.week ? " · Week " + d.week : "") + ' · ESPN</div><h3>Overall</h3><table><tr><th>#</th><th>Team</th><th class="n">W–L</th><th class="n">PF</th></tr>' +
-      all.map(function (x, i) { var o = teamOwner(x.name); return '<tr><td class="muted">' + (i + 1) + '</td><td>' + esc(x.name) + (o ? ' <span class="muted">· ' + esc(o.name) + '</span>' : '') + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td><td class="n">' + x.pf + '</td></tr>'; }).join("") + '</table>';
+      all.map(function (x, i) { var o = owner(x.owner) || teamOwner(x.name); return '<tr><td class="muted">' + (i + 1) + '</td><td>' + esc(x.name) + (o ? ' <span class="muted">· ' + esc(o.name) + '</span>' : '') + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td><td class="n">' + x.pf + '</td></tr>'; }).join("") + '</table>';
     Object.keys(byDiv).sort().forEach(function (k) {
       if (k === "League") return;
       html += '<h3 style="margin-top:18px">' + esc(k) + '</h3><table>' + sortTeams(byDiv[k]).map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td></tr>'; }).join("") + '</table>';

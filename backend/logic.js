@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.3";
+var VERSION = "0.3.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -234,18 +234,19 @@ function espnCheck_(lid) {
   } catch (e) { return { ok: false, league: lid, setup: /^SETUP/.test(e.message), error: String(e.message).replace(/^SETUP: /, "") }; }
 }
 function standings_() {
-  var c = CacheService.getScriptCache(), hit = c.get("standings"); if (hit) return JSON.parse(hit);
+  var c = CacheService.getScriptCache(), hit = c.get("standings2"); if (hit) return JSON.parse(hit);
   var d = espn_(READ_LEAGUE, "view=mTeam&view=mSettings");
   var divs = {}; (((d.settings || {}).scheduleSettings || {}).divisions || []).forEach(function (x) { divs[x.id] = x.name; });
   var teams = (d.teams || []).map(function (t) {
     var rec = (t.record || {}).overall || {};
-    return { id: t.id, name: t.name || ((t.location || "") + " " + (t.nickname || "")).trim(), abbrev: t.abbrev || "",
+    var nm = t.name || ((t.location || "") + " " + (t.nickname || "")).trim();
+    return { id: t.id, name: nm, owner: teamOwners_()[norm_(nm)] || "", abbrev: t.abbrev || "",
       div: divs[t.divisionId] || "", w: rec.wins || 0, l: rec.losses || 0, t: rec.ties || 0,
       pf: Math.round((rec.pointsFor || 0) * 10) / 10, pa: Math.round((rec.pointsAgainst || 0) * 10) / 10,
       seed: t.playoffSeed || null, rank: t.rankCalculatedFinal || t.currentProjectedRank || null };
   });
   var out = { ok: true, league: READ_LEAGUE, name: (d.settings || {}).name || "", week: d.scoringPeriodId || null, at: new Date().toISOString(), teams: teams };
-  try { c.put("standings", JSON.stringify(out), 900); } catch (e) {}
+  try { c.put("standings2", JSON.stringify(out), 900); } catch (e) {}
   return out;
 }
 
@@ -254,7 +255,9 @@ var PRO = { 1: "ATL", 2: "BUF", 3: "CHI", 4: "CIN", 5: "CLE", 6: "DAL", 7: "DEN"
 var SLOT = { 0: "QB", 2: "RB", 3: "RB/WR", 4: "WR", 5: "WR/TE", 6: "TE", 7: "OP", 16: "D/ST", 17: "K", 20: "BE", 21: "IR", 23: "FLEX" };
 var SLOT_ORDER = [0, 7, 2, 4, 6, 3, 5, 23, 16, 17, 20, 21];
 function norm_(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
-function teamOwners_() { var m = {}; OWNER_SEED.forEach(function (r) { m[norm_(r[2])] = r[0]; }); try { owners_().forEach(function (o) { if (o.team) m[norm_(o.team)] = o.owner; }); } catch (e) {} return m; }
+// Every team name each owner has used (from data/SPL_Owner_Registry.csv aliases): ESPN still says "Reilly's RaMPaGe".
+var TEAM_ALIASES = {"murello": ["Attitude Gang", "Bad Attitude Gang", "Michael Murello"], "reilly": ["Joseph Reilly", "Reeling RaMPaGe", "Reilly's RaMPaGe"], "farrington": ["Farrington's FREELANCERS", "James Farrington"], "glen": ["Fluff Muffins", "Glen Herold"], "chappie": ["BlaKK BoCCes", "Drew Chappie"], "sikora": ["Manayunk Gunz", "Pete Sikora", "The Gunz"], "hoosier": ["Craig Hoosier", "Hoosier's Dynamos"], "patel": ["Amit Patel", "Cheater's Streakers"], "salerno": ["Owen Salerno", "Ween's Machine", "owen salerno"], "moyer": ["Kimble's Finast", "Rich Moyer"], "bucher": ["Los Beasters Big Sky", "Seth Bucher"], "smith": ["Matthew Smith", "Tijuana Trojans"]};
+function teamOwners_() { var m = {}; Object.keys(TEAM_ALIASES).forEach(function (id) { TEAM_ALIASES[id].forEach(function (n) { m[norm_(n)] = id; }); }); OWNER_SEED.forEach(function (r) { m[norm_(r[2])] = r[0]; }); try { owners_().forEach(function (o) { if (o.team) m[norm_(o.team)] = o.owner; }); } catch (e) {} return m; }
 function teamName_(t) { return t.name || ((t.location || "") + " " + (t.nickname || "")).trim(); }
 function cacheJson_(key, secs, fn) {
   var c = CacheService.getScriptCache(), hit = c.get(key); if (hit) return JSON.parse(hit);
@@ -327,10 +330,11 @@ var ACQ = { DRAFT: "Drafted", ADD: "Waiver", TRADE: "Traded", FREEAGENT: "Free a
 function rosters_() {
   try {
     return cacheJson_("rosters", 1800, function () {
-      var d = espn_(READ_LEAGUE, "view=mTeam&view=mRoster"), own = teamOwners_();
+      var d = espn_(READ_LEAGUE, "view=mTeam&view=mRoster&view=mSettings"), own = teamOwners_(), divs = {};
+      (((d.settings || {}).scheduleSettings || {}).divisions || []).forEach(function (x) { divs[x.id] = x.name; });
       return { ok: true, at: new Date().toISOString(), teams: (d.teams || []).map(function (tm) {
         var name = teamName_(tm), r = (tm.record || {}).overall || {};
-        return { id: tm.id, team: name, owner: own[norm_(name)] || "", rec: (r.wins || 0) + "–" + (r.losses || 0) + (r.ties ? "–" + r.ties : ""),
+        return { id: tm.id, team: name, owner: own[norm_(name)] || "", div: divs[tm.divisionId] || "", rec: (r.wins || 0) + "–" + (r.losses || 0) + (r.ties ? "–" + r.ties : ""),
           players: (((tm.roster || {}).entries) || []).map(function (e) {
             var ppe = e.playerPoolEntry || {}, pl = ppe.player || {}, st = pl.stats || [];
             var season = st.filter(function (x) { return x.scoringPeriodId === 0 && x.statSourceId === 0 && (!x.seasonId || x.seasonId === SEASON); })[0];

@@ -10,6 +10,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-25 by Claude (chat)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-25 · v0.3.1 · ESPN still names Joe's team "Reilly's RaMPaGe" and divisions differ from the registry: backend matches teams to owners through every registry alias (Match, Team, Standings), and Team shows ESPN's division.
 - 2026-11-25 · v0.3 · Tabs built. ⚔️ **Match**: week stepper, your game (scores, records, projections, players left), lineups side by side by slot
   (points, opponent, kickoff, stat line, injury), bench, every game of the week (tap to open); live week refreshes every minute.
   🏈 **Team**: any owner's ESPN roster (starters / bench / IR, season pts + avg, how acquired, injuries) with 🔒 keeper tags,
