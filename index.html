@@ -325,7 +325,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.13.3";
+var APP_VERSION = "0.13.4";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -338,43 +338,49 @@ var OWNERS = [
 ].map(function (r) { return { id: r[0], name: r[1], team: r[2], div: r[3] }; });
 
 // ---- Questions for Joe (decisions the trade center + keeper engine need). Add new ones at the end; never reuse a qid.
+// Rebaselined 11/26 (Mike answered 6). Retired questions stay here (retired: why) so their answers still show on the Ops desk;
+// Joe only sees ACTIVE ones. Mike's answers already drive the rules (backend joeAnswer_ = latest answer from either commish).
 var QUESTIONS = [
   { qid: "espn_lm", q: "Will you make Mike's team a league manager (co-commish) in SPL on ESPN?",
     why: "The app executes approved trades on ESPN by itself. ESPN only allows that from a league manager's login.",
     choices: ["Yes, now", "Yes, after the demo", "Let's talk"] },
   { qid: "test_league", q: "Will you join the test league as co-commish for the demo?",
-    why: "We prove trades end to end in a throwaway ESPN league first. Nothing touches the real SPL league until you sign off.",
+    why: "We prove trades end to end in a throwaway 4-team ESPN league (your, Mike's, Al's and Glen's real rosters) first. Nothing touches the real SPL league until you sign off.",
     choices: ["Yes, send the invite", "Show me first"] },
-  { qid: "keeper_travels", q: "When a player under a keeper contract is traded, what happens to the contract?",
-    why: "The trade center has to move picks and keeper contracts along with players.",
-    choices: ["Contract travels as-is (KP, years)", "Contract resets", "Depends (explain below)"] },
-  { qid: "pick_years", q: "How many seasons ahead can draft picks be traded?",
-    why: "Sets which future picks show up in the trade builder.",
-    choices: ["Next season only", "2 seasons", "3 seasons", "No limit"] },
-  { qid: "trade_review", q: "How should trade approval work?",
-    why: "Every accepted trade lands on your desk in the app.",
-    choices: ["I approve every trade", "Auto-approve after a review window", "League veto vote", "Other (explain)"] },
-  { qid: "review_window", q: "If there's a review window, how long?",
-    why: "The robot waits this long before executing on ESPN.",
-    choices: ["None", "12 hours", "24 hours", "48 hours"] },
-  { qid: "deadlines", q: "What are the key dates? (trade deadline, keeper deadline, Slot + Divisional draft)",
-    why: "Deadlines lock buttons in the app and drive reminder cards.",
+  { qid: "keeper_travels", retired: "Mike: travels as-is → folded into mike_calls", q: "When a player under a keeper contract is traded, what happens to the contract?",
+    why: "", choices: ["Contract travels as-is (KP, years)", "Contract resets", "Depends (explain below)"] },
+  { qid: "pick_years", retired: "Mike: next season only → folded into mike_calls", q: "How many seasons ahead can draft picks be traded?",
+    why: "", choices: ["Next season only", "2 seasons", "3 seasons", "No limit"] },
+  { qid: "trade_review", retired: "Mike: league veto vote in the app → veto_vote", q: "How should trade approval work?",
+    why: "", choices: ["I approve every trade", "Auto-approve after a review window", "League veto vote", "Other (explain)"] },
+  { qid: "review_window", retired: "Constitution: 24 h in season, 72 h off-season → veto_vote", q: "If there's a review window, how long?",
+    why: "", choices: ["None", "12 hours", "24 hours", "48 hours"] },
+  { qid: "deadlines", q: "What are the 2027 dates? Winter Meeting, keeper deadline (Signing Day), Divisional + Slot drafts, SPL Draft, trade deadline.",
+    why: "Dates lock buttons in the app, start the countdown cards and open the draft rooms. Rough is fine (\"first Saturday in August\"); you can change them anytime.",
     choices: [] },
-  { qid: "chat", q: "Chat: should the app have league chat, or keep the group text?",
-    why: "Trade talk will live in the app either way (DMs on each offer).",
-    choices: ["Full league chat in the app", "Trade DMs only, keep the group text", "Not sure yet"] },
-  { qid: "al_name", q: "ESPN lists Al's team under \"James Farrington\". Same person?",
-    why: "Owner names are the join key across all history.",
-    choices: ["Yes, Al = James", "No (explain)"] },
-  { qid: "commish_trades", q: "When you and Mike trade with each other, who approves it?",
-    why: "Nobody approves their own trade. Until you answer, either of you can approve a Joe ↔ Mike trade and the league card says so.",
-    choices: ["Either of us, flagged to the league", "A third owner (name below)", "League vote", "Auto-approve after the review window"] },
-  { qid: "div_draft", q: "Divisional Draft: the app runs it like this. Right?",
-    why: "The 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1. A pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division). If your division is full, you must assign.",
-    choices: ["Yes, that's it", "Close (explain below)", "No (explain below)"] },
+  { qid: "chat", retired: "League chat shipped → chat_move", q: "Chat: should the app have league chat, or keep the group text?",
+    why: "", choices: ["Full league chat in the app", "Trade DMs only, keep the group text", "Not sure yet"] },
+  { qid: "al_name", retired: "Mike: yes, Al = James Farrington (registry confirmed)", q: "ESPN lists Al's team under \"James Farrington\". Same person?",
+    why: "", choices: ["Yes, Al = James", "No (explain)"] },
+  { qid: "commish_trades", retired: "Covered by veto_vote: your trades with Mike go to the league vote like any other", q: "When you and Mike trade with each other, who approves it?",
+    why: "", choices: ["Either of us, flagged to the league", "A third owner (name below)", "League vote", "Auto-approve after the review window"] },
+  { qid: "div_draft", retired: "Mike: yes → folded into mike_calls", q: "Divisional Draft: the app runs it like this. Right?",
+    why: "", choices: ["Yes, that's it", "Close (explain below)", "No (explain below)"] },
   { qid: "first_wish", q: "If the app could do one thing for you as commish, what would it be?",
-    why: "Your answer goes to the top of the build list.", choices: [] }
+    why: "Your answer goes to the top of the build list.", choices: [] },
+  { qid: "veto_vote", q: "Trades go to a league veto vote inside the app, by the constitution. Run it that way?",
+    why: "Every accepted trade posts to league chat and lands as a card on every owner's reel: owners vote veto, comment and react. In season: 24 hours, 6 vetoes from the 9 uninvolved owners kill it. Off-season: final after 72 hours unless someone challenges, then 6 vetoes. No veto → it goes through and the app moves the players on ESPN. Your trades with Mike go to the same vote, so nobody approves his own. (ESPN's own veto is set to 8 votes; the app would follow the constitution's 6.)",
+    choices: ["Yes, run it that way", "Yes, and I can overrule", "No, I approve every trade", "Other (explain)"] },
+  { qid: "mike_calls", q: "Mike made these calls for the app. Good with all three?",
+    why: "1) A traded keeper keeps his contract as-is (KP, years left). 2) Only next season's picks can be traded (2027, 17 rounds). 3) Divisional Draft: the 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1; a pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division); if your division is full, you must assign.",
+    choices: ["All good", "Change one (explain below)"] },
+  { qid: "chat_move", q: "League chat is live in the app (plus trade DMs). Move the league's talk here?",
+    why: "Everyone gets it once they sign in. The group text can stay for whatever you like.",
+    choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] }
 ];
+var Q_ORDER = ["espn_lm", "test_league", "veto_vote", "mike_calls", "deadlines", "chat_move", "first_wish"]; // the order Joe sees
+var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
+function answeredActive(ans) { return ACTIVE_Q.filter(function (q) { return ans[q.qid]; }).length; }
 
 // ---- tiny helpers
 function $(s) { return document.querySelector(s); }
@@ -480,8 +486,8 @@ function cardShell(x) {
 function buildFeed(d) {
   var wk = d.week ? d.week.week : 0, cards = [], W = d.week, me = ME ? ME.owner : null;
   if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and the reel becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
-  if (ME && isDesk()) { var n = Object.keys(MY || {}).length;
-    if (n < QUESTIONS.length) cards.push({ id: "questions", needs: 1, scope: "me", eb: "📋 For the commish", title: (me === "reilly" ? "Your questions, Joe" : "Questions for Joe"), body: '<div class="big">' + n + '<small class="muted" style="font-size:20px"> / ' + QUESTIONS.length + '</small></div><p>' + (me === "reilly" ? "Quick calls that decide how trades, picks and keeper contracts work in the app." : "Joe's answers shape the trade center. Answered so far.") + '</p>', action: [n ? "Keep going" : "Answer them", "go('joe')"] }); }
+  if (ME && isDesk()) { var n = answeredActive(MY || {});
+    if (n < ACTIVE_Q.length) cards.push({ id: "questions", needs: 1, scope: "me", eb: "📋 For the commish", title: (me === "reilly" ? "Your questions, Joe" : "Questions for Joe"), body: '<div class="big">' + n + '<small class="muted" style="font-size:20px"> / ' + ACTIVE_Q.length + '</small></div><p>' + (me === "reilly" ? "Quick calls that decide how trades, picks and keeper contracts work in the app." : "Joe's answers shape the trade center. Answered so far.") + '</p>', action: [n ? "Keep going" : "Answer them", "go('joe')"] }); }
   if (ME) draftCards(d.drafts, me).forEach(function (c) { cards.push(c); });
   var kd = keeperDeadlineCard(me); if (kd) cards.push(kd);
   var T = d.trades;
@@ -924,8 +930,8 @@ SCREENS.desk.after = function () {
     if (d.espn.length) html += '<div class="eyebrow">🏈 Do on ESPN · ' + d.espn.length + '</div>' + d.espn.map(offerCard).join("");
     var joeIds = d.owners.filter(function (o) { return /commish/.test(o.role) && !/ops/.test(o.role); }).map(function (o) { return o.owner; });
     var joeN = {}; d.answers.forEach(function (a) { if (joeIds.indexOf(a.who) >= 0) joeN[a.qid] = 1; });
-    var n = isOps() ? Object.keys(joeN).length : Object.keys(MY || {}).length;
-    html += '<div class="card"><div class="eyebrow">📋 Questions</div><p style="margin:0">' + n + ' of ' + QUESTIONS.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
+    var n = isOps() ? answeredActive(joeN) : answeredActive(MY || {});
+    html += '<div class="card"><div class="eyebrow">📋 Questions</div><p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
     if (d.recent.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Recent decisions</summary>' + d.recent.map(offerCard).join("") + '</details>';
     if (isOps()) html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p class="muted" style="margin:0;font-size:13px">Joe\'s tool: he moves a pick traded before the app (or fixes a mistake) with a reason the league sees. Read-only in Joe\'s view.</p></div>';
     else html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason; the ledger robot copies it into the official file.</p>' +
@@ -1770,7 +1776,7 @@ SCREENS.joe = function () {
   var draft = joeDraft();
   return back("desk", "Commish desk") + '<h2>Questions for the commish</h2>' +
     '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, these" : "These") + ' decide how trades, picks and keeper contracts work in the app. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
-    '<div class="qlist">' + QUESTIONS.map(function (q) {
+    '<div class="qlist">' + ACTIVE_Q.map(function (q) {
       var a = draft[q.qid] || {};
       return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px">' + esc(q.why) + '</p>' +
         (q.choices.length ? '<div class="chips">' + q.choices.map(function (c) { return '<button class="chip' + (a.choice === c ? " on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join("") + '</div>' : '<div style="height:10px"></div>') +
@@ -1795,7 +1801,7 @@ SCREENS.joe.after = function () {
     card.querySelector("textarea").oninput = function (e) { draft[qid] = draft[qid] || {}; draft[qid].note = e.target.value; draft[qid].sent = false; store("answers", draft); };
   });
   $("#sendAns").onclick = function () {
-    var items = QUESTIONS.filter(function (q) { var a = draft[q.qid]; return a && !a.sent && ((a.choice || "").trim() || (a.note || "").trim()); })
+    var items = ACTIVE_Q.filter(function (q) { var a = draft[q.qid]; return a && !a.sent && ((a.choice || "").trim() || (a.note || "").trim()); })
       .map(function (q) { var a = draft[q.qid]; return { qid: q.qid, question: q.q, choice: a.choice || "", note: a.note || "" }; });
     if (!items.length) { toast("Nothing new to send"); return; }
     var btn = this; btn.disabled = true; btn.textContent = "Sending…";
@@ -1910,9 +1916,9 @@ function loadDesk() {
           '<span><button class="btn ' + (o.hasPass ? "ghost" : "") + '" style="padding:7px 10px;font-size:13px" onclick="issuePass(\'' + esc(o.owner) + '\',\'' + esc(o.name).replace(/&#39;/g, "") + '\',' + !!o.hasPass + ')">' + (o.hasPass ? "Reset" : "Make one") + '</button></span></div>';
       }).join("");
     var byQ = {}; d.answers.forEach(function (a) { (byQ[a.qid] = byQ[a.qid] || []).push(a); });
-    var html = '<div class="eyebrow">📋 Answers · ' + d.total + ' saved</div>' + QUESTIONS.map(function (q) {
+    var html = '<div class="eyebrow">📋 Answers · ' + d.total + ' saved · ' + ACTIVE_Q.length + ' open for Joe</div>' + ACTIVE_Q.concat(QUESTIONS.filter(function (q) { return q.retired; })).map(function (q) {
       var list = byQ[q.qid] || [];
-      return '<div class="kv" style="display:block"><b style="font-size:13px">' + esc(q.q) + '</b><br>' +
+      return '<div class="kv" style="display:block' + (q.retired ? ';opacity:.6' : '') + '"><b style="font-size:13px">' + esc(q.q) + '</b>' + (q.retired ? '<br><small class="muted">Retired · ' + esc(q.retired) + '</small>' : '') + '<br>' +
         (list.length ? list.map(function (a) { var o = owner(a.who); return '<span class="lime">' + esc(o ? o.name : a.who) + ':</span> ' + esc(a.choice || "") + (a.note ? ' <span class="muted">“' + esc(a.note) + '”</span>' : ''); }).join("<br>") : '<span class="muted">no answer yet</span>') + '</div>';
     }).join("");
     if (d.feedback.length) html += '<div class="eyebrow" style="margin-top:14px">💡 Latest feedback</div>' + d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("");

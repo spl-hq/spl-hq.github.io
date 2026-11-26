@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Limestone gray layer)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Questions for Joe rebaselined)
 
 ## Now
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
@@ -10,10 +10,20 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Limes
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
 
-## Open questions (in the app: League → 📋 Questions)
-ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
+## Open questions (in the app: League → 📋 Questions, rebaselined 11/26)
+Joe sees 7: ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
+**Mike's calls** (traded contracts travel, next-season picks only, Divisional Draft rules) · 2027 dates · move league talk to app chat · Joe's #1 wish.
+Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_years, div_draft, al_name, trade_review, commish_trades; review_window + chat superseded.
+One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.13.4 · 📋 **Questions for Joe rebaselined** (Mike answered 6 in the app). Joe now sees 7: `espn_lm`, `test_league`, new `veto_vote`
+  (Mike's "league veto vote, run in the app" spelled out with the constitution's 24 h / 6-veto in-season and 72 h off-season rules; covers Joe ↔ Mike
+  trades, so `commish_trades` retires), new `mike_calls` (one OK for contracts travel as-is, 2027 picks only, Divisional Draft as described),
+  `deadlines` (now asks for the 2027 dates by name), new `chat_move` (league chat already shipped), `first_wish`. Retired questions stay in
+  `QUESTIONS` with `retired:` so the Ops desk still shows their answers (greyed). Counts on Home + desks use active questions only.
+  Mike's answers already drive the rules (latest commish answer wins). Registry: Al = James Farrington now `confirmed`. **Not built yet:** the
+  veto vote itself (the trade flow is still commish-approves); build once Joe answers `veto_vote`. SW cache `splhq-v24`.
 - 2026-11-26 · v0.13.3 (backend v0.10.2) · 🏷️ **Test team names = real SPL names + "(test)"** (Mike): Mirror's first step renames each ESPN test team
   ("Bad Attitude Gang (test)", "Reeling RaMPaGe (test)", "Farrington's FREELANCERS (test)", "Fluff Muffins (test)"); the Ops card flags teams still to rename.
   LM team edit `PUT …/teams/<id>` `{name}` is **not proven** (MAFFL never wrote team names): read back + logged; if ESPN refuses the full name
