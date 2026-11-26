@@ -3,7 +3,7 @@
 _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Limestone gray layer)
 
 ## Now
-- **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **First live write is the proof:** the LM trade write uses `TRADE_PROPOSAL` + `EXECUTE` (MAFFL's shape as recorded in the plan; Claude couldn't open the MAFFL repo to copy it). If the first demo trade comes back "Do on ESPN" with ESPN's reason, check the write log on the Ops desk; the type can be switched with Script property `ESPN_TRADE_TYPE` without a deploy.
+- **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
 - **WS4 live (v0.12, backend v0.9.0):** the reel gained 🗓️ Up next, 🔥 reactions, 📰 Weekly Pulse (+ 🎙️ your week in a line), 🎟️ pick wire, 💸 cap impact, 🔒 Signing Day. **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (run `claude setup-token`, then org/repo → Settings → Secrets → Actions) so Claude writes the Pulse; until then a plain template edition ships every Tuesday. Then Actions → Weekly Pulse → Run workflow (force) to get Week 11 in Claude's voice.
 - **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
@@ -14,6 +14,11 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Limes
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.13.2 (backend v0.10.1) · 🪞 Mirror v2 + MAFFL's exact trade body. Read MAFFL (`_ops/apps-script/mod_espn.js`, APP_DESIGN §10b): the LM trade write
+  now sends MAFFL's proven body (adds `expirationDate`, `isActingAsTeamOwner`, `skipTransactionCounters`; scoring period from `mStatus.latestScoringPeriod`).
+  The mirror gains a **move** step: an SPL player sitting on the wrong test team is moved with that proven LM trade instead of drop + add (a dropped
+  player goes on waivers and the add could be refused). Order: drop players no SPL team has → move → commish-add the rest. ESPN keepers: not used
+  (ESPN keepers are next-season only and can't model SPL contracts; the app's 🔒 tags + cap follow players by name, so demo trades show them).
 - 2026-11-26 · v0.13.1 · 🎨 **Limestone gray layer (Mike).** A splash of Penn State's gray on top of Nittany blue + white: page canvas is now a cool
   neutral gray (`#E8EAED`) so white cards and tiles pop, lines/labels/muted text go neutral gray, tab bar is off-white with gray inactive tabs
   (active = navy), and a thin Limestone `#A2AAAD` rule sits under the navy header. Blue still marks everything you tap, win or own; gold/red

@@ -9,7 +9,7 @@ The test league has 4 teams. SPL HQ maps them to 4 SPL owners: **Mike's own ESPN
 1. **ESPN:** invite Joe to the test league and give him the team SPL HQ maps to him (Ops desk shows which: Joe = ESPN "…"). Then LM Tools → make Joe a league manager. That way he sees the trade land in his own ESPN app.
 2. **Pick a quiet day** (Tue/Wed): players whose game has started are locked, and ESPN may refuse to move them.
 3. SPL HQ → Desk → 🛠️ Ops desk → **🏈 ESPN test league** → **Off · turn on** (writes).
-4. **🪞 Mirror SPL rosters.** It drops the extras on all 4 teams, then adds each SPL roster, one player per write. When it's done every team should say ✅ N of N match SPL. Misses (roster limits, locked players) are listed with ESPN's reason; run it again later to finish.
+4. **🪞 Mirror SPL rosters.** It drops players no SPL team has, moves SPL players sitting on the wrong test team over (commish trade, so nobody hits waivers), then adds the rest, one player per add. When it's done every team should say ✅ N of N match SPL. Misses (roster limits, locked players) are listed with ESPN's reason; run it again later to finish.
 5. Make sure Joe has his passphrase and is signed in (Ops desk → Owners).
 
 ## The demo

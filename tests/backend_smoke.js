@@ -308,7 +308,7 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
 {
   const SPL = { "Bad Attitude Gang": [1, 2], "Reilly's RaMPaGe": [3, 4], "Farrington's FREELANCERS": [5], "Fluff Muffins": [6], "Tijuana Trojans": [7] };
   const NAMES = { 1: "Josh Allen", 2: "Bijan Robinson", 3: "Chris Olave", 4: "Sam LaPorta", 5: "Derrick Henry", 6: "Puka Nacua", 7: "Smith Guy", 9: "Junk One", 10: "Junk Two" };
-  const T = { 1: [9, 3], 2: [], 3: [10], 4: [] }; // test league before the mirror (team 3 = Mike's SWID)
+  const T = { 1: [9], 2: [], 3: [10, 3], 4: [] }; // test league before the mirror (team 3 = Mike's SWID)
   const posts = []; let rejectTrades = false;
   const ent = id => ({ playerId: id, lineupSlotId: 20, playerPoolEntry: { player: { id, fullName: NAMES[id], defaultPositionId: 2, proTeamId: 2, stats: [] } } });
   const mock = (url, o) => {
@@ -338,16 +338,17 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
   let d = w.post({ action: "testleague", token: wm });
   const byO = o => d.teams.find(x => x.owner === o);
   ok(d.ok && d.teams.length === 4 && byO("murello").teamId === 3 && byO("reilly").teamId === 1 && byO("farrington").teamId === 2 && byO("glen").teamId === 4, "4 test teams: Mike's own ESPN team = Mike, then Joe, Al, Glen by id");
-  ok(byO("reilly").drops === 1 && byO("reilly").adds === 1 && byO("reilly").match === 1 && byO("murello").adds === 2, "mirror plan: drop what SPL doesn't have, add what it does");
+  ok(byO("reilly").drops === 1 && byO("reilly").moves === 1 && byO("reilly").adds === 1 && byO("reilly").match === 0 && byO("murello").drops === 1 && byO("murello").adds === 2, "mirror plan: drop the unwanted, move SPL players sitting on another test team, add the rest");
   ok(d.writes === false && w.post({ action: "mirror", token: wm, owner: "reilly", step: "drops" }).ok === false && posts.length === 0, "writes off: nothing sent");
   ok(w.post({ action: "espnwrites", token: wj, on: true }).ok === false, "only ops flips the ESPN switch");
   ok(w.post({ action: "espnwrites", token: wm, on: true }).writes === true, "Mike turns ESPN writes on");
-  ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: "drops" }));
+  ["drops", "moves"].forEach(st => ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: st })));
+  ok(T[1].includes(3) && posts.some(b => b.type === "TRADE_PROPOSAL" && b.items[0].playerId === 3 && b.items[0].fromTeamId === 3 && b.items[0].toTeamId === 1), "Olave moved Mike's test team → Joe's by LM trade (no waivers)");
   let last; ["murello", "reilly", "farrington", "glen"].forEach(o => { last = w.post({ action: "mirror", token: wm, owner: o, step: "adds" }); });
   ok(last.ok && last.left === 0 && last.match === 1, "mirror step reads back what's left");
   d = w.post({ action: "testleague", token: wm });
   ok(d.teams.every(x => x.match === x.want && x.drops === 0 && x.adds === 0), "after the mirror every test team matches its SPL roster");
-  ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.items.length === 1 && b.memberId === "{XYZ}"), "commish moves, one player per write, no retries");
+  ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.memberId === "{XYZ}") && posts.filter(b => b.type === "FREEAGENT").every(b => b.items.length === 1), "commish moves, one player per add/drop, no retries");
   ok(w.sheets.EspnLog.rows.length === posts.length + 1, "every write logged");
   // Demo trade: Mike's Allen for Joe's Olave → Joe accepts → Joe approves (commish-to-commish) → ESPN moves it, read back
   let o = w.post({ action: "offer", token: wm, to: "reilly", give: { players: [{ n: "Josh Allen", id: 1 }] }, get: { players: [{ n: "Chris Olave" }] } });
@@ -356,7 +357,7 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
   const before = posts.length;
   ok(w.post({ action: "tradeact", token: wj, id: o.offer.id, decision: "approve" }).ok, "Joe approves the demo trade");
   const tp = posts[before];
-  ok(posts.length === before + 1 && tp.type === "TRADE_PROPOSAL" && tp.items.length === 2 && tp.items.every(i => i.type === "TRADE"), "one LM trade write, both players");
+  ok(posts.length === before + 1 && tp.type === "TRADE_PROPOSAL" && tp.items.length === 2 && tp.items.every(i => i.type === "TRADE") && tp.expirationDate === null && tp.isActingAsTeamOwner === false, "one LM trade write, both players, MAFFL's exact body");
   ok(T[1].includes(1) && T[3].includes(3), "players moved on the test league");
   let off = w.post({ action: "trades", token: wm }).offers.find(x => x.id === o.offer.id);
   ok(off.espn === "done" && /test league/.test(off.espnNote), "read back: done on ESPN");

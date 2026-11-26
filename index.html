@@ -325,7 +325,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.13.1";
+var APP_VERSION = "0.13.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1865,15 +1865,15 @@ function loadTL() {
   var el = $("#opsTL"); if (!el) return;
   authed("testleague").then(function (d) {
     if (!d.ok) throw new Error(d.error); var el = $("#opsTL"); if (!el) return;
-    var off = d.teams.filter(function (t) { return t.drops || t.adds; }).length;
+    var off = d.teams.filter(function (t) { return t.drops || t.moves || t.adds; }).length;
     el.innerHTML = '<div class="eyebrow">🏈 ESPN test league · ' + esc(d.name) + ' · week ' + d.week + '</div>' +
       '<div class="kv" style="align-items:center"><span>ESPN writes<br><small class="muted">test league ' + d.league + ' only</small></span><span><button class="btn ' + (d.writes ? "" : "ghost") + '" style="padding:7px 10px;font-size:13px" onclick="tlSwitch(' + !d.writes + ')">' + (d.writes ? "ON · turn off" : "Off · turn on") + '</button></span></div>' +
-      d.teams.map(function (t) { var good = !t.drops && !t.adds;
+      d.teams.map(function (t) { var good = !t.drops && !t.moves && !t.adds;
         return '<div class="kv" style="display:block"><b>' + esc(oname(t.owner)) + '</b> <small class="muted">= ESPN “' + esc(t.team) + '”</small><br>' +
-          (good ? '<span class="lime">✅ ' + t.want + ' of ' + t.want + ' players match SPL</span>' : '<span class="gold">' + t.match + ' of ' + t.want + ' match · ' + t.drops + ' to drop · ' + t.adds + ' to add</span>' +
-            '<br><small class="muted">' + (t.addNames.length ? "Add: " + esc(t.addNames.join(", ")) : "") + (t.dropNames.length ? (t.addNames.length ? " · " : "") + "Drop: " + esc(t.dropNames.join(", ")) : "") + '</small>') + '</div>'; }).join("") +
+          (good ? '<span class="lime">✅ ' + t.want + ' of ' + t.want + ' players match SPL</span>' : '<span class="gold">' + t.match + ' of ' + t.want + ' match · ' + [t.drops ? t.drops + ' to drop' : '', t.moves ? t.moves + ' to move over' : '', t.adds ? t.adds + ' to add' : ''].filter(Boolean).join(' · ') + '</span>' +
+            '<br><small class="muted">' + [t.addNames.length ? "Add: " + esc(t.addNames.join(", ")) : "", (t.moveNames || []).length ? "Move over: " + esc(t.moveNames.join(", ")) : "", t.dropNames.length ? "Drop: " + esc(t.dropNames.join(", ")) : ""].filter(Boolean).join(" · ") + '</small>') + '</div>'; }).join("") +
       '<p style="margin-top:10px"><button class="btn' + (off ? "" : " ghost") + '" id="tlMirror"' + (d.writes ? "" : " disabled") + '>🪞 Mirror SPL rosters</button></p>' +
-      '<p class="muted" style="font-size:12px;margin:6px 0 0">' + (d.writes ? "Drops every extra player first, then adds each SPL roster. Run it again any time to reset after demo trades." : "Turn writes on to mirror.") + ' Approved trades between these 4 move on ESPN by themselves.</p>' +
+      '<p class="muted" style="font-size:12px;margin:6px 0 0">' + (d.writes ? "Drops players no SPL team has, moves SPL players sitting on the wrong test team over (commish trade, no waivers), then adds the rest. Run it again any time to reset after demo trades." : "Turn writes on to mirror.") + ' Approved trades between these 4 move on ESPN by themselves.</p>' +
       '<div id="tlProg"></div>' +
       (d.log.length ? '<details style="margin-top:10px"><summary class="eyebrow" style="cursor:pointer">ESPN write log · last ' + d.log.length + '</summary>' + d.log.map(function (l) {
         return '<div class="kv" style="display:block;font-size:12px"><span class="' + (l.code >= 200 && l.code < 300 ? "lime" : "coral") + '">' + esc(l.code) + '</span> ' + esc(l.kind) + ' · ' + esc(l.ref) + ' <span class="muted">' + ago(l.ts) + (l.msg ? ' · ' + esc(l.msg) : '') + '</span></div>'; }).join("") + '</details>' : '');
@@ -1885,15 +1885,15 @@ window.tlSwitch = function (on) {
   authed("espnwrites", { on: on }).then(function (r) { if (!r.ok) throw new Error(r.error); toast(r.writes ? "ESPN writes on (test league)" : "ESPN writes off"); loadTL(); }).catch(function (e) { toast(e.message); });
 };
 function tlMirror(d) {
-  var drops = d.teams.reduce(function (a, t) { return a + t.drops; }, 0), adds = d.teams.reduce(function (a, t) { return a + t.adds; }, 0);
-  if (!drops && !adds) { toast("Already a mirror"); return; }
-  if (!confirm("Mirror the 4 SPL rosters into the test league?\n\n" + drops + " drops, then " + adds + " adds, one player at a time. Takes a minute or two; keep the app open.")) return;
-  var steps = []; ["drops", "adds"].forEach(function (st) { d.teams.forEach(function (t) { if (t[st]) steps.push({ owner: t.owner, step: st }); }); });
+  var sum = function (k) { return d.teams.reduce(function (a, t) { return a + (t[k] || 0); }, 0); }, drops = sum("drops"), moves = sum("moves"), adds = sum("adds");
+  if (!drops && !moves && !adds) { toast("Already a mirror"); return; }
+  if (!confirm("Mirror the 4 SPL rosters into the test league?\n\n" + drops + " drops, " + moves + " moved between test teams, then " + adds + " adds. Takes a minute or two; keep the app open.")) return;
+  var steps = []; ["drops", "moves", "adds"].forEach(function (st) { d.teams.forEach(function (t) { if (t[st]) steps.push({ owner: t.owner, step: st }); }); });
   var fails = [], b = $("#tlMirror"); if (b) b.disabled = true;
   var prog = function (txt) { var el = $("#tlProg"); if (el) el.innerHTML = '<p style="font-size:13px;margin:8px 0 0">' + txt + '</p>'; };
   (function next(i) {
     if (i >= steps.length) { prog(fails.length ? '<span class="coral">Done with ' + fails.length + ' misses:</span> ' + esc(fails.join("; ")) : '<span class="lime">✅ Mirrored.</span>'); setTimeout(loadTL, fails.length ? 4000 : 1200); return; }
-    var s = steps[i]; prog("⏳ " + (s.step === "drops" ? "Dropping extras from " : "Adding SPL roster to ") + esc(oname(s.owner)) + "'s team · step " + (i + 1) + " of " + steps.length);
+    var s = steps[i]; prog("⏳ " + ({ drops: "Dropping extras from ", moves: "Moving players over to ", adds: "Adding SPL roster to " })[s.step] + esc(oname(s.owner)) + "'s team · step " + (i + 1) + " of " + steps.length);
     authed("mirror", s).then(function (r) { if (!r.ok) throw new Error(r.error); fails = fails.concat(r.fails.map(function (f) { return oname(s.owner) + ": " + f; })); next(i + 1); })
       .catch(function (e) { prog('<span class="coral">Stopped: ' + esc(e.message) + '</span>'); if (b) b.disabled = false; });
   })(0);

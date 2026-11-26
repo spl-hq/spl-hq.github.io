@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.10.0";
+var VERSION = "0.10.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -668,7 +668,10 @@ function wipeTrades_(me) {
 // test teams map to the rest of DEMO_OWNERS in team-id order. Rules: writes go only to WRITE_LEAGUE; ops switch in Script property
 // ESPN_WRITES ("on"); every write is one POST (never retried: a retry can apply twice), logged in EspnLog, then read back.
 var DEMO_OWNERS = ["murello", "reilly", "farrington", "glen"]; // Mike, Joe, Al (East Coast) + Glen
-var ESPN_TRADE_TYPE = "TRADE_PROPOSAL"; // LM trade, executionType EXECUTE (shape proven on MAFFL 11/25); Script property ESPN_TRADE_TYPE overrides
+var ESPN_TRADE_TYPE = "TRADE_PROPOSAL"; // LM trade, EXECUTE: MAFFL APP_DESIGN §10b, proven 11/25 on this test league. Script property ESPN_TRADE_TYPE overrides
+// MAFFL's exact body (mod_espn.js espnWriteTest_): executes at once, several players + both directions in one call.
+function lmTrade_(teamId, sp, items, comment) { return { isLeagueManager: true, teamId: teamId, type: prop_("ESPN_TRADE_TYPE") || ESPN_TRADE_TYPE, memberId: swid_(), scoringPeriodId: sp, executionType: "EXECUTE",
+  items: items, expirationDate: null, comment: comment, isActingAsTeamOwner: false, skipTransactionCounters: false }; }
 function writesOn_() { return ESPN_WRITES || prop_("ESPN_WRITES") === "on"; }
 function swid_() { var m = /SWID=(\{[^}]+\})/.exec(cookies_()); return m ? m[1] : ""; }
 function espnPost_(kind, ref, body, by) {
@@ -683,14 +686,14 @@ function espnPost_(kind, ref, body, by) {
 }
 // The test league as SPL sees it: each team mapped to its SPL owner, players with ESPN ids.
 function testLeague_() {
-  var d = espn_(WRITE_LEAGUE, "view=mTeam&view=mRoster&view=mSettings"), sw = "";
+  var d = espn_(WRITE_LEAGUE, "view=mTeam&view=mRoster&view=mSettings&view=mStatus"), sw = "";
   try { sw = swid_().toUpperCase(); } catch (e) {}
   var teams = (d.teams || []).slice().sort(function (a, b) { return a.id - b.id; }), map = {}, left = DEMO_OWNERS.slice();
   var mine = teams.filter(function (t) { return (t.owners || []).some(function (o) { return String(o).toUpperCase() === sw; }); })[0];
   if (mine && left.indexOf("murello") >= 0) { map[mine.id] = "murello"; left.splice(left.indexOf("murello"), 1); }
   if (WRITE_LEAGUE === READ_LEAGUE) { var own = teamOwners_(); teams.forEach(function (t) { map[t.id] = own[norm_(teamName_(t))] || ""; }); }
   teams.forEach(function (t) { if (!map[t.id] && left.length) map[t.id] = left.shift(); });
-  return { sp: d.scoringPeriodId || 1, name: (d.settings || {}).name || "", teams: teams.map(function (t) {
+  return { sp: (d.status || {}).latestScoringPeriod || d.scoringPeriodId || 1, name: (d.settings || {}).name || "", teams: teams.map(function (t) {
     return { id: t.id, team: teamName_(t), owner: map[t.id] || "", players: (((t.roster || {}).entries) || []).map(function (e) {
       var pl = (e.playerPoolEntry || {}).player || {}; return { id: e.playerId || pl.id, n: pl.fullName || "?", pos: POS[pl.defaultPositionId] || "" }; }) }; }) };
 }
@@ -700,27 +703,38 @@ function splRosters_() { // fresh SPL rosters with ESPN ids, by owner
     var pl = (e.playerPoolEntry || {}).player || {}; return { id: e.playerId || pl.id, n: pl.fullName || "?", pos: POS[pl.defaultPositionId] || "" }; }); });
   return out;
 }
-// 🪞 Mirror plan: per demo team, who to drop (not on the SPL roster) and who to add (on the SPL roster, not here).
+// 🪞 Mirror plan, per demo team: drops = players no demo team wants (freed first), moves = wanted players sitting on another test team
+// (moved with the proven LM trade write, so they never pass through waivers), adds = wanted players not on any test team (commish add).
 function mirrorPlan_(tl, spl) {
-  return tl.teams.filter(function (t) { return t.owner; }).map(function (t) {
-    var want = spl[t.owner] || [], wantId = {}, haveId = {}; want.forEach(function (p) { wantId[p.id] = 1; }); t.players.forEach(function (p) { haveId[p.id] = 1; });
-    var drops = t.players.filter(function (p) { return !wantId[p.id]; }), adds = want.filter(function (p) { return !haveId[p.id]; });
-    return { teamId: t.id, team: t.team, owner: t.owner, name: oName_(t.owner), have: t.players.length, want: want.length, match: want.length - adds.length, drops: drops, adds: adds };
+  var demo = tl.teams.filter(function (t) { return t.owner; }), wanted = {}, where = {};
+  demo.forEach(function (t) { (spl[t.owner] || []).forEach(function (p) { wanted[p.id] = t.id; }); });
+  tl.teams.forEach(function (t) { t.players.forEach(function (p) { where[p.id] = t.id; }); });
+  return demo.map(function (t) {
+    var want = spl[t.owner] || [], here = want.filter(function (p) { return where[p.id] === t.id; });
+    return { teamId: t.id, team: t.team, owner: t.owner, name: oName_(t.owner), have: t.players.length, want: want.length, match: here.length,
+      drops: t.players.filter(function (p) { return !wanted[p.id]; }),
+      moves: want.filter(function (p) { return where[p.id] && where[p.id] !== t.id; }).map(function (p) { return { id: p.id, n: p.n, from: where[p.id] }; }),
+      adds: want.filter(function (p) { return !where[p.id]; }) };
   });
 }
 function testDesk_() {
   var tl = testLeague_(), plan = mirrorPlan_(tl, splRosters_());
   var log = []; try { log = rows_("EspnLog").slice(-12).reverse().map(function (r) { return { ts: r.ts, by: r.by, kind: r.kind, ref: r.ref, items: r.items, code: r.code, msg: r.msg }; }); } catch (e) {}
   return { ok: true, league: WRITE_LEAGUE, name: tl.name, week: tl.sp, writes: writesOn_(), tradeType: prop_("ESPN_TRADE_TYPE") || ESPN_TRADE_TYPE, demo: DEMO_OWNERS,
-    teams: plan.map(function (p) { return { teamId: p.teamId, team: p.team, owner: p.owner, have: p.have, want: p.want, match: p.match, drops: p.drops.length, adds: p.adds.length,
+    teams: plan.map(function (p) { return { teamId: p.teamId, team: p.team, owner: p.owner, have: p.have, want: p.want, match: p.match, drops: p.drops.length, moves: p.moves.length, adds: p.adds.length,
+      moveNames: p.moves.slice(0, 30).map(function (x) { return x.n; }),
       dropNames: p.drops.slice(0, 30).map(function (x) { return x.n; }), addNames: p.adds.slice(0, 30).map(function (x) { return x.n; }) }; }), log: log };
 }
-// One step per call so each stays short: "drops" (every team first, freeing players), then "adds". Ops only.
+// One step per call so each stays short: "drops" on every team first, then "moves", then "adds". Ops only. One player per add/drop;
+// a team's moves go in one LM trade write. Never retried; each step reads the test league back.
 function mirror_(me, b) {
-  var step = b.step === "adds" ? "adds" : "drops", tl = testLeague_(), plan = mirrorPlan_(tl, splRosters_()).filter(function (p) { return p.owner === b.owner; })[0];
+  var step = b.step === "adds" || b.step === "moves" ? b.step : "drops", tl = testLeague_(), plan = mirrorPlan_(tl, splRosters_()).filter(function (p) { return p.owner === b.owner; })[0];
   if (!plan) return { ok: false, error: "No test team for " + oName_(b.owner) };
   var sw = swid_(), done = 0, fails = [];
-  plan[step].slice(0, 30).forEach(function (p) {
+  if (step === "moves") { if (plan.moves.length) {
+    var r0 = espnPost_("mirror-moves", plan.owner, lmTrade_(plan.teamId, tl.sp, plan.moves.slice(0, 30).map(function (p) { return { playerId: p.id, type: "TRADE", fromTeamId: p.from, toTeamId: plan.teamId }; }), "SPL HQ mirror"), me.owner);
+    if (r0.ok) done = plan.moves.length; else fails.push("move " + plan.moves.length + " players (" + (r0.msg || r0.code) + ")"); }
+  } else plan[step].slice(0, 30).forEach(function (p) {
     var it = step === "drops" ? { playerId: p.id, type: "DROP", fromTeamId: plan.teamId } : { playerId: p.id, type: "ADD", toTeamId: plan.teamId };
     var r = espnPost_("mirror-" + step, plan.owner, { isLeagueManager: true, teamId: plan.teamId, type: "FREEAGENT", memberId: sw, scoringPeriodId: tl.sp, executionType: "EXECUTE", items: [it] }, me.owner);
     if (r.ok) done++; else fails.push(p.n + " (" + (r.msg || r.code) + ")");
@@ -745,8 +759,7 @@ function espnTrade_(r, me) {
     players.forEach(function (x) { var t = teamOf[x.from], hit = t && t.players.filter(function (q) { return (x.p.id && q.id === x.p.id) || norm_(q.n) === norm_(x.p.n); })[0];
       if (!hit || !teamOf[x.to]) miss.push(x.p.n); else items.push({ playerId: hit.id, type: "TRADE", fromTeamId: t.id, toTeamId: teamOf[x.to].id, n: hit.n }); });
     if (miss.length) return { espn: "todo", note: "Not on the test team (re-mirror): " + miss.join(", ") };
-    var res = espnPost_("trade", r.offer_id, { isLeagueManager: true, teamId: items[0].fromTeamId, type: prop_("ESPN_TRADE_TYPE") || ESPN_TRADE_TYPE, comment: "SPL HQ " + r.offer_id,
-      memberId: swid_(), scoringPeriodId: tl.sp, executionType: "EXECUTE", items: items.map(function (i) { return { playerId: i.playerId, type: "TRADE", fromTeamId: i.fromTeamId, toTeamId: i.toTeamId }; }) }, me.owner);
+    var res = espnPost_("trade", r.offer_id, lmTrade_(items[0].fromTeamId, tl.sp, items.map(function (i) { return { playerId: i.playerId, type: "TRADE", fromTeamId: i.fromTeamId, toTeamId: i.toTeamId }; }), "SPL HQ " + r.offer_id), me.owner);
     var back = testLeague_(), on = {}; back.teams.forEach(function (t) { t.players.forEach(function (q) { on[q.id] = t.id; }); });
     var moved = items.filter(function (i) { return on[i.playerId] === i.toTeamId; });
     if (moved.length === items.length) return { espn: "done", note: "Moved on ESPN test league " + WRITE_LEAGUE };
