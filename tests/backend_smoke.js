@@ -293,6 +293,16 @@ r = e.post({ action: "draftwipe", token: mike }); ok(r.ok && r.cleared === 2 && 
 r = e.post({ action: "settings", token: glen }); ok(r.notify.draft === false || r.notify.draft === true, "draft notify key exists");
 ok(e.post({ action: "settings", token: owen }).notify.draft === true, "on-the-clock emails on by default");
 
+// 5b · 🔥 reel reactions (WS4)
+r = e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "🔥" }); ok(r.ok && r.on && r.reacts["🔥"].join() === "glen", "Glen reacts 🔥");
+e.post({ action: "react", token: owen, key: "2026-12:slate", emoji: "🔥" }); e.post({ action: "react", token: owen, key: "2026-12:high", emoji: "😂" });
+r = e.post({ action: "reacts", token: mike, keys: ["2026-12:slate", "2026-12:high", "nope"] });
+ok(r.ok && r.reacts["2026-12:slate"]["🔥"].length === 2 && r.reacts["2026-12:high"]["😂"][0] === "salerno" && !r.reacts.nope, "everyone sees reactions by card");
+r = e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "🔥" }); ok(r.ok && !r.on && r.reacts["🔥"].join() === "salerno", "tap again takes it back");
+ok(e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "💩" }).ok === false, "only the reel's emojis");
+ok(e.post({ action: "react", token: glen, key: "=HYPERLINK(1)", emoji: "🔥" }).ok === false, "bad card keys refused");
+ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false, "signed-in only");
+
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));
 h = e.get({ action: "health" });

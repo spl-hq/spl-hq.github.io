@@ -1,6 +1,6 @@
 # SPL HQ — Ops runbook
 
-_Owner: Mike (ops). Last updated 2026-11-25 (v0.1)._ Keep this current whenever a secret, tab, robot or switch is added.
+_Owner: Mike (ops). Last updated 2026-11-26 (v0.12)._ Keep this current whenever a secret, tab, robot or switch is added.
 
 ## 1. The pieces
 
@@ -50,7 +50,8 @@ _Owner: Mike (ops). Last updated 2026-11-25 (v0.1)._ Keep this current whenever 
 | Robot | When | Does | If it fails |
 |---|---|---|---|
 | `Ledger sync` (GitHub Action) | Every 2 h; on change or by hand | Backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow trades (test mode → `data/test/`) → `league-data.js` | GitHub emails the org owner; Ops desk "Ledger robot" turns red after 36 h. Usual cause: backend down (check `?action=health`) |
-| `ESPN history pull` (GitHub Action) | Tue ~6 AM ET + Wed backstop; also on change or by hand | ESPN 19583 finals → `data/SPL_Matchups.csv` (gold) → `league-data.js` | GitHub emails the org owner; Ops desk "History robot" turns red after 9 days. Usual cause: ESPN cookies expired → refresh the `ESPN_S2`/`SWID` secrets |
+| `ESPN history pull` (GitHub Action) | Daily ~6 AM ET (Tuesday adds last week's finals); also on change or by hand | ESPN 19583 finals → `data/SPL_Matchups.csv` (gold) + the games still to play → `data/SPL_Schedule.csv` (gold, feeds 🗓️ Up next) → `league-data.js` | GitHub emails the org owner; Ops desk "History robot" turns red after 9 days. Usual cause: ESPN cookies expired → refresh the `ESPN_S2`/`SWID` secrets |
+| `Weekly Pulse` (GitHub Action) | After every history pull + Tue 9 AM ET backstop; by hand (Run workflow, tick **force** to rewrite the week) | `tools/pulse.py`: newest finished week → facts from gold → Claude writes the edition (needs GitHub secret **`CLAUDE_CODE_OAUTH_TOKEN`**, from `claude setup-token` on Mike's subscription) → `data/Weekly_Pulse.json` (gold) → `league-data.js` | No token: a plain template edition ships (Ops desk says "template"). Token set but Claude failed: template edition saved, Action goes red, GitHub emails. Fix the token, Run workflow with force |
 
 ## 5. Uptime monitor (after first deploy)
 UptimeRobot (free) → New monitor → Keyword → URL `<API_URL>?action=health` → keyword `"healthy":true` → alert to Mike's phone.

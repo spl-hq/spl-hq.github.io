@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.8.0";
+var VERSION = "0.9.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -70,8 +70,8 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1 }; // never wait on the script lock
-var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1 }; // rate-limited per owner
+var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1 }; // never wait on the script lock
+var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, react: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
@@ -102,6 +102,8 @@ function doPost(e) {
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
       case "pickfix":  return json(!desk ? { ok: false, error: "Commish only" } : isBackup_(me) ? { ok: false, error: "Pick fixes are Joe's call (read-only in Joe's view)." } : pickFix_(me, b));
       case "drafts":   return json(drafts_(me));
+      case "reacts":   return json(reacts_(b.keys));
+      case "react":    return json(react_(me, b));
       case "draftpick": return json(draftPick_(me, b, desk));
       case "draftopen": return json(desk ? draftOpen_(me, b) : { ok: false, error: "Commish only" });
       case "draftundo": return json(desk ? draftUndo_(me, b) : { ok: false, error: "Commish only" });
@@ -126,7 +128,8 @@ var HEADS = {
   Offers:   ["offer_id", "ts", "from", "to", "give", "get", "note", "status", "updated_ts", "reason", "by", "mode", "espn", "counter_of"],
   Picks:    ["pid", "season", "round", "original", "owner", "updated_ts", "via"],
   Drafts:   ["draft_id", "ts", "kind", "season", "mode", "status", "order", "note", "by", "updated_ts"],
-  DraftPicks: ["draft_id", "n", "owner", "choice", "ts", "by", "note"]
+  DraftPicks: ["draft_id", "n", "owner", "choice", "ts", "by", "note"],
+  Reactions: ["ts", "key", "owner", "emoji"]
 };
 function sheet_(name) {
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(name);
@@ -437,6 +440,23 @@ function chatSend_(me, b) {
   if (dm) notify_(dm[1] === me.owner ? dm[2] : dm[1], "chat", "Message from " + me.name, text, b.room);
   else owners_().forEach(function (o) { if (o.owner !== me.owner && new RegExp("@" + handleOf_(o) + "\\b", "i").test(text)) notify_(o.owner, "chat", me.name + " mentioned you", text, b.room); });
   return { ok: true, msg: { id: id, ts: now, who: me.owner, text: text } };
+}
+// 🔥 Reel reactions (WS4): one tap per owner per emoji per league card; tap again to take it back. Keys come from the app
+// (season-week:card id), never shown raw. Everyone signed in sees every reaction on league cards.
+var REACTS = ["🔥", "😂", "😬", "👏", "💀", "🐐"];
+function reactKey_(k) { k = String(k || ""); return /^[A-Za-z0-9:._,\-]{1,80}$/.test(k) ? k : ""; }
+function reacts_(keys) {
+  var want = {}; (Array.isArray(keys) ? keys : []).slice(0, 80).forEach(function (k) { k = reactKey_(k); if (k) want[k] = 1; });
+  var out = {}; rows_("Reactions").forEach(function (r) { var k = String(r.key); if (!want[k] || REACTS.indexOf(String(r.emoji)) < 0) return;
+    var m = out[k] = out[k] || {}; (m[r.emoji] = m[r.emoji] || []).push(String(r.owner)); });
+  return { ok: true, reacts: out, emojis: REACTS };
+}
+function react_(me, b) {
+  var k = reactKey_(b.key), em = String(b.emoji || ""); if (!k || REACTS.indexOf(em) < 0) return { ok: false, error: "Unknown reaction" };
+  var sh = sheet_("Reactions"), list = rows_("Reactions"), idx = -1;
+  list.forEach(function (r, i) { if (String(r.key) === k && String(r.owner) === me.owner && String(r.emoji) === em) idx = i; });
+  if (idx >= 0) sh.deleteRow(idx + 2); else append_("Reactions", [new Date(), k, me.owner, em]);
+  var r = reacts_([k]); return { ok: true, on: idx < 0, key: k, reacts: r.reacts[k] || {} };
 }
 function botPost_(room, text, ref) { // 🤖 HQ posts (trade cards) into a room
   append_("Chat", ["M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), new Date(), room, "hq", clip_(text, 500), "", ref || ""]);

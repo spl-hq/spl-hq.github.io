@@ -1,8 +1,9 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS3 part 1)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS4 The Reel)
 
 ## Now
+- **WS4 live (v0.12, backend v0.9.0):** the reel gained 🗓️ Up next, 🔥 reactions, 📰 Weekly Pulse (+ 🎙️ your week in a line), 🎟️ pick wire, 💸 cap impact, 🔒 Signing Day. **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (run `claude setup-token`, then org/repo → Settings → Secrets → Actions) so Claude writes the Pulse; until then a plain template edition ships every Tuesday. Then Actions → Weekly Pulse → Run workflow (force) to get Week 11 in Claude's voice.
 - **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
@@ -12,6 +13,20 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS3 p
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.12 (backend v0.9.0) · 🎞️ **WS4: The Reel (cards).** 🗓️ **Up next** (reel card + top of Your rivalries): your next 3 weeks after the current one:
+  opponent, their record and last-3 form, the all-time series line ("You lead 12–10") and a **rivalry grade** (A Blood feud · B Real rivalry ·
+  C Familiar foes · D Passing strangers: extra meetings, how even, playoff meetings, graded on the curve since everyone has met ~20 times);
+  tap → rivalry page. Week 14 says the Shoot Out opponent comes from the Shoot Out Draft (ESPN's pairing shown as a placeholder), Week 15+
+  shows your playoff spot today. Grades also on Rivalries + each rivalry page. 🔥 **Reactions** on league cards (🔥 😂 😬 👏 💀 🐐, tap again to
+  undo). 📰 **Weekly Pulse**: new robot `weekly-pulse.yml` → `tools/pulse.py` builds the week's facts from gold only
+  (results, table + rank moves, streaks, all-time series, season high, Coach of the Week = biggest jump over his own average, next week's
+  pairings) and Claude writes headline, game lines, a line for every owner, Coach of the Week, power ranking and previews (validated JSON; no
+  token → template edition; Claude failed → template + red Action). New League tile 📰 **Weekly Pulse** (archive by week) + reel cards: the
+  Pulse, and 🎙️ **Your week in a line** (Claude-written card line). 🎟️ **Pick trade wire** (every pick that's changed hands), 📰 season trade
+  wire (count + most active), 💸 **Cap impact** after a trade moves a keeper contract (2027 KP in/out, KP left), 🔒 **Signing Day** countdown
+  in the off-season (needs-you in the last 3 days). Saved/Done copies drop the live reaction row. Ops desk: Pulse robot + Schedule lines.
+  🤖 `espn-history.yml` now runs **daily** and also writes gold `data/SPL_Schedule.csv` (games still to play) for Up next and the Pulse preview.
+  Backend: Reactions tab, `reacts` / `react`.
 - 2026-11-26 · 🤖 Robot fix: two robots fired by one push both rebuilt `league-data.js` and the second failed its rebase (ledger-sync on the v0.11 push). New `tools/robot_push.sh` (used by all three robots): rebase, keep the robot's own gold, rebuild `league-data.js` from the merged data, push; 3 tries; stops if the rebuild fails.
 - 2026-11-26 · v0.11 (backend v0.8.0) · 🗓️ **WS3 part 1: the April drafts run live in the app.** New League tile **Off-season**: countdown to the
   2027 off-season, every event in order (Winter Meeting, Divisional, Slot, Signing Day, SPL Draft, Shoot Out) with the 2027 orders computed from

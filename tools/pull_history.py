@@ -23,6 +23,7 @@ for r in reg:
         if a and len(norm(a)) > 2: alias.setdefault(norm(a), r["owner_id"])
 VIEWS = "view=mMatchupScore&view=mMatchup&view=mTeam&view=mSettings"
 rows, report, unresolved = [], [], {}
+sched, sched_meta = [], {}  # 🗓️ the newest season's games not decided yet → data/SPL_Schedule.csv (Up next card, Weekly Pulse preview)
 this_year = datetime.date.today().year
 for y in range(this_year, 1999, -1):
     st, d = get(f"https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/{y}/segments/0/leagues/{LID}?{VIEWS}")
@@ -43,6 +44,8 @@ for y in range(this_year, 1999, -1):
         if not oid: unresolved.setdefault(f"{name} ({prim or '?'})", []).append(y)
         teams[t["id"]] = {"name": name, "owner": oid or "", "who": prim}
     reg_weeks = ((d.get("settings") or {}).get("scheduleSettings") or {}).get("matchupPeriodCount")
+    if not sched_meta: sched_meta = {"season": y, "reg_weeks": reg_weeks, "playoff_teams": ((d.get("settings") or {}).get("scheduleSettings") or {}).get("playoffTeamCount"),
+                                     "current": (d.get("status") or {}).get("currentMatchupPeriod") or d.get("scoringPeriodId")}
     n = 0
     for g in d["schedule"]:
         h, a = g.get("home") or {}, g.get("away") or {}
@@ -54,9 +57,12 @@ for y in range(this_year, 1999, -1):
             if pb: return sum(v for v in pb.values() if isinstance(v, (int, float)))
             return 0
         hp, ap = pts(h), pts(a)
-        if not hp and not ap: continue  # not played yet
         tier = g.get("playoffTierType") or "NONE"
         th, ta = teams.get(h.get("teamId"), {}), teams.get(a.get("teamId"), {})
+        if not sched_meta.get("season") or sched_meta["season"] == y:
+            if g.get("winner", "UNDECIDED") == "UNDECIDED":
+                sched.append({"season": y, "week": g.get("matchupPeriodId"), "playoff_tier": tier, "home_owner": th.get("owner", ""), "away_owner": ta.get("owner", "")})
+        if not hp and not ap: continue  # not played yet
         rows.append({"season": y, "week": g.get("matchupPeriodId"), "playoff_tier": tier,
                      "home_owner": th.get("owner", ""), "home_team": th.get("name", ""), "home_pts": round(hp, 2),
                      "away_owner": ta.get("owner", ""), "away_team": ta.get("name", ""), "away_pts": round(ap, 2),
@@ -72,6 +78,13 @@ with open(out, "w", newline="", encoding="utf-8") as f:
     f.write(f"# Pulled {datetime.datetime.utcnow().isoformat(timespec='minutes')}Z. One row per game; byes and unplayed games skipped.\n")
     f.write("# playoff_tier: NONE = regular season, WINNERS_BRACKET = playoffs, others = consolation. owner_id blank = unresolved (see report).\n")
     w = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else ["season"]); w.writeheader(); w.writerows(rows)
+sched.sort(key=lambda r: (r["week"] or 0, r["home_owner"]))
+with open(os.path.join(ROOT, "data", "SPL_Schedule.csv"), "w", newline="", encoding="utf-8") as f:
+    f.write("# SPL_Schedule.csv  --  GOLD (robot-written by tools/pull_history.py, daily): the newest season's games ESPN hasn't decided yet.\n")
+    f.write(f"# season={sched_meta.get('season','')} reg_weeks={sched_meta.get('reg_weeks') or ''} playoff_teams={sched_meta.get('playoff_teams') or ''} current_week={sched_meta.get('current') or ''}\n")
+    f.write("# Week-14 Shoot Out rows are ESPN's placeholder until the Shoot Out Draft sets them; playoff rows appear once ESPN seeds them.\n")
+    w = csv.DictWriter(f, fieldnames=["season", "week", "playoff_tier", "home_owner", "away_owner"]); w.writeheader(); w.writerows(sched)
+report.append(f"Schedule: {len(sched)} undecided games in {sched_meta.get('season')} (current week {sched_meta.get('current')})")
 rep = os.path.join(ROOT, "docs", "HISTORY_PULL_REPORT.md")
 with open(rep, "w", encoding="utf-8") as f:
     f.write(f"# ESPN history pull · {datetime.datetime.utcnow().isoformat(timespec='minutes')}Z\n\n{len(rows)} games total.\n\n## Seasons\n")
