@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.14 · 2026-11-26. Plan: docs/SPL_REEL_PLAN.md. Reel cards: docs/SPL_REEL_SERIES.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.15 · 2026-11-26. Plan: docs/SPL_REEL_PLAN.md. Reel cards: docs/SPL_REEL_SERIES.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -138,7 +138,44 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .rx button.has{opacity:1} .rx button.on{border-color:var(--lime);background:rgba(30,64,124,.1);opacity:1}
 .rx button b{font:700 11px var(--mono);margin-left:4px;vertical-align:1px}
 .kv.tap{cursor:pointer;align-items:center} .kv.upn{align-items:center} .kv.upn>span:first-child{text-align:left;flex:1}
-.awd{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+/* 🎨 Card kit (facelift 11/26): avatars, score bugs, chips, bars, meters, tiles, power rows */
+.av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#041E42;color:#fff;font:800 13px var(--head);letter-spacing:.02em;flex:none}
+.av.me{background:#1E407C;box-shadow:0 0 0 2px #fff,0 0 0 4px #B88A2E} .av.lg{width:58px;height:58px;font-size:21px} .av.sm{width:24px;height:24px;font-size:10px}
+.bug{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:4px 0 2px}
+.bug .bl{display:flex;align-items:center;gap:12px;padding:12px 14px} .bug .bl+.bl{border-top:1px solid var(--line)}
+.bug .bn{flex:1;min-width:0;line-height:1.2} .bug .bn b{display:block;font:700 17px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .bug .bn small{font-size:12px;color:var(--muted)}
+.bug .bp{font:800 30px var(--mono);color:var(--muted);letter-spacing:-.02em} .bug .bl.w{background:rgba(184,138,46,.12)} .bug .bl.w .bp{color:#1E407C}
+.bug.mini{border-radius:12px;margin:0} .bug.mini .bl{padding:7px 9px;gap:7px} .bug.mini .bn b{font-size:14px} .bug.mini .bp{font-size:17px} .bug.mini .av{width:22px;height:22px;font-size:9px}
+.bug.mini.mine{border-color:#B88A2E;box-shadow:0 0 0 1px #B88A2E}
+.slate2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chips span{font:700 12px var(--body);padding:6px 10px;border-radius:99px;background:#F2F5FA;border:1px solid var(--line);color:#0B1F3A}
+.chips span.hi{border-color:#B88A2E;background:rgba(184,138,46,.12)} .chips span.bl{border-color:#1E407C;background:rgba(30,64,124,.08);color:#1E407C} .chips span.rd{border-color:#C8102E;color:#C8102E;background:rgba(200,16,46,.06)}
+.hbars{margin-top:8px} .hbr{display:grid;grid-template-columns:62px 1fr 46px;align-items:center;gap:10px;padding:5px 0;font-size:14px}
+.hbr i{display:block;height:12px;border-radius:6px;background:#1E407C} .hbr b{font:700 13px var(--mono);text-align:right} .hbr.mi span{font-weight:800} .hbr.mi i{background:#B88A2E}
+.meter{height:12px;border-radius:6px;background:#E4EAF3;overflow:hidden;margin:10px 0 2px} .meter i{display:block;height:100%;border-radius:6px;background:#1E407C} .meter.over i{background:#C8102E}
+.vs2{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px;text-align:center;margin:6px 0 2px}
+.vs2>div{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0} .vs2 b{font:700 17px var(--body)} .vs2 small{font-size:12px;color:var(--muted)}
+.vs2 .mid{align-self:center;display:flex;flex-direction:column;align-items:center;gap:4px;font:800 14px var(--head);color:#B88A2E;letter-spacing:.06em}
+.vs2 .big2{font:800 40px/1 var(--mono);color:#041E42}
+.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.tl{border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tl .lab{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)} .tl .num{font:800 32px/1.05 var(--mono);color:#041E42;letter-spacing:-.02em}
+.tl .who{display:flex;align-items:center;gap:6px;font:700 14px var(--body)} .tl small{font-size:12px}
+.tl.hot{background:rgba(184,138,46,.08)} .tl.cold{background:rgba(150,190,230,.16)}
+.prow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)} .prow:last-child{border:0}
+.prow .rk{font:800 26px var(--head);width:22px;text-align:center;color:#041E42} .prow .pt{flex:1;min-width:0;line-height:1.25} .prow .pt b{font-size:16px} .prow .pt small{display:block;font-size:12.5px;color:var(--muted)}
+.prow .pr{font:700 14px var(--mono)} .prow.mine{background:rgba(184,138,46,.10);margin:0 -10px;padding:9px 10px;border-radius:10px}
+.up{color:#1E407C;font:700 11px var(--mono);margin-left:4px} .dn{color:#C8102E;font:700 11px var(--mono);margin-left:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px} .tbl td{padding:7px 2px;border-bottom:1px solid var(--line)} .tbl td.n{text-align:right;font-family:var(--mono)} .tbl tr.mine td{background:rgba(184,138,46,.10);font-weight:700}
+.tbl tr.cut td{border-bottom:2px dashed #B88A2E} .tbl .rkc{width:22px;color:var(--muted);font-family:var(--mono)}
+.wrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px} .wrow:last-child{border:0}
+.ticket{font:800 13px var(--mono);padding:5px 8px;border-radius:8px;background:#041E42;color:#fff;white-space:nowrap} .wrow .arr{color:var(--muted)}
+.quote{font:600 21px/1.35 var(--body);color:#041E42;margin:6px 0 4px}
+.byline{display:flex;align-items:center;gap:10px} .byline b{font-size:16px} .byline small{display:block;color:var(--muted);font-size:12px}
+.sub{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 4px}
+.krow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px} .krow:last-child{border:0} .krow .kn{flex:1} .krow .kn small{display:block;color:var(--muted);font-size:12px} .krow b{font-family:var(--mono)}
+
 .vt{margin-top:4px}
 .vopt{position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;cursor:pointer;color:inherit;font:inherit}
 .vopt .vb{flex:1;position:relative;z-index:1} .vopt .vp{font:700 12px var(--mono);position:relative;z-index:1}
@@ -147,7 +184,7 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .vopt[disabled]{cursor:default;color:inherit}
 .vopt .ql{width:24px;height:24px;border-radius:50%;background:#D6DFEC;font:800 12px/24px var(--head);text-align:center;flex:none}
 .gtag{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px}
-.gln{display:flex;justify-content:space-between;font-size:15px} .gln.lo{color:var(--muted);font-size:13px}
+.gln{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;margin-top:3px} .gln.lo{color:var(--muted);font-size:13px}
 .qreveal{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:14px} .qreveal.ok{background:rgba(30,64,124,.1)} .qreveal.no{background:rgba(200,16,46,.08)}
 
 nav.tabs button{position:relative}
@@ -336,7 +373,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.14";
+var APP_VERSION = "0.15";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -514,7 +551,8 @@ function buildFeed(d) {
     // ⚡ Instant: 📰 trade wire (7 days)
     T.offers.filter(function (o) { return o.status === "APPROVED" && Date.now() - new Date(o.updated).getTime() < 7 * 864e5; }).slice(0, 3).forEach(function (o) {
       cards.push({ id: "wire:" + o.id, at: o.updated, scope: "league", eb: "📰 Trade wire" + (o.mode === "test" ? " · test" : ""), title: esc(oname(o.from)) + " ⇄ " + esc(oname(o.to)),
-        body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">' + esc(oname(o.to)) + ' gets</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">' + esc(oname(o.from)) + ' gets</div>' + sideList(o.get, o.to) + '</div></div>', action: ["Trade wire", "go('trades')"] }); });
+        body: '<div class="grid" style="gap:12px"><div><div class="byline" style="margin-bottom:6px">' + av(o.to, "sm") + '<b>' + who(o.to) + ' gets</b></div>' + sideList(o.give, o.from) + '</div><div><div class="byline" style="margin-bottom:6px">' + av(o.from, "sm") + '<b>' + who(o.from) + ' gets</b></div>' + sideList(o.get, o.to) + '</div></div>' +
+          chips(["✅ Approved " + esc(ago(o.updated)), o.mode === "test" ? ["🧪 Test mode", "hi"] : ""]), action: ["Trade wire", "go('trades')"] }); });
   }
   if (ME) wireCards(T, me).forEach(function (c) { cards.push(c); });
   // ⚡ Instant: your game while it's live, and the live scoreboard (the top score waits for 🏅 Week awards)
@@ -523,31 +561,35 @@ function buildFeed(d) {
     if (mine) { var m = mine.home.owner === me ? mine.home : mine.away, o = m === mine.home ? mine.away : mine.home, up = m.pts >= o.pts, diff = Math.abs(m.pts - o.pts);
       var top = m.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR" && p.played; }).sort(function (a, b) { return b.pts - a.pts; })[0];
       cards.push({ id: "live:" + W.week, scope: "me", hero: 1, eb: "🧮 Your game · Week " + W.week + " · live",
-        body: '<div class="vs"><div class="' + (up ? "win" : "") + '"><div class="sc">' + fmtPts(m.pts) + '</div><div class="meta">You · ' + esc(m.rec) + '</div></div><div class="muted" style="font:800 14px var(--head)">VS</div>' +
-          '<div class="' + (!up ? "win" : "") + '"><div class="sc">' + fmtPts(o.pts) + '</div><div class="meta">' + esc(oname(o.owner)) + ' · ' + esc(o.rec) + '</div></div></div>' +
-          '<p class="story">' + (m.left + o.left ? (up ? "Up " : "Down ") + fmtPts(diff) + ". " + m.left + " of yours and " + o.left + " of theirs still to play." : (up ? "Should hold: everyone's played." : "Everyone's played.")) + '</p>' +
-          (top ? rowsOf([["Your best so far", "<b>" + esc(top.n) + "</b> " + fmtPts(top.pts)]]) : ''), action: ["Lineups", "go('match')"] }); }
+        body: bug({ o: me, sub: esc(m.rec) + " · " + m.left + " to play", pts: m.pts }, { o: o.owner, sub: esc(o.rec) + " · " + o.left + " to play", pts: o.pts }, 1) +
+          '<p class="story">' + (m.left + o.left ? (up ? "Up " : "Down ") + fmtPts(diff) + " with " + (m.left + o.left) + " players still to go." : (up ? "Should hold: everyone's played." : "Everyone's played.")) + '</p>' +
+          meter(m.pts, Math.max(1, m.pts + o.pts)) + '<div class="kv" style="border:0;padding-top:2px;font-size:12px"><span class="muted">Your share of the points</span><span class="muted">' + Math.round(100 * m.pts / Math.max(1, m.pts + o.pts)) + '%</span></div>' +
+          chips([top ? ["⭐ " + esc(top.n) + " " + fmtPts(top.pts), "hi"] : "", o.owner ? "⚔️ " + seriesTxt(me, o.owner) : ""]), action: ["Lineups", "go('match')"] }); }
     cards.push({ id: "slate:" + W.week, scope: "league", eb: "🏟️ Week " + W.week + " · live",
-      body: games.map(function (g) { var a = g.away || {}, h = g.home || {}, aw = a.pts > h.pts;
-        return '<div class="kv"><span class="' + (aw ? "lime" : "") + '">' + esc(oname(a.owner)) + ' ' + fmtPts(a.pts) + '</span><span class="' + (!aw ? "lime" : "") + '">' + fmtPts(h.pts) + ' ' + esc(oname(h.owner)) + '</span></div>'; }).join(""), action: ["Every game", "go('match')"] }); }
+      body: '<div class="slate2">' + games.map(function (g) { var a = g.away || {}, h = g.home || {}, ld = a.pts === h.pts ? "" : a.pts > h.pts ? "a" : "h";
+        var r = function (x, k) { return '<div class="bl' + (ld === k ? " w" : "") + '">' + av(x.owner) + '<span class="bn"><b>' + esc(oname(x.owner)) + '</b></span><span class="bp">' + fmtPts(x.pts) + '</span></div>'; };
+        return '<div class="bug mini' + (me && (a.owner === me || h.owner === me) ? " mine" : "") + '">' + r(a, "a") + r(h, "h") + '</div>'; }).join("") + '</div>' +
+        '<p class="muted" style="font-size:12px;margin-top:8px">Live from ESPN. Leader highlighted.</p>', action: ["Every game", "go('match')"] }); }
   // 🗞️ The week's drops (Edition · Play · Vault · Preview). Off-season: only while the last issue is fresh.
   if (issue && (!OFF || nowMs() - weekTue(season, issue) < 21 * 864e5)) weekCards(season, issue, me).forEach(function (c) { cards.push(c); });
   // 🔒 Your keepers + 💰 keeper economy (vault)
   var LDx = window.LEAGUE_DATA || { contracts: [] };
   if (me) { var mc = LDx.contracts.filter(function (c) { return c.owner === me && (c.kp["2027"] != null || c.pen["2027"] != null); });
     var kp27 = mc.reduce(function (s, c) { var v = c.status === "cut" ? c.pen["2027"] : c.kp["2027"]; return s + (typeof v === "number" ? v : 0); }, 0);
-    cards.push({ id: "keepers", scope: "me", eb: "🔒 Your 2027 keepers", body: '<div class="big' + (kp27 > 10 ? " coral" : "") + '">' + kp27 + '<small class="muted" style="font-size:20px"> / 10 KP</small></div><p class="story">' +
-      (mc.length ? "Already committed for next season before Signing Day." : "Nothing committed for 2027 yet: a clean 10 KP.") + '</p>' +
-      rowsOf(mc.slice(0, 5).map(function (c) { return [esc(c.player) + ' <small class="muted">' + esc(c.pos) + (c.status === "cut" ? " · cut penalty" : "") + '</small>', (c.status === "cut" ? c.pen["2027"] : c.kp["2027"]) + " KP"]; })),
+    var yrs = function (c) { var ys = Object.keys(c.kp).filter(function (y) { return +y >= 2027; }).map(Number); return ys.length ? "thru '" + String(Math.max.apply(null, ys)).slice(2) : ""; };
+    cards.push({ id: "keepers", scope: "me", eb: "🔒 Your 2027 keepers", body: '<div class="big' + (kp27 > 10 ? " coral" : "") + '">' + kp27 + '<small class="muted" style="font-size:20px"> / 10 KP</small></div>' +
+      meter(kp27, 10, kp27 > 10) + chips([[mc.filter(function (c) { return c.status !== "cut"; }).length + " of 3 keepers", "bl"], kp27 <= 10 ? (10 - kp27) + " KP to spend" : ["Over by " + (kp27 - 10), "rd"]]) +
+      '<div class="sub">Committed before Signing Day</div>' + (mc.length ? mc.slice(0, 4).map(function (c) { return '<div class="krow"><span class="kn">' + esc(c.player) + '<small>' + esc(c.pos) + (c.status === "cut" ? " · cut penalty" : " · " + yrs(c)) + '</small></span><b>' + (c.status === "cut" ? c.pen["2027"] : c.kp["2027"]) + ' KP</b></div>'; }).join("") : '<p class="story">Nothing yet: a clean 10 KP.</p>'),
       action: ["Your team", "go('team')"] }); }
   var live27 = LDx.contracts.filter(function (c) { return c.status === "active" && c.kp["2027"] != null; });
   if (live27.length) { var by = {}; live27.forEach(function (c) { by[c.owner] = (by[c.owner] || 0) + (typeof c.kp["2027"] === "number" ? c.kp["2027"] : 0); });
     var lead = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; });
-    cards.push({ id: "economy", scope: "league", eb: "💰 Keeper economy · 2027", body: '<div class="big">' + live27.length + '</div><p class="story">contracts already run into 2027. Most KP tied up:</p>' +
-      rowsOf(lead.slice(0, 4).map(function (o) { return [esc(oname(o)), by[o] + " KP", o === me]; })) }); }
+    cards.push({ id: "economy", scope: "league", eb: "💰 Keeper economy · 2027", title: live27.length + " contracts run into 2027",
+      body: '<p class="muted" style="margin:0 0 4px">KP already tied up, by owner (10 is the cap)</p>' + hbars(lead.slice(0, 8).map(function (o) { return { o: o, v: by[o] }; }), " KP") }); }
   // 💬 League chat, if something new (instant, yours)
   var lr = (CHAT.rooms || []).filter(function (r) { return r.room === "league"; })[0];
-  if (lr && lr.who !== me && new Date(lr.last).getTime() > seen("league")) cards.push({ id: "chat:" + new Date(lr.last).getTime(), at: lr.last, scope: "me", eb: "💬 League chat", title: esc(oname(lr.who)) + " says", body: '<p class="story">“' + esc(lr.text) + '”</p>', action: ["Open chat", "go('chat','league')"] });
+  if (lr && lr.who !== me && new Date(lr.last).getTime() > seen("league")) cards.push({ id: "chat:" + new Date(lr.last).getTime(), at: lr.last, scope: "me", eb: "💬 League chat",
+    body: '<div class="byline">' + av(lr.who, "lg") + '<span><b>' + esc(oname(lr.who)) + '</b><small>' + esc(ago(lr.last)) + ' · league chat</small></span></div><p class="quote">“' + esc(lr.text) + '”</p>', action: ["Open chat", "go('chat','league')"] });
   // Order + budget: Needs you lead; the rest wait for their drop, keep the group budget, newest drop first, you → league → play → vault.
   var needs = cards.filter(function (c) { return c.needs; }), base = weekTue(season, issue || 1), bud = OFF ? BUDGET_OFF : BUDGET, cnt = {};
   var rest = cards.filter(function (c) { return !c.needs; }).map(function (c, k) { var sr = seriesOf(c); c.group = sr[0]; c.rank = sr[1] * 100 + k; c.tray = sr[3] || "";
@@ -1503,6 +1545,22 @@ function draftCards(D, me) {
   return out;
 }
 
+// ======== 🎨 Card kit (facelift 11/26, after MAFFL REEL's faces): avatars, score bugs, chips, bars, meters, tiles ========
+function avI(id) { var w = String(fullOf(id) || oname(id) || "?").trim().split(/\s+/); return (w.length > 1 ? w[0][0] + w[w.length - 1][0] : w[0].slice(0, 2)).toUpperCase(); }
+function av(id, cls) { return '<span class="av' + (ME && id === ME.owner ? " me" : "") + (cls ? " " + cls : "") + '">' + esc(avI(id)) + '</span>'; }
+function who(id) { return ME && id === ME.owner ? "You" : esc(oname(id)); }
+// Score bug: [{o, sub, pts}] two rows; the leader/winner is highlighted (gold wash, blue score).
+function bug(a, b, live) { var lead = a.pts === b.pts ? "" : a.pts > b.pts ? "a" : "b";
+  var row = function (x, k) { return '<div class="bl' + (lead === k ? " w" : "") + '">' + av(x.o) + '<span class="bn"><b>' + who(x.o) + '</b><small>' + (x.sub || "") + '</small></span><span class="bp">' + fmtPts(x.pts) + '</span></div>'; };
+  return '<div class="bug' + (live ? " live" : "") + '">' + row(a, "a") + row(b, "b") + '</div>'; }
+function chips(list) { list = list.filter(Boolean); return list.length ? '<div class="chips">' + list.map(function (c) { return typeof c === "string" ? '<span>' + c + '</span>' : '<span class="' + c[1] + '">' + c[0] + '</span>'; }).join("") + '</div>' : ''; }
+function hbars(list, unit) { var mx = list.reduce(function (m, x) { return Math.max(m, x.v); }, 0) || 1;
+  return '<div class="hbars">' + list.map(function (x) { return '<div class="hbr' + (ME && x.o === ME.owner ? " mi" : "") + '"><span>' + esc(oname(x.o)) + '</span><i style="width:' + Math.max(4, Math.round(100 * x.v / mx)) + '%"></i><b>' + x.v + (unit || "") + '</b></div>'; }).join("") + '</div>'; }
+function meter(v, max, over) { return '<div class="meter' + (over ? " over" : "") + '"><i style="width:' + Math.min(100, Math.round(100 * v / max)) + '%"></i></div>'; }
+function vs2(a, aSub, mid, b, bSub) { return '<div class="vs2"><div>' + av(a, "lg") + '<b>' + who(a) + '</b><small>' + (aSub || "") + '</small></div><span class="mid">' + mid + '</span><div>' + av(b, "lg") + '<b>' + who(b) + '</b><small>' + (bSub || "") + '</small></div></div>'; }
+function tile(lab, num, id, sub) { return '<div class="tl"><div class="lab">' + lab + '</div><div class="num">' + num + '</div>' + (id ? '<div class="who">' + av(id, "sm") + '<span>' + who(id) + '</span></div>' : '') + (sub ? '<small class="muted">' + sub + '</small>' : '') + '</div>'; }
+function arrow(prev, now) { return prev && now && prev !== now ? (prev > now ? '<span class="up">▲' + (prev - now) + '</span>' : '<span class="dn">▼' + (now - prev) + '</span>') : ''; }
+
 // ======== 🎞️ The reel's science (docs/SPL_REEL_SERIES.md, after MAFFL REEL_SERIES v2.1) ========
 // Cards come from SERIES (a family of cards with one job), published in DROPS through the week and kept. Each series has a group
 // (you · league · play · vault), a rank inside it, a drop, and a reaction tray (shared cards only; your own cards don't get them).
@@ -1549,10 +1607,14 @@ function weekCards(season, wk, me) {
   // 🏁 Your result (you · Edition)
   var mg = me && gs.filter(function (g) { return g[3] === me || g[5] === me; })[0];
   if (mg) { var s = side(mg, me), t = T[me] || {}, hh = h2h(me, s.opp), won = s.me > s.op;
-    out.push({ id: "result", scope: "me", hero: 1, eb: "🏁 Your result · Week " + wk, body: '<div class="vs"><div class="' + (won ? "win" : "") + '"><div class="sc">' + fmtPts(s.me) + '</div><div class="meta">You · ' + esc(t.rec || "") + '</div></div><div class="muted" style="font:800 14px var(--head)">' + (won ? "W" : s.me < s.op ? "L" : "T") + '</div>' +
-      '<div class="' + (!won ? "win" : "") + '"><div class="sc">' + fmtPts(s.op) + '</div><div class="meta">' + esc(oname(s.opp)) + ' · ' + esc((T[s.opp] || {}).rec || "") + '</div></div></div>' +
-      '<p class="story">' + (ow[me] && ow[me].result ? esc(ow[me].result) : (won ? "Win by " : "Loss by ") + fmtPts(Math.abs(s.me - s.op)) + (t.streak && +t.streak.slice(1) > 1 ? ", " + t.streak + " streak." : ".")) + '</p>' +
-      rowsOf([["In the table", "#" + (t.rank || "–") + mv(me)], ["All-time vs " + esc(oname(s.opp)), seriesTxt(me, s.opp)]]),
+    var pr = (P[me] || {}).rank, myHi = Math.max.apply(null, gamesOf(season).filter(function (g) { return g[3] === me || g[5] === me; }).map(function (g) { return g[3] === me ? g[4] : g[6]; }));
+    out.push({ id: "result", scope: "me", hero: 1, eb: "🏁 Your result · Week " + wk,
+      body: '<div class="dt" style="margin:0 0 6px">' + (won ? "W" : s.me < s.op ? "L" : "T") + ' by ' + fmtPts(Math.abs(s.me - s.op)) + '</div>' +
+        bug({ o: me, sub: esc(t.rec || ""), pts: s.me }, { o: s.opp, sub: esc((T[s.opp] || {}).rec || ""), pts: s.op }) +
+        '<p class="story">' + (ow[me] && ow[me].result ? esc(ow[me].result) : (function () { var n = +t.streak.slice(1), ps = (P[me] || {}).streak || "", pn = +ps.slice(1);
+          return n > 1 ? "That's " + n + " straight " + (t.streak[0] === "W" ? "wins." : "losses.") : pn > 1 && ps[0] !== t.streak[0] ? "Snapped a " + pn + "-game " + (ps[0] === "L" ? "skid." : "win streak.") : won ? "Back in the win column." : "Back to the drawing board."; })()) + '</p>' +
+        chips([["#" + (t.rank || "–") + " in the table" + (pr && pr !== t.rank ? (pr > t.rank ? " ▲" + (pr - t.rank) : " ▼" + (t.rank - pr)) : ""), pr && t.rank < pr ? "bl" : pr && t.rank > pr ? "rd" : ""],
+          t.streak ? (t.streak[0] === "W" ? "🔥 " : "🥶 ") + t.streak : "", "⚔️ " + seriesTxt(me, s.opp) + " all-time", s.me === myHi ? ["🚀 Your season high", "hi"] : ""]),
       action: ["Rivalry", "go('rivalry','" + me + "," + s.opp + "')"] }); }
   // 📣 The week (league · Edition): the story, never the top score (🏅 Week awards owns it)
   var lead = Object.keys(T).map(function (k) { return T[k]; }).sort(function (a, b) { return a.rank - b.rank; });
@@ -1560,25 +1622,32 @@ function weekCards(season, wk, me) {
       cold = lead.slice().sort(function (a, b) { return (b.streak[0] === "L" ? +b.streak.slice(1) : 0) - (a.streak[0] === "L" ? +a.streak.slice(1) : 0); })[0];
   var Lg = (L && L.league) || {};
   out.push({ id: "headline", scope: "league", eb: "📣 The week · Week " + wk, title: esc(Lg.headline || (lead[0] ? oname(lead[0].owner) + " leads at " + lead[0].rec : "Week " + wk + " is final")),
-    body: '<p class="story">' + (Lg.hot ? "🔥 " + esc(Lg.hot) : hot ? "🔥 " + esc(oname(hot.owner)) + " has won " + hot.streak.slice(1) + " straight." : "") + (Lg.cold ? "<br>🥶 " + esc(Lg.cold) : cold && cold.streak[0] === "L" ? "<br>🥶 " + esc(oname(cold.owner)) + " has dropped " + cold.streak.slice(1) + " straight." : "") + '</p>' +
-      rowsOf(res.slice().sort(function (a, b) { return b.m - a.m; }).slice(0, 5).map(function (r) { return [r.tie ? esc(oname(r.w)) + " ties " + esc(oname(r.l)) : "<b>" + esc(oname(r.w)) + "</b> over " + esc(oname(r.l)), "by " + fmtPts(r.m), r.w === me || r.l === me]; })),
+    body: '<div class="tiles2">' + (hot && hot.streak[0] === "W" ? tile("🔥 Hottest", hot.streak, hot.owner, Lg.hot ? esc(Lg.hot) : esc(hot.rec) + " · #" + hot.rank).replace('class="tl"', 'class="tl hot"') : '') +
+      (cold && cold.streak[0] === "L" ? tile("🥶 Coldest", cold.streak, cold.owner, Lg.cold ? esc(Lg.cold) : esc(cold.rec) + " · #" + cold.rank).replace('class="tl"', 'class="tl cold"') : '') + '</div>' +
+      '<div class="sub">The results, by margin</div>' + res.slice().sort(function (a, b) { return b.m - a.m; }).map(function (r) { return '<div class="wrow' + (r.w === me || r.l === me ? " mine" : "") + '">' + av(r.w, "sm") + '<b>' + esc(oname(r.w)) + '</b><span class="muted">' + (r.tie ? "tied" : "beat") + '</span><span style="flex:1">' + esc(oname(r.l)) + '</span><b style="font-family:var(--mono);font-size:13px">+' + fmtPts(r.m) + '</b></div>'; }).join(""),
     action: ["Every game", "go('match','" + wk + "')"] });
   // 🏅 Week awards: High score + Coach of the Week (biggest jump over his own average). Same owner → shows once.
   var hi = res.reduce(function (b, r) { [[r.w, r.ws], [r.l, r.ls]].forEach(function (x) { if (!b || x[1] > b[1]) b = x; }); return b; }, null);
   var coach = null; res.forEach(function (r) { [[r.w, r.ws], [r.l, r.ls]].forEach(function (x) { var t = P[x[0]]; if (!t || !t.res.length) return; var gap = x[1] - t.avg; if (!coach || gap > coach[2]) coach = [x[0], x[1], gap, t.avg]; }); });
-  if (hi) out.push({ id: "awards", scope: "league", eb: "🏅 Week awards · Week " + wk, body: '<div class="awd"><div><div class="eyebrow">🚀 High score</div><div class="big lime" style="font-size:40px">' + fmtPts(hi[1]) + '</div><b>' + esc(oname(hi[0])) + '</b></div>' +
-    (coach && coach[0] !== hi[0] ? '<div><div class="eyebrow">🎖️ Coach of the Week</div><div class="big" style="font-size:40px">+' + fmtPts(coach[2]) + '</div><b>' + esc(oname(coach[0])) + '</b><br><small class="muted">' + fmtPts(coach[1]) + ' vs his ' + fmtPts(coach[3]) + ' average</small></div>' : '') + '</div>' +
-    (coach && coach[0] === hi[0] ? '<p class="story">And Coach of the Week: ' + fmtPts(coach[2]) + ' over his own average.</p>' : '') });
+  var lo = res.reduce(function (b, r) { [[r.w, r.ws], [r.l, r.ls]].forEach(function (x) { if (!b || x[1] < b[1]) b = x; }); return b; }, null);
+  var climb = lead.map(function (t) { return { o: t.owner, d: ((P[t.owner] || {}).rank || t.rank) - t.rank, t: t }; }).sort(function (a, b) { return b.d - a.d; })[0];
+  if (hi) out.push({ id: "awards", scope: "league", eb: "🏅 Week awards · Week " + wk, title: "The week's hardware",
+    body: '<div class="tiles2">' + tile("🚀 High score", fmtPts(hi[1]), hi[0]) + (coach ? tile("🎖️ Coach of the Week", "+" + fmtPts(coach[2]), coach[0], fmtPts(coach[1]) + " vs his " + fmtPts(coach[3]) + " avg") : '') +
+      (lo ? tile("🪫 Low score", fmtPts(lo[1]), lo[0]) : '') + (climb && climb.d > 0 ? tile("📈 Biggest climb", "▲" + climb.d, climb.o, "now #" + climb.t.rank + " · " + esc(climb.t.rec)) :
+        tile("📊 League average", fmtPts(res.reduce(function (t, r) { return t + r.tot; }, 0) / Math.max(1, res.length * 2)), null, res.filter(function (r) { return r.ls > res.reduce(function (t, x) { return t + x.tot; }, 0) / (res.length * 2); }).length + " losing teams beat it")) + '</div>' });
   // ⭐ Power 5 (robot's call when it wrote one, else record + points)
   var p5 = (L && L.power5 && L.power5.length ? L.power5 : lead.slice(0, 5).map(function (t) { return { owner: t.owner, note: t.rec + " · " + fmtPts(t.pf) + " PF · last 3 " + t.res.slice(-3) }; }));
   var inP5 = p5.some(function (p) { return p.owner === me; });
   out.push({ id: "power5", scope: "league", eb: "⭐ Power 5 · Week " + wk, title: "The Power 5",
-    body: p5.map(function (p, i) { return '<div class="kv' + (p.owner === me ? " mine" : "") + '"><span><span class="muted">' + (i + 1) + '</span> <b>' + esc(oname(p.owner)) + '</b>' + mv(p.owner) + '<br><small>' + esc(p.note) + '</small></span></div>'; }).join("") +
-      (me && !inP5 && T[me] ? '<p class="muted" style="font-size:13px;margin-top:6px">You: #' + T[me].rank + ', ' + esc(T[me].rec) + '.</p>' : '') });
-  // 📊 The table after the week (top 6 = playoffs)
-  out.push({ id: "table", scope: "league", eb: "📊 The table · after Week " + wk, body: lead.slice(0, 6).map(function (t) { return '<div class="kv' + (t.owner === me ? " mine" : "") + '"><span><span class="muted">' + t.rank + '</span> ' + esc(oname(t.owner)) + mv(t.owner) + '</span><span>' + esc(t.rec) + '</span></div>'; }).join("") +
-    (me && T[me] && T[me].rank > 6 ? '<div class="kv mine"><span><span class="muted">' + T[me].rank + '</span> ' + esc(oname(me)) + mv(me) + '</span><span>' + esc(T[me].rec) + '</span></div>' : '') +
-    '<p class="muted" style="font-size:12px;margin-top:6px">Top 6 make the playoffs.</p>', action: ["Standings", "go('standings')"] });
+    body: p5.map(function (p, i) { var t = T[p.owner] || {};
+      return '<div class="prow' + (p.owner === me ? " mine" : "") + '"><span class="rk">' + (i + 1) + '</span>' + av(p.owner) + '<span class="pt"><b>' + esc(oname(p.owner)) + '</b>' + arrow((P[p.owner] || {}).rank, t.rank) + '<small>' + esc(p.note) + '</small></span><span class="pr">' + esc(t.rec || "") + '</span></div>'; }).join("") +
+      (me && !inP5 && T[me] ? chips([["You: #" + T[me].rank + " · " + esc(T[me].rec), "bl"]]) : '') });
+  // 📊 The table after the week (top 6 = playoffs; the dashed line is the cut)
+  out.push({ id: "table", scope: "league", eb: "📊 The table · after Week " + wk,
+    body: '<table class="tbl"><tr><td></td><td class="muted" style="font-size:11px">TEAM</td><td class="n muted" style="font-size:11px">W–L</td><td class="n muted" style="font-size:11px">PF</td></tr>' +
+      lead.filter(function (t) { return t.rank <= 8 || t.owner === me; }).map(function (t) {
+        return '<tr class="' + (t.owner === me ? "mine " : "") + (t.rank === 6 ? "cut" : "") + '"><td class="rkc">' + t.rank + '</td><td>' + esc(oname(t.owner)) + arrow((P[t.owner] || {}).rank, t.rank) + '</td><td class="n">' + esc(t.rec) + '</td><td class="n">' + Math.round(t.pf) + '</td></tr>'; }).join("") + '</table>' +
+      '<p class="muted" style="font-size:12px;margin-top:8px">Top 6 make the playoffs (dashed line).' + (lead[5] && lead[6] ? ' The cut: ' + esc(oname(lead[5].owner)) + ' ' + esc(lead[5].rec) + ', ' + esc(oname(lead[6].owner)) + ' ' + esc(lead[6].rec) + ' chasing.' : '') + '</p>', action: ["Standings", "go('standings')"] });
   // 🗳️ Game of the Week (play · Tue 5 PM, closes Thu 5 PM): a thriller, an upset, a shootout
   var used = {}, picks = [], prec = function (o) { var t = P[o]; return t && t.res.length ? t.w / t.res.length : 0.5; };
   var take = function (list, tag) { var x = list.filter(function (r) { return !used[r.w]; })[0]; if (!x) return; used[x.w] = used[x.l] = 1; x.tag = tag(x); picks.push(x); };
@@ -1587,34 +1656,46 @@ function weekCards(season, wk, me) {
   take(res.slice().sort(function (a, b) { return b.tot - a.tot; }), function (x) { return "💥 Shootout · " + fmtPts(x.tot) + " combined"; });
   take(res.slice().sort(function (a, b) { return b.m - a.m; }), function (x) { return "🔨 Beatdown · by " + fmtPts(x.m); });
   if (picks.length >= 2) { var gref = "gotw:" + season + "-" + wk; VSPEC[gref] = { kind: "gotw", options: picks.slice(0, 3).map(function (x) { return { v: x.g[3] + "~" + x.g[5],
-      html: '<div class="gtag">' + x.tag + '</div><div class="gln"><b>' + esc(oname(x.w)) + '</b><b>' + fmtPts(x.ws) + '</b></div><div class="gln lo"><span>' + esc(oname(x.l)) + '</span><span>' + fmtPts(x.ls) + '</span></div>' }; }) };
+      html: '<div class="gtag">' + x.tag + '</div><div class="gln">' + av(x.w, "sm") + '<b style="flex:1">' + esc(oname(x.w)) + '</b><b>' + fmtPts(x.ws) + '</b></div><div class="gln lo">' + av(x.l, "sm") + '<span style="flex:1">' + esc(oname(x.l)) + '</span><span>' + fmtPts(x.ls) + '</span></div>' }; }) };
     out.push({ id: "gotw", scope: "league", eb: "🗳️ Game of the Week · Week " + wk, title: "Three games. Pick the best one.", body: voteBox(gref) }); }
   // 🧠 Quiz (play): a fact no other card shows. Even weeks: the luckiest win; odd: the unluckiest loss.
   var luck = wk % 2 === 0, cand = res.filter(function (r) { return !r.tie; }).sort(function (a, b) { return luck ? a.ws - b.ws : b.ls - a.ls; });
   if (cand.length >= 3) { var ans = cand[0], pool = cand.slice(1).sort(function (a, b) { return hsh(season + wk + a.w) - hsh(season + wk + b.w); }).slice(0, 2), qref = "quiz:" + season + "-" + wk;
-    var opt = function (r) { var o = luck ? r.w : r.l; return { v: o, html: '<span class="qt">' + esc(oname(o)) + '</span>' }; };
+    var opt = function (r) { var o = luck ? r.w : r.l; return { v: o, html: '<span class="qt" style="display:flex;align-items:center;gap:8px">' + av(o, "sm") + esc(oname(o)) + '</span>' }; };
     VSPEC[qref] = { kind: "quiz", answer: luck ? ans.w : ans.l, options: [ans].concat(pool).sort(function (a, b) { return hsh("o" + a.w) - hsh("o" + b.w); }).map(opt),
       reveal: luck ? esc(oname(ans.w)) + " won with just " + fmtPts(ans.ws) + " (" + esc(oname(ans.l)) + " had " + fmtPts(ans.ls) + ")." : esc(oname(ans.l)) + " put up " + fmtPts(ans.ls) + " and still lost to " + esc(oname(ans.w)) + "." };
     out.push({ id: "quiz", scope: "league", eb: "🧠 Quiz · Week " + wk, title: luck ? "Who won with the lowest score?" : "Who lost with the highest score?", body: voteBox(qref) }); }
   // ⏭️ Up next (you · Thu 5 PM): next week's game, then the two after it
   var un = upNext(me, wk, { ok: true, teams: lead.map(function (t) { return { owner: t.owner, w: t.w, l: t.l, t: t.t, pf: t.pf }; }) });
   if (me && un.length) { var n0 = un[0];
-    out.push({ id: "next", scope: "me", eb: "⏭️ Up next · Week " + n0.wk, title: n0.opp ? "vs " + esc(oname(n0.opp)) : n0.kind === "shootout" ? "🎯 The Shoot Out" : "🏆 Playoffs",
-      body: (n0.opp ? '<p class="muted" style="margin:0">' + esc(n0.rec) + (n0.form ? ' · last ' + n0.form.length + ' ' + n0.form : '') + '</p><p class="story">' + (ow[me] && ow[me].next ? esc(ow[me].next) : esc(n0.rg.why) + '.') + '</p>' +
-        rowsOf([["Rivalry", gradeTag(n0.rg) + ' ' + esc(n0.rg.label)], ["All-time", n0.ser]]) : '<p class="story">' + esc(n0.note) + '</p>') +
-        (un.length > 1 ? '<div class="eyebrow" style="margin-top:10px">After that</div>' + upNextRows(un.slice(1), me) : ''),
+    var oh = n0.opp ? n0.rg.h : null;
+    out.push({ id: "next", scope: "me", eb: "⏭️ Up next · Week " + n0.wk,
+      body: (n0.opp ? vs2(me, esc((T[me] || {}).rec || ""), gradeTag(n0.rg) + '<span>VS</span>', n0.opp, esc(n0.rec) + (n0.form ? ' · ' + n0.form : '')) +
+          '<p class="story" style="text-align:center">' + (ow[me] && ow[me].next ? esc(ow[me].next) : esc(n0.rg.label) + ': ' + esc(n0.rg.why) + '.') + '</p>' +
+          chips([["⚔️ " + n0.ser, oh.all.W > oh.all.L ? "bl" : oh.all.W < oh.all.L ? "rd" : ""], oh.po.W + oh.po.L ? "🏆 Playoffs " + recTxt(oh.po) : "", oh.streak.n > 1 ? (oh.streak.r === "W" ? "You've won " : "He's won ") + oh.streak.n + " straight" : "",
+            oh.main.length ? "Last: " + wkTxt(oh.main[oh.main.length - 1]) : ""])
+        : '<div class="dt">' + (n0.kind === "shootout" ? "🎯 The Shoot Out" : "🏆 Playoffs") + '</div><p class="story">' + esc(n0.note) + '</p>') +
+        (un.length > 1 ? '<div class="sub">After that</div>' + upNextRows(un.slice(1), me) : ''),
       action: n0.opp ? ["Rivalry", "go('rivalry','" + me + "," + n0.opp + "')"] : ["Your rivalries", "go('rivalry')"] }); }
   // ⚔️ Rivalry of the week (vault · Wed): next week's biggest rivalry
   var S = (window.LEAGUE_DATA || {}).schedule || {}, nx = (S.games || []).filter(function (g) { return g[0] === wk + 1 && g[2] && g[3]; });
   if (nx.length && wk + 1 !== S.regWeeks) { var best = nx.map(function (g) { return { g: g, r: rivalryGrade(g[2], g[3]) }; }).sort(function (a, b) { return b.r.s - a.r.s; })[0], A = best.g[2], B = best.g[3], h = best.r.h;
-    out.push({ id: "rivalry", scope: "league", eb: "⚔️ Rivalry of the week · Week " + (wk + 1), title: esc(oname(A)) + " vs " + esc(oname(B)),
-      body: '<p class="story">' + gradeTag(best.r) + ' ' + esc(best.r.label) + ': ' + esc(best.r.why) + '.</p>' + rowsOf([["Series", seriesTxt(A, B)], ["Playoffs", h.po.W + h.po.L + h.po.T ? recTxt(h.po) : "never met"],
-        ["Last meeting", h.main.length ? wkTxt(h.main[h.main.length - 1]) + " · " + fmtPts(h.main[h.main.length - 1].ap) + "–" + fmtPts(h.main[h.main.length - 1].bp) : "–"]], ""), action: ["The rivalry", "go('rivalry','" + A + "," + B + "')"] }); }
+    var lm = h.main[h.main.length - 1];
+    out.push({ id: "rivalry", scope: "league", eb: "⚔️ Rivalry of the week · Week " + (wk + 1), title: esc(best.r.label),
+      body: '<div class="vs2"><div>' + av(A, "lg") + '<b>' + esc(oname(A)) + '</b><span class="big2">' + h.all.W + '</span></div><span class="mid">' + gradeTag(best.r) + '<span>' + (h.all.T ? h.all.T + " T" : "VS") + '</span></span><div>' + av(B, "lg") + '<b>' + esc(oname(B)) + '</b><span class="big2">' + h.all.L + '</span></div></div>' +
+        '<p class="story" style="text-align:center">' + esc(best.r.why) + '.</p>' +
+        chips([h.po.W + h.po.L + h.po.T ? ["🏆 Playoffs " + esc(oname(A)) + " " + recTxt(h.po), "hi"] : "Never met in the playoffs", h.streak.n > 1 ? esc(oname(h.streak.r === "W" ? A : B)) + " won the last " + h.streak.n : "",
+          lm ? "Last: " + wkTxt(lm) + " · " + fmtPts(lm.ap) + "–" + fmtPts(lm.bp) : "", "Avg " + fmtPts(h.pa / Math.max(1, h.main.length)) + "–" + fmtPts(h.pb / Math.max(1, h.main.length))]),
+      action: ["The rivalry", "go('rivalry','" + A + "," + B + "')"] }); }
   // 📅 This week in SPL history (vault · Thu): next week's number in past seasons
   var N = wk + 1, past = LD("games").filter(function (g) { return g[1] === N && g[0] < season && g[2] !== "C"; });
   if (past.length) { var top = null, cl = null; past.forEach(function (g) { [[g[3], g[4]], [g[5], g[6]]].forEach(function (x) { if (!top || x[1] > top[1]) top = [x[0], x[1], g[0]]; }); if (!cl || Math.abs(g[4] - g[6]) < Math.abs(cl[4] - cl[6])) cl = g; });
-    out.push({ id: "history", scope: "league", eb: "📅 This week in SPL history · Week " + N, body: '<div class="big">' + fmtPts(top[1]) + '</div><p class="story">The most anyone has scored in a Week ' + N + ': ' + esc(oname(top[0])) + ', ' + top[2] + '.</p>' +
-      rowsOf([["Closest Week " + N + " ever", esc(oname(cl[4] > cl[6] ? cl[3] : cl[5])) + " by " + fmtPts(Math.abs(cl[4] - cl[6])) + " · " + cl[0]], ["Week " + N + " games on file", past.length + " since " + past.reduce(function (m, g) { return Math.min(m, g[0]); }, 9999)]]) }); }
+    var bw = past.slice().sort(function (x, y) { return Math.abs(y[4] - y[6]) - Math.abs(x[4] - x[6]); })[0], ago10 = past.filter(function (g) { return g[0] === season - 10; });
+    out.push({ id: "history", scope: "league", eb: "📅 This week in SPL history · Week " + N,
+      body: '<div class="sub" style="margin-top:0">The Week ' + N + ' record</div><div class="big">' + fmtPts(top[1]) + '</div><div class="byline">' + av(top[0], "sm") + '<b>' + esc(oname(top[0])) + ', ' + top[2] + '</b></div>' +
+        '<div class="tiles2" style="margin-top:12px">' + tile("😬 Closest ever", fmtPts(Math.abs(cl[4] - cl[6])), cl[4] > cl[6] ? cl[3] : cl[5], cl[0] + " · over " + esc(oname(cl[4] > cl[6] ? cl[5] : cl[3]))) +
+          tile("🔨 Biggest beatdown", "+" + fmtPts(Math.abs(bw[4] - bw[6])), bw[4] > bw[6] ? bw[3] : bw[5], bw[0] + " · over " + esc(oname(bw[4] > bw[6] ? bw[5] : bw[3]))) + '</div>' +
+        (ago10.length ? '<p class="muted" style="font-size:12.5px;margin-top:10px">10 years ago this week: ' + ago10.map(function (g) { var w = g[4] >= g[6] ? g[3] : g[5], l = w === g[3] ? g[5] : g[3]; return esc(oname(w)) + " over " + esc(oname(l)); }).slice(0, 3).join(" · ") + '.</p>' : '<p class="muted" style="font-size:12.5px;margin-top:10px">' + past.length + ' Week ' + N + ' games on file since ' + past.reduce(function (m, g) { return Math.min(m, g[0]); }, 9999) + '.</p>') }); }
   return out;
 }
 
@@ -1685,7 +1766,7 @@ function upNextRows(list, me) {
   return list.map(function (x) {
     var lab = '<small class="muted">Wk ' + x.wk + (x.kind === "shootout" ? " · 🎯 Shoot Out" : x.kind === "playoffs" || x.kind === "playoff" ? " · 🏆 Playoffs" : "") + '</small>';
     if (!x.opp) return '<div class="kv upn"><span>' + lab + '<br><span style="font-size:13px">' + esc(x.note) + '</span></span></div>';
-    return '<div class="kv upn tap" onclick="go(\'rivalry\',\'' + me + ',' + x.opp + '\')"><span>' + lab + '<br><b>vs ' + esc(oname(x.opp)) + '</b> <small class="muted">' + esc(x.rec) + (x.form ? ' · last ' + x.form.length + ' ' + x.form : '') + '</small><br>' +
+    return '<div class="kv upn tap" onclick="go(\'rivalry\',\'' + me + ',' + x.opp + '\')"><span>' + lab + '<br>' + av(x.opp, "sm") + ' <b>vs ' + esc(oname(x.opp)) + '</b> <small class="muted">' + esc(x.rec) + (x.form ? ' · last ' + x.form.length + ' ' + x.form : '') + '</small><br>' +
       '<small>' + x.ser + ' · ' + esc(x.rg.label) + '</small></span><span style="display:flex;align-items:center;gap:6px">' + gradeTag(x.rg) + '<span class="muted">›</span></span></div>';
   }).join("");
 }
@@ -1715,16 +1796,17 @@ function reactTap(btn, e) {
 function wireCards(T, me) {
   var out = []; if (!T || !T.ok) return out;
   var moved = (T.picks || []).filter(function (p) { return p.owner !== p.original; });
-  if (moved.length) out.push({ id: "pickwire:" + moved.length, scope: "league", eb: "🎟️ Pick trade wire", title: moved.length + " pick" + (moved.length > 1 ? "s have" : " has") + " changed hands",
+  if (moved.length) { var buyers = {}; moved.forEach(function (p) { buyers[p.owner] = (buyers[p.owner] || 0) + 1; }); var hoard = Object.keys(buyers).sort(function (a, b) { return buyers[b] - buyers[a]; })[0];
+    out.push({ id: "pickwire:" + moved.length, scope: "league", eb: "🎟️ Pick trade wire", title: moved.length + " pick" + (moved.length > 1 ? "s" : "") + " on the move",
     body: moved.slice().sort(function (a, b) { return a.season - b.season || a.round - b.round; }).slice(0, 6).map(function (p) {
-      return '<div class="kv' + (p.owner === me || p.original === me ? " mine" : "") + '"><span>\'' + String(p.season).slice(2) + ' Rd ' + p.round + ' <small class="muted">' + esc(oname(p.original)) + '\'s</small></span><span>→ <b>' + esc(oname(p.owner)) + '</b></span></div>'; }).join("") +
-      (moved.length > 6 ? '<p class="muted" style="font-size:12px">+ ' + (moved.length - 6) + ' more</p>' : ''), action: ["Trades", "go('trades')"] });
+      return '<div class="wrow' + (p.owner === me || p.original === me ? " mine" : "") + '"><span class="ticket">\'' + String(p.season).slice(2) + ' R' + p.round + '</span>' + av(p.original, "sm") + '<span>' + esc(oname(p.original)) + '</span><span class="arr">→</span>' + av(p.owner, "sm") + '<b>' + who(p.owner) + '</b></div>'; }).join("") +
+      chips([moved.length > 6 ? "+ " + (moved.length - 6) + " more" : "", buyers[hoard] > 1 ? ["🧺 " + esc(oname(hoard)) + " holds " + buyers[hoard] + " extra", "hi"] : "", "Earliest: Round " + moved.reduce(function (m, p) { return Math.min(m, p.round); }, 99)]), action: ["Trades", "go('trades')"] }); }
   var appr = (T.offers || []).filter(function (o) { return o.status === "APPROVED"; });
   if (appr.length >= 2) { var by = {}; appr.forEach(function (o) { by[o.from] = (by[o.from] || 0) + 1; by[o.to] = (by[o.to] || 0) + 1; });
     var top = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; });
     out.push({ id: "wireseason:" + appr.length, scope: "league", eb: "📰 Trade wire · the season so far", title: appr.length + " trades",
-      body: '<p class="story">Most active: ' + top.slice(0, 3).map(function (o) { return esc(oname(o)) + ' (' + by[o] + ')'; }).join(", ") + '.</p>' +
-        appr.slice(0, 4).map(function (o) { return '<div class="kv"><span>' + esc(oname(o.from)) + ' ⇄ ' + esc(oname(o.to)) + '</span><span class="muted" style="font-size:12px">' + esc(ago(o.updated)) + '</span></div>'; }).join(""), action: ["Trade wire", "go('trades')"] }); }
+      body: '<div class="sub" style="margin-top:0">Most active</div>' + hbars(top.slice(0, 5).map(function (o) { return { o: o, v: by[o] }; })) +
+        '<div class="sub">Latest</div>' + appr.slice(0, 3).map(function (o) { return '<div class="wrow">' + av(o.from, "sm") + '<span>' + esc(oname(o.from)) + '</span><span class="arr">⇄</span>' + av(o.to, "sm") + '<span style="flex:1">' + esc(oname(o.to)) + '</span><small class="muted">' + esc(ago(o.updated)) + '</small></div>'; }).join(""), action: ["Trade wire", "go('trades')"] }); }
   // 💸 your cap after a trade moved a keeper contract (last 14 days)
   if (me) appr.filter(function (o) { return (o.from === me || o.to === me) && Date.now() - new Date(o.updated).getTime() < 14 * 864e5; }).forEach(function (o) {
     var inP = ((o.from === me ? o.get : o.give).players || []), outP = ((o.from === me ? o.give : o.get).players || []), lines = [], delta = 0;
@@ -1732,9 +1814,10 @@ function wireCards(T, me) {
     outP.forEach(function (p) { var c = contractOf(p.n); if (c && typeof c.kp["2027"] === "number") { lines.push(["－ " + p.n, "−" + c.kp["2027"]]); if (c.owner === me) delta -= c.kp["2027"]; } });
     if (!lines.length) return;
     var kp = contractsOf(me).reduce(function (s, c) { var v = c.status === "cut" ? c.pen["2027"] : c.status === "active" ? c.kp["2027"] : 0; return s + (typeof v === "number" ? v : 0); }, 0) + delta;
-    out.push({ id: "cap:" + o.id, scope: "me", eb: "💸 Cap impact · trade with " + esc(oname(o.from === me ? o.to : o.from)), title: kp + " / 10 KP for 2027",
-      body: lines.map(function (l) { return '<div class="kv"><span>' + esc(l[0]) + '</span><span>' + l[1] + ' KP</span></div>'; }).join("") +
-        '<p class="story">' + (kp > 10 ? "Over the 10 KP cap: something has to give by Signing Day." : (10 - kp) + " KP left to spend at Signing Day.") + '</p>', action: ["Keepers", "go('keepers')"] });
+    out.push({ id: "cap:" + o.id, scope: "me", eb: "💸 Cap impact · trade with " + esc(oname(o.from === me ? o.to : o.from)),
+      body: '<div class="big' + (kp > 10 ? " coral" : "") + '">' + kp + '<small class="muted" style="font-size:20px"> / 10 KP for 2027</small></div>' + meter(kp, 10, kp > 10) +
+        '<p class="story">' + (kp > 10 ? "Over the cap: something has to give by Signing Day." : (10 - kp) + " KP left to spend at Signing Day.") + '</p>' +
+        lines.map(function (l) { return '<div class="krow"><span class="kn">' + esc(l[0]) + '</span><b class="' + (l[1][0] === "+" ? "" : "coral") + '">' + l[1] + ' KP</b></div>'; }).join(""), action: ["Keepers", "go('keepers')"] });
   });
   return out;
 }
@@ -1746,7 +1829,7 @@ function keeperDeadlineCard(me) {
   if (sd && dayDiff(sd) < 0) return null;
   return { id: "signing:" + (sd || "tbd"), scope: "me", needs: sd && dayDiff(sd) <= 3 ? 1 : 0, eb: "🔒 Keeper Signing Day", title: sd ? untilTxt(sd) : "Date coming",
     body: '<p class="story">' + (sd ? fmtDate(sd) + ". 10 KP, three keepers max." : "Signing Day is 10 days before the SPL Draft, and the draft date gets picked at the Winter Meeting.") + '</p>' +
-      '<div class="kv"><span>Already committed for ' + ns + '</span><span><b>' + kp + '</b> / 10 KP · ' + mc.length + ' of 3</span></div>', action: ["Plan your keepers", "go('keepers')"] };
+      meter(kp, 10, kp > 10) + chips([[kp + " / 10 KP committed", "bl"], mc.length + " of 3 keepers"]), action: ["Plan your keepers", "go('keepers')"] };
 }
 
 // ---- League grid

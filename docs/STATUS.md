@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, ESPN read retry)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, reel card facelift)
 
 ## Now
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
@@ -17,6 +17,16 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.15 · 🎨 **Reel card facelift** (Mike: the cards are the main experience; many wasted space, read oddly or were formatted wrong).
+  New card kit after MAFFL REEL's faces (`docs/SPL_REEL_SERIES.md` → The card kit): owner avatars (initials, yours gold-ringed), score bugs,
+  mini bugs, matchup heroes, stat tiles, fact chips, bars, meters, ranked rows. Every card redone: 🏁 Your result (headline "L by 15.1" + score
+  bug + rank/streak/series chips, story snaps or extends the streak) · 🧮 Your game live (score bug, share-of-points meter, best player chip) ·
+  🏟️ Live scoreboard (2×3 mini bugs, yours ringed) · ⏭️ Up next (two big avatars, grade between, series/playoffs/streak chips) · 📣 The week
+  (🔥/🥶 tiles + every result by margin with avatars) · 🏅 Week awards (4 tiles: high, coach, low, biggest climb; margins left to The week:
+  one fact, one card) · ⭐ Power 5 (big rank numerals, avatars, ▲▼, record; fixed the centered rows) · 📊 Table (W–L + PF, dashed playoff cut,
+  "the cut" line) · 🗳️ Game of the Week + 🧠 Quiz (avatars) · ⚔️ Rivalry of the week (series W–L under each avatar, chips) · 📅 History
+  (record + closest/biggest tiles + 10 years ago) · 🔒 Keepers + 💸 Cap impact + Signing Day (KP meter + chips) · 💰 Economy (bars by owner) ·
+  🎟️ Pick wire (pick tickets + avatars) · 📰 Trade wire (avatars, approved/test chips) · 💬 Chat (byline + big quote).
 - 2026-11-26 · backend v0.11.2 · 🔁 **ESPN reads retry on a network blip.** Ops desk → Test league showed red "Address unavailable: <ESPN URL>"
   (Mike, 8:11 AM): Google's fetcher couldn't reach ESPN for a moment, not an ESPN refusal. `espn_()` now tries a read up to 3 times (1 s, 2 s
   apart) and, if all fail, says "ESPN didn't answer (network blip). Try again in a minute." instead of the raw URL. Reads only: writes

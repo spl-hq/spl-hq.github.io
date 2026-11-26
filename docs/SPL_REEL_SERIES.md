@@ -1,6 +1,6 @@
 # SPL REEL card series: the catalog
 
-Last updated: 2026-11-26 (chat) · v1.0 · Owner: Mike (ops), Joe (league calls)
+Last updated: 2026-11-26 (chat) · v1.1 (card facelift) · Owner: Mike (ops), Joe (league calls)
 
 Source of truth for the SPL reel, built on MAFFL REEL's science (`maffl-commish/maffl` → `_ops/docs/REEL_SERIES.md` v2.1,
 `CARD_LINES_RECIPE.md`). **There is no Pulse** (Mike 11/26): the cards are the weekly update. The app follows this page
@@ -31,6 +31,20 @@ Edition has dropped; until Tuesday 7 AM last week's issue stays up. Testers pin 
 4. **Detail:** up to 5 rows.
 5. **One action:** at most one button, to the place the card is about.
 6. **Reactions:** shared (league) cards only, with the series' own tray. Your own cards don't get them. Play cards get votes instead.
+
+## The card kit (v1.1 facelift, after MAFFL REEL's faces)
+
+Build faces from these parts (`index.html` → card kit), not from plain key/value rows:
+- **Avatar** `av(owner)`: initials circle (registry full name); yours has the gold ring. Every owner on a card gets one.
+- **Score bug** `bug(a, b)`: two rows (avatar · name · record · score), the winner/leader washed gold with a blue score. Results and live games.
+- **Mini bugs** in a 2-column grid: the live scoreboard (your game ringed gold).
+- **Matchup** `vs2(a, …, b)`: two big avatars with the rivalry grade between them (Up next, Rivalry of the week with the series W–L under each).
+- **Tiles** `tile(label, number, owner, sub)`: 2-column stat tiles (Week awards, The week's hot/cold, history records).
+- **Chips** `chips([...])`: the 2–4 supporting facts under a story (rank move, streak, series, season high). Blue = good for you, red = bad, gold = notable.
+- **Bars** `hbars()` (who holds how much: keeper economy, most active traders) and **meter** `meter(v, max)` (your KP vs the 10 cap, your share of a live game).
+- **Ranked rows** (Power 5): big rank numeral · avatar · name + ▲▼ · one-line note · record. **Table**: W–L + PF columns with the playoff cut as a dashed gold line.
+- **Wire rows**: pick tickets (`'27 R2`) or trade pairs with avatars and arrows. **Quote** + byline for chat.
+A card with empty space under its content is missing a part: add chips or tiles, don't pad with text.
 
 ## Rules
 
@@ -72,7 +86,7 @@ Edition has dropped; until Tuesday 7 AM last week's issue stays up. Testers pin 
 |---|---|---|---|---|---|
 | 🏟️ Scoreboard · live | `slate` | Instant (games on) | data | 🔥 😱 🥱 👏 🤡 | Live week only. |
 | 📣 The week | `headline` | Edition | robot `headline`/`hot`/`cold` | 🔥 😂 🤯 🤡 💀 | Never the top score. Winners by margin. |
-| 🏅 Week awards | `awards` | Edition | data | 🏆 🧠 🔥 😬 👏 | High score + Coach of the Week (biggest jump over his own average). Same owner shows once. |
+| 🏅 Week awards | `awards` | Edition | data | 🏆 🧠 🔥 😬 👏 | Four tiles: High score · Coach of the Week (biggest jump over his own average) · Low score · Biggest climb in the table (or the league average). No margins: 📣 The week owns them. |
 | ⭐ Power 5 | `power5` | Edition | robot `power5` (else record + PF) | 📈 😤 🙏 👀 🔥 | Your row highlighted, or "You: #7" under it. |
 | 📊 The table | `table` | Edition | data | 📈 😤 🙏 👀 🔥 | From gold games through the week; rank moves. |
 | 📰 Trade wire | `wire` | Instant | data | 💸 🤑 🤡 👀 🔥 | 7 days. |
