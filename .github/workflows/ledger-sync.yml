@@ -1,0 +1,30 @@
+name: Ledger sync
+# Automated upkeep: copies approved trades + the live pick ledger from the app into gold CSVs, moves keeper contracts with
+# traded players, rebuilds league-data.js. Every 2 hours, on change, or by hand. Safe to re-run.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 */2 * * *"
+  push:
+    branches: [main]
+    paths: [".github/workflows/ledger-sync.yml", "tools/ledger_sync.py"]
+permissions:
+  contents: write
+concurrency: { group: data-robots, cancel-in-progress: false }
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/ledger_sync.py
+      - run: python3 tools/build_data.py
+      - name: Commit if changed
+        run: |
+          git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
+          git add data league-data.js
+          # ledger_status.json alone changing (timestamp) is still committed at most once a day so the Ops desk sees the robot alive
+          if git diff --cached --quiet -- data/Draft_Pick_Ownership.csv data/Trade_Log.csv data/Keeper_Contracts.csv data/test league-data.js; then
+            last=$(git log -1 --format=%ct -- data/ledger_status.json 2>/dev/null || echo 0); now=$(date +%s)
+            if [ $((now - last)) -lt 86000 ]; then git reset -q; echo "nothing new"; exit 0; fi
+          fi
+          git commit -m "Ledger sync: picks, trades, keeper contracts" && git pull --rebase && git push
