@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **WS6: parity is a living doc + port by priority** (`docs/MAFFL_PARITY.md`). Backend now splits into `mod_*.js` parts the way MAFFL
+  does (no loader change); CI runs on every push (alarm on main, gate on PRs). MAFFL-only systems (credits, dues, Survivor, tiers, Ghost,
+  auction cards, headline pick) are not ported. SPL → MAFFL items are batched for a MAFFL chat when REEL wakes (this side can't push there).
 - 2026-11-26 · **No Pulse: the cards are the update** (Mike). The reel follows MAFFL REEL's card science (REEL_SERIES v2.1): series,
   drops, weekly budget, card anatomy, one fact one card, reactions on shared cards only (per-series trays), votes on play cards (one,
   locked, results after you vote). Catalog: `docs/SPL_REEL_SERIES.md`. Claude writes card lines only (`card-lines.yml`), once per week,

@@ -12,8 +12,10 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 
 ## How work ships
 - **Claude pushes straight to `main`** from chat (Mike, 11/25). Say "PR first" in a chat to get a pull request instead.
-- **Pushing `backend/logic.js` = deploying the backend** (the loader picks it up within 5 minutes). Before any backend push:
-  `node --check backend/logic.js` and `node tests/backend_smoke.js` must pass. Bump `VERSION` in logic.js.
+- **Pushing `backend/logic.js` or any `backend/mod_*.js` part = deploying the backend** (the loader picks it up within 5 minutes).
+  Before any backend push: `node --check` on every backend file and `node tests/backend_smoke.js` must pass. Bump `VERSION` in
+  logic.js with ANY backend change, parts included (parts are cached under VERSION). CI (`checks.yml`) re-runs all of it plus
+  `tests/app_check.js` on every push: a red run on main is an alarm (it's already live), on a PR it's a gate.
 - `backend/Code.gs` is the loader pasted into Apps Script by hand. Change it only when unavoidable, and tell Mike
   to re-paste + Deploy → Manage deployments → ✏️ → New version.
 - Before any app push: syntax-check the inline script, and screenshot at **390 px** (iPhone, Home Screen standalone).
@@ -25,7 +27,7 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 The site keeps itself current: anything that changes with the season gets a robot, not a reminder. Every robot is a GitHub Action
 or the Apps Script backend, is safe to re-run, shows its last run on the 🛠️ Ops desk, and fails loudly (GitHub emails the org owner
 on a failed Action; backend problems email ops). When you add data that goes stale, add its robot in the same change.
-Current robots: `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (daily: ESPN finals → `data/SPL_Matchups.csv`, games still to play → `data/SPL_Schedule.csv` → `league-data.js`); `card-lines.yml` (after each history pull: Claude writes the reel card lines for the newest final week → `data/Card_Lines.json`, once per week; nothing without `CLAUDE_CODE_OAUTH_TOKEN`);
+Current robots: `checks.yml` (CI: backend syntax/size + smoke test + app check on every push); `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (daily: ESPN finals → `data/SPL_Matchups.csv`, games still to play → `data/SPL_Schedule.csv` → `league-data.js`); `card-lines.yml` (after each history pull: Claude writes the reel card lines for the newest final week → `data/Card_Lines.json`, once per week; nothing without `CLAUDE_CODE_OAUTH_TOKEN`);
 `ledger-sync.yml` (every 2 h: backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow
 traded players in `data/Keeper_Contracts.csv`, finished off-season drafts → `data/Offseason_Drafts.csv`; test mode / rehearsals write `data/test/` instead). League rules the robots and app follow
 (pick seasons, contracts travel/reset) come from Joe's answers in the app via backend `rules_()`; defaults until he answers.
@@ -43,7 +45,8 @@ Never hand-edit robot-written gold: fix at the source (the app) and let the robo
   (no CDNs, no web fonts, no third-party APIs from the browser).
 - Every Sheet write is formula-guarded (`safe_`). Every user string rendered in the app is escaped (`esc`).
 - Structural layout changes (tabs, navigation, page architecture) need Mike's OK. Content inside existing elements doesn't.
-- Keep each backend file under ~90 KB (Apps Script cache limit); split into parts like MAFFL when it grows.
+- Keep each backend file under ~90 KB (Apps Script cache limit). The backend is split MAFFL-style: `logic.js` (core) evaluates
+  `PARTS` (`mod_espn`, `mod_social`, `mod_trades`, `mod_drafts`) in its own scope; new areas get their own `mod_*.js` + a PARTS entry.
 
 ## Look and feel — "Nittany" (Penn State blue + white, Mike 11/25; replaced Stadium Lights)
 Nittany Navy `#041E42` (header bar, headings feel) · Beaver Blue `#1E407C` (buttons, accents, wins, your stuff) ·
@@ -62,8 +65,10 @@ index.html            the app (single page, hash routes: #home #standings #rival
 manifest.json sw.js   Home Screen install + offline cache (never caches the backend)
 icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)
-backend/logic.js      backend core (pushed = deployed)
-tests/                backend smoke test (mocked Apps Script)
+backend/logic.js      backend core: config, routing, Sheet helpers, sign-in, questions, health; loads the parts (pushed = deployed)
+backend/mod_*.js      backend parts: espn (reads + guarded writes), social (chat, reactions, votes, settings), trades, drafts (pushed = deployed)
+tests/                backend_smoke.js (mocked Apps Script, loads the parts from the working tree) · app_check.js (inline scripts compile)
+docs/MAFFL_PARITY.md  WS6: what to port MAFFL → SPL and hand back SPL → MAFFL
 data/                 gold: Keeper_Contracts, Owner Registry, SPL_Matchups (robot), Draft_Picks, SPL_Rulebook.md,
                       Rules_Conflicts, Season_Calendar, Season_Results_Manual, Offseason_Drafts (robot), SPL_Schedule (robot), Card_Lines.json (robot) (any change → build-data.yml rebuilds league-data.js)
 league-data.js        DERIVED from data/ by tools/build_data.py (never hand-edit)

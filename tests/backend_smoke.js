@@ -3,6 +3,10 @@
 "use strict";
 const fs = require("fs"), path = require("path");
 const src = fs.readFileSync(path.join(__dirname, "..", "backend", "logic.js"), "utf8");
+// The backend core loads its parts (backend/mod_*.js) from GitHub main at runtime; here they come from the working tree.
+const parts = {}; fs.readdirSync(path.join(__dirname, "..", "backend")).filter(f => /^mod_\w+\.js$/.test(f))
+  .forEach(f => { parts[f.replace(/\.js$/, "")] = fs.readFileSync(path.join(__dirname, "..", "backend", f), "utf8"); });
+let partFetches = 0;
 let fails = 0; const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); if (!c) fails++; };
 
 function makeEnv(props, espn) {
@@ -25,7 +29,8 @@ function makeEnv(props, espn) {
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     MailApp: { getRemainingDailyQuota: () => 99, sendEmail: (to, s, b) => mails.push({ to, s, b }) },
     Session: { getEffectiveUser: () => ({ getEmail: () => "spl.hq.ops@gmail.com" }) },
-    UrlFetchApp: { fetch: (url, o) => espn(url, o) }
+    UrlFetchApp: { fetch: (url, o) => { const m = /raw\.githubusercontent\.com\/spl-hq\/spl-hq\.github\.io\/main\/backend\/(mod_\w+)\.js/.exec(url);
+      if (m) { partFetches++; return { getResponseCode: () => 200, getContentText: () => parts[m[1]] }; } return espn(url, o); } }
   };
   const M = {};
   new Function(...Object.keys(G), "M", src)(...Object.values(G), M);
@@ -403,5 +408,7 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
 
 // 7 · size limit for the loader cache
 ok(src.length < 90000, "logic.js under 90 KB (" + src.length + ")");
+Object.keys(parts).forEach(n => ok(parts[n].length < 90000, n + ".js under 90 KB (" + parts[n].length + ")"));
+ok(partFetches > 0, "core loaded its parts (" + Object.keys(parts).join(", ") + ")");
 
 console.log(fails ? "\n" + fails + " FAILED" : "\nall passed"); process.exit(fails ? 1 : 0);

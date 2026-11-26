@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS4 reel science)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS6 parity: backend split + CI)
 
 ## Now
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
@@ -17,6 +17,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · backend v0.11.1 · 🔀 **WS6 MAFFL ↔ SPL parity.** New `docs/MAFFL_PARITY.md` (read against MAFFL main): what's left to port
+  MAFFL → SPL (commish polls first, since the league veto vote rides on them; then announcements, passphrase requests, vault cards…) and a
+  hand-back list SPL → MAFFL for when REEL wakes (iOS frame fixes, `robot_push.sh`, ESPN write switch + log, robot freshness, rules from
+  answers…). Shipped the two urgent ports: **backend split MAFFL-style** (`logic.js` was 83 KB of a ~95 KB cache ceiling; now core 26 KB +
+  `mod_espn`, `mod_social`, `mod_trades`, `mod_drafts`, evaluated in the core's scope; per-part cache under VERSION, 6 h last-good, ops
+  emailed if a part won't compile; **loader unchanged, no re-paste**) and **CI** `checks.yml` (backend syntax + size, smoke test loading
+  the parts, new `tests/app_check.js` for the inline scripts, `sw.js`, `league-data.js`). No app change.
 - 2026-11-26 · v0.14 (backend v0.11.0) · 🎞️ **The reel's science** (Mike: the Pulse is no longer a thing; the cards are the update; follow
   MAFFL REEL's latest docs). New catalog `docs/SPL_REEL_SERIES.md`: every series with its group, drop, lifespan, writer and reaction tray.
   **Drops** (ET, from the Tuesday after the week): 🗞️ Edition Tue 7 AM (🏁 Your result · 📣 The week · 🏅 Week awards · ⭐ Power 5 ·

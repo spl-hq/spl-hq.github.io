@@ -1,0 +1,36 @@
+name: Checks
+# CI for every push and pull request that touches the app or the backend (WS6 port of MAFFL's backend-check.yml).
+#   1. node --check + size (< 90 KB) on every backend file: a syntax error = sign-in down for every owner
+#   2. the backend smoke test (real logic.js + its mod_*.js parts against mocked Apps Script + ESPN)
+#   3. the app check: every inline <script> in index.html, sw.js and league-data.js compile
+# A push to main is already live by the time this runs (the loader reads main; Pages serves main), so on main this is an
+# alarm, not a gate: GitHub emails the org owner on a red run. On a pull request it IS a gate.
+on:
+  push:
+    branches: [main]
+    paths: ["backend/**", "tests/**", "index.html", "sw.js", "league-data.js", ".github/workflows/checks.yml"]
+  pull_request:
+    paths: ["backend/**", "tests/**", "index.html", "sw.js", "league-data.js", ".github/workflows/checks.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Backend syntax + size
+        run: |
+          fail=0
+          for f in backend/*.js; do
+            node --check "$f" || { echo "::error file=$f::syntax error"; fail=1; }
+            n=$(wc -c < "$f"); [ "$n" -lt 90000 ] || { echo "::error file=$f::$n bytes (keep under 90000)"; fail=1; }
+          done
+          exit $fail
+      - name: Backend smoke test
+        run: node tests/backend_smoke.js
+      - name: App check
+        run: node tests/app_check.js

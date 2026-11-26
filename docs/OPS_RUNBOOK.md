@@ -42,7 +42,7 @@ _Owner: Mike (ops). Last updated 2026-11-26 (v0.13)._ Keep this current whenever
 ## 4. Everyday
 
 - **Is it working?** App → League → 🛠️ Ops desk (backend version, Sheet, ESPN read + test league, emails left, Joe's answers).
-- **Backend change:** Claude pushes `backend/logic.js`; live in ≤5 min. Force it: Sheet → SPL HQ → Load latest logic now.
+- **Backend change:** Claude pushes `backend/logic.js` and/or a `backend/mod_*.js` part (with a VERSION bump); live in ≤5 min. Force it: Sheet → SPL HQ → Load latest logic now.
 - **Loader change (rare):** paste the new `backend/Code.gs`, Save, Deploy → Manage deployments → ✏️ → Version: **New version** → Deploy.
   The URL stays the same.
 - **Cookies expired:** copy fresh `espn_s2` / `SWID` from Chrome (fantasy.espn.com → F12 → Application → Cookies) into
@@ -58,7 +58,7 @@ _Owner: Mike (ops). Last updated 2026-11-26 (v0.13)._ Keep this current whenever
 ## 4c. ESPN test league (WS5)
 - Ops desk → **🏈 ESPN test league**: writes switch, each of the 4 test teams vs its SPL roster, **🪞 Mirror SPL rosters**, ESPN write log (Sheet tab `EspnLog`).
 - Test team names: Mirror renames them to the real SPL team + " (test)" (backend `testName_`; short fallback `SHORT_TEAM`).
-- Mapping: Mike's own ESPN team = Mike; the other 3 by ESPN team id = Joe, Al, Glen (`DEMO_OWNERS` in `backend/logic.js`).
+- Mapping: Mike's own ESPN team = Mike; the other 3 by ESPN team id = Joe, Al, Glen (`DEMO_OWNERS` in `backend/mod_espn.js`).
 - Reset after a demo: Mirror again + Wipe test trades. Mirror on a day without games (locked players can be refused).
 - A trade ESPN refused shows on the Commish desk under **Do on ESPN** with ESPN's reason. Never re-run it blindly: check ESPN first (it may be pending), then do it by hand and tap ✓ Done on ESPN.
 
@@ -66,6 +66,6 @@ _Owner: Mike (ops). Last updated 2026-11-26 (v0.13)._ Keep this current whenever
 UptimeRobot (free) → New monitor → Keyword → URL `<API_URL>?action=health` → keyword `"healthy":true` → alert to Mike's phone.
 
 ## 6. Rollback
-- Backend: `git revert` the commit and push; the loader picks it up in 5 min. A logic.js that doesn't compile falls back to the 6-hour last-good copy automatically.
+- Backend: `git revert` the commit and push; the loader picks it up in 5 min. A logic.js or part that doesn't compile falls back to the 6-hour last-good copy automatically (a broken part also emails ops, once an hour). CI (Actions → Checks) goes red on the push.
 - App: `git revert` and push; Pages redeploys in ~1 min.
 - Sheet data: File → Version history.
