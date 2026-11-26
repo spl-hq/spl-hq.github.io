@@ -7,6 +7,8 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **Commish questions are desk inbox items, not reel cards** (Mike). The reel is for the league; Joe's to-dos live on the Commish desk,
+  with the open count on the header Desk button.
 - 2026-11-26 · **Mike's answers in the app (pending Joe's OK):** traded keeper contracts travel as-is; only next season's picks trade; Divisional Draft
   as the app runs it; Al = James Farrington; trades go to a **league veto vote run in the app** (league chat entry + a card in every owner's reel:
   vote, comment, react), Joe ↔ Mike trades included (auto after the window). Questions for Joe rebaselined to what's still his call; retired

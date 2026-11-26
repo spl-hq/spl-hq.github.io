@@ -325,7 +325,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.13.4";
+var APP_VERSION = "0.13.5";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -429,7 +429,7 @@ function initials() { // Michael Murello → MM
 function fullName() { return (ME && (fullOf(ME.owner) || ME.name)) || ""; }
 function paintMe() {
   var b = $("#meBtn"); if (b) { b.textContent = ME ? initials() : "Sign in"; b.setAttribute("aria-label", ME ? "Your settings" : "Sign in"); }
-  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk"; d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
+  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); var qOpen = isOps() ? 0 : ACTIVE_Q.length - answeredActive(MY || {}); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk" + (qOpen > 0 ? " · " + qOpen : ""); d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
 }
 function flushOutbox() { // chat typed offline never reached the backend, so sending it now can't double-post
   var ob = store("outbox") || []; if (!ob.length || !ME || !navigator.onLine || flushOutbox.busy) return; flushOutbox.busy = true;
@@ -486,8 +486,6 @@ function cardShell(x) {
 function buildFeed(d) {
   var wk = d.week ? d.week.week : 0, cards = [], W = d.week, me = ME ? ME.owner : null;
   if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and the reel becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
-  if (ME && isDesk()) { var n = answeredActive(MY || {});
-    if (n < ACTIVE_Q.length) cards.push({ id: "questions", needs: 1, scope: "me", eb: "📋 For the commish", title: (me === "reilly" ? "Your questions, Joe" : "Questions for Joe"), body: '<div class="big">' + n + '<small class="muted" style="font-size:20px"> / ' + ACTIVE_Q.length + '</small></div><p>' + (me === "reilly" ? "Quick calls that decide how trades, picks and keeper contracts work in the app." : "Joe's answers shape the trade center. Answered so far.") + '</p>', action: [n ? "Keep going" : "Answer them", "go('joe')"] }); }
   if (ME) draftCards(d.drafts, me).forEach(function (c) { cards.push(c); });
   var kd = keeperDeadlineCard(me); if (kd) cards.push(kd);
   var T = d.trades;
@@ -926,12 +924,12 @@ SCREENS.desk.after = function () {
     if (!d.ok) throw new Error(d.error);
     var mineIn = function (o) { return o.from === ME.owner || o.to === ME.owner; };
     var html = testBanner(d), wait = d.backupWaitH || 48;
-    html += '<div class="eyebrow">⏳ Trades to approve · ' + d.review.length + '</div>' + (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<div class="card"><p class="muted" style="margin:0">Nothing waiting on ' + (isOps() ? "Joe" : "you") + '.</p></div>');
-    if (d.espn.length) html += '<div class="eyebrow">🏈 Do on ESPN · ' + d.espn.length + '</div>' + d.espn.map(offerCard).join("");
     var joeIds = d.owners.filter(function (o) { return /commish/.test(o.role) && !/ops/.test(o.role); }).map(function (o) { return o.owner; });
     var joeN = {}; d.answers.forEach(function (a) { if (joeIds.indexOf(a.who) >= 0) joeN[a.qid] = 1; });
     var n = isOps() ? answeredActive(joeN) : answeredActive(MY || {});
-    html += '<div class="card"><div class="eyebrow">📋 Questions</div><p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
+    html += '<div class="card"' + (!isOps() && n < ACTIVE_Q.length ? ' style="border-color:var(--gold)"' : '') + '><div class="eyebrow">📋 Questions' + (!isOps() && n < ACTIVE_Q.length ? ' · <span class="gold">needs you</span>' : '') + '</div><p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
+    html += '<div class="eyebrow">⏳ Trades to approve · ' + d.review.length + '</div>' + (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<div class="card"><p class="muted" style="margin:0">Nothing waiting on ' + (isOps() ? "Joe" : "you") + '.</p></div>');
+    if (d.espn.length) html += '<div class="eyebrow">🏈 Do on ESPN · ' + d.espn.length + '</div>' + d.espn.map(offerCard).join("");
     if (d.recent.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Recent decisions</summary>' + d.recent.map(offerCard).join("") + '</details>';
     if (isOps()) html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p class="muted" style="margin:0;font-size:13px">Joe\'s tool: he moves a pick traded before the app (or fixes a mistake) with a reason the league sees. Read-only in Joe\'s view.</p></div>';
     else html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason; the ledger robot copies it into the official file.</p>' +

@@ -10,13 +10,16 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Quest
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
 
-## Open questions (in the app: League → 📋 Questions, rebaselined 11/26)
+## Open questions (in the app: 📥 Commish desk → 📋 Questions, rebaselined 11/26)
 Joe sees 7: ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
 **Mike's calls** (traded contracts travel, next-season picks only, Divisional Draft rules) · 2027 dates · move league talk to app chat · Joe's #1 wish.
 Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_years, div_draft, al_name, trade_review, commish_trades; review_window + chat superseded.
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.13.5 · 📥 **Questions moved off the reel into the Commish desk inbox** (Mike): no more "Questions for Joe" card on Home. On Joe's
+  Commish desk the 📋 Questions card sits at the top of the inbox, gold with "needs you" while any are open, and the header button reads
+  **📥 Desk · N** (open questions). Mike's Ops desk view unchanged. SW cache `splhq-v25`.
 - 2026-11-26 · v0.13.4 · 📋 **Questions for Joe rebaselined** (Mike answered 6 in the app). Joe now sees 7: `espn_lm`, `test_league`, new `veto_vote`
   (Mike's "league veto vote, run in the app" spelled out with the constitution's 24 h / 6-veto in-season and 72 h off-season rules; covers Joe ↔ Mike
   trades, so `commish_trades` retires), new `mike_calls` (one OK for contracts travel as-is, 2027 picks only, Divisional Draft as described),
