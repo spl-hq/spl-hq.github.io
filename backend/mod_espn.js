@@ -15,7 +15,13 @@ function cookies_() {
 }
 function espn_(lid, query) {
   var url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/" + SEASON + "/segments/0/leagues/" + lid + "?" + query;
-  var r = UrlFetchApp.fetch(url, { headers: { Cookie: cookies_() }, muteHttpExceptions: true });
+  // Reads are safe to retry (writes never are). Google's fetcher sometimes can't reach ESPN for a moment
+  // ("Address unavailable", 11/26): try up to 3 times, then a plain message instead of the raw URL.
+  var r = null, err = null, opts = { headers: { Cookie: cookies_() }, muteHttpExceptions: true };
+  for (var i = 0; i < 3 && !r; i++) {
+    try { r = UrlFetchApp.fetch(url, opts); } catch (e) { err = e; if (i < 2) Utilities.sleep(1000 * (i + 1)); }
+  }
+  if (!r) throw new Error("ESPN didn't answer (network blip: " + String((err && err.message) || err).split(":")[0] + "). Try again in a minute.");
   if (r.getResponseCode() !== 200) throw new Error("ESPN said " + r.getResponseCode());
   return JSON.parse(r.getContentText());
 }

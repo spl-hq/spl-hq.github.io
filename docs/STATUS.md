@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS6 parity: backend split + CI)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, ESPN read retry)
 
 ## Now
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
@@ -17,6 +17,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · backend v0.11.2 · 🔁 **ESPN reads retry on a network blip.** Ops desk → Test league showed red "Address unavailable: <ESPN URL>"
+  (Mike, 8:11 AM): Google's fetcher couldn't reach ESPN for a moment, not an ESPN refusal. `espn_()` now tries a read up to 3 times (1 s, 2 s
+  apart) and, if all fail, says "ESPN didn't answer (network blip). Try again in a minute." instead of the raw URL. Reads only: writes
+  (`espnPost_`) still never retry.
 - 2026-11-26 · backend v0.11.1 · 🔀 **WS6 MAFFL ↔ SPL parity.** New `docs/MAFFL_PARITY.md` (read against MAFFL main): what's left to port
   MAFFL → SPL (commish polls first, since the league veto vote rides on them; then announcements, passphrase requests, vault cards…) and a
   hand-back list SPL → MAFFL for when REEL wakes (iOS frame fixes, `robot_push.sh`, ESPN write switch + log, robot freshness, rules from
