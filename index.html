@@ -173,7 +173,9 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
   --chalk:#0B1F3A; --muted:#5D6E89; --soft:#33465F;
   --lime:#1E407C; --gold:#B88A2E; --coral:#C8102E;
 }
-html,body{background:#041E42} main{background:#F2F5FA} header{-webkit-backdrop-filter:none;backdrop-filter:none}
+html,body{background:#041E42} main{background:#F2F5FA}
+/* Installed on the Home Screen, iOS softly blurs a band just below the status bar: drop the header contents below it. */
+html.sa header{padding-top:calc(var(--top) + 26px)} html.sa .upd{top:calc(var(--top) + 92px)} header{-webkit-backdrop-filter:none;backdrop-filter:none}
 header{background:#041E42;border-bottom:0;color:#fff}
 header h1 small{color:#96BEE6}
 header .pill{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#cfe0f5}
@@ -260,6 +262,7 @@ a.btn.ghost{text-decoration:none}
     var h = window.innerHeight;
     if (sa && matchMedia("(orientation: portrait)").matches && screen.height > h) h = screen.height;
     document.body.style.height = h + "px";
+    document.documentElement.classList.toggle("sa", !!sa); // installed: header clears iOS's status-bar blur zone
   }
   document.addEventListener("DOMContentLoaded", fit); window.addEventListener("resize", fit); window.addEventListener("orientationchange", function () { setTimeout(fit, 300); });
   window._fit = fit;
@@ -270,7 +273,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.8.2";
+var APP_VERSION = "0.8.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
