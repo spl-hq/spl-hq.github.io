@@ -1,5 +1,5 @@
 # SPL_Matchups.csv  --  GOLD (robot-written by tools/pull_history.py from ESPN league 19583; re-run to refresh).
-# Pulled 2026-11-26T03:50Z. One row per game; byes and unplayed games skipped.
+# Pulled 2026-11-26T03:53Z. One row per game; byes and unplayed games skipped.
 # playoff_tier: NONE = regular season, WINNERS_BRACKET = playoffs, others = consolation. owner_id blank = unresolved (see report).
 season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away_pts,winner,source
 2006,1,NONE,moyer,Kimble's Finast,106.8,chappie,Happiest Slappies,55.0,HOME,espn-leagueHistory
