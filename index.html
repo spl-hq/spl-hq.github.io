@@ -311,7 +311,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.12.1";
+var APP_VERSION = "0.13";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -778,7 +778,8 @@ function offerCard(o) {
   return '<div class="card offer" id="o-' + esc(o.id) + '"><div class="row" style="justify-content:space-between"><div class="eyebrow" style="margin:0">' + (o.counterOf ? "↩️ Counter · " : "🔁 ") + esc(oname(o.from)) + ' ⇄ ' + esc(oname(o.to)) + '</div><span class="' + st[1] + '" style="font:700 11px var(--mono)">' + st[0] + '</span></div>' +
     '<div class="grid" style="margin-top:10px;gap:12px"><div><div class="eyebrow">' + esc(oname(o.from)) + ' sends</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">' + esc(oname(o.to)) + ' sends</div>' + sideList(o.get, o.to) + '</div></div>' +
     (o.note ? '<p style="font-size:13px">“' + esc(o.note) + '”</p>' : '') + (o.reason && o.status !== "PROPOSED" ? '<p class="muted" style="font-size:13px">' + esc(o.reason) + '</p>' : '') +
-    (o.status === "APPROVED" && o.espn === "todo" ? '<p class="gold" style="font-size:13px">Players still to move on ESPN.</p>' : '') +
+    (o.status === "APPROVED" && o.espn === "todo" ? '<p class="gold" style="font-size:13px">Players still to move on ESPN' + (o.mode === "test" ? " (test league)" : "") + '.' + (o.espnNote ? ' <span class="muted">' + esc(o.espnNote) + '</span>' : '') + '</p>' : '') +
+    (o.status === "APPROVED" && o.espn === "done" ? '<p class="lime" style="font-size:13px">🏈 Done on ESPN' + (o.mode === "test" ? " · test league" : "") + '</p>' : '') +
     (o.status === "ACCEPTED" && isDesk() && o.lock ? '<p class="muted" style="font-size:13px;margin-top:10px">👀 ' + esc(o.lock) + '</p>' : '') +
     (btns ? '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + btns + '</div>' : '') +
     (other !== me && (o.from === me || o.to === me) ? '<p style="margin-top:8px"><button class="back" onclick="go(\'chat\',\'' + dmRoom(other) + '\')">💬 Talk it over with ' + esc(oname(other)) + '</button></p>' : '') +
@@ -795,7 +796,7 @@ function deskTrade(id, d) {
   else if (d === "approve" && !confirm("Approve this trade? Picks move now and the league is told.")) return;
   authed("tradeact", body).then(function (r) { if (!r.ok) throw new Error(r.error); toast(d === "approve" ? "✓ Approved" : d === "negate" ? "Negated" : "✓ Marked done"); TRADES = null; render(); }).catch(function (e) { toast(e.message); });
 }
-function testBanner(t) { return t && t.mode === "test" ? '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small class="gold">🧪 Test mode: trades here are practice. Nothing moves on ESPN and Mike can wipe them. Rules use defaults until Joe answers his questions.</small></div>' : ''; }
+function testBanner(t) { return t && t.mode === "test" ? '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small class="gold">🧪 Test mode: trades here are practice. Mike can wipe them. Trades between Mike, Joe, Al and Glen move on the ESPN test league when Mike has ESPN writes on; nothing ever touches the real SPL league. Rules use defaults until Joe answers his questions.</small></div>' : ''; }
 SCREENS.trades = function (focus) {
   if (!ME) return '<h2>Trades</h2>' + needSignIn("to trade");
   return '<h2>Trades</h2><div id="trd"><div class="card"><p class="muted">Loading…</p></div></div>';
@@ -865,7 +866,7 @@ SCREENS.trade.after = function (arg) {
     var col = function (s, team, owner) {
       return '<div class="bcol"><div class="ghead' + (s === "give" ? " me" : "") + '"><b>' + (s === "give" ? "You send" : esc(oname(owner)) + " sends") + '</b><small>' + esc(team.team) + '</small></div>' +
         grouped(team.players.filter(function (p) { return p.slot !== "IR"; }), function (p) { var on = !!TB[s].players[p.n];
-          return '<button class="gp sel' + (on ? " on" : "") + '" data-s="' + s + '" data-p="' + esc(p.n) + '" data-pos="' + esc(p.pos) + '" data-tm="' + esc(p.tm) + '"><b>' + esc(p.n) + (contractOf(p.n) ? " 🔒" : "") + '</b><small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + '</small></button>'; }) +
+          return '<button class="gp sel' + (on ? " on" : "") + '" data-s="' + s + '" data-p="' + esc(p.n) + '" data-pos="' + esc(p.pos) + '" data-tm="' + esc(p.tm) + '" data-id="' + (p.id || "") + '"><b>' + esc(p.n) + (contractOf(p.n) ? " 🔒" : "") + '</b><small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + '</small></button>'; }) +
         '<div class="gpos">🎟️ Picks</div>' + picksOf(owner).map(function (pk) { var on = !!TB[s].picks[pk.pid];
           return '<button class="gp sel pk' + (on ? " on" : "") + '" data-s="' + s + '" data-k="' + esc(pk.pid) + '"><b>' + esc(pickLabel(pk.pid, owner)) + '</b></button>'; }).join("") + '</div>';
     };
@@ -878,7 +879,7 @@ SCREENS.trade.after = function (arg) {
       $("#tsum").innerHTML = (g.length || r.length) ? '<b>You send</b> ' + (esc(g.join(", ")) || '<span class="muted">—</span>') + '<br><b>You get</b> ' + (esc(r.join(", ")) || '<span class="muted">—</span>') : '<span class="muted">Tap players or picks on both sides.</span>'; };
     sum();
     $("#tb").querySelectorAll(".gp.sel").forEach(function (b) { b.onclick = function () {
-      var s = b.dataset.s; if (b.dataset.p) { if (TB[s].players[b.dataset.p]) delete TB[s].players[b.dataset.p]; else TB[s].players[b.dataset.p] = { n: b.dataset.p, pos: b.dataset.pos, tm: b.dataset.tm }; }
+      var s = b.dataset.s; if (b.dataset.p) { if (TB[s].players[b.dataset.p]) delete TB[s].players[b.dataset.p]; else TB[s].players[b.dataset.p] = { n: b.dataset.p, pos: b.dataset.pos, tm: b.dataset.tm, id: +b.dataset.id || undefined }; }
       else { if (TB[s].picks[b.dataset.k]) delete TB[s].picks[b.dataset.k]; else TB[s].picks[b.dataset.k] = 1; }
       b.classList.toggle("on"); sum(); }; });
     $("#tsend").onclick = function () {
@@ -1824,6 +1825,7 @@ SCREENS.ops = function () {
     '<div class="card"><div class="eyebrow">App</div><div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
     '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
     '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div></div>' +
+    '<div class="card" id="opsTL"><div class="eyebrow">🏈 ESPN test league</div><p class="muted">Loading…</p></div>' +
     '<div class="card"><div class="eyebrow">🧪 Test trades</div><p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p></div>';
 };
 function ago(ts) {
@@ -1842,6 +1844,45 @@ function issuePass(id, name, had) {
     $("#copyP").onclick = function () { (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject()).then(function () { toast("Copied"); }, function () { prompt("Copy this:", msg); }); };
     $("#view").scrollTop = 0; loadDesk();
   }).catch(function (e) { toast(e.message); });
+}
+// 🏈 WS5: the 4-team ESPN test league. Each test team mirrors one SPL roster (Mike, Joe, Al, Glen); approved trades between
+// them execute there (one write, read back). Switch, mirror and write log live here. Writes never touch the real league.
+function loadTL() {
+  var el = $("#opsTL"); if (!el) return;
+  authed("testleague").then(function (d) {
+    if (!d.ok) throw new Error(d.error); var el = $("#opsTL"); if (!el) return;
+    var off = d.teams.filter(function (t) { return t.drops || t.adds; }).length;
+    el.innerHTML = '<div class="eyebrow">🏈 ESPN test league · ' + esc(d.name) + ' · week ' + d.week + '</div>' +
+      '<div class="kv" style="align-items:center"><span>ESPN writes<br><small class="muted">test league ' + d.league + ' only</small></span><span><button class="btn ' + (d.writes ? "" : "ghost") + '" style="padding:7px 10px;font-size:13px" onclick="tlSwitch(' + !d.writes + ')">' + (d.writes ? "ON · turn off" : "Off · turn on") + '</button></span></div>' +
+      d.teams.map(function (t) { var good = !t.drops && !t.adds;
+        return '<div class="kv" style="display:block"><b>' + esc(oname(t.owner)) + '</b> <small class="muted">= ESPN “' + esc(t.team) + '”</small><br>' +
+          (good ? '<span class="lime">✅ ' + t.want + ' of ' + t.want + ' players match SPL</span>' : '<span class="gold">' + t.match + ' of ' + t.want + ' match · ' + t.drops + ' to drop · ' + t.adds + ' to add</span>' +
+            '<br><small class="muted">' + (t.addNames.length ? "Add: " + esc(t.addNames.join(", ")) : "") + (t.dropNames.length ? (t.addNames.length ? " · " : "") + "Drop: " + esc(t.dropNames.join(", ")) : "") + '</small>') + '</div>'; }).join("") +
+      '<p style="margin-top:10px"><button class="btn' + (off ? "" : " ghost") + '" id="tlMirror"' + (d.writes ? "" : " disabled") + '>🪞 Mirror SPL rosters</button></p>' +
+      '<p class="muted" style="font-size:12px;margin:6px 0 0">' + (d.writes ? "Drops every extra player first, then adds each SPL roster. Run it again any time to reset after demo trades." : "Turn writes on to mirror.") + ' Approved trades between these 4 move on ESPN by themselves.</p>' +
+      '<div id="tlProg"></div>' +
+      (d.log.length ? '<details style="margin-top:10px"><summary class="eyebrow" style="cursor:pointer">ESPN write log · last ' + d.log.length + '</summary>' + d.log.map(function (l) {
+        return '<div class="kv" style="display:block;font-size:12px"><span class="' + (l.code >= 200 && l.code < 300 ? "lime" : "coral") + '">' + esc(l.code) + '</span> ' + esc(l.kind) + ' · ' + esc(l.ref) + ' <span class="muted">' + ago(l.ts) + (l.msg ? ' · ' + esc(l.msg) : '') + '</span></div>'; }).join("") + '</details>' : '');
+    var b = $("#tlMirror"); if (b) b.onclick = function () { tlMirror(d); };
+  }).catch(function (e) { var el = $("#opsTL"); if (el) el.innerHTML = '<div class="eyebrow">🏈 ESPN test league</div><p class="coral">' + esc(e.message) + '</p>'; });
+}
+window.tlSwitch = function (on) {
+  if (!confirm(on ? "Turn ESPN writes ON? The app can then change rosters in the test league (never the real SPL league)." : "Turn ESPN writes off?")) return;
+  authed("espnwrites", { on: on }).then(function (r) { if (!r.ok) throw new Error(r.error); toast(r.writes ? "ESPN writes on (test league)" : "ESPN writes off"); loadTL(); }).catch(function (e) { toast(e.message); });
+};
+function tlMirror(d) {
+  var drops = d.teams.reduce(function (a, t) { return a + t.drops; }, 0), adds = d.teams.reduce(function (a, t) { return a + t.adds; }, 0);
+  if (!drops && !adds) { toast("Already a mirror"); return; }
+  if (!confirm("Mirror the 4 SPL rosters into the test league?\n\n" + drops + " drops, then " + adds + " adds, one player at a time. Takes a minute or two; keep the app open.")) return;
+  var steps = []; ["drops", "adds"].forEach(function (st) { d.teams.forEach(function (t) { if (t[st]) steps.push({ owner: t.owner, step: st }); }); });
+  var fails = [], b = $("#tlMirror"); if (b) b.disabled = true;
+  var prog = function (txt) { var el = $("#tlProg"); if (el) el.innerHTML = '<p style="font-size:13px;margin:8px 0 0">' + txt + '</p>'; };
+  (function next(i) {
+    if (i >= steps.length) { prog(fails.length ? '<span class="coral">Done with ' + fails.length + ' misses:</span> ' + esc(fails.join("; ")) : '<span class="lime">✅ Mirrored.</span>'); setTimeout(loadTL, fails.length ? 4000 : 1200); return; }
+    var s = steps[i]; prog("⏳ " + (s.step === "drops" ? "Dropping extras from " : "Adding SPL roster to ") + esc(oname(s.owner)) + "'s team · step " + (i + 1) + " of " + steps.length);
+    authed("mirror", s).then(function (r) { if (!r.ok) throw new Error(r.error); fails = fails.concat(r.fails.map(function (f) { return oname(s.owner) + ": " + f; })); next(i + 1); })
+      .catch(function (e) { prog('<span class="coral">Stopped: ' + esc(e.message) + '</span>'); if (b) b.disabled = false; });
+  })(0);
 }
 function loadDesk() {
   authed("desk").then(function (d) {
@@ -1865,7 +1906,7 @@ function loadDesk() {
 }
 SCREENS.ops.after = function () {
   if (!$("#opsHealth")) return;
-  loadDesk();
+  loadDesk(); loadTL();
   var ok = function (b, t) { return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };

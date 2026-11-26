@@ -182,7 +182,7 @@ r = e.post({ action: "tradeact", token: mike, id: g.offer.id, decision: "approve
 ok(r.ok, "Mike approves Glen↔Joe");
 t = e.post({ action: "trades", token: glen });
 ok(t.picks.find(p => p.pid === "2027-R2-reilly").owner === "glen" && t.picks.find(p => p.pid === "2027-R3-glen").owner === "reilly", "picks moved on approval");
-ok(t.offers.find(o => o.id === g.offer.id).espn === "test", "test mode: nothing owed on ESPN");
+ok(t.offers.find(o => o.id === g.offer.id).espn === "none", "pick-only trade: nothing for ESPN");
 ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Trade approved/.test(r[4])), "league chat announces it");
 r = e.post({ action: "tradeact", token: joeTok, id: tid, decision: "approve" });
 ok(r.ok && e.sheets.Chat.rows.some(x => /commish-to-commish trade, approved by Joe/.test(x[4])), "Mike↔Joe trade: approvable, flagged to the league");
@@ -303,6 +303,80 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "💩" })
 ok(e.post({ action: "react", token: glen, key: "=HYPERLINK(1)", emoji: "🔥" }).ok === false, "bad card keys refused");
 ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false, "signed-in only");
 
+
+// 6b · 🏈 WS5: 4-team test league mirrors 4 SPL rosters; approved demo trades execute on ESPN (test league only) + read back
+{
+  const SPL = { "Bad Attitude Gang": [1, 2], "Reilly's RaMPaGe": [3, 4], "Farrington's FREELANCERS": [5], "Fluff Muffins": [6], "Tijuana Trojans": [7] };
+  const NAMES = { 1: "Josh Allen", 2: "Bijan Robinson", 3: "Chris Olave", 4: "Sam LaPorta", 5: "Derrick Henry", 6: "Puka Nacua", 7: "Smith Guy", 9: "Junk One", 10: "Junk Two" };
+  const T = { 1: [9, 3], 2: [], 3: [10], 4: [] }; // test league before the mirror (team 3 = Mike's SWID)
+  const posts = []; let rejectTrades = false;
+  const ent = id => ({ playerId: id, lineupSlotId: 20, playerPoolEntry: { player: { id, fullName: NAMES[id], defaultPositionId: 2, proTeamId: 2, stats: [] } } });
+  const mock = (url, o) => {
+    const res = (code, b) => ({ getResponseCode: () => code, getContentText: () => JSON.stringify(b) });
+    if (o && o.method === "post") {
+      ok(/lm-api-writes.*leagues\/1722387564\/transactions\/$/.test(url), "write goes only to the test league (" + url.split("/leagues/")[1] + ")");
+      const b = JSON.parse(o.payload); posts.push(b);
+      if (b.type !== "FREEAGENT" && rejectTrades) return res(409, { messages: ["Roster limit"] });
+      const where = id => Object.keys(T).find(k => T[k].includes(id));
+      for (const it of b.items) {
+        if (it.type === "ADD" && where(it.playerId)) return res(409, { messages: ["Player already rostered"] });
+        if (it.type === "DROP" || it.type === "TRADE") T[it.fromTeamId] = T[it.fromTeamId].filter(x => x !== it.playerId);
+        if (it.type === "ADD" || it.type === "TRADE") T[it.toTeamId].push(it.playerId);
+      }
+      return res(200, { status: "EXECUTED" });
+    }
+    const lid = /leagues\/(\d+)/.exec(url)[1];
+    if (lid === "19583") return res(200, { scoringPeriodId: 13, settings: { name: "SPL" }, teams: Object.keys(SPL).map((n, i) => ({ id: i + 1, name: n, roster: { entries: SPL[n].map(ent) } })) });
+    return res(200, { scoringPeriodId: 13, settings: { name: "Testing MAFFL HQ" }, teams: [4, 3, 2, 1].map(id => ({ id, name: "Test " + id, owners: id === 3 ? ["{XYZ}"] : ["{OTHER}"], roster: { entries: T[id].map(ent) } })) });
+  };
+  const w = makeEnv({ ESPN_S2: "abc", SWID: "XYZ" }, mock);
+  w.M.menuCheck(); const mp = (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(w.alerts[0]) || [])[1];
+  const wm = w.post({ action: "login", pin: mp }).token;
+  const wj = w.post({ action: "login", pin: w.post({ action: "issue", token: wm, owner: "reilly" }).phrase }).token;
+  const ws = w.post({ action: "login", pin: w.post({ action: "issue", token: wm, owner: "smith" }).phrase }).token;
+  ok(w.post({ action: "testleague", token: wj }).ok === false, "test league desk is ops only");
+  let d = w.post({ action: "testleague", token: wm });
+  const byO = o => d.teams.find(x => x.owner === o);
+  ok(d.ok && d.teams.length === 4 && byO("murello").teamId === 3 && byO("reilly").teamId === 1 && byO("farrington").teamId === 2 && byO("glen").teamId === 4, "4 test teams: Mike's own ESPN team = Mike, then Joe, Al, Glen by id");
+  ok(byO("reilly").drops === 1 && byO("reilly").adds === 1 && byO("reilly").match === 1 && byO("murello").adds === 2, "mirror plan: drop what SPL doesn't have, add what it does");
+  ok(d.writes === false && w.post({ action: "mirror", token: wm, owner: "reilly", step: "drops" }).ok === false && posts.length === 0, "writes off: nothing sent");
+  ok(w.post({ action: "espnwrites", token: wj, on: true }).ok === false, "only ops flips the ESPN switch");
+  ok(w.post({ action: "espnwrites", token: wm, on: true }).writes === true, "Mike turns ESPN writes on");
+  ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: "drops" }));
+  let last; ["murello", "reilly", "farrington", "glen"].forEach(o => { last = w.post({ action: "mirror", token: wm, owner: o, step: "adds" }); });
+  ok(last.ok && last.left === 0 && last.match === 1, "mirror step reads back what's left");
+  d = w.post({ action: "testleague", token: wm });
+  ok(d.teams.every(x => x.match === x.want && x.drops === 0 && x.adds === 0), "after the mirror every test team matches its SPL roster");
+  ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.items.length === 1 && b.memberId === "{XYZ}"), "commish moves, one player per write, no retries");
+  ok(w.sheets.EspnLog.rows.length === posts.length + 1, "every write logged");
+  // Demo trade: Mike's Allen for Joe's Olave → Joe accepts → Joe approves (commish-to-commish) → ESPN moves it, read back
+  let o = w.post({ action: "offer", token: wm, to: "reilly", give: { players: [{ n: "Josh Allen", id: 1 }] }, get: { players: [{ n: "Chris Olave" }] } });
+  ok(o.ok && o.offer.give.players[0].id === 1, "offers keep the ESPN player id");
+  w.post({ action: "respond", token: wj, id: o.offer.id, decision: "accept" });
+  const before = posts.length;
+  ok(w.post({ action: "tradeact", token: wj, id: o.offer.id, decision: "approve" }).ok, "Joe approves the demo trade");
+  const tp = posts[before];
+  ok(posts.length === before + 1 && tp.type === "TRADE_PROPOSAL" && tp.items.length === 2 && tp.items.every(i => i.type === "TRADE"), "one LM trade write, both players");
+  ok(T[1].includes(1) && T[3].includes(3), "players moved on the test league");
+  let off = w.post({ action: "trades", token: wm }).offers.find(x => x.id === o.offer.id);
+  ok(off.espn === "done" && /test league/.test(off.espnNote), "read back: done on ESPN");
+  ok(w.sheets.Chat.rows.some(x => x[2] === "league" && /done on ESPN \(test league\)/.test(x[4])), "league card says it's done on ESPN");
+  // ESPN refuses → Do-on-ESPN step with ESPN's reason, never retried
+  rejectTrades = true;
+  o = w.post({ action: "offer", token: wj, to: "murello", give: { players: [{ n: "Sam LaPorta" }] }, get: { players: [{ n: "Bijan Robinson" }] } });
+  w.post({ action: "respond", token: wm, id: o.offer.id, decision: "accept" });
+  const b2 = posts.length; w.post({ action: "tradeact", token: wm, id: o.offer.id, decision: "approve" });
+  off = w.post({ action: "trades", token: wm }).offers.find(x => x.id === o.offer.id);
+  ok(posts.length === b2 + 1 && off.espn === "todo" && /409.*Roster limit/.test(off.espnNote), "ESPN refuses: one try, Do-on-ESPN step with the reason");
+  ok(w.post({ action: "desk", token: wj }).espn.some(x => x.id === o.offer.id), "it lands on the commish desk's Do on ESPN list");
+  // a team not in the test league: nothing sent
+  rejectTrades = false;
+  o = w.post({ action: "offer", token: ws, to: "reilly", give: { players: [{ n: "Smith Guy" }] }, get: { players: [{ n: "Chris Olave" }] } });
+  ok(o.ok, "Matt offers (not a test-league team)");
+  w.post({ action: "respond", token: wj, id: o.offer.id, decision: "accept" }); const b3 = posts.length;
+  ok(w.post({ action: "tradeact", token: wm, id: o.offer.id, decision: "approve" }).ok && posts.length === b3, "Matt isn't a test team: approved, nothing sent to ESPN");
+  ok(w.post({ action: "trades", token: wm }).offers.find(x => x.id === o.offer.id).espn === "test", "…and nothing owed (test mode)");
+}
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));
 h = e.get({ action: "health" });

@@ -1,6 +1,6 @@
 # SPL HQ — Ops runbook
 
-_Owner: Mike (ops). Last updated 2026-11-26 (v0.12)._ Keep this current whenever a secret, tab, robot or switch is added.
+_Owner: Mike (ops). Last updated 2026-11-26 (v0.13)._ Keep this current whenever a secret, tab, robot or switch is added.
 
 ## 1. The pieces
 
@@ -17,6 +17,8 @@ _Owner: Mike (ops). Last updated 2026-11-26 (v0.12)._ Keep this current whenever
 |---|---|---|
 | `ESPN_S2`, `SWID` | Apps Script → Project Settings → Script properties **and** GitHub repo → Settings → Secrets → Actions | ESPN reads/writes. Expire ~yearly: the Ops desk shows ❌ with "ESPN said 401" |
 | `PIN_PEPPER` | Script properties (auto-created) | Secret for passphrase hashes + device tokens. Never change |
+| `ESPN_WRITES` | Script properties (set by the Ops desk switch) | `on` lets the app write to the ESPN **test league** (mirror rosters, demo trades). Anything else = off |
+| `ESPN_TRADE_TYPE` | Script properties (optional) | Overrides the ESPN transaction type of the commish trade write (default `TRADE_PROPOSAL`). Only touch if ESPN refuses the demo trade |
 | `OPS_EMAIL` | Script properties (optional) | Extra address(es) copied on answer/feedback emails, e.g. Mike's personal Gmail |
 
 ## 3. First deploy (one time)
@@ -52,6 +54,12 @@ _Owner: Mike (ops). Last updated 2026-11-26 (v0.12)._ Keep this current whenever
 | `Ledger sync` (GitHub Action) | Every 2 h; on change or by hand | Backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow trades (test mode → `data/test/`) → `league-data.js` | GitHub emails the org owner; Ops desk "Ledger robot" turns red after 36 h. Usual cause: backend down (check `?action=health`) |
 | `ESPN history pull` (GitHub Action) | Daily ~6 AM ET (Tuesday adds last week's finals); also on change or by hand | ESPN 19583 finals → `data/SPL_Matchups.csv` (gold) + the games still to play → `data/SPL_Schedule.csv` (gold, feeds 🗓️ Up next) → `league-data.js` | GitHub emails the org owner; Ops desk "History robot" turns red after 9 days. Usual cause: ESPN cookies expired → refresh the `ESPN_S2`/`SWID` secrets |
 | `Weekly Pulse` (GitHub Action) | After every history pull + Tue 9 AM ET backstop; by hand (Run workflow, tick **force** to rewrite the week) | `tools/pulse.py`: newest finished week → facts from gold → Claude writes the edition (needs GitHub secret **`CLAUDE_CODE_OAUTH_TOKEN`**, from `claude setup-token` on Mike's subscription) → `data/Weekly_Pulse.json` (gold) → `league-data.js` | No token: a plain template edition ships (Ops desk says "template"). Token set but Claude failed: template edition saved, Action goes red, GitHub emails. Fix the token, Run workflow with force |
+
+## 4c. ESPN test league (WS5)
+- Ops desk → **🏈 ESPN test league**: writes switch, each of the 4 test teams vs its SPL roster, **🪞 Mirror SPL rosters**, ESPN write log (Sheet tab `EspnLog`).
+- Mapping: Mike's own ESPN team = Mike; the other 3 by ESPN team id = Joe, Al, Glen (`DEMO_OWNERS` in `backend/logic.js`).
+- Reset after a demo: Mirror again + Wipe test trades. Mirror on a day without games (locked players can be refused).
+- A trade ESPN refused shows on the Commish desk under **Do on ESPN** with ESPN's reason. Never re-run it blindly: check ESPN first (it may be pending), then do it by hand and tap ✓ Done on ESPN.
 
 ## 5. Uptime monitor (after first deploy)
 UptimeRobot (free) → New monitor → Keyword → URL `<API_URL>?action=health` → keyword `"healthy":true` → alert to Mike's phone.

@@ -7,6 +7,11 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **WS5: a 4-team test league, not 12** (Mike). The test league's 4 teams mirror Mike, Joe, Al and Glen's real SPL rosters (Mike's own ESPN
+  team = Mike, by his SWID). ESPN writes are a switch on the Ops desk (Script property, off by default) and can only reach `WRITE_LEAGUE`. Mirroring is
+  run by Mike from the Ops desk (on demand, to set up and to reset after demos), not a scheduled robot: the test league only changes when someone
+  writes to it. A trade write is one POST, never retried, then read back; anything short of "every player moved" becomes a Do-on-ESPN step with
+  ESPN's reason. Practice trades never write to the real league, and real trades never write to the test league.
 - 2026-11-26 · **Header = identity + desk only** (Mike). Avatar = initials from the registry full name and opens settings directly; no role shown
   anywhere. No connection pill unless offline/unreachable ("Live" belongs on Match/Roster, tied to ESPN). Offline: only chat queues (it never
   reached the backend, so sending later can't double-post); trades, picks, drafts and settings refuse offline rather than queue, since a
@@ -89,7 +94,7 @@ SPL-only: pick-your-opponent playoff pick → ESPN `/schedule` write; keeper dea
 2. ✅ Foundation v0.1 (app shell, loader, logic, Questions, Ideas, Ops desk, standings). ⬜ Mike deploys the web app → `API_URL`.
 3. Static League screens: Keepers, Draft, History/GM Rankings, Rules (data already gathered in the Claude Project).
 4. Sign-in + both desks + chat. ESPN reads: rosters, Match.
-5. Trade center on the test league → demo to Joe.
+5. ✅ Trade center on the test league (v0.13: mirror + ESPN trade write) → ⬜ demo to Joe (`docs/SPL_DEMO_SCRIPT.md`).
 6. Joe signs off → `WRITE_LEAGUE` = 19583.
 7. Reel robots + playoff-pick write (2027 season).
 8. ✅ WS4 Reel cards (v0.12): Up next + rivalry grade, reactions, Weekly Pulse robot + page, pick wire, cap impact, Signing Day.

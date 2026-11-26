@@ -1,8 +1,9 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, header + settings cleanup)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS5 ESPN writes + Joe demo)
 
 ## Now
+- **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **First live write is the proof:** the LM trade write uses `TRADE_PROPOSAL` + `EXECUTE` (MAFFL's shape as recorded in the plan; Claude couldn't open the MAFFL repo to copy it). If the first demo trade comes back "Do on ESPN" with ESPN's reason, check the write log on the Ops desk; the type can be switched with Script property `ESPN_TRADE_TYPE` without a deploy.
 - **WS4 live (v0.12, backend v0.9.0):** the reel gained 🗓️ Up next, 🔥 reactions, 📰 Weekly Pulse (+ 🎙️ your week in a line), 🎟️ pick wire, 💸 cap impact, 🔒 Signing Day. **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (run `claude setup-token`, then org/repo → Settings → Secrets → Actions) so Claude writes the Pulse; until then a plain template edition ships every Tuesday. Then Actions → Weekly Pulse → Run workflow (force) to get Week 11 in Claude's voice.
 - **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
@@ -13,6 +14,16 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, heade
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.13 (backend v0.10.0) · 🏈 **WS5: ESPN writes on the test league + the Joe demo.** Test league 1722387564 keeps **4 teams** (Mike: no need for 12):
+  Mike's own ESPN team (found by his SWID) = Mike, the other three by team id = Joe, Al, Glen (`DEMO_OWNERS`). New Ops desk card **🏈 ESPN test league**:
+  **ESPN writes** switch (Script property `ESPN_WRITES`, off by default; writes can only ever go to `WRITE_LEAGUE`), each test team vs its SPL roster
+  ("14 of 16 match · 1 to drop · 2 to add"), **🪞 Mirror SPL rosters** (commish drops on all 4 teams first, then adds, one player per write, step by step
+  with progress, read back after each step; run again to reset after demo trades), and the **ESPN write log** (new Sheet tab `EspnLog`: every write,
+  ESPN's answer). **Approved trades** between those 4 owners now execute on the test league: one LM trade write (never retried), then a read-back;
+  all players moved → card + league chat say **🏈 Done on ESPN · test league**; anything else → the Commish desk's **Do on ESPN** list with ESPN's reason
+  (`espn_note`). Pick-only trades owe ESPN nothing; other owners' test trades stay practice. Offers now keep the ESPN player id. Guards: practice
+  trades never touch the real league, real trades never go to the test league. Demo script: `docs/SPL_DEMO_SCRIPT.md`. Smoke test covers mirror,
+  trade write, read-back, refusal and the switch.
 - 2026-11-26 · v0.12.1 · 👤 **Header + settings cleanup (Mike).** Avatar shows real initials from the Owner Registry full name (Michael Murello → **MM**,
   Joseph Reilly → JR …). Tapping it opens your settings directly (full name, team, @handle, contact info, email toggles, sign out): no "Open settings"
   step, no Role line (desk access still comes from the Owners tab, just not shown). Header **"live" pill removed**: the header now only shows
