@@ -18,6 +18,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · docs · 🏈 New `docs/ESPN_CAPABILITIES.md` for the Joe conversation: what the app can write to ESPN (proven: trades, add/drop), what ESPN's LM Tools can do that we haven't captured yet (edit H2H matchups incl. the Seed 3 pick, adjust scoring, schedule settings, draft order, keeper rounds, divisions), what ESPN refused (team rename) and what SPL HQ owns because ESPN can't.
 - 2026-11-26 · v0.16 (backend v0.12.0) · 🛠️ **WS7 Ops + robots, and the pre-Joe architecture audit** (`docs/OPS_AUDIT_2026-11-26.md`).
   Found: GitHub's cron had never fired here (0 scheduled runs since the repo was made). New backend part `mod_ops.js` + hourly `tick`
   (Apps Script trigger; rides health pings until it's installed): **watchdog** reads every robot's runs from GitHub (`GH_TOKEN`) and runs
