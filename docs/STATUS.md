@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS7 ops + robots + architecture audit; keeper Signing Day v0.17)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Team tab overhaul v0.17.2)
 
 ## Now
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
@@ -19,6 +19,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.17.2 · 🏈 **Team tab overhaul** (Mike: drop the owner pill row, trading + keepers up top). Your team opens with two big tiles:
+  🔁 **Trades** (gold "N need your answer" when an offer waits, else open offers / picks) and 🔒 **Keepers** (Signing Day: declare / ✅ declared,
+  else your current plan's KP left + keepers of 3). The owner pill row is gone; other rosters sit behind a 👀 **Other teams** picker at the bottom.
+  Someone else's team: ‹ Your team, then Propose a trade · Message · Rivalry · Keepers on top (the bottom Trade center card is gone). SW `splhq-v33`.
 - 2026-11-26 · v0.17.1 (backend v0.13.1) · ⚡ **Faster everywhere** (Mike: lots of load times). Measured: every backend call costs ~1 s of
   Google overhead, +~1 s per Sheet read, +2–5 s when ESPN is asked; Home waited on the slowest of 5 calls and the app itself waited on the
   network at every launch. Now: **the app opens from the phone's copy** (service worker cached-first, fresh copy fetched behind it; the ✨

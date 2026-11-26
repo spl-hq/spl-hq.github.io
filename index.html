@@ -323,7 +323,7 @@ a.btn.ghost{text-decoration:none}
 .kseg button.on{background:#1E407C;color:#fff;border-color:#1E407C} tr.kx .kpl{text-decoration:line-through;color:var(--muted)} tr.kon td{background:#EEF3FA}
 .kdec{margin-top:10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFBFD} .kerr{margin-top:10px;color:#C8102E;font-weight:700;font-size:13px} .kerr p{margin:4px 0}
 .kbd{border-bottom:1px solid var(--line)} .kbd:last-of-type{border:0} .kbd summary{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;list-style:none} .kbd summary::-webkit-details-marker{display:none}
-.kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .card.needsb{border-color:var(--gold)} .mono{font-family:var(--mono)}
+.kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .tiles2.tq{margin:0 0 12px} .tq2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px} .tq2 .btn{width:100%;margin:0} .card.needsb,.tile.needsb{border-color:var(--gold)} .tile.needsb small{color:var(--gold);font-weight:700} .mono{font-family:var(--mono)}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -378,7 +378,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.17.1";
+var APP_VERSION = "0.17.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -766,13 +766,39 @@ var ROSTERS = null;
 function contractsOf(id) { return ((window.LEAGUE_DATA || {}).contracts || []).filter(function (c) { return c.owner === id; }); }
 SCREENS.team = function (arg) {
   if (!ME) return '<h2>Team</h2>' + needSignIn("to see rosters");
-  var id = arg || ME.owner;
-  return '<div class="hscroll">' + OWNERS.map(function (o) { return '<button class="chip' + (o.id === id ? " on" : "") + '" onclick="go(\'team\',\'' + o.id + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div>' +
-    '<div id="tm"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>';
+  var id = arg || ME.owner, mine = id === ME.owner, o = owner(id) || {};
+  // Your team: Trades + Keepers one tap away. Someone else's: back to yours + what you'd do with them.
+  var top = mine ? '<div class="tiles2 tq"><button class="tile" id="tqT" onclick="go(\'trades\')"><span style="font-size:22px">🔁</span><b>Trades</b><small>Offers · picks · new trade</small></button>' +
+      '<button class="tile" id="tqK" onclick="go(\'keepers\')"><span style="font-size:22px">🔒</span><b>Keepers</b><small>' + esc(teamKeepTxt().t) + '</small></button></div>'
+    : '<div class="gtop">' + back("team", "Your team") + '</div><div class="tq2"><button class="btn" onclick="go(\'trade\',\'' + id + '\')">🔁 Propose a trade</button>' +
+      '<button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message</button><button class="btn ghost" onclick="go(\'rivalry\',\'' + ME.owner + ',' + id + '\')">⚔️ Rivalry</button>' +
+      '<button class="btn ghost" onclick="go(\'keepers\',\'' + id + '\')">🔒 Keepers</button></div><div id="ct"></div>';
+  var others = '<div class="card"><div class="eyebrow">👀 Other teams</div><select style="width:100%" onchange="if(this.value)go(\'team\',this.value)"><option value="">Look at another roster…</option>' +
+    OWNERS.filter(function (x) { return x.id !== id; }).map(function (x) { return '<option value="' + x.id + '">' + esc(x.name) + ' · ' + esc(x.team) + '</option>'; }).join("") + '</select></div>';
+  return top + '<div id="tm"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>' + others;
 };
+// Keepers tile line: Signing Day first (declare / declared), else your current plan's room.
+function teamKeepTxt() {
+  var me = ME.owner, W = kwinOpen(), dec = kdeclOf(me);
+  if (dec) return { t: "✅ Declared" + (W ? " · change until close" : "") };
+  if (W) return { t: "Signing Day open: declare", needs: true };
+  try { var list = kscn(me), sc = list[ksel(me)], C = kcalc(me, sc); return { t: C.yrs[KP_YRS[0]].room + " KP left '" + String(KP_YRS[0]).slice(2) + " · " + C.count + " of 3" + (list.length > 1 ? " · " + list.length + " plans" : "") }; }
+  catch (e) { return { t: "Plans · cap · Signing Day" }; }
+}
+function teamQuick() {
+  var k = $("#tqK"); if (!k || !ME) return;
+  loadKeep().then(function () { var k = $("#tqK"); if (!k) return; var x = teamKeepTxt(); k.querySelector("small").textContent = x.t; k.classList.toggle("needsb", !!x.needs); }).catch(function () {});
+  loadTrades().then(function (t) { var b = $("#tqT"); if (!b) return; var me = ME.owner,
+      inb = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }).length,
+      out = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.from === me; }).length,
+      pk = t.picks.filter(function (p) { return p.owner === me; }).length;
+    b.querySelector("small").textContent = inb ? inb + " need" + (inb > 1 ? "" : "s") + " your answer" : out ? out + " open offer" + (out > 1 ? "s" : "") + " · " + pk + " picks" : pk + " picks · new trade";
+    b.classList.toggle("needsb", inb > 0); }).catch(function () {});
+}
 SCREENS.team.after = function (arg) {
   if (!$("#tm")) return;
   var id = arg || ME.owner, o = owner(id) || {};
+  if (id === ME.owner) teamQuick();
   var draw = function (d) {
     if (!$("#tm")) return;
     if (!d.ok) throw new Error(d.error);
@@ -805,9 +831,7 @@ SCREENS.team.after = function (arg) {
     html += group("Starters", t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }));
     html += group("Bench", t.players.filter(function (p) { return p.slot === "BE"; }));
     html += group("IR", t.players.filter(function (p) { return p.slot === "IR"; }));
-    html += '<div class="card"><div class="eyebrow">🔁 Trade center</div><p style="margin:0">Players + draft picks + keeper contracts in one offer. The commish approves; the picks and contracts move with it.</p>' +
-      '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + (id !== ME.owner ? '<button class="btn" onclick="go(\'trade\',\'' + id + '\')">Propose a trade</button><button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message ' + esc(o.name) + '</button><button class="btn ghost" onclick="go(\'rivalry\',\'' + ME.owner + ',' + id + '\')">⚔️ Rivalry</button>'
-        : '<button class="btn" onclick="go(\'trades\')">Your trades + picks</button>') + '</div>' + (id !== ME.owner ? '<div id="ct"></div>' : '') + '</div>' +
+    html +=
       '<p class="muted" style="font-size:12px">Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
     $("#tm").innerHTML = html;
     if (id !== ME.owner) loadContacts().then(function () { var c = $("#ct"); if (c) c.innerHTML = contactRow(id); }).catch(function () {});
