@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-25 · **League history = ESPN 19583, 2006–2026** in gold `data/SPL_Matchups.csv` (robot-written). Missing: 2004–05 (pre-ESPN) and 2020–21 (no scores on ESPN). Ask Joe/Glen for those seasons' results to backfill by hand.
 - 2026-11-25 · **Theme: "Nittany"** (Penn State blue + white) replaces Stadium Lights (black/neon). Supersedes the wireframe doc's theme choice.
 - 2026-11-25 · **Trade center v1 in test mode** with defaults until Joe answers: 2027 picks only (17 rounds), contracts travel with the player, commish approves every trade, no self-approval (Joe ↔ Mike trades: either approves, flagged). Live pick ledger = Sheet Picks tab (export to gold `Draft_Pick_Ownership.csv` comes with the ledger robot).
 - 2026-11-25 · **Home = the REEL feed**, same mechanics as MAFFL (swipe ← done / → save, Saved/Done buckets, Undo, needs-you cards locked, caught-up end card). SPL card series start from live ESPN + keeper data; drops, reactions and Claude card lines follow MAFFL REEL_SERIES once the trade center is in.

@@ -11,6 +11,13 @@ _Read first. Newest on top._ **Last updated:** 2026-11-25 by Claude (chat)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-25 · v0.7 · ⚔️ **Rivalries** + league history. New robot `.github/workflows/espn-history.yml` (`tools/pull_history.py`, secrets ESPN_S2/SWID)
+  pulled every SPL season ESPN has into gold `data/SPL_Matchups.csv`: 2006–2026, ~1,800 games, every team resolved to an owner via the
+  registry (added alias "Alan Farrington" → farrington). **Gaps:** ESPN has no scores for 2020 + 2021 (schedules only, all 0–0) and nothing
+  before 2006 (Glen's GM Report counts from 2004). Check vs GM Report: Mike vs Joe playoffs 3–0 ✓. `tools/build_data.py` derives the
+  compact game list into `league-data.js`; the robot rebuilds it when it re-runs (by hand: Actions → ESPN history pull → Run workflow).
+  App: League → Rivalries (you vs every owner, any owner's view), rivalry page (series, regular/playoffs, points, last 5, streak, biggest
+  wins, closest, shootout, playoff meetings, every game by season), ⚔️ series line on Match and the reel's Your game card, Team → ⚔️ Rivalry.
 - 2026-11-25 · v0.6 (backend v0.5) · Three MAFFL REEL ports (Mike). 🔁 **Trade grid**: Trades → Browse all teams shows every SPL roster side by side,
   scroll left/right, yours pinned on the left, grouped by position with 🔒 keepers and 🎟️ pick counts; tap a team → **side-by-side builder**
   (you send | they send, tap players + picks, live summary, note, Send/Counter). ⚙️ **Settings** (initials → Settings): @handle (unique),

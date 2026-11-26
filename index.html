@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=3">
 <title>SPL HQ</title>
-<!-- SPL HQ app · v0.6 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
+<!-- SPL HQ app · v0.7 · 2026-11-25. Plan: docs/SPL_REEL_PLAN.md. Rules: CLAUDE.md. -->
 <style>
 :root{
   --night:#111311; --surface:#1B1E1B; --raised:#232823; --line:#2C312C;
@@ -255,7 +255,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.6";
+var APP_VERSION = "0.7";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -339,7 +339,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league", trades: "team", trade: "team", desk: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "league", feedback: "league", ops: "league", soon: "league", trades: "team", trade: "team", desk: "league", rivalry: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
@@ -403,7 +403,8 @@ function buildFeed(d) {
     cards.push({ id: "game", scope: "me", hero: 1, eb: "⚔️ Your game · Week " + wk + (W.final ? " · Final" : " · Live"),
       body: '<div class="vs"><div class="' + (up ? "win" : "") + '"><div class="sc">' + fmtPts(m.pts) + '</div><div class="meta">You · ' + esc(m.rec) + '</div></div><div class="muted" style="font:800 14px var(--head)">VS</div>' +
         '<div class="' + (!up ? "win" : "") + '"><div class="sc">' + fmtPts(o.pts) + '</div><div class="meta">' + esc(oname(o.owner)) + ' · ' + esc(o.rec) + '</div></div></div><p class="story">' + story + '</p>' +
-        (top ? '<div class="kv"><span>Your best so far</span><span><b>' + esc(top.n) + '</b> ' + fmtPts(top.pts) + '</span></div>' : ''),
+        (top ? '<div class="kv"><span>Your best so far</span><span><b>' + esc(top.n) + '</b> ' + fmtPts(top.pts) + '</span></div>' : '') +
+        (o.owner ? (function () { var hh = h2h(me, o.owner); return hh.main.length ? '<div class="kv"><span>⚔️ All-time vs ' + esc(oname(o.owner)) + '</span><span><b>' + recTxt(hh.all) + '</b></span></div>' : ''; })() : ''),
       action: ["Lineups", "go('match')"] });
   }
   // 🏟️ League: the slate + top score + closest game
@@ -564,7 +565,8 @@ SCREENS.match.after = function (arg) {
     var lead = function (a, b) { return a && b && a.pts > b.pts; };
     var hdr = function (t, w) { return '<div class="' + (w ? "win" : "") + '"><div class="sc">' + fmtPts(t.pts) + '</div><div class="tn" style="margin-top:6px">' + esc(t.team) + '</div><div class="meta">' + esc(oname(t.owner)) + ' · ' + esc(t.rec) + (t.proj != null && !d.final ? '<br>proj ' + fmtPts(t.proj) : '') + (!d.final && t.left ? ' · ' + t.left + ' to play' : '') + '</div></div>'; };
     html += '<div class="card"><div class="eyebrow">' + (show === mineIdx ? "⚔️ Your game" : "⚔️ Game") + (g.playoff ? " · Playoffs" : "") + '</div>' +
-      '<div class="vs">' + hdr(L, lead(L, R)) + '<div class="muted" style="font:800 14px var(--head)">VS</div>' + hdr(R, lead(R, L)) + '</div></div>';
+      '<div class="vs">' + hdr(L, lead(L, R)) + '<div class="muted" style="font:800 14px var(--head)">VS</div>' + hdr(R, lead(R, L)) + '</div>' +
+      (L.owner && R.owner ? (function () { var hh = h2h(L.owner, R.owner); return '<div class="kv" style="margin-top:12px;cursor:pointer" onclick="go(\'rivalry\',\'' + L.owner + ',' + R.owner + '\')"><span>⚔️ All-time series</span><span><b>' + esc(oname(L.owner)) + ' ' + recTxt(hh.all) + '</b> ›</span></div>'; })() : '') + '</div>';
     var starters = function (t) { return t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }); };
     var bench = function (t) { return t.players.filter(function (p) { return p.slot === "BE" || p.slot === "IR"; }); };
     var cell = function (p, right) {
@@ -638,7 +640,7 @@ SCREENS.team.after = function (arg) {
     html += group("Bench", t.players.filter(function (p) { return p.slot === "BE"; }));
     html += group("IR", t.players.filter(function (p) { return p.slot === "IR"; }));
     html += '<div class="card"><div class="eyebrow">🔁 Trade center</div><p style="margin:0">Players + draft picks + keeper contracts in one offer. The commish approves; the picks and contracts move with it.</p>' +
-      '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + (id !== ME.owner ? '<button class="btn" onclick="go(\'trade\',\'' + id + '\')">Propose a trade</button><button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message ' + esc(o.name) + '</button>'
+      '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + (id !== ME.owner ? '<button class="btn" onclick="go(\'trade\',\'' + id + '\')">Propose a trade</button><button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message ' + esc(o.name) + '</button><button class="btn ghost" onclick="go(\'rivalry\',\'' + ME.owner + ',' + id + '\')">⚔️ Rivalry</button>'
         : '<button class="btn" onclick="go(\'trades\')">Your trades + picks</button>') + '</div>' + (id !== ME.owner ? '<div id="ct"></div>' : '') + '</div>' +
       '<p class="muted" style="font-size:12px">Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
     $("#tm").innerHTML = html;
@@ -814,6 +816,64 @@ SCREENS.desk.after = function () {
 };
 function wipeTrades() { if (!confirm("Wipe ALL test trades and reset every pick to its original team?")) return; authed("wipetrades").then(function (r) { if (!r.ok) throw new Error(r.error); TRADES = null; toast("Wiped"); render(); }).catch(function (e) { toast(e.message); }); }
 
+// ---- ⚔️ Rivalries: head-to-head from ESPN history (data/SPL_Matchups.csv → league-data.js). R = regular season, P = playoffs, C = consolation.
+function h2h(a, b) {
+  var gs = ((window.LEAGUE_DATA || {}).games || []).filter(function (g) { return (g[3] === a && g[5] === b) || (g[3] === b && g[5] === a); }).map(function (g) {
+    var ap = g[3] === a ? g[4] : g[6], bp = g[3] === a ? g[6] : g[4];
+    return { y: g[0], w: g[1], t: g[2], ap: ap, bp: bp, r: ap > bp ? "W" : ap < bp ? "L" : "T" };
+  }).sort(function (x, y) { return x.y - y.y || x.w - y.w; });
+  var rec = function (list) { var o = { W: 0, L: 0, T: 0 }; list.forEach(function (g) { o[g.r]++; }); return o; };
+  var main = gs.filter(function (g) { return g.t !== "C"; });
+  var streak = { r: "", n: 0 }; for (var i = main.length - 1; i >= 0; i--) { if (!streak.n) { streak.r = main[i].r; streak.n = 1; } else if (main[i].r === streak.r) streak.n++; else break; }
+  var by = function (f) { return main.slice().sort(f)[0]; };
+  return { games: gs, main: main, all: rec(main), reg: rec(gs.filter(function (g) { return g.t === "R"; })), po: rec(gs.filter(function (g) { return g.t === "P"; })), cons: gs.filter(function (g) { return g.t === "C"; }).length,
+    pa: main.reduce(function (s, g) { return s + g.ap; }, 0), pb: main.reduce(function (s, g) { return s + g.bp; }, 0), streak: streak, last5: main.slice(-5),
+    bigA: by(function (x, y) { return (y.ap - y.bp) - (x.ap - x.bp); }), bigB: by(function (x, y) { return (y.bp - y.ap) - (x.bp - x.ap); }),
+    close: by(function (x, y) { return Math.abs(x.ap - x.bp) - Math.abs(y.ap - y.bp); }), shoot: by(function (x, y) { return (y.ap + y.bp) - (x.ap + x.bp); }) };
+}
+function recTxt(r) { return r.W + "–" + r.L + (r.T ? "–" + r.T : ""); }
+function wkTxt(g) { return "'" + String(g.y).slice(2) + " " + (g.t === "P" ? "playoffs wk " : g.t === "C" ? "consolation wk " : "wk ") + g.w; }
+function coverage() { var s = (window.LEAGUE_DATA || {}).seasons || []; return s.length ? s[0] + "–" + s[s.length - 1] + " from ESPN, minus " + [2020, 2021].filter(function (y) { return s.indexOf(y) < 0; }).join(" + ") + " (ESPN has no scores for those seasons) and 2004–05 (before ESPN)" : "no history loaded"; }
+SCREENS.rivalry = function (arg) {
+  if (!ME) return '<h2>Rivalries</h2>' + needSignIn("to see rivalries");
+  var ids = String(arg || "").split(","), a = ids[0] || ME.owner, b = ids[1] || "";
+  if (!b) { // your rivalries: you vs everyone
+    var list = OWNERS.filter(function (o) { return o.id !== a; }).map(function (o) { var h = h2h(a, o.id); return { o: o, h: h }; })
+      .sort(function (x, y) { return y.h.main.length - x.h.main.length || (y.h.all.W - y.h.all.L) - (x.h.all.W - x.h.all.L); });
+    return back("league", "League") + '<h2>' + (a === ME.owner ? "Your rivalries" : esc(oname(a)) + "'s rivalries") + '</h2>' +
+      '<div class="hscroll">' + OWNERS.map(function (o) { return '<button class="chip' + (o.id === a ? " on" : "") + '" onclick="go(\'rivalry\',\'' + o.id + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div>' +
+      '<div class="card">' + list.map(function (x) { var d = x.h.all.W - x.h.all.L;
+        return '<div class="kv" style="cursor:pointer;align-items:center" onclick="go(\'rivalry\',\'' + a + ',' + x.o.id + '\')"><span><b>vs ' + esc(x.o.name) + '</b><br><small class="muted">' + x.h.main.length + ' games' + (x.h.po.W + x.h.po.L ? ' · playoffs ' + recTxt(x.h.po) : '') + (x.h.streak.n > 1 ? ' · ' + x.h.streak.r + x.h.streak.n + ' streak' : '') + '</small></span>' +
+          '<span style="font:800 20px var(--head)" class="' + (d > 0 ? "lime" : d < 0 ? "coral" : "") + '">' + recTxt(x.h.all) + ' ›</span></div>'; }).join("") + '</div>' +
+      '<p class="muted" style="font-size:12px">Regular season + playoffs. ' + esc(coverage()) + '.</p>';
+  }
+  var h = h2h(a, b), A = oname(a), B = oname(b), d = h.all.W - h.all.L;
+  var lead = d > 0 ? A + " leads the series" : d < 0 ? B + " leads the series" : "Dead even";
+  var gl = function (g, who) { return g ? '<div class="kv"><span>' + esc(who) + '<br><small class="muted">' + wkTxt(g) + '</small></span><span><b>' + fmtPts(g.ap) + '–' + fmtPts(g.bp) + '</b></span></div>' : ''; };
+  var po = h.games.filter(function (g) { return g.t === "P"; });
+  var seasons = {}; h.games.forEach(function (g) { (seasons[g.y] = seasons[g.y] || []).push(g); });
+  return back("rivalry", "Rivalries") +
+    '<div class="hscroll">' + OWNERS.filter(function (o) { return o.id !== a; }).map(function (o) { return '<button class="chip' + (o.id === b ? " on" : "") + '" onclick="go(\'rivalry\',\'' + a + ',' + o.id + '\')">vs ' + esc(o.name) + '</button>'; }).join("") + '</div>' +
+    '<div class="card lead"><div class="eyebrow">⚔️ Rivalry · ' + h.main.length + ' games</div><div class="vs" style="margin-top:6px"><div><div class="sc" style="color:#fff">' + h.all.W + '</div><div class="tn" style="color:#fff">' + esc(A) + '</div></div>' +
+      '<div style="color:#96BEE6;font:800 14px var(--head)">' + (h.all.T ? h.all.T + " T" : "VS") + '</div><div><div class="sc" style="color:#fff">' + h.all.L + '</div><div class="tn" style="color:#fff">' + esc(B) + '</div></div></div>' +
+      '<p style="text-align:center;margin-top:10px">' + esc(lead) + (h.streak.n > 1 ? ' · ' + esc(h.streak.r === "W" ? A : h.streak.r === "L" ? B : "Ties") + ' won the last ' + h.streak.n : '') + '</p></div>' +
+    (h.main.length ? '<div class="card"><div class="eyebrow">The tape</div>' +
+      '<div class="kv"><span>Regular season</span><span>' + recTxt(h.reg) + '</span></div>' +
+      '<div class="kv"><span>Playoffs</span><span>' + (h.po.W + h.po.L + h.po.T ? recTxt(h.po) : '<span class="muted">never met</span>') + '</span></div>' +
+      '<div class="kv"><span>Points</span><span>' + fmtPts(h.pa) + ' – ' + fmtPts(h.pb) + '</span></div>' +
+      '<div class="kv"><span>Avg score</span><span>' + fmtPts(h.pa / h.main.length) + ' – ' + fmtPts(h.pb / h.main.length) + '</span></div>' +
+      '<div class="kv"><span>Last 5</span><span>' + h.last5.map(function (g) { return '<b class="' + (g.r === "W" ? "lime" : g.r === "L" ? "coral" : "") + '">' + g.r + '</b>'; }).join(" ") + '</span></div>' +
+      (h.cons ? '<div class="kv"><span>Consolation games</span><span class="muted">' + h.cons + ' (not counted)</span></div>' : '') + '</div>' +
+      '<div class="card"><div class="eyebrow">Defining games</div>' +
+        (h.bigA && h.bigA.ap > h.bigA.bp ? gl(h.bigA, "🔨 " + A + "'s biggest win") : '') + (h.bigB && h.bigB.bp > h.bigB.ap ? gl(h.bigB, "🔨 " + B + "'s biggest win") : '') +
+        gl(h.close, "😬 Closest") + gl(h.shoot, "🔥 Shootout (most combined)") + '</div>' +
+      (po.length ? '<div class="card"><div class="eyebrow">🏆 Playoff meetings</div>' + po.map(function (g) { return '<div class="kv"><span>' + wkTxt(g) + '</span><span class="' + (g.r === "W" ? "lime" : "coral") + '"><b>' + esc(g.r === "W" ? A : B) + '</b> ' + fmtPts(g.ap) + '–' + fmtPts(g.bp) + '</span></div>'; }).join("") + '</div>' : '') +
+      '<details class="card"><summary class="eyebrow" style="cursor:pointer">Every game, by season</summary>' + Object.keys(seasons).sort().reverse().map(function (y) {
+        return '<div class="gpos" style="margin-top:10px">' + y + '</div>' + seasons[y].map(function (g) { return '<div class="kv"><span><small class="muted">' + (g.t === "P" ? "Playoffs " : g.t === "C" ? "Consolation " : "Week ") + g.w + '</small></span><span class="' + (g.r === "W" ? "lime" : g.r === "L" ? "coral" : "") + '">' + g.r + ' ' + fmtPts(g.ap) + '–' + fmtPts(g.bp) + '</span></div>'; }).join(""); }).join("") + '</details>'
+      : '<div class="card"><p class="muted" style="margin:0">No games between these two in the history we have.</p></div>') +
+    '<p class="muted" style="font-size:12px">' + esc(coverage()) + '.</p>';
+};
+
 // ---- 💬 Chat: league room + DMs
 function dmRoom(other) { var a = [ME.owner, other].sort(); return "dm:" + a[0] + "," + a[1]; }
 function roomName(room) { if (room === "league") return "League chat"; var ids = room.slice(3).split(","); return oname(ids[0] === ME.owner ? ids[1] : ids[0]); }
@@ -887,7 +947,7 @@ var LEAGUE_TILES = [
   ["desk", "📥", "Commish desk", "Approve trades", 0, "desk"], ["joe", "📋", "Questions", "For the commish", 0, "desk"],
   ["soon=keepers", "🔒", "Keepers", "Contracts + forecaster", 1], ["soon=draft", "📝", "Draft", "Every pick by year", 1],
   ["soon=history", "📚", "History", "Seasons + champions", 1], ["soon=gm", "🎓", "GM Rankings", "Glen's report", 1],
-  ["soon=rivalry", "⚔️", "Rivalry", "Head to head", 1], ["soon=rules", "📖", "Rules", "Constitution + timeline", 1],
+  ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["soon=rules", "📖", "Rules", "Constitution + timeline", 1],
   ["feedback", "💡", "Ideas", "Feedback to the site"], ["ops", "🛠️", "Ops desk", "Owners, answers, health", 0, "desk"]
 ];
 SCREENS.league = function () {

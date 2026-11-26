@@ -16,8 +16,18 @@ contracts = [{"id": r["contract_id"], "owner": r["owner_id"], "player": r["playe
              for r in rows("Keeper_Contracts.csv")]
 owners = [{"id": r["owner_id"], "name": r["short_name"], "full": r["canonical_name"], "team": r["team_2026"], "div": r["division_2026"]}
           for r in rows("SPL_Owner_Registry.csv")]
+# Head-to-head history: compact game list [season, week, tier, home_owner, home_pts, away_owner, away_pts]
+# tier: R = regular season, P = playoffs (winners bracket), C = consolation. Unresolved owners skipped.
+TIER = {"NONE": "R", "WINNERS_BRACKET": "P"}
+games = []
+mp = os.path.join(ROOT, "data", "SPL_Matchups.csv")
+if os.path.exists(mp):
+    for r in rows("SPL_Matchups.csv"):
+        if not r["home_owner"] or not r["away_owner"] or r.get("winner") == "UNDECIDED": continue  # unresolved or still being played
+        games.append([int(r["season"]), int(r["week"]), TIER.get(r["playoff_tier"], "C"), r["home_owner"], round(float(r["home_pts"]), 2), r["away_owner"], round(float(r["away_pts"]), 2)])
+seasons = sorted({g[0] for g in games})
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
-       f"// Sources: data/Keeper_Contracts.csv, data/SPL_Owner_Registry.csv. Generated {datetime.date.today()}.\n"
-       f"var LEAGUE_DATA = {json.dumps({'owners': owners, 'contracts': contracts}, ensure_ascii=False)};\n")
+       f"// Sources: data/Keeper_Contracts.csv, data/SPL_Owner_Registry.csv, data/SPL_Matchups.csv. Generated {datetime.date.today()}.\n"
+       f"var LEAGUE_DATA = {json.dumps({'owners': owners, 'contracts': contracts, 'seasons': seasons, 'games': games}, ensure_ascii=False, separators=(',', ':'))};\n")
 open(os.path.join(ROOT, "league-data.js"), "w", encoding="utf-8").write(out)
-print(len(contracts), "contracts,", len(owners), "owners")
+print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:])
