@@ -378,7 +378,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.17.2";
+var APP_VERSION = "0.17.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -807,16 +807,6 @@ SCREENS.team.after = function (arg) {
     var cs = contractsOf(id), kept = {}; cs.forEach(function (c) { if (c.status === "active") kept[c.player.toLowerCase()] = c; });
     var html = '<div class="card' + (id === ME.owner ? " lead" : "") + '"><div class="eyebrow">' + (id === ME.owner ? "🏈 Your team" : "🏈 " + esc(o.name) + "'s team") + ' · ' + esc((t && t.div) || "") + '</div>' +
       '<h2 style="margin:0">' + esc(t ? t.team : o.team) + '</h2><p>' + esc(o.full || o.name || "") + (t ? ' · ' + esc(t.rec) : '') + '</p></div>';
-    if (cs.length) {
-      var yrs = ["2026", "2027", "2028"];
-      html += '<div class="card"><div class="eyebrow">🔒 Keeper contracts</div><table><tr><th>Player</th>' + yrs.map(function (y) { return '<th class="n">' + y.slice(2) + '</th>'; }).join("") + '</tr>' +
-        cs.map(function (c) {
-          var cut = c.status === "cut";
-          return '<tr><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + (cut ? ' <span class="tag" style="color:var(--coral)">CUT</span>' : '') +
-            '<br><small class="muted">' + c.term + '-yr · signed ' + c.signed + '</small></td>' +
-            yrs.map(function (y) { var v = cut ? c.pen[y] : c.kp[y]; return '<td class="n' + (cut && v != null ? " coral" : "") + '">' + (v == null ? '<span class="muted">·</span>' : v === "F" ? '<span class="gold">F</span>' : v) + '</td>'; }).join("") + '</tr>';
-        }).join("") + '</table><p class="muted" style="font-size:12px">KP by season · F = franchise tag year · red = cap penalty from a cut. From the 2026 Keeper Matrix.</p></div>';
-    }
     if (!t) { $("#tm").innerHTML = html + '<div class="card"><p class="muted">Couldn\'t match this team on ESPN.</p></div>'; return; }
     var group = function (label, list) {
       if (!list.length) return "";
