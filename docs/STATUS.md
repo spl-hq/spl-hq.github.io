@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-25 by Claude (chat)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat)
 
 ## Now
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
@@ -11,6 +11,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-25 by Claude (chat)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · 📜 Constitution in the repo: `docs/SPL_CONSTITUTION_2023-06-12.md` (verbatim from Mike's .docx; June 2023 draft, stale on dues/prizes/roster, see ESPN conflict register C1–C10). Source for the Rules screen (build order step 3). New find: Appendix Three Shoot Out matchmaking (Week 14 opponents) — another ESPN-can't-model screen.
 - 2026-11-26 · backend v0.6.1 · Rules follow the latest answer from **either commish** (Mike answered keeper_travels = travels 11/26), not only Joe.
 - 2026-11-26 · v0.8.3 · 📱 Footer confirmed fixed. Header: installed on the Home Screen, iOS blurs a band just below the status bar, softening the crest + title; when installed the header contents now start 16 pt lower (`html.sa`), browser unchanged.
 - 2026-11-25 · v0.8.2 · 📱 Home Screen bottom gap (round 3): installed with a see-through status bar, iOS reports a viewport one status bar (~54 pt) shorter than the screen, so the frame stopped short and navy showed under the tab bar. A tiny script sizes the frame to `screen.height` when installed + portrait (browser unchanged). Top is confirmed fixed (navy behind the clock).
