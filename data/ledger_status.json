@@ -1,0 +1,16 @@
+{
+ "at": "2026-11-26T04:07+00:00",
+ "mode": "test",
+ "backend": "0.6",
+ "trades": 0,
+ "picks": 204,
+ "rules": {
+  "pickSeasons": [
+   2027
+  ],
+  "pickYearsFrom": "default",
+  "contracts": "travels",
+  "contractsFrom": "default"
+ },
+ "contractMoves": []
+}
