@@ -21,7 +21,7 @@ alias = {}
 for r in reg:
     for a in [r["canonical_name"], r["team_2026"], r["team_2025"], r["team_2019"]] + r["aliases"].split("|"):
         if a and len(norm(a)) > 2: alias.setdefault(norm(a), r["owner_id"])
-VIEWS = "view=mMatchupScore&view=mTeam&view=mSettings"
+VIEWS = "view=mMatchupScore&view=mMatchup&view=mTeam&view=mSettings"
 rows, report, unresolved = [], [], {}
 this_year = datetime.date.today().year
 for y in range(this_year, 1999, -1):
@@ -47,7 +47,13 @@ for y in range(this_year, 1999, -1):
     for g in d["schedule"]:
         h, a = g.get("home") or {}, g.get("away") or {}
         if not h or not a: continue  # byes
-        hp, ap = h.get("totalPoints", 0) or 0, a.get("totalPoints", 0) or 0
+        def pts(sd):  # ESPN keeps the final in different fields by season
+            for k in ("totalPoints", "totalPointsLive"):
+                if sd.get(k): return sd[k]
+            pb = sd.get("pointsByScoringPeriod") or {}
+            if pb: return sum(v for v in pb.values() if isinstance(v, (int, float)))
+            return 0
+        hp, ap = pts(h), pts(a)
         if not hp and not ap: continue  # not played yet
         tier = g.get("playoffTierType") or "NONE"
         th, ta = teams.get(h.get("teamId"), {}), teams.get(a.get("teamId"), {})
@@ -56,6 +62,7 @@ for y in range(this_year, 1999, -1):
                      "away_owner": ta.get("owner", ""), "away_team": ta.get("name", ""), "away_pts": round(ap, 2),
                      "winner": g.get("winner", "UNDECIDED"), "source": "espn-" + src})
         n += 1
+    if not n and d["schedule"]: report.append(f"{y}: DEBUG first game keys home={sorted((d['schedule'][0].get('home') or {}).keys())} sample={json.dumps(d['schedule'][0])[:400]}")
     report.append(f"{y}: {n} games, {len(teams)} teams, regular-season weeks {reg_weeks}, via {src}")
     time.sleep(0.5)
 rows.sort(key=lambda r: (r["season"], r["week"] or 0, r["home_owner"]))

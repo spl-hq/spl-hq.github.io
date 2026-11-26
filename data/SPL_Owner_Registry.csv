@@ -1,10 +1,11 @@
 # SPL_Owner_Registry.csv  --  GOLD (hand-edited, authoritative). Names + teams only: never add contact info (public repo).
 # v0.3 -- 2026-09-03. Sources: SPL Packet 2026.xlsx; ESPN League Settings 2026; ESPN Final Standings 2025 (leagueId 19583)
+# 2026-11-25: ESPN history shows "Alan Farrington" owning teams in 2009 + 2013 -> alias added (Al = Alan).
 # confidence=confirmed|inferred|conflict. OPEN: farrington (ESPN "James" vs sheets "Al") is asked in the app (Questions → al_name).
 owner_id,canonical_name,short_name,active,first_season,team_2026,division_2026,team_2025,team_2019,division_2019,co_managers,aliases,confidence
 murello,Michael Murello,Mike,TRUE,inception,Bad Attitude Gang,East Coast,Bad Attitude Gang,Bad Attitude Gang,East Coast,,MM|Mike|mike|Michael Murello|Bad Attitude Gang|BAG|Gang|Attitude Gang,confirmed
 reilly,Joseph Reilly,Joe,TRUE,inception,Reeling RaMPaGe,East Coast,Reeling RaMPaGe,Reilly's RaMPaGe,East Coast,,Joe|joe|Joseph Reilly|Reilly's RaMPaGe|Reeling RaMPaGe|RaMpAgE|RamPaGe|Rampage|RaMpAjE|PAGE,confirmed
-farrington,James Farrington,Al,TRUE,inception,Farrington's FREELANCERS,East Coast,Farrington's FREELANCERS,Farrington's FREELANCERS,East Coast,James Farrington (listed twice on ESPN),Al|AL|James Farrington|Farrington's FREELANCERS|Freelancers|Lancers|LAN,conflict
+farrington,James Farrington,Al,TRUE,inception,Farrington's FREELANCERS,East Coast,Farrington's FREELANCERS,Farrington's FREELANCERS,East Coast,James Farrington (listed twice on ESPN),Al|AL|Alan Farrington|James Farrington|Farrington's FREELANCERS|Freelancers|Lancers|LAN,conflict
 glen,Glen Herold,Glen,TRUE,inception,Fluff Muffins,North,Fluff Muffins,Fluff Muffins,North,Karina Herold,Glen|glen|Glen Herold|Fluff Muffins|Muffins|MUF|MUFF,confirmed
 chappie,Drew Chappie,Drew,TRUE,inception,BlaKK BoCCes,North,BlaKK BoCCes,BlaKK BoCCes,Philly,,Drew|drew|Drew Chappie|BlaKK BoCCes|Bocces|Bocce|BOC|Slappies,confirmed
 sikora,Pete Sikora,Pete,TRUE,inception,The Gunz,North,The Gunz,Manayunk Gunz,Philly,,Pete|Peter|Pete Sikora|Manayunk Gunz|The Gunz|Gunz|GUNZ,confirmed
