@@ -28,7 +28,8 @@ jobs:
         with: { node-version: 22 }
       - name: Install Claude Code (only if the token is set)
         env: { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" }
-        run: if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then npm i -g @anthropic-ai/claude-code >/dev/null && claude --version; else echo "No CLAUDE_CODE_OAUTH_TOKEN secret: template edition"; fi
+        run: |
+          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then npm i -g @anthropic-ai/claude-code >/dev/null && claude --version; else echo "No CLAUDE_CODE_OAUTH_TOKEN secret, template edition"; fi
       - name: Write the Pulse
         id: write
         env: { CLAUDE_CODE_OAUTH_TOKEN: "${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}" }
@@ -41,4 +42,5 @@ jobs:
           git diff --cached --quiet || (git commit -m "Weekly Pulse: data/Weekly_Pulse.json + league-data.js" && bash tools/robot_push.sh)
       - name: Fail loudly if the writer failed
         if: steps.write.outputs.failed == '1'
-        run: echo "tools/pulse.py failed (see 'Write the Pulse' above). A template edition was saved if it got that far." && exit 1
+        run: |
+          echo "tools/pulse.py failed (see 'Write the Pulse' above). A template edition was saved if it got that far."; exit 1
