@@ -1,0 +1,22 @@
+# Season_Calendar.csv  --  GOLD (hand-edited; the commish's dates once set). The 📖 Rules timeline and 🔒 keeper countdown read it.
+# date = YYYY-MM-DD (or YYYY-MM-DDTHH:MM in ET) when known; blank = not set yet. kind: set | target | rule.
+# Rule source: constitution §B. Set real dates here as the Winter Meeting decides them.
+season,key,event,date,kind,note
+2026,trade_deadline,Trade deadline,2026-11-25T12:00,set,Set on ESPN
+2026,shootout_draft,SPL Shoot Out Draft,,rule,Eve of Week 14
+2026,shootout,SPL Shoot Out,,rule,Week 14 · last week of the regular season
+2026,playoffs,SPL Playoffs,,rule,Weeks 15–17 · Seed 3 picks its Week 15 opponent
+2026,spl_bowl,SPL Bowl,,rule,Week 17
+2027,offseason,Off-Season starts,2027-02-15,set,Day after Super Bowl LXI (Feb 14) · pick trading opens
+2027,winter_meeting,Winter Meeting,2027-02-24,target,Target: last Wednesday in February · rule votes · draft date picked
+2027,div_slot_drafts,Divisional Draft + Slot Draft,,rule,April
+2027,signing_day,Keeper Signing Day,,rule,10 days before the SPL Draft
+2027,spl_draft,SPL Draft,,rule,Date picked at the Winter Meeting · as close to NFL kickoff as possible
+2004,founded,First season,,milestone,The GM Report counts from 2004 · 2004–05 results aren't on ESPN
+2006,espn,First season on ESPN,,milestone,Every game from here on is in SPL HQ (2020–21 excepted)
+2019,keepers,Keeper contracts era,,milestone,Keeper Matrix sheets start in 2019
+2020,kicker,Kicker out + an extra Flex,,milestone,Constitution Appendix Two
+2021,ppr,Half-point PPR,,milestone,0.5 per reception
+2022,ir,IR spot + 14-week regular season,,milestone,Playoffs move to Weeks 15–17 · SPL Shoot Out in Week 14
+2023,superflex,Super Flex (QB-eligible),,milestone,ESPN's OP slot: the QB premium
+2026,app,SPL HQ,2026-11-25,milestone,The league's own app

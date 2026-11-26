@@ -1,0 +1,14 @@
+# Rules_Conflicts.csv  --  GOLD (hand-edited). Where the constitution and ESPN's league settings disagree.
+# Source: Claude Project doc SPL_ESPN_SETTINGS_2026.md (ESPN settings captured 2026-09-03) + the 2023 constitution draft.
+# status: confirm = Joe to confirm | settled = Joe ruled (put his ruling in note) | ok = no conflict. section = rulebook section letter.
+id,item,section,constitution,espn,proposed,status,note
+C1,Trade veto threshold,D,6 of the 9 uninvolved teams (60%),8 votes,Set ESPN to 6 (or accept manual reversals),confirm,A trade the league votes down 6–3 would still go through on ESPN today.
+C2,Roster and starters,Appendix Two,QB RB WR×2 TE D/ST Flex×3 Super Flex IR,QB RB WR×2 TE FLEX×3 OP D/ST · 7 bench + 1 IR,ESPN matches the 2023 appendix,ok,Super Flex = ESPN's OP slot.
+C3,Playoff seeding tiebreak,G,Win % → points → head-to-head → coin flip,Total points only,Commish sets seeds by the constitution,confirm,ESPN can hold one tiebreaker.
+C4,Playoff bracket,G,Seed 3 picks its Week 15 opponent; Seed 1 picks in Week 16,Fixed bracket,SPL HQ runs the picks and writes the matchups to ESPN (WS3),confirm,ESPN can't model choose-your-opponent.
+C5,Weekly high-score prize,I,The week's Free Agent Fees ($0.50 per FAAB $1),n/a,$40 flat per week (prize sheet since 2024),confirm,FAAB-fee funding looks retired.
+C6,Dues and prizes,A,Dues up 5% a year ($348 in 2026),n/a,$400 flat (since 2024) + the prize sheet,confirm,
+C7,Keepers on ESPN,J,Full contract system,Keepers off,Keepers live in SPL HQ and go into the draft as picks,ok,Expected: ESPN can't model contracts.
+C8,Kicker scoring,Appendix One,Kicker eliminated (2020),No kicker slot but the kicking scoring table is still on,Leave it (harmless) or clear the table,ok,
+C9,Draft type,B,Snake · offline · date set at the Winter Meeting,Offline · not scheduled,—,ok,
+C10,Trade review window,D,24 hours,1 day,—,ok,

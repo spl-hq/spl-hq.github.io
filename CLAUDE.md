@@ -25,7 +25,7 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 The site keeps itself current: anything that changes with the season gets a robot, not a reminder. Every robot is a GitHub Action
 or the Apps Script backend, is safe to re-run, shows its last run on the 🛠️ Ops desk, and fails loudly (GitHub emails the org owner
 on a failed Action; backend problems email ops). When you add data that goes stale, add its robot in the same change.
-Current robots: `espn-history.yml` (Tue + Wed backstop: ESPN finals → `data/SPL_Matchups.csv` → `league-data.js`);
+Current robots: `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (Tue + Wed backstop: ESPN finals → `data/SPL_Matchups.csv` → `league-data.js`);
 `ledger-sync.yml` (every 2 h: backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow
 traded players in `data/Keeper_Contracts.csv`; test mode writes `data/test/` instead). League rules the robots and app follow
 (pick seasons, contracts travel/reset) come from Joe's answers in the app via backend `rules_()`; defaults until he answers.
@@ -62,7 +62,8 @@ icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)
 backend/logic.js      backend core (pushed = deployed)
 tests/                backend smoke test (mocked Apps Script)
-data/                 gold CSVs (Keeper_Contracts, Owner Registry)
+data/                 gold: Keeper_Contracts, Owner Registry, SPL_Matchups (robot), Draft_Picks, SPL_Rulebook.md,
+                      Rules_Conflicts, Season_Calendar, Season_Results_Manual (any change → build-data.yml rebuilds league-data.js)
 league-data.js        DERIVED from data/ by tools/build_data.py (never hand-edit)
 docs/                 plan, runbook, status
 ```

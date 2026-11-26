@@ -1,0 +1,5 @@
+# Season_Results_Manual.csv  --  GOLD (hand-edited). Seasons ESPN can't give us: 2004-05 (before ESPN) and 2020-21 (ESPN kept no scores).
+# One row per owner-season, from Joe / Glen (GM Report) / the old sheets. Leave a number blank if unknown.
+# finish: champion | runner_up | semifinal | wildcard | playoffs | missed. tools/build_data.py merges these into 📚 History + 🎓 GM Rankings.
+# A season here is only used if SPL_Matchups.csv has no games for it (ESPN wins when it has the season).
+season,owner_id,team_name,wins,losses,ties,points_for,points_against,finish,source,note

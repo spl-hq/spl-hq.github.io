@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS1)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS2)
 
 ## Now
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
@@ -11,6 +11,17 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS1)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.10 · 🏆 **WS2 League screens** (no more "Coming soon" on League). 📖 **Rules**: rulebook from new gold `data/SPL_Rulebook.md`
+  (the 2023 constitution, same words, rebuilt for the phone), search with highlights, each section badged ✓ current / Joe to confirm / out of date;
+  🗓️ Timeline (`data/Season_Calendar.csv`: 2027 off-season dates + how the league got here); ⚖️ vs ESPN (`data/Rules_Conflicts.csv`, C1–C10).
+  🔒 **Keepers**: Signing Day countdown (from the draft date once set), 2027 cap card (committed / penalties / plan, KP left, x of 3),
+  2027–29 cap profile, 🧪 try a signing (roster from ESPN when signed in, or search; price from the 2026 draft round; plans saved on the phone),
+  every contract in the league. 📝 **Draft**: 2026 board by round, traded picks ("via X"), who got/gave, per-owner view (gold `data/Draft_Picks.csv`).
+  📚 **History**: trophy case + every season 2004–2026 (champion, runner-up, playoff games, table); gaps 2004–05 + 2020–21 marked and ready to
+  backfill in `data/Season_Results_Manual.csv`. 🎓 **GM Rankings**: careers from every game, sort by titles / win % / playoffs / points, tap for each
+  season. All derived in `tools/build_data.py` → `league-data.js`. 🤖 New robot `build-data.yml`: any change in `data/` rebuilds `league-data.js`
+  (so History/GM also refresh with every weekly ESPN pull). Not yet: Joe marking sections current/stale from his desk (needs WS1 desk + backend),
+  2019–25 draft boards, Glen's own GM formula.
 - 2026-11-26 · v0.9 (backend v0.7.0) · 📥 **Desks behind the login (WS1)**. Commish + Ops desks and 📋 Questions are out of the League tab (League = owner stuff only). A **Desk** button sits in the header next to your initials, only for desk roles: Joe → 📥 Commish desk; Mike → 🛠️ Ops desk with an **Ops | Commish · Joe's view** switch. Joe's view is read-only for Mike except where the rules need him: trades Joe is in (no self-approval) and backup on any trade that has waited **48 h** on Joe (`BACKUP_WAIT_H`, enforced in the backend; locked trades say why and how long to go). Pick ledger fix is Joe's (backend refuses Mike). Wipe test trades moved to the Ops desk. Ops desk is ops-only. Reel's "trades to approve" card counts only trades you can act on.
 - 2026-11-26 · 📜 Constitution in the repo: `docs/SPL_CONSTITUTION_2023-06-12.md` (verbatim from Mike's .docx; June 2023 draft, stale on dues/prizes/roster, see ESPN conflict register C1–C10). Source for the Rules screen (build order step 3). New find: Appendix Three Shoot Out matchmaking (Week 14 opponents) — another ESPN-can't-model screen.
 - 2026-11-26 · backend v0.6.1 · Rules follow the latest answer from **either commish** (Mike answered keeper_travels = travels 11/26), not only Joe.

@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **WS2 League screens built from gold.** Rulebook text lives in `data/SPL_Rulebook.md` (amend there; the 2023 docx conversion stays as the archive). History + GM Rankings are *derived* from ESPN games (no hand-kept standings); missing seasons go in `Season_Results_Manual.csv`. GM Rankings are our career table until Glen shares his formula. Dates the commish sets go in `Season_Calendar.csv`.
 - 2026-11-26 · **Desks behind the login, not in League** (Mike, WS1). Header Desk button for desk roles only. Joe (commish) sees the Commish desk only; Mike (ops + commish) gets the Ops desk plus Joe's Commish desk as "Joe's view", read-only except trades Joe is in and backup after `BACKUP_WAIT_H` = 48 h (default until Joe answers otherwise). Pick ledger fixes are Joe's. Questions live inside the desk.
 - 2026-11-25 · **League history = ESPN 19583, 2006–2026** in gold `data/SPL_Matchups.csv` (robot-written). Missing: 2004–05 (pre-ESPN) and 2020–21 (no scores on ESPN). Ask Joe/Glen for those seasons' results to backfill by hand.
 - 2026-11-25 · **Theme: "Nittany"** (Penn State blue + white) replaces Stadium Lights (black/neon). Supersedes the wireframe doc's theme choice.

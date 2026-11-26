@@ -205,6 +205,33 @@ textarea,input[type=text],select{background:#fff}
 .chip.on{background:#1E407C;color:#fff;border-color:#1E407C}
 .feedwrap{background:transparent}
 
+/* 📖 📚 🔒 📝 🎓 League screens (WS2) */
+.st{display:inline-block;font:700 10px var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:6px;vertical-align:middle;white-space:nowrap}
+.st.current{background:#E8F0FB;color:#1E407C} .st.confirm{background:#FFF6E3;color:#8A6516} .st.stale{background:#FBE9EC;color:#C8102E} .st.ok{background:#E8F0FB;color:#1E407C}
+details.sec{padding:0} details.sec>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:8px;align-items:center}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary b{flex:1;font:800 16px/1.15 var(--head);text-transform:uppercase;letter-spacing:.03em}
+details.sec>summary::after{content:"›";color:var(--muted);font-size:20px;transition:transform .15s} details.sec[open]>summary::after{transform:rotate(90deg)}
+.rbody{padding:0 16px 14px;font-size:14px;line-height:1.5} .rbody ol,.rbody ul{padding-left:20px;margin:6px 0} .rbody li{margin:4px 0} .rbody p{margin:8px 0;color:var(--chalk)}
+.rnote{font-size:12px;color:var(--muted);margin:0 16px 10px;padding:8px 10px;border-radius:10px;background:#F7F9FC}
+table.rb{font-size:13px;margin:8px 0} table.rb td,table.rb th{padding:6px 4px}
+mark{background:#FFE9A8;color:inherit;border-radius:3px}
+.meter{display:flex;height:14px;border-radius:7px;overflow:hidden;background:#EEF3FA;margin:10px 0 6px}
+.meter i{display:block;height:100%} .meter .k{background:#1E407C} .meter .p{background:#C8102E} .meter .h{background:#96BEE6}
+.cand{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px} .cand:last-child{border:0}
+.cand span{flex:1;min-width:0} .cand button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 8px;font:700 12px var(--mono);cursor:pointer;color:#1E407C}
+.trophy{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer} .trophy:last-child{border:0}
+.trophy .yr{font:800 22px/1 var(--head);width:52px;flex:none;color:#1E407C} .trophy .yr.gap{color:var(--muted)}
+.trophy div{flex:1;min-width:0} .trophy small{color:var(--muted)}
+.fin{font:700 10px var(--mono);padding:2px 6px;border-radius:5px;background:#EEF3FA;color:var(--muted);white-space:nowrap}
+.fin.champion{background:#B88A2E;color:#fff} .fin.runner_up{background:#1E407C;color:#fff} .fin.semifinal,.fin.wildcard,.fin.playoffs{background:#E8F0FB;color:#1E407C}
+.pk{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px} .pk:last-child{border:0}
+.pk .no{font:600 12px var(--mono);color:var(--muted);width:34px;flex:none} .pk span{flex:1;min-width:0}
+.via{font:700 10px var(--mono);color:#8A6516;background:#FFF6E3;border-radius:5px;padding:1px 5px;white-space:nowrap}
+.gmrow{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer} .gmrow:last-child{border:0}
+.gmrow .rk{font:800 24px/1 var(--head);width:30px;flex:none;color:#1E407C} .gmrow div{flex:1;min-width:0} .gmrow .val{font:800 18px var(--head);text-align:right;flex:none}
+.strip{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px} .strip .fin{font-size:9px}
+
 /* 🔁 trade grid + builder (MAFFL REEL), ⚙️ settings, ✨ update pill */
 .gridwrap{position:absolute;inset:0;display:flex;flex-direction:column}
 .gtop{display:flex;align-items:center;gap:12px;padding:10px 14px 6px;flex:none}
@@ -275,7 +302,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.9";
+var APP_VERSION = "0.10";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -370,7 +397,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
@@ -989,12 +1016,259 @@ SCREENS.chat.after = function (room) {
   $("#cmsg").onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 };
 
+// ---- League screens (WS2): 📖 Rules · 🔒 Keepers · 📝 Draft · 📚 History · 🎓 GM Rankings. All from league-data.js
+// (derived from data/ by tools/build_data.py; the history robot rebuilds it weekly, the build robot on every data/ change).
+function LD(k) { return (window.LEAGUE_DATA || {})[k] || []; }
+var FIN_TXT = { champion: "🏆 Champion", runner_up: "Runner-up", semifinal: "Semifinal", wildcard: "1st round", playoffs: "Playoffs", missed: "Missed" };
+function fin(f) { return '<span class="fin ' + esc(f) + '">' + esc(FIN_TXT[f] || f) + '</span>'; }
+var ST_TXT = { current: "✓ Current", confirm: "Joe to confirm", stale: "Out of date", ok: "No conflict" };
+function stBadge(s) { return '<span class="st ' + esc(s) + '">' + esc(ST_TXT[s] || s) + '</span>'; }
+function dayDiff(iso) { var d = new Date(iso.length === 10 ? iso + "T12:00" : iso); return Math.round((d - new Date()) / 86400000); }
+function fmtDate(iso) { var d = new Date(iso.length === 10 ? iso + "T12:00" : iso); return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric", year: "numeric" }) + (iso.length > 10 ? " · " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""); }
+function untilTxt(iso) { var n = dayDiff(iso); return n > 1 ? "in " + n + " days" : n === 1 ? "tomorrow" : n === 0 ? "today" : n === -1 ? "yesterday" : Math.abs(n) + " days ago"; }
+function calOf(season, key) { return LD("calendar").filter(function (c) { return +c.season === season && c.key === key; })[0]; }
+function nextSeason() { var d = new Date(); return d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear(); } // the season whose Signing Day + draft are next (draft ≈ early Sept)
+
+// 📖 Rules: the rulebook (search, status per section), the season timeline, and where ESPN disagrees.
+SCREENS.rules = function (arg) {
+  var view = arg === "timeline" || arg === "espn" ? arg : "book";
+  var tabs = [["book", "📖 Rulebook"], ["timeline", "🗓️ Timeline"], ["espn", "⚖️ vs ESPN"]];
+  var html = back("league", "League") + '<h2>Rules</h2><div class="hscroll">' + tabs.map(function (t) { return '<button class="chip' + (t[0] === view ? " on" : "") + '" onclick="go(\'rules\'' + (t[0] === "book" ? "" : ",\'" + t[0] + "\'") + ')">' + t[1] + '</button>'; }).join("") + '</div>';
+  if (view === "book") {
+    var rs = LD("rules"), cnt = { current: 0, confirm: 0, stale: 0 }; rs.forEach(function (r) { cnt[r.status] = (cnt[r.status] || 0) + 1; });
+    html += '<input type="text" id="rq" placeholder="Search the rules (keeper, veto, Shoot Out…)" autocomplete="off" style="margin-bottom:10px">' +
+      '<p class="muted" style="font-size:12px;margin:0 0 10px">The 2023 constitution draft, cleaned up for the phone. ' + cnt.current + ' sections current · ' + cnt.confirm + ' for Joe to confirm · ' + cnt.stale + ' out of date.</p><div id="rlist">' +
+      rs.map(function (r, i) {
+        return '<details class="card sec" data-i="' + i + '"' + (arg === r.id ? " open" : "") + '><summary><b>' + esc(r.title) + '</b>' + stBadge(r.status) + '</summary>' +
+          (r.note ? '<div class="rnote">' + esc(r.note) + '</div>' : '') + '<div class="rbody">' + r.html + '</div></details>';
+      }).join("") + '</div><p id="rnone" class="muted" style="display:none">Nothing matches.</p>' +
+      '<p class="muted" style="font-size:12px">Source: SPL Constitution, draft 6/12/2023. Rule changes the league votes in get written into the rulebook here.</p>';
+  } else if (view === "timeline") {
+    var cal = LD("calendar"), upcoming = cal.filter(function (c) { return c.kind !== "milestone"; }), ms = cal.filter(function (c) { return c.kind === "milestone"; });
+    var bySeason = {}; upcoming.forEach(function (c) { (bySeason[c.season] = bySeason[c.season] || []).push(c); });
+    html += Object.keys(bySeason).sort().reverse().map(function (y) {
+      return '<div class="card"><div class="eyebrow">🗓️ ' + (+y === nextSeason() ? "Coming up · " + y + " off-season" : y + " season") + '</div>' + bySeason[y].map(function (c) {
+        var when = c.date ? '<b>' + esc(fmtDate(c.date)) + '</b><br><small class="' + (dayDiff(c.date) < 0 ? "muted" : "lime") + '">' + (c.kind === "target" ? "target · " : "") + esc(untilTxt(c.date)) + '</small>' : '<small class="muted">' + (c.kind === "rule" ? "by rule" : "not set") + '</small>';
+        return '<div class="kv"><span><b>' + esc(c.event) + '</b><br><small class="muted">' + esc(c.note) + '</small></span><span>' + when + '</span></div>';
+      }).join("") + '</div>';
+    }).join("") +
+      '<div class="card"><div class="eyebrow">📜 How the league got here</div>' + ms.map(function (c) { return '<div class="kv"><span><b>' + esc(c.season) + '</b> · ' + esc(c.event) + '<br><small class="muted">' + esc(c.note) + '</small></span></div>'; }).join("") + '</div>' +
+      '<p class="muted" style="font-size:12px">Dates come from the commish (Winter Meeting) and ESPN. Unset ones fill in as they\'re decided.</p>';
+  } else {
+    var cs = LD("conflicts");
+    html += '<p class="muted" style="font-size:13px;margin:0 0 10px">Where the constitution and ESPN\'s league settings disagree. The constitution governs; ESPN either gets fixed or the commish works around it.</p>' +
+      cs.map(function (c) {
+        return '<div class="card"><div class="row" style="justify-content:space-between"><div class="eyebrow" style="margin:0">' + esc(c.id) + ' · Section ' + esc(c.section) + '</div>' + stBadge(c.status) + '</div><h3 style="margin-top:6px">' + esc(c.item) + '</h3>' +
+          '<div class="kv"><span class="muted">Constitution</span><span>' + esc(c.constitution) + '</span></div><div class="kv"><span class="muted">ESPN</span><span>' + esc(c.espn) + '</span></div>' +
+          (c.proposed && c.proposed !== "—" ? '<div class="kv"><span class="muted">Proposed</span><span><b>' + esc(c.proposed) + '</b></span></div>' : '') +
+          (c.note ? '<p style="font-size:13px">' + esc(c.note) + '</p>' : '') + '</div>';
+      }).join("");
+  }
+  return html;
+};
+SCREENS.rules.after = function () {
+  var q = $("#rq"); if (!q) return;
+  var rs = LD("rules"), secs = document.querySelectorAll("#rlist details"), orig = [];
+  secs.forEach(function (d) { orig.push(d.querySelector(".rbody").innerHTML); });
+  q.oninput = function () {
+    var t = q.value.trim().toLowerCase(), any = 0, re = t.length > 1 ? new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")(?![^<]*>)", "gi") : null;
+    secs.forEach(function (d, i) {
+      var r = rs[+d.dataset.i], hit = !t || (r.title + " " + r.text + " " + r.note).toLowerCase().indexOf(t) >= 0;
+      d.style.display = hit ? "" : "none"; if (hit) any++;
+      d.querySelector(".rbody").innerHTML = re && hit ? orig[i].replace(re, "<mark>$1</mark>") : orig[i];
+      if (t.length > 1) d.open = hit;
+    });
+    $("#rnone").style.display = any ? "none" : "";
+  };
+};
+
+// 🔒 Keepers: contract table + 2027 cap forecaster (what my keepers cost, room left, try a signing) + Signing Day countdown.
+var KP_ROUND = function (r) { return !r ? 2 : r === 1 ? 10 : r === 2 ? 8 : r === 3 ? 6 : r <= 5 ? 4 : r <= 8 ? 3 : 2; };
+var KP_YRS = [nextSeason(), nextSeason() + 1, nextSeason() + 2];
+function pnorm(s) { return String(s || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv)\b/g, "").replace(/[^a-z0-9]/g, ""); }
+function draftedRound(name, season) { var n = pnorm(name), p = LD("draft").filter(function (d) { return d[0] === season && pnorm(d[6]) === n; })[0]; return p ? p[1] : 0; }
+function kplan(id, v) { return v === undefined ? (store("kplan_" + id) || []) : store("kplan_" + id, v); }
+function signingDay() {
+  var y = nextSeason(), sd = calOf(y, "signing_day"), dr = calOf(y, "spl_draft"), wm = calOf(y, "winter_meeting");
+  if (sd && sd.date) return { y: y, date: sd.date };
+  if (dr && dr.date) { var d = new Date(dr.date + "T12:00"); d.setDate(d.getDate() - 10); return { y: y, date: d.toISOString().slice(0, 10), from: "draft" }; }
+  return { y: y, wm: wm && wm.date };
+}
+SCREENS.keepers = function (arg) {
+  var id = arg || (ME ? ME.owner : OWNERS[0].id), o = owner(id) || {}, mine = ME && ME.owner === id;
+  var cs = contractsOf(id), plan = kplan(id), y0 = KP_YRS[0];
+  var num = function (v) { return typeof v === "number" ? v : 0; };
+  var carried = cs.filter(function (c) { return c.status === "active" && c.kp[y0] != null; });
+  var pens = cs.filter(function (c) { return c.status !== "active" && c.pen && c.pen[y0] != null; });
+  var tot = function (y) { var k = 0, p = 0, h = 0;
+    carried.forEach(function (c) { k += num(c.kp[y]); }); cs.forEach(function (c) { if (c.status !== "active" && c.pen) p += num(c.pen[y]); });
+    plan.forEach(function (x) { var i = y - y0; if (i < x.term) h += x.cost + i; }); return { k: k, p: p, h: h, room: 10 - k - p - h }; };
+  var t0 = tot(y0), slots = carried.length + plan.length, tags = carried.filter(function (c) { return c.kp[y0] === "F"; });
+  var sd = signingDay();
+  var html = back("league", "League") + '<h2>Keepers</h2><div class="hscroll">' + OWNERS.map(function (x) { return '<button class="chip' + (x.id === id ? " on" : "") + '" onclick="go(\'keepers\',\'' + x.id + '\')">' + esc(x.name) + '</button>'; }).join("") + '</div>';
+  html += '<div class="card"><div class="eyebrow">⏳ Keeper Signing Day ' + sd.y + '</div>' + (sd.date ? '<div class="big">' + Math.max(0, dayDiff(sd.date)) + '<small class="muted" style="font-size:18px"> days</small></div><p>' + esc(fmtDate(sd.date)) + (sd.from ? ' · 10 days before the SPL Draft' : '') + '</p>'
+    : '<p style="margin:0"><b>10 days before the SPL Draft.</b> The draft date gets picked at the Winter Meeting' + (sd.wm ? ' (target ' + esc(fmtDate(sd.wm)) + ', ' + esc(untilTxt(sd.wm)) + ')' : '') + '. The countdown starts once it\'s set.</p>') + '</div>';
+  html += '<div class="card' + (mine ? " lead" : "") + '"><div class="eyebrow">🔒 ' + (mine ? "Your" : esc(o.name) + "'s") + ' ' + y0 + ' cap</div>' +
+    '<div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="big">' + t0.room + '<small style="font-size:18px;opacity:.7"> KP left</small></div></div><div style="text-align:right;font:600 12px var(--mono)">' + slots + ' of 3 keepers' + (tags.length ? '<br>🏷️ tag: no ' + y0 + ' 1st' : '') + '</div></div>' +
+    '<div class="meter"><i class="k" style="width:' + Math.min(100, t0.k * 10) + '%"></i><i class="p" style="width:' + Math.min(100, t0.p * 10) + '%"></i><i class="h" style="width:' + Math.min(100, t0.h * 10) + '%"></i></div>' +
+    '<p style="font-size:12px;margin:0">' + t0.k + ' KP committed · ' + t0.p + ' KP cap penalties · ' + t0.h + ' KP in your plan · of 10</p>' +
+    (t0.room < 0 ? '<p style="font-weight:700;color:' + (mine ? "#ffd0d6" : "var(--coral)") + '">Over the cap by ' + (-t0.room) + ' KP: something has to go on Signing Day.</p>' : '') +
+    (slots > 3 ? '<p style="font-weight:700">Over the Three Keeper Max.</p>' : '') + '</div>';
+  // multi-year profile
+  var rowsH = carried.map(function (c) { return '<tr><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + '<br><small class="muted">' + c.term + '-yr · signed ' + c.signed + '</small></td>' +
+      KP_YRS.map(function (y) { var v = c.kp[y]; return '<td class="n">' + (v == null ? '<span class="muted">·</span>' : v === "F" ? '<span class="gold">F</span>' : v) + '</td>'; }).join("") + '</tr>'; }).join("") +
+    pens.map(function (c) { return '<tr><td><span class="coral">' + esc(c.player) + '</span><br><small class="muted">cap penalty · ' + esc(c.status) + '</small></td>' + KP_YRS.map(function (y) { var v = c.pen[y]; return '<td class="n coral">' + (v == null ? '<span class="muted">·</span>' : v) + '</td>'; }).join("") + '</tr>'; }).join("") +
+    plan.map(function (x, i) { return '<tr><td><b>' + esc(x.player) + '</b> <span class="via">PLAN</span><br><small class="muted">' + x.term + '-yr · ' + (x.round ? "R" + x.round + " in " + (y0 - 1) : "undrafted") + ' · <a href="javascript:void 0" onclick="kpDrop(\'' + id + '\',' + i + ')">remove</a></small></td>' +
+      KP_YRS.map(function (y) { var k = y - y0; return '<td class="n">' + (k < x.term ? x.cost + k : '<span class="muted">·</span>') + '</td>'; }).join("") + '</tr>'; }).join("");
+  html += '<div class="card"><div class="eyebrow">📈 Cap profile</div><table><tr><th>Contract</th>' + KP_YRS.map(function (y) { return '<th class="n">' + String(y).slice(2) + '</th>'; }).join("") + '</tr>' +
+    (rowsH || '<tr><td colspan="4" class="muted">Nothing carried into ' + y0 + ' yet.</td></tr>') +
+    '<tr><td><b>KP left</b></td>' + KP_YRS.map(function (y) { var t = tot(y); return '<td class="n"><b class="' + (t.room < 0 ? "coral" : "") + '">' + t.room + '</b></td>'; }).join("") + '</tr></table>' +
+    '<p class="muted" style="font-size:12px">10 KP a season. F = franchise-tag year (no KP, costs the owner\'s 1st). Year 2 = Year 1 + 1, Year 3 = Year 2 + 1. No extensions.</p></div>';
+  // try a signing
+  html += '<div class="card"><div class="eyebrow">🧪 Try a signing</div><p style="margin:0 0 8px;font-size:13px">Year-one price = the round he went in the ' + (y0 - 1) + ' draft (R1 10 · R2 8 · R3 6 · R4–5 4 · R6–8 3 · R9+ or undrafted 2). Plans stay on this phone.</p>' +
+    '<input type="text" id="kq" placeholder="Search a player…" autocomplete="off"><div id="kc" style="margin-top:6px"><p class="muted" style="font-size:13px">' + (ME ? "Loading " + esc(o.name) + "'s roster…" : "Type a name, or sign in to see this team's roster.") + '</p></div></div>';
+  // archive
+  html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">📚 Every contract in the league (' + LD("contracts").length + ')</summary><table style="margin-top:8px"><tr><th>Player</th><th>Owner</th><th class="n">Term</th><th class="n">\'' + String(y0 - 1).slice(2) + '</th></tr>' +
+    LD("contracts").slice().sort(function (a, b) { return a.owner < b.owner ? -1 : a.owner > b.owner ? 1 : 0; }).map(function (c) { var v = c.status === "active" ? c.kp[y0 - 1] : c.pen[y0 - 1];
+      return '<tr><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + (c.status !== "active" ? ' <span class="tag" style="color:var(--coral)">' + esc(c.status.toUpperCase()) + '</span>' : '') + '</td><td>' + esc(oname(c.owner)) + '</td><td class="n">' + c.signed + '+' + c.term + '</td><td class="n' + (c.status !== "active" ? " coral" : "") + '">' + (v == null ? "·" : v) + '</td></tr>'; }).join("") +
+    '</table><p class="muted" style="font-size:12px">From the 2026 Keeper Matrix; contracts follow traded players automatically (ledger robot).</p></details>';
+  return html;
+};
+SCREENS.keepers.after = function (arg) {
+  var id = arg || (ME ? ME.owner : OWNERS[0].id), y0 = KP_YRS[0], roster = null;
+  var held = {}; LD("contracts").forEach(function (c) { held[pnorm(c.player)] = c; });
+  var line = function (name, pos, extra) {
+    var c = held[pnorm(name)], r = draftedRound(name, y0 - 1), cost = KP_ROUND(r);
+    var blocked = c && c.status === "active" && c.kp[y0] != null ? "under contract through " + (c.signed + c.term - 1)
+      : c && c.status === "active" ? "contract up · no extensions" : c && c.status === "cut" ? "cut contract · ineligible" : "";
+    return '<div class="cand"><span><b>' + esc(name) + '</b> <small class="muted">' + esc(pos || "") + '</small><br><small class="muted">' + (r ? "R" + r + " in " + (y0 - 1) : "undrafted") + ' · ' + (blocked ? esc(blocked) : cost + " → " + (cost + 1) + " → " + (cost + 2) + " KP") + esc(extra || "") + '</small></span>' +
+      (blocked ? '' : [1, 2, 3].map(function (t) { return '<button onclick="kpAdd(\'' + id + '\',' + (KCAND.push({ n: name, r: r }) - 1) + ',' + t + ')">' + t + 'y</button>'; }).join("")) + '</div>';
+  };
+  var draw = function () {
+    var box = $("#kc"); if (!box) return;
+    var q = pnorm($("#kq").value); KCAND = [];
+    if (q.length > 1) {
+      var seen = {}, out = [];
+      (roster || []).concat(LD("draft").filter(function (d) { return d[0] === y0 - 1; }).map(function (d) { return { n: d[6], pos: "" }; })).forEach(function (p) {
+        var k = pnorm(p.n); if (!k || seen[k] || k.indexOf(q) < 0) return; seen[k] = 1; out.push(line(p.n, p.pos));
+      });
+      out.push(line($("#kq").value.trim(), "", " · if he went undrafted"));
+      box.innerHTML = out.slice(0, 12).join("");
+    } else if (roster) {
+      box.innerHTML = '<div class="eyebrow" style="margin-top:6px">' + esc(oname(id)) + "'s roster now</div>" + roster.filter(function (p) { return p.pos !== "D/ST"; }).map(function (p) { return line(p.n, p.pos); }).join("");
+    }
+  };
+  $("#kq").oninput = draw;
+  if (ME) loadRosters().then(function (d) { if (!d.ok) throw new Error(d.error); var t = teamRoster(d, id); roster = t ? t.players.map(function (p) { return { n: p.n, pos: p.pos }; }) : []; draw(); })
+    .catch(function () { var b = $("#kc"); if (b) b.innerHTML = '<p class="muted" style="font-size:13px">Couldn\'t load the roster from ESPN. Search by name instead.</p>'; });
+};
+var KCAND = [];
+window.kpAdd = function (id, ci, term) {
+  var c = KCAND[ci] || {}, name = c.n, round = c.r, p = kplan(id); if (!name) return; if (p.some(function (x) { return pnorm(x.player) === pnorm(name); })) { toast("Already in the plan"); return; }
+  p.push({ player: name, round: round, cost: KP_ROUND(round), term: term }); kplan(id, p); render();
+};
+window.kpDrop = function (id, i) { var p = kplan(id); p.splice(i, 1); kplan(id, p); render(); };
+
+// 📝 Draft: every pick by year, traded picks flagged, who dealt what.
+SCREENS.draft = function (arg) {
+  var all = LD("draft"), years = []; all.forEach(function (d) { if (years.indexOf(d[0]) < 0) years.push(d[0]); });
+  if (!years.length) return back("league", "League") + soon("Draft", "No draft boards loaded yet.");
+  var parts = String(arg || "").split(","), y = +parts[0] || years[0], who = parts[1] || "";
+  var ps = all.filter(function (d) { return d[0] === y; }), traded = ps.filter(function (d) { return d[4] !== d[5]; });
+  var html = back("league", "League") + '<h2>Draft</h2><div class="hscroll">' + years.map(function (x) { return '<button class="chip' + (x === y ? " on" : "") + '" onclick="go(\'draft\',\'' + x + '\')">' + x + '</button>'; }).join("") + '</div>' +
+    '<div class="hscroll"><button class="chip' + (!who ? " on" : "") + '" onclick="go(\'draft\',\'' + y + '\')">Everyone</button>' + OWNERS.map(function (o) { return '<button class="chip' + (o.id === who ? " on" : "") + '" onclick="go(\'draft\',\'' + y + ',' + o.id + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div>';
+  if (!who) {
+    var net = {}; OWNERS.forEach(function (o) { net[o.id] = { got: 0, gave: 0 }; }); traded.forEach(function (d) { if (net[d[4]]) net[d[4]].got++; if (net[d[5]]) net[d[5]].gave++; });
+    html += '<div class="card"><div class="eyebrow">🔁 ' + traded.length + ' traded picks in ' + y + '</div>' + OWNERS.filter(function (o) { return net[o.id].got || net[o.id].gave; }).sort(function (a, b) { return (net[b.id].got - net[b.id].gave) - (net[a.id].got - net[a.id].gave); }).map(function (o) {
+      return '<div class="kv" style="cursor:pointer" onclick="go(\'draft\',\'' + y + ',' + o.id + '\')"><span><b>' + esc(o.name) + '</b></span><span><small class="muted">got</small> ' + net[o.id].got + ' · <small class="muted">gave</small> ' + net[o.id].gave + ' ›</span></div>'; }).join("") + '</div>';
+    var rounds = {}; ps.forEach(function (d) { (rounds[d[1]] = rounds[d[1]] || []).push(d); });
+    html += Object.keys(rounds).sort(function (a, b) { return a - b; }).map(function (r) {
+      return '<details class="card"' + (+r <= 2 ? " open" : "") + '><summary class="eyebrow" style="cursor:pointer">Round ' + r + '</summary>' + rounds[r].sort(function (a, b) { return a[3] - b[3]; }).map(pickRow).join("") + '</details>';
+    }).join("");
+  } else {
+    var mine = ps.filter(function (d) { return d[4] === who; }).sort(function (a, b) { return a[3] - b[3]; }), gone = ps.filter(function (d) { return d[5] === who && d[4] !== who; });
+    html += '<div class="card"><div class="eyebrow">📝 ' + esc(oname(who)) + "'s " + y + ' draft · ' + mine.length + ' picks</div>' + mine.map(pickRow).join("") + '</div>' +
+      (gone.length ? '<div class="card"><div class="eyebrow">➡️ ' + esc(oname(who)) + "'s picks someone else made</div>" + gone.map(pickRow).join("") + '</div>' : '');
+  }
+  return html + '<p class="muted" style="font-size:12px">' + y + ' board from Mike\'s screenshot. Keepers aren\'t on the board (they fill each team\'s open late-round slots). ? = board shorthand, name not confirmed. Earlier drafts (2019–2025) are in the league packet and get added here.</p>';
+};
+function pickRow(d) {
+  return '<div class="pk"><span class="no">' + d[1] + '.' + String(d[2]).padStart(2, "0") + '</span><span><b>' + esc(d[6] || "—") + '</b>' + (d[7].indexOf("?") >= 0 ? ' <small class="muted">?</small>' : '') + (d[7].indexOf("F") >= 0 ? ' <span class="tag">🏷️ FRANCHISE TAG</span>' : '') +
+    '<br><small class="muted">#' + d[3] + ' · ' + esc(oname(d[4])) + '</small></span>' + (d[4] !== d[5] ? '<span class="via">via ' + esc(oname(d[5])) + '</span>' : '') + '</div>';
+}
+
+// 📚 History: champions roll + every season's table (ESPN 2006–) + gaps to backfill.
+function histOf(y) { return LD("history").filter(function (h) { return h.y === +y; })[0]; }
+SCREENS.history = function (arg) {
+  if (arg) return seasonPage(+arg);
+  var hs = LD("history"), ys = hs.map(function (h) { return h.y; }), lo = Math.min.apply(null, ys.concat([2004])), hi = Math.max.apply(null, ys);
+  var titles = {}; hs.forEach(function (h) { if (h.champ) (titles[h.champ] = titles[h.champ] || []).push(h.y); });
+  var html = back("league", "League") + '<h2>History</h2>' +
+    '<div class="card lead"><div class="eyebrow">🏆 Trophy case</div>' + Object.keys(titles).sort(function (a, b) { return titles[b].length - titles[a].length || Math.max.apply(null, titles[b]) - Math.max.apply(null, titles[a]); }).map(function (id) {
+      return '<div class="kv" style="border-color:rgba(255,255,255,.15)"><span><b>' + esc(oname(id)) + '</b></span><span>' + titles[id].length + ' · <small style="opacity:.75">' + titles[id].slice().sort().map(function (y) { return "'" + String(y).slice(2); }).join(" ") + '</small></span></div>'; }).join("") + '</div>' +
+    '<div class="card"><div class="eyebrow">Every season</div>';
+  for (var y = hi; y >= lo; y--) {
+    var h = histOf(y);
+    if (!h) { html += '<div class="trophy" style="cursor:default"><span class="yr gap">' + y + '</span><div><b class="muted">' + (y < 2006 ? "Before ESPN" : "ESPN kept no scores") + '</b><br><small>Results wanted from Joe or Glen</small></div></div>'; continue; }
+    var best = h.teams[0];
+    html += '<div class="trophy" onclick="go(\'history\',\'' + y + '\')"><span class="yr">' + y + '</span><div>' + (h.champ ? '<b>🏆 ' + esc(teamIn(h, h.champ)) + '</b><br><small>' + esc(oname(h.champ)) + ' · beat ' + esc(oname(h.runner)) + ' in the SPL Bowl</small>'
+      : '<b>In progress</b><br><small>Best record: ' + esc(oname(best[0])) + ' ' + best[2] + '–' + best[3] + '</small>') + '</div><span class="muted">›</span></div>';
+  }
+  return html + '</div><p class="muted" style="font-size:12px">Built from every ESPN game (refreshed weekly by the history robot). 2004–05 and 2020–21 fill in from data/Season_Results_Manual.csv once Joe or Glen send them.</p>';
+};
+function teamIn(h, id) { var t = h.teams.filter(function (x) { return x[0] === id; })[0]; return (t && t[1]) || oname(id); }
+function seasonPage(y) {
+  var h = histOf(y); if (!h) return back("history", "History") + soon(String(y), "No results for this season yet.");
+  var ys = LD("history").map(function (x) { return x.y; });
+  var po = LD("games").filter(function (g) { return g[0] === y && g[2] === "P"; }).sort(function (a, b) { return b[1] - a[1]; });
+  var html = back("history", "History") + '<div class="hscroll">' + ys.map(function (x) { return '<button class="chip' + (x === y ? " on" : "") + '" onclick="go(\'history\',\'' + x + '\')">' + x + '</button>'; }).join("") + '</div>' +
+    '<h2>' + y + ' season</h2>' + (h.champ ? '<div class="card lead"><div class="eyebrow">🏆 SPL Champion</div><h2 style="margin:0;color:#fff">' + esc(teamIn(h, h.champ)) + '</h2><p>' + esc(oname(h.champ)) + ' · runner-up ' + esc(teamIn(h, h.runner)) + ' (' + esc(oname(h.runner)) + ')</p></div>' : '');
+  if (po.length) {
+    var wks = []; po.forEach(function (g) { if (wks.indexOf(g[1]) < 0) wks.push(g[1]); });
+    html += '<div class="card"><div class="eyebrow">Playoffs</div>' + wks.map(function (w, i) {
+      return '<div class="gpos" style="margin-top:6px">' + (i === 0 ? "SPL Bowl" : i === 1 ? "Semifinals" : "First round") + ' · week ' + w + '</div>' + po.filter(function (g) { return g[1] === w; }).map(function (g) {
+        var hw = g[4] > g[6]; return '<div class="kv"><span><b class="' + (hw ? "lime" : "") + '">' + esc(oname(g[3])) + '</b> vs <b class="' + (hw ? "" : "lime") + '">' + esc(oname(g[5])) + '</b></span><span>' + fmtPts(g[4]) + '–' + fmtPts(g[6]) + '</span></div>'; }).join("");
+    }).join("") + '</div>';
+  }
+  html += '<div class="card"><div class="eyebrow">Regular season' + (h.done ? "" : " so far") + '</div><table><tr><th>#</th><th>Team</th><th class="n">W-L</th><th class="n">PF</th></tr>' + h.teams.map(function (t, i) {
+    return '<tr' + (ME && t[0] === ME.owner ? ' style="background:#F2F6FC"' : '') + '><td class="muted">' + (i + 1) + '</td><td><b>' + esc(t[1] || oname(t[0])) + '</b><br><small class="muted">' + esc(oname(t[0])) + '</small> ' + (t[9] !== "missed" ? fin(t[9]) : '') + '</td><td class="n">' + (t[2] == null ? "–" : t[2] + "-" + t[3] + (t[4] ? "-" + t[4] : "")) + '</td><td class="n">' + (t[5] == null ? "–" : Math.round(t[5])) + '</td></tr>';
+  }).join("") + '</table><p class="muted" style="font-size:12px">Order: win % then points (the constitution\'s first two tiebreakers). Division seeding isn\'t applied.</p></div>';
+  return html;
+}
+
+// 🎓 GM Rankings: careers rebuilt from every game, so they update themselves with the history robot.
+function careers() {
+  var c = {}; OWNERS.forEach(function (o) { c[o.id] = { id: o.id, w: 0, l: 0, t: 0, pf: 0, g: 0, pw: 0, pl: 0, ti: [], ru: [], trips: 0, seasons: [] }; });
+  LD("history").slice().reverse().forEach(function (h) { h.teams.forEach(function (t) { var x = c[t[0]]; if (!x) return;
+    x.w += t[2] || 0; x.l += t[3] || 0; x.t += t[4] || 0; if (t[5] != null) { x.pf += t[5]; x.g += (t[2] || 0) + (t[3] || 0) + (t[4] || 0); }
+    x.pw += t[7] || 0; x.pl += t[8] || 0; if (t[9] === "champion") x.ti.push(h.y); if (t[9] === "runner_up") x.ru.push(h.y); if (t[9] !== "missed") x.trips++;
+    x.seasons.push([h.y, t[9], t[2], t[3], h.done]); }); });
+  return Object.keys(c).map(function (k) { var x = c[k]; x.pct = x.w + x.l + x.t ? (x.w + x.t / 2) / (x.w + x.l + x.t) : 0; x.ppg = x.g ? x.pf / x.g : 0; return x; });
+}
+var GM_SORT = { titles: ["Titles", function (a, b) { return b.ti.length - a.ti.length || b.ru.length - a.ru.length || b.pw - a.pw || b.pct - a.pct; }, function (x) { return x.ti.length + " 🏆"; }],
+  pct: ["Win %", function (a, b) { return b.pct - a.pct; }, function (x) { return (x.pct * 100).toFixed(1) + "%"; }],
+  playoffs: ["Playoffs", function (a, b) { return b.pw - a.pw || b.trips - a.trips; }, function (x) { return x.pw + "–" + x.pl; }],
+  ppg: ["Points/gm", function (a, b) { return b.ppg - a.ppg; }, function (x) { return x.ppg.toFixed(1); }] };
+SCREENS.gm = function (arg) {
+  var k = GM_SORT[arg] ? arg : "titles", s = GM_SORT[k], list = careers().sort(s[1]);
+  var ys = LD("seasons");
+  return back("league", "League") + '<h2>GM Rankings</h2><div class="hscroll">' + Object.keys(GM_SORT).map(function (x) { return '<button class="chip' + (x === k ? " on" : "") + '" onclick="go(\'gm\',\'' + x + '\')">' + GM_SORT[x][0] + '</button>'; }).join("") + '</div>' +
+    '<div class="card">' + list.map(function (x, i) {
+      return '<div class="gmrow" onclick="gmToggle(this)"><span class="rk">' + (i + 1) + '</span><div><b>' + esc(oname(x.id)) + '</b> <small class="muted">' + esc((owner(x.id) || {}).team || "") + '</small><br>' +
+        '<small class="muted">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + ' (' + (x.pct * 100).toFixed(1) + '%) · playoffs ' + x.pw + '–' + x.pl + ' in ' + x.trips + ' trips · ' + x.ti.length + ' titles' + (x.ru.length ? ', ' + x.ru.length + ' runner-up' : '') + ' · ' + x.ppg.toFixed(1) + ' ppg</small>' +
+        '<div class="strip" style="display:none">' + x.seasons.map(function (z) { return '<span class="fin ' + (z[4] ? z[1] : "") + '">\'' + String(z[0]).slice(2) + ' ' + (z[2] == null ? "" : z[2] + "-" + z[3]) + (z[1] === "champion" ? " 🏆" : z[1] === "runner_up" ? " 🥈" : "") + '</span>'; }).join("") +
+        ' <a href="javascript:void 0" onclick="event.stopPropagation();go(\'rivalry\',\'' + x.id + '\')" style="font-size:12px">⚔️ rivalries ›</a></div></div><span class="val">' + s[2](x) + '</span></div>';
+    }).join("") + '</div>' +
+    '<p class="muted" style="font-size:12px">Careers from every ESPN game, ' + (ys[0] || "") + '–' + (ys[ys.length - 1] || "") + ' (regular season + playoffs; consolation not counted; ' + (ys[ys.length - 1] || "") + ' in progress). Missing 2004–05 and 2020–21 until those results come in. Glen\'s GM Report ratings slot in here once he shares the formula. Tap an owner for his seasons.</p>';
+};
+
+window.gmToggle = function (el) { var st = el.querySelector(".strip"); st.style.display = st.style.display ? "" : "none"; };
 // ---- League grid
 var LEAGUE_TILES = [
   ["standings", "📊", "Standings", "Live from ESPN"], ["trades", "🔁", "Trades", "Offers + trade wire"],
-  ["soon=keepers", "🔒", "Keepers", "Contracts + forecaster", 1], ["soon=draft", "📝", "Draft", "Every pick by year", 1],
-  ["soon=history", "📚", "History", "Seasons + champions", 1], ["soon=gm", "🎓", "GM Rankings", "Glen's report", 1],
-  ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["soon=rules", "📖", "Rules", "Constitution + timeline", 1],
+  ["keepers", "🔒", "Keepers", "Cap + forecaster"], ["draft", "📝", "Draft", "Every pick, who dealt what"],
+  ["history", "📚", "History", "Champions since 2006"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
+  ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
   ["feedback", "💡", "Ideas", "Feedback to the site"]
 ];
 SCREENS.league = function () {

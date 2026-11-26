@@ -1,0 +1,180 @@
+# Draft_Picks.csv  --  GOLD (hand-edited, authoritative). One row per draft pick.
+# v0.1 -- 2026-09-30. 2026 season only, transcribed from Mike's screenshot of the 2026 draft board.
+# 2026-11-26: copied into the repo from the Claude Project. Older drafts (2019-2025) are in SPL Packet 2026.xlsx: add them here.
+# player = full name where the board's shorthand is unambiguous; needs_review=Y means only the board's text is known.
+# owner_id = who made the pick; original_owner_id = whose slot it was. Board tags: Page/PAGE=reilly, BAG=murello,
+#   BOC=chappie, GUN=sikora, BEA=bucher, FIN=moyer, NUD=patel (Streakers), MOS=hoosier (Dynamos).
+# Keepers are not on the board (they fill each team's empty late-round slots).
+season,round,pick_in_round,overall_pick,owner_id,original_owner_id,player,player_raw,is_keeper,is_franchise,needs_review,notes
+2026,1,1,1,reilly,murello,Josh Allen,Josh Allen,N,N,N,"Traded pick; board tag ""Page"""
+2026,1,2,2,moyer,moyer,Joe Burrow,Burrow,N,N,N,
+2026,1,3,3,glen,glen,Jahmyr Gibbs,Gibbs,N,N,N,
+2026,1,4,4,patel,patel,Bijan Robinson,bijan robinson,N,N,N,No pick number on board; derived
+2026,1,5,5,murello,reilly,Puka Nacua,Puka Nacua,N,N,N,"Traded pick; board tag ""BAG"""
+2026,1,6,6,farrington,farrington,Ja'Marr Chase,Chase,N,N,N,
+2026,1,7,7,bucher,bucher,Jonathan Taylor,Taylor,N,N,N,No pick number on board; derived
+2026,1,8,8,smith,smith,Justin Herbert,Herbert,N,N,N,
+2026,1,9,9,sikora,sikora,Jalen Hurts,Hurts,N,N,N,
+2026,1,10,10,hoosier,hoosier,,FRANCHISE,N,Y,N,Pick spent on franchise tag (Lamar Jackson)
+2026,1,11,11,chappie,chappie,James Cook,J. Cook,N,N,N,
+2026,1,12,12,salerno,salerno,Christian McCaffrey,CMC,N,N,N,
+2026,2,12,24,reilly,murello,Derrick Henry,Derrick Henry,N,N,N,"Traded pick; board tag ""Page"""
+2026,2,11,23,moyer,moyer,Patrick Mahomes,Mahomes,N,N,N,
+2026,2,10,22,glen,glen,Kenneth Walker III,Walker,N,N,N,
+2026,2,9,21,patel,patel,Dak Prescott,dak,N,N,N,No pick number on board; derived
+2026,2,8,20,murello,reilly,CeeDee Lamb,CeeDee Lamb,N,N,N,"Traded pick; board tag ""BAG"""
+2026,2,7,19,farrington,farrington,Ashton Jeanty,Jeanty,N,N,N,
+2026,2,6,18,bucher,bucher,De'Von Achane,De'Von Achane,N,N,N,No pick number on board; derived
+2026,2,5,17,smith,smith,Trevor Lawrence,Trevor Lawrence,N,N,N,
+2026,2,4,16,sikora,sikora,Justin Jefferson,Jefferson,N,N,N,
+2026,2,3,15,hoosier,hoosier,Jayden Daniels,Jayden Daniels,N,N,N,
+2026,2,2,14,chappie,chappie,Saquon Barkley,S. Barkley,N,N,N,
+2026,2,1,13,salerno,salerno,Caleb Williams,Caleb,N,N,N,
+2026,3,1,25,murello,murello,Tetairoa McMillan,Tet McMillan,N,N,N,
+2026,3,2,26,moyer,moyer,Drake London,D London,N,N,N,
+2026,3,3,27,glen,glen,Jordan Love,Jo. Love,N,N,N,
+2026,3,4,28,patel,patel,Malik Nabers,nabers,N,N,N,No pick number on board; derived
+2026,3,5,29,reilly,reilly,A.J. Brown,AJ Brown,N,N,N,
+2026,3,6,30,farrington,farrington,D'Andre Swift,Swift,N,N,N,
+2026,3,7,31,bucher,bucher,Breece Hall,Hall,N,N,N,No pick number on board; derived
+2026,3,8,32,smith,smith,Zay Flowers,Zay Flowers,N,N,N,
+2026,3,9,33,sikora,sikora,Kyren Williams,Kyren Williams,N,N,N,
+2026,3,10,34,hoosier,hoosier,Jeremiyah Love,Jeremiyah Love,N,N,N,
+2026,3,11,35,chappie,chappie,Garrett Wilson,G. Wilson,N,N,N,
+2026,3,12,36,salerno,salerno,Emeka Egbuka,Egbuka,N,N,N,
+2026,4,12,48,reilly,murello,Baker Mayfield,Baker Mayfield,N,N,N,"Traded pick; board tag ""Page"""
+2026,4,11,47,moyer,moyer,Bucky Irving,Bucky Irving,N,N,N,
+2026,4,10,46,glen,glen,Terry McLaurin,McLaurin,N,N,N,
+2026,4,9,45,patel,patel,moore,moore,N,N,Y,No pick number on board; derived
+2026,4,8,44,murello,reilly,Jadarian Price,Jadarian Price,N,N,N,"Traded pick; board tag ""BAG"""
+2026,4,7,43,farrington,farrington,Parker Washington,Parker Washington,N,N,N,
+2026,4,6,42,bucher,bucher,Jameson Williams,Jameson williams,N,N,N,
+2026,4,5,41,smith,smith,Brock Purdy,Brock Purdy,N,N,N,
+2026,4,4,40,sikora,sikora,Tee Higgins,Higgins,N,N,N,
+2026,4,3,39,hoosier,hoosier,Travis Etienne Jr.,Travis Etienne,N,N,N,
+2026,4,2,38,chappie,chappie,Ladd McConkey,L. McConkey,N,N,N,
+2026,4,1,37,salerno,salerno,Jaylen Waddle,Waddle,N,N,N,
+2026,5,1,49,murello,murello,TreVeyon Henderson,Treyveon Henderson,N,N,N,
+2026,5,2,50,moyer,moyer,David Montgomery,D Montgomery,N,N,N,
+2026,5,3,51,glen,glen,Marvin Harrison Jr.,Harrison Jr.,N,N,N,
+2026,5,4,52,patel,patel,Carnell Tate,Tate,N,N,N,No pick number on board; derived
+2026,5,5,53,reilly,reilly,Rhamondre Stevenson,Rhamondre Stevenson,N,N,N,
+2026,5,6,54,farrington,farrington,Sam Darnold,Darnold,N,N,N,
+2026,5,7,55,bucher,bucher,Davante Adams,Adams,N,N,N,No pick number on board; derived
+2026,5,8,56,smith,smith,Mike Evans,Mike Evans,N,N,N,
+2026,5,9,57,sikora,sikora,Brian Thomas Jr.,Brain Thomas Jr,N,N,N,
+2026,5,10,58,hoosier,hoosier,DK Metcalf,DK Metcalf,N,N,N,
+2026,5,11,59,chappie,chappie,MarShawn Lloyd,M. Lloyd,N,N,N,
+2026,5,12,60,salerno,salerno,Jordan Mason,J Mason,N,N,N,
+2026,6,12,72,chappie,murello,Jordyn Tyson,J. Tyson,N,N,N,"Traded pick; board tag ""BOC"""
+2026,6,11,71,moyer,moyer,Jonathon Brooks,J Brooks,N,N,N,
+2026,6,10,70,glen,glen,Sam LaPorta,LaPorta,N,N,N,
+2026,6,9,69,patel,patel,Harold Fannin Jr.,Harold Fannin JR,N,N,N,No pick number on board; derived
+2026,6,8,68,murello,reilly,Makai Lemon,Makai Lemon,N,N,N,"Traded pick; board tag ""BAG"""
+2026,6,7,67,farrington,farrington,Kyle Monangai,Monangai,N,N,N,
+2026,6,6,66,bucher,bucher,Strib Club,Strib Club,N,N,Y,No pick number on board; derived
+2026,6,5,65,smith,smith,Michael Wilson,Michael Wilson,N,N,N,
+2026,6,4,64,sikora,sikora,Jaylen Warren,Jaylen Warren,N,N,N,
+2026,6,3,63,hoosier,hoosier,Courtland Sutton,Sutton,N,N,N,"Board shows pick ""598"""
+2026,6,2,62,chappie,chappie,KC Concepcion,KC Concepcion,N,N,N,
+2026,6,1,61,salerno,salerno,Quentin Johnston,Quentin Johnston,N,N,N,
+2026,7,1,73,reilly,murello,Fernando Mendoza,Mendoza,N,N,N,"Traded pick; board tag ""Page"""
+2026,7,2,74,moyer,moyer,Cam Ward,Cam Ward,N,N,N,
+2026,7,3,75,glen,glen,Matthew Golden,Golden,N,N,N,
+2026,7,4,76,patel,patel,Jacory Croskey-Merritt,JCM,N,N,N,No pick number on board; derived
+2026,7,5,77,reilly,reilly,Chris Godwin,Godwin,N,N,N,
+2026,7,6,78,farrington,farrington,Blake Corum,Corum,N,N,N,
+2026,7,7,79,bucher,bucher,Bryce Young,Young,N,N,N,
+2026,7,8,80,smith,smith,Tony Pollard,Pollard,N,N,N,
+2026,7,9,81,sikora,sikora,Stefon Diggs,Diggs,N,N,N,
+2026,7,10,82,hoosier,hoosier,Chuba Hubbard,Hubbard,N,N,N,
+2026,7,11,83,chappie,chappie,Kyle Pitts,K. Pitts,N,N,N,
+2026,7,12,84,bucher,salerno,Josh Downs,Josh Downs,N,N,N,"Traded pick; board tag ""BEA"""
+2026,8,12,96,murello,murello,Rico Dowdle,Rico Dowdle,N,N,N,
+2026,8,11,95,moyer,moyer,RJ Harvey,RJ Harvey,N,N,N,
+2026,8,10,94,glen,glen,Jordan Addison,Addison,N,N,N,
+2026,8,9,93,sikora,patel,Jonah Coleman,Jonah Coleman,N,N,N,"Traded pick; board tag ""GUN"""
+2026,8,8,92,sikora,reilly,Rashid Shaheed,Shaheed,N,N,N,"Traded pick; board tag ""GUN"""
+2026,8,7,91,farrington,farrington,C Allen,C Allen,N,N,Y,
+2026,8,6,90,bucher,bucher,J.K. Dobbins,Dobbins,N,N,N,
+2026,8,5,89,smith,smith,Woody Marks,Woody Marks,N,N,N,
+2026,8,4,88,sikora,sikora,Dalton Kincaid,Kincaid,N,N,N,
+2026,8,3,87,hoosier,hoosier,George Kittle,Kittle,N,N,N,
+2026,8,2,86,chappie,chappie,Alec Pierce,A. Pierce,N,N,N,
+2026,8,1,85,salerno,salerno,Jayden Reed,J Reed,N,N,N,
+2026,9,1,97,chappie,murello,K. Blakk,K. Blakk,N,N,Y,"Traded pick; board tag ""BOC"""
+2026,9,2,98,moyer,moyer,Michael Pittman Jr.,Pittman,N,N,N,
+2026,9,3,99,glen,glen,Xavier Worthy,Worthy,N,N,N,
+2026,9,4,100,patel,patel,Zach Charbonnet,Z Charbonnet,N,N,N,
+2026,9,5,101,sikora,reilly,Kaytron Allen,Kaytron Allen,N,N,N,"Traded pick; board tag ""GUN"""
+2026,9,6,102,farrington,farrington,E Johnson,E Johnson,N,N,Y,
+2026,9,7,103,bucher,bucher,Jalen Coker,Coker,N,N,N,
+2026,9,8,104,smith,smith,Terrance Ferguson,Terrance Ferguson,N,N,N,
+2026,9,9,105,reilly,sikora,Chris Rodriguez Jr.,Chris Rodrigue,N,N,N,"Traded pick; board tag ""PAGE"""
+2026,9,10,106,hoosier,hoosier,Josh Jacobs,Josh Jacobs,N,N,N,
+2026,9,11,107,murello,chappie,Kenyon Sadiq,Sadiq,N,N,N,"Traded pick; board tag ""BAG"""
+2026,9,12,108,salerno,salerno,Carson Beck,C Beck,N,N,N,
+2026,10,12,120,chappie,murello,Cade Klubnik,C. Klubnik,N,N,N,"Traded pick; board tag ""BOC"""
+2026,10,11,119,moyer,moyer,Isaiah Likely,Likely,N,N,N,
+2026,10,10,118,glen,glen,M Washington Jr.,M Washington Jr.,N,N,Y,
+2026,10,9,117,sikora,patel,Geno Smith,Geno Smith,N,N,N,"Traded pick; board tag ""GUN"""
+2026,10,8,116,reilly,reilly,Juwan Johnson,Juwan Johnson,N,N,N,
+2026,10,7,115,farrington,farrington,Jacoby Brissett,Brissett,N,N,N,
+2026,10,6,114,bucher,bucher,K Mitchell,K Mitchell,N,N,Y,
+2026,10,5,113,smith,smith,Malik Washington,Malik Washington,N,N,N,
+2026,10,4,112,moyer,sikora,Chris Bell,Chris Be,N,N,N,"Traded pick; board tag ""FIN"""
+2026,10,3,111,moyer,hoosier,Denzel Boston,Denzel Boston,N,N,N,"Traded pick; board tag ""FIN"""
+2026,10,2,110,murello,chappie,Aaron Rodgers,Aaron Rodgers,N,N,N,"Traded pick; board tag ""BAG"""
+2026,10,1,109,salerno,salerno,Tank Bigsby,T Bigsby,N,N,N,
+2026,11,1,121,murello,murello,Caleb Douglas,Caleb Douglas,N,N,N,
+2026,11,2,122,patel,moyer,Romeo Doubs,R Doubs,N,N,N,"Traded pick; board tag ""NUD"""
+2026,11,3,123,glen,glen,Khalil Shakir,Shakir,N,N,N,
+2026,11,4,124,moyer,patel,Ty Simpson,Ty Simpson,N,N,N,"Traded pick; board tag ""FIN"""
+2026,11,5,125,reilly,reilly,Kenneth Gainwell,Kenny Gainwell,N,N,N,
+2026,11,6,126,farrington,farrington,Texans D/ST,Texans D,N,N,N,
+2026,11,7,127,bucher,bucher,Wan'Dale Robinson,Wan Dale Robinson,N,N,N,
+2026,11,8,128,smith,smith,Deebo Samuel,Deebo,N,N,N,
+2026,11,9,129,sikora,sikora,Kayshon Boutte,Kayshon Boutte,N,N,N,
+2026,11,10,130,hoosier,hoosier,Jerry Jeudy,Jerry Jeudy,N,N,N,
+2026,11,11,131,chappie,chappie,Ray Davis,R. Davis,N,N,N,
+2026,11,12,132,salerno,salerno,Rachaad White,R White,N,N,N,
+2026,12,12,144,reilly,murello,Dontayvion Wicks,Wicks,N,N,N,"Traded pick; board tag ""Page"""
+2026,12,11,143,moyer,moyer,Eagles D/ST,Philly D,N,N,N,
+2026,12,10,142,glen,glen,Jaguars D/ST,JAX DEF,N,N,N,
+2026,12,9,141,patel,patel,Broncos D/ST,broncos,N,N,N,No pick number on board; derived
+2026,12,8,140,murello,reilly,Drew Allar,Drew Allar,N,N,N,"Traded pick; board tag ""BAG"""
+2026,12,7,139,farrington,farrington,Jalen Nailor,Nailor,N,N,N,
+2026,12,6,138,bucher,bucher,Seahawks D/ST,Sea,N,N,N,
+2026,12,5,137,smith,smith,Rams D/ST,Rams D,N,N,N,
+2026,12,4,136,sikora,sikora,Calvin Ridley,Calvin Ridley,N,N,N,
+2026,12,3,135,hoosier,hoosier,Jakobi Meyers,J Meyers,N,N,N,
+2026,12,2,134,chappie,chappie,Nicholas Singleton,N. Singleton,N,N,N,
+2026,12,1,133,salerno,salerno,Jaylin Lane,J Lane,N,N,N,
+2026,13,1,145,murello,murello,Steelers D/ST,PIT D,N,N,N,
+2026,13,3,146,glen,glen,Travis Kelce,Kelce,N,N,N,
+2026,13,4,147,patel,patel,Brenton Strange,Strange,N,N,N,
+2026,13,5,148,reilly,reilly,Shedeur Sanders,S Sanders,N,N,N,
+2026,13,6,149,farrington,farrington,Antonio Williams,Antonio Williams,N,N,N,
+2026,13,7,150,bucher,bucher,Mark Andrews,Andrews,N,N,N,
+2026,13,8,151,smith,smith,Tre Tucker,Tre Tucker,N,N,N,
+2026,13,9,152,sikora,sikora,Patriots D/ST,Pats D,N,N,N,
+2026,13,10,153,hoosier,hoosier,D Watson,D Watson,N,N,Y,
+2026,13,11,154,chappie,chappie,Ravens D/ST,BAL DEF,N,N,N,
+2026,13,12,155,salerno,salerno,Zachariah Branch,Z Branch,N,N,N,
+2026,14,12,164,reilly,murello,Chargers D/ST,Chargers DEF,N,N,N,"Traded pick; board tag ""Page"""
+2026,14,10,163,glen,glen,Keon Coleman,Coleman,N,N,N,
+2026,14,9,162,patel,patel,Brian Robinson Jr.,Bri Robinson Jr,N,N,N,
+2026,14,8,161,murello,reilly,Travis Hunter,Travis Hunter,N,N,N,"Traded pick; board tag ""BAG"""
+2026,14,7,160,farrington,farrington,Sampson,Sampson,N,N,Y,
+2026,14,6,159,bucher,bucher,Jaylin Noel,Noel,N,N,N,
+2026,14,5,158,smith,smith,Aaron Jones,Aaron Jones,N,N,N,
+2026,14,3,157,hoosier,hoosier,Tyler Allgeier,T. Allgeier,N,N,N,
+2026,14,1,156,salerno,salerno,J James,J James,N,N,Y,
+2026,15,1,165,murello,murello,Eli Stowers,Eli Stowers,N,N,N,
+2026,15,4,166,patel,patel,Tre Harris,tre harris,N,N,N,
+2026,15,5,167,reilly,reilly,Jack Bech,Jack Bech,N,N,N,
+2026,15,10,168,hoosier,hoosier,Lions D/ST,DET DEF,N,N,N,
+2026,15,12,169,salerno,salerno,Bills D/ST,BUF DEF,N,N,N,
+2026,16,9,172,patel,patel,Kirk Cousins,Cousins,N,N,N,
+2026,16,8,171,reilly,reilly,Tua Tagovailoa,Tua,N,N,N,
+2026,16,3,170,hoosier,hoosier,Braelon Allen,Braelon Allen,N,N,N,

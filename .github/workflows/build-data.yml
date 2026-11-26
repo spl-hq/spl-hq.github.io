@@ -1,0 +1,22 @@
+name: Build league data
+# Rebuilds league-data.js (derived) whenever gold in data/ or the builder changes on main — e.g. Joe's rulebook edit,
+# a new draft board, a date set in Season_Calendar.csv, a backfilled season. Safe to re-run: output depends only on data/.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["data/**", "tools/build_data.py", ".github/workflows/build-data.yml"]
+permissions:
+  contents: write
+concurrency: { group: data-robots, cancel-in-progress: false }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/build_data.py
+      - name: Commit if changed
+        run: |
+          git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
+          git add league-data.js
+          git diff --cached --quiet || (git commit -m "Build league data: league-data.js from data/" && git pull --rebase && git push)

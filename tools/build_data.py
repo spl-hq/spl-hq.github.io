@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Regenerate league-data.js (DERIVED) from the gold CSVs in data/. Run: python3 tools/build_data.py"""
-import csv, json, datetime, os
+import csv, json, datetime, os, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def rows(name):
     with open(os.path.join(ROOT, "data", name), encoding="utf-8") as f:
@@ -26,10 +26,135 @@ if os.path.exists(mp):
         if not r["home_owner"] or not r["away_owner"] or r.get("winner") == "UNDECIDED": continue  # unresolved or still being played
         games.append([int(r["season"]), int(r["week"]), TIER.get(r["playoff_tier"], "C"), r["home_owner"], round(float(r["home_pts"]), 2), r["away_owner"], round(float(r["away_pts"]), 2)])
 seasons = sorted({g[0] for g in games})
+
+# ---- 📚 History (derived): every season's regular-season table + how the playoffs finished. ESPN games first;
+# data/Season_Results_Manual.csv fills seasons ESPN doesn't have (2004-05, 2020-21) once Joe/Glen supply them.
+def opt_rows(name):
+    return rows(name) if os.path.exists(os.path.join(ROOT, "data", name)) else []
+names = {}  # (season, owner) -> team name used that season
+if os.path.exists(mp):
+    for r in rows("SPL_Matchups.csv"):
+        for side in ("home", "away"):
+            if r[side + "_owner"]: names[(int(r["season"]), r[side + "_owner"])] = r[side + "_team"]
+history = []
+for y in seasons:
+    gs = [g for g in games if g[0] == y]
+    t = {}
+    def team(o): return t.setdefault(o, {"o": o, "team": names.get((y, o), ""), "w": 0, "l": 0, "t": 0, "pf": 0.0, "pa": 0.0, "pw": 0, "pl": 0, "po": False, "fin": "missed"})
+    for g in gs:
+        a, b = team(g[3]), team(g[5])
+        if g[2] == "R":
+            a["pf"] += g[4]; a["pa"] += g[6]; b["pf"] += g[6]; b["pa"] += g[4]
+            if g[4] > g[6]: a["w"] += 1; b["l"] += 1
+            elif g[4] < g[6]: a["l"] += 1; b["w"] += 1
+            else: a["t"] += 1; b["t"] += 1
+        elif g[2] == "P":
+            a["po"] = b["po"] = True
+            win, lose = (a, b) if g[4] > g[6] else (b, a)
+            win["pw"] += 1; lose["pl"] += 1
+    po = [g for g in gs if g[2] == "P"]
+    weeks = sorted({g[1] for g in po})
+    champ = runner = None
+    reg_weeks = max([g[1] for g in gs if g[2] == "R"] or [0])
+    if weeks and len([g for g in po if g[1] == weeks[-1]]) == 1 and len(weeks) >= 3:  # title game played
+        f = [g for g in po if g[1] == weeks[-1]][0]
+        champ, runner = (f[3], f[5]) if f[4] > f[6] else (f[5], f[3])
+        for g in po:  # how far each playoff team got: lost in the semis (2nd-to-last week) or the round before
+            loser = g[5] if g[4] > g[6] else g[3]
+            if g[1] == weeks[-2]: t[loser]["fin"] = "semifinal"
+            elif g[1] < weeks[-2]: t[loser]["fin"] = "wildcard"
+        t[champ]["fin"], t[runner]["fin"] = "champion", "runner_up"
+        for x in t.values():
+            if x["po"] and x["fin"] == "missed": x["fin"] = "playoffs"  # bye team that lost in round 2 is covered above; safety net
+    for x in t.values():
+        x["pf"], x["pa"] = round(x["pf"], 1), round(x["pa"], 1)
+    table = sorted(t.values(), key=lambda x: (-(x["w"] + 0.5 * x["t"]) / max(1, x["w"] + x["l"] + x["t"]), -x["pf"]))
+    history.append({"y": y, "src": "espn", "done": bool(champ), "regWeeks": reg_weeks, "champ": champ, "runner": runner,
+                    "teams": [[x["o"], x["team"], x["w"], x["l"], x["t"], x["pf"], x["pa"], x["pw"], x["pl"], x["fin"]] for x in table]})
+manual = {}
+for r in opt_rows("Season_Results_Manual.csv"):
+    manual.setdefault(int(r["season"]), []).append(r)
+num = lambda v, f=int: f(v) if str(v).strip() else None
+for y, rs in manual.items():
+    if y in seasons: continue
+    ts = [[r["owner_id"], r["team_name"], num(r["wins"]), num(r["losses"]), num(r["ties"]) or 0, num(r["points_for"], float), num(r["points_against"], float), None, None, r["finish"] or "missed"] for r in rs]
+    ts.sort(key=lambda x: (-(x[2] or 0), -(x[5] or 0)))
+    c = [x[0] for x in ts if x[9] == "champion"]; ru = [x[0] for x in ts if x[9] == "runner_up"]
+    history.append({"y": y, "src": "manual", "done": bool(c), "champ": c[0] if c else None, "runner": ru[0] if ru else None, "teams": ts})
+history.sort(key=lambda h: -h["y"])
+
+# ---- 📝 Draft (gold Draft_Picks.csv): [season, round, pick_in_round, overall, owner, original_owner, player, flags]
+draft = []
+for r in opt_rows("Draft_Picks.csv"):
+    flags = ("F" if r["is_franchise"] == "Y" else "") + ("K" if r["is_keeper"] == "Y" else "") + ("?" if r["needs_review"] == "Y" else "")
+    draft.append([int(r["season"]), int(r["round"]), int(r["pick_in_round"]), int(r["overall_pick"]), r["owner_id"], r["original_owner_id"], r["player"] or r["player_raw"], flags])
+draft.sort(key=lambda d: (-d[0], d[3]))
+
+# ---- 📖 Rules: data/SPL_Rulebook.md (gold) -> sections of safe HTML; conflicts + calendar CSVs.
+import html as _h
+def inline(s):
+    s = _h.escape(s, quote=False)
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s)
+def md_blocks(lines):
+    out, i = [], 0
+    while i < len(lines):
+        ln = lines[i]
+        if not ln.strip(): i += 1; continue
+        if ln.lstrip().startswith("|"):
+            tb = []
+            while i < len(lines) and lines[i].lstrip().startswith("|"):
+                cells = [c.strip() for c in lines[i].strip().strip("|").split("|")]
+                if not all(re.fullmatch(r":?-+:?", c) for c in cells): tb.append(cells)
+                i += 1
+            out.append("<table class=\"rb\"><tr>" + "".join("<th>" + inline(c) + "</th>" for c in tb[0]) + "</tr>" +
+                       "".join("<tr>" + "".join("<td>" + inline(c) + "</td>" for c in r) + "</tr>" for r in tb[1:]) + "</table>")
+            continue
+        m = re.match(r"^(\s*)(\d+\.|-)\s+(.*)", ln)
+        if m:
+            ordered = m.group(2) != "-"; items = []
+            while i < len(lines):
+                m2 = re.match(r"^(\s*)(\d+\.|-)\s+(.*)", lines[i])
+                if not m2 or len(m2.group(1)) > 0 and not items: break
+                if len(m2.group(1)) == 0:
+                    if (m2.group(2) != "-") != ordered: break
+                    items.append([m2.group(3), []])
+                else:
+                    items[-1][1].append(m2.group(3))
+                i += 1
+            tag = "ol" if ordered else "ul"
+            start = int(m.group(2)[:-1]) if ordered else 1
+            out.append("<" + tag + (' start="%d"' % start if start > 1 else "") + ">" + "".join("<li>" + inline(a) + ("<ul>" + "".join("<li>" + inline(x) + "</li>" for x in sub) + "</ul>" if sub else "") + "</li>" for a, sub in items) + "</" + tag + ">")
+            continue
+        para = []
+        while i < len(lines) and lines[i].strip() and not lines[i].lstrip().startswith("|") and not re.match(r"^\s*(\d+\.|-)\s+", lines[i]):
+            para.append(lines[i].strip()); i += 1
+        out.append("<p>" + "<br>".join(inline(p) for p in para) + "</p>")
+    return "".join(out)
+rules = []
+rp = os.path.join(ROOT, "data", "SPL_Rulebook.md")
+if os.path.exists(rp):
+    txt = re.sub(r"<!--.*?-->", "", open(rp, encoding="utf-8").read(), flags=re.S)
+    for chunk in re.split(r"^## ", txt, flags=re.M)[1:]:
+        lines = chunk.split("\n"); title = lines[0].strip(); body = lines[1:]
+        status, note = "current", ""
+        if body and body[0].startswith("> status:"):
+            st = body.pop(0)[len("> status:"):].strip(); status, _, note = (p.strip() for p in st.partition("--"))
+        m = re.match(r"^([A-K])\.\s+(.*)", title)
+        sid = m.group(1) if m else title.split("·")[0].strip()
+        text = re.sub(r"[*|#>-]", " ", "\n".join(body))
+        rules.append({"id": sid, "title": title, "status": status, "note": note, "html": md_blocks(body), "text": re.sub(r"\s+", " ", text).strip()})
+conflicts = [{k: r[k] for k in ("id", "item", "section", "constitution", "espn", "proposed", "status", "note")} for r in opt_rows("Rules_Conflicts.csv")]
+calendar = [{k: r[k] for k in ("season", "key", "event", "date", "kind", "note")} for r in opt_rows("Season_Calendar.csv")]
+
 ls = os.path.join(ROOT, "data", "ledger_status.json")
 ledger = json.load(open(ls)) if os.path.exists(ls) else None
+payload = {'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts,
+           'seasons': seasons, 'ledger': ledger, 'games': games, 'history': history, 'draft': draft, 'rules': rules,
+           'conflicts': conflicts, 'calendar': calendar}
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
-       f"// Sources: data/Keeper_Contracts.csv, data/SPL_Owner_Registry.csv, data/SPL_Matchups.csv. Generated {datetime.date.today()}.\n"
-       f"var LEAGUE_DATA = {json.dumps({'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts, 'seasons': seasons, 'ledger': ledger, 'games': games}, ensure_ascii=False, separators=(',', ':'))};\n")
+       "// Sources: data/Keeper_Contracts.csv, SPL_Owner_Registry.csv, SPL_Matchups.csv, Season_Results_Manual.csv, Draft_Picks.csv,\n"
+       f"//   SPL_Rulebook.md, Rules_Conflicts.csv, Season_Calendar.csv. Generated {datetime.date.today()}.\n"
+       f"var LEAGUE_DATA = {json.dumps(payload, ensure_ascii=False, separators=(',', ':'))};\n")
 open(os.path.join(ROOT, "league-data.js"), "w", encoding="utf-8").write(out)
-print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:])
+print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:], "·", len(history), "seasons of history ·",
+      len(draft), "draft picks ·", len(rules), "rule sections ·", len(conflicts), "conflicts ·", len(calendar), "dates")
