@@ -154,7 +154,7 @@ ok(e.post({ action: "chat", token: glen, room: "league" }).msgs[0].del === true,
 
 // 12 · trade center: offer → accept → approve (no self-approval), picks move, chat cards
 let t = e.post({ action: "trades", token: mike });
-ok(t.ok && t.mode === "test" && t.rules.pickYearsFrom === "Joe" && t.seasons.join() === "2027,2028" && t.picks.length === 2 * 12 * 17 && t.picks.every(p => p.owner === p.original), "pick seasons follow Joe's answer (2 seasons): 2027 + 2028 seeded");
+ok(t.ok && t.mode === "test" && t.rules.pickYearsFrom === "commish" && t.seasons.join() === "2027,2028" && t.picks.length === 2 * 12 * 17 && t.picks.every(p => p.owner === p.original), "pick seasons follow Joe's answer (2 seasons): 2027 + 2028 seeded");
 ok(t.rules.contracts === "travels" && t.rules.contractsFrom === "default", "contracts travel by default");
 r = e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Josh Allen" }], picks: ["2027-R1-murello"] }, get: { players: [{ n: "Chris Olave" }] }, note: "let's deal" });
 ok(r.ok && r.offer.status === "PROPOSED", "Mike offers Allen + his 2027 1st for Olave");

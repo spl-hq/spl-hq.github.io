@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.6";
+var VERSION = "0.6.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -19,11 +19,13 @@ var TRADE_MODE = "test";
 var PICK_ROUNDS = 17, FIRST_PICK_SEASON = SEASON + 1;
 // League rules the app runs on come from Joe's answers in the app (League → Questions), with these defaults until he answers.
 var PICK_YEARS_OF = { "Next season only": 1, "2 seasons": 2, "3 seasons": 3, "No limit": 3 };
-function joeAnswer_(qid) { var a = null; rows_("Answers").forEach(function (r) { if (r.who === "reilly" && r.qid === qid && r.choice) a = String(r.choice); }); return a; }
+// Latest answer from either commish (Joe or Mike) wins; the Answers tab keeps every answer with who gave it.
+function joeAnswer_(qid) { var cm = {}; owners_().forEach(function (o) { if (isRole_(o, "commish")) cm[o.owner] = 1; });
+  var a = null; rows_("Answers").forEach(function (r) { if (cm[r.who] && r.qid === qid && r.choice) a = String(r.choice); }); return a; }
 function rules_() {
   var py = joeAnswer_("pick_years"), kt = joeAnswer_("keeper_travels"), n = PICK_YEARS_OF[py] || 1, seasons = [];
   for (var i = 0; i < n; i++) seasons.push(FIRST_PICK_SEASON + i);
-  return { pickSeasons: seasons, pickYearsFrom: py ? "Joe" : "default", contracts: /resets/i.test(kt || "") ? "resets" : "travels", contractsFrom: kt ? "Joe" : "default" };
+  return { pickSeasons: seasons, pickYearsFrom: py ? "commish" : "default", contracts: /resets/i.test(kt || "") ? "resets" : "travels", contractsFrom: kt ? "commish" : "default" };
 }
 var APP_URL = "https://spl-hq.github.io/";
 var MAX_FAILS_PER_HOUR = 30; // league-wide wrong passphrases before sign-in pauses for the hour (signed-in phones keep working)
