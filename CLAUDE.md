@@ -25,7 +25,11 @@ Status log: `docs/STATUS.md`. Modeled on MAFFL HQ's REEL (`maffl-commish/maffl`)
 The site keeps itself current: anything that changes with the season gets a robot, not a reminder. Every robot is a GitHub Action
 or the Apps Script backend, is safe to re-run, shows its last run on the 🛠️ Ops desk, and fails loudly (GitHub emails the org owner
 on a failed Action; backend problems email ops). When you add data that goes stale, add its robot in the same change.
-Current robots: `espn-history.yml` (Tue + Wed backstop: ESPN finals → `data/SPL_Matchups.csv` → `league-data.js`).
+Current robots: `espn-history.yml` (Tue + Wed backstop: ESPN finals → `data/SPL_Matchups.csv` → `league-data.js`);
+`ledger-sync.yml` (every 2 h: backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow
+traded players in `data/Keeper_Contracts.csv`; test mode writes `data/test/` instead). League rules the robots and app follow
+(pick seasons, contracts travel/reset) come from Joe's answers in the app via backend `rules_()`; defaults until he answers.
+Never hand-edit robot-written gold: fix at the source (the app) and let the robot copy it.
 
 ## Hard rules
 - **Public repo = public data.** Never commit emails, phone numbers, payment handles, cookies, tokens or passphrases.

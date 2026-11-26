@@ -26,8 +26,10 @@ if os.path.exists(mp):
         if not r["home_owner"] or not r["away_owner"] or r.get("winner") == "UNDECIDED": continue  # unresolved or still being played
         games.append([int(r["season"]), int(r["week"]), TIER.get(r["playoff_tier"], "C"), r["home_owner"], round(float(r["home_pts"]), 2), r["away_owner"], round(float(r["away_pts"]), 2)])
 seasons = sorted({g[0] for g in games})
+ls = os.path.join(ROOT, "data", "ledger_status.json")
+ledger = json.load(open(ls)) if os.path.exists(ls) else None
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
        f"// Sources: data/Keeper_Contracts.csv, data/SPL_Owner_Registry.csv, data/SPL_Matchups.csv. Generated {datetime.date.today()}.\n"
-       f"var LEAGUE_DATA = {json.dumps({'generated': datetime.datetime.utcnow().isoformat(timespec='minutes') + 'Z', 'owners': owners, 'contracts': contracts, 'seasons': seasons, 'games': games}, ensure_ascii=False, separators=(',', ':'))};\n")
+       f"var LEAGUE_DATA = {json.dumps({'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts, 'seasons': seasons, 'ledger': ledger, 'games': games}, ensure_ascii=False, separators=(',', ':'))};\n")
 open(os.path.join(ROOT, "league-data.js"), "w", encoding="utf-8").write(out)
 print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:])

@@ -154,7 +154,8 @@ ok(e.post({ action: "chat", token: glen, room: "league" }).msgs[0].del === true,
 
 // 12 · trade center: offer → accept → approve (no self-approval), picks move, chat cards
 let t = e.post({ action: "trades", token: mike });
-ok(t.ok && t.mode === "test" && t.picks.length === 12 * 17 && t.picks.every(p => p.owner === p.original), "picks ledger seeded: 2027 × 17 rounds × 12");
+ok(t.ok && t.mode === "test" && t.rules.pickYearsFrom === "Joe" && t.seasons.join() === "2027,2028" && t.picks.length === 2 * 12 * 17 && t.picks.every(p => p.owner === p.original), "pick seasons follow Joe's answer (2 seasons): 2027 + 2028 seeded");
+ok(t.rules.contracts === "travels" && t.rules.contractsFrom === "default", "contracts travel by default");
 r = e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Josh Allen" }], picks: ["2027-R1-murello"] }, get: { players: [{ n: "Chris Olave" }] }, note: "let's deal" });
 ok(r.ok && r.offer.status === "PROPOSED", "Mike offers Allen + his 2027 1st for Olave");
 const tid = r.offer.id;
@@ -214,6 +215,20 @@ ok(e.mails.length === before + 1, "DM email once per 30 min");
 before = e.mails.length;
 e.post({ action: "chatsend", token: joeTok, room: "league", text: "hey @Muffins look" });
 ok(e.mails.length === before + 1 && /Joe mentioned you/.test(e.mails[e.mails.length - 1].s), "@Muffins in league chat emails Glen");
+
+// 14 · ledger feed for the robot + commish pick fixes
+let L = e.get({ action: "ledger" });
+ok(L.ok && L.mode === "test" && L.picks.length === 2 * 12 * 17 && Array.isArray(L.trades), "ledger feed: picks + approved trades + rules");
+ok(!JSON.stringify(L).includes("let's deal") && !JSON.stringify(L).includes("@example.com"), "ledger feed carries no notes or contacts");
+ok(e.post({ action: "pickfix", token: glen, pid: "2027-R1-smith", to: "glen", reason: "x" }).error === "Commish only", "owners can't fix picks");
+ok(e.post({ action: "pickfix", token: mike, pid: "2027-R1-smith", to: "glen" }).error.includes("reason"), "pick fix needs a reason");
+ok(e.post({ action: "pickfix", token: mike, pid: "2027-R1-smith", to: "glen", reason: "Traded in August" }).ok, "commish moves a pick");
+L = e.get({ action: "ledger" });
+ok(L.picks.find(p => p.pid === "2027-R1-smith").owner === "glen" && /^fix:murello/.test(L.picks.find(p => p.pid === "2027-R1-smith").via), "fix shows in the ledger with who did it");
+ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Pick ledger fix/.test(r[4])), "league told about the fix");
+// Joe answers "Contract resets" → rule flips
+e.post({ action: "answers", token: joeTok, items: [{ qid: "keeper_travels", question: "q", choice: "Contract resets" }] });
+ok(e.get({ action: "ledger" }).rules.contracts === "resets", "contract rule follows Joe's answer");
 
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));

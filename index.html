@@ -255,7 +255,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.7.1";
+var APP_VERSION = "0.8";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -713,8 +713,8 @@ SCREENS.trades.after = function (focus) {
     if (inb.length) html += '<div class="eyebrow">📥 Needs your answer</div>' + inb.map(offerCard).join("");
     if (out.length) html += '<div class="eyebrow">📤 Your open offers</div>' + out.map(offerCard).join("");
     html += '<div class="eyebrow">📰 Trade wire</div>' + (wire.length ? wire.map(offerCard).join("") : '<div class="card"><p class="muted" style="margin:0">No agreed trades yet.</p></div>');
-    html += '<div class="card"><div class="eyebrow">🎟️ Your picks · ' + t.seasons.join(", ") + '</div><div class="chips">' + mine.sort(function (a, b) { return a.season - b.season || a.round - b.round; }).map(function (p) { return '<span class="chip">' + esc(pickLabel(p.pid, me)) + '</span>'; }).join("") + '</div>' +
-      '<p class="muted" style="font-size:12px">' + (mine.length === t.rounds * t.seasons.length ? "All your own picks." : mine.length + " picks.") + ' Starting ledger: every team owns its own picks. Tell Mike about any 2027 pick already traded so he can fix it.</p></div>';
+    html += '<div class="card"><div class="eyebrow">🎟️ Your picks · ' + t.seasons.join(" + ") + '</div><div class="chips">' + mine.sort(function (a, b) { return a.season - b.season || a.round - b.round; }).map(function (p) { return '<span class="chip">' + esc(pickLabel(p.pid, me)) + '</span>'; }).join("") + '</div>' +
+      '<p class="muted" style="font-size:12px">' + (mine.length === t.rounds * t.seasons.length ? "All your own picks." : mine.length + " picks.") + ' Seasons follow Joe\'s answer on pick trading (' + esc((t.rules || {}).pickYearsFrom || "default") + '). A pick already traded outside the app? The commish fixes it on the desk.</p></div>';
     if (past.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Older offers</summary>' + past.map(offerCard).join("") + '</details>';
     $("#trd").innerHTML = html;
     if (focus) { var el = document.getElementById("o-" + focus); if (el) { el.style.borderColor = "var(--lime)"; el.scrollIntoView({ block: "center" }); } }
@@ -810,10 +810,22 @@ SCREENS.desk.after = function () {
     var n = Object.keys(MY || {}).length;
     html += '<div class="card"><div class="eyebrow">📋 Questions</div><p style="margin:0">' + n + ' of ' + QUESTIONS.length + ' answered on your login.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">Open questions</button></p></div>';
     if (d.recent.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Recent decisions</summary>' + d.recent.map(offerCard).join("") + '</details>';
+    html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason; the ledger robot copies it into the official file.</p>' +
+      '<div class="row" style="flex-wrap:wrap"><select id="pfS" style="flex:1"></select><select id="pfR" style="flex:1"></select></div><div class="row" style="margin-top:6px"><select id="pfO" style="flex:1"><option value="">Whose pick (original team)</option>' + OWNERS.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + "'s</option>"; }).join("") + '</select>' +
+      '<select id="pfT" style="flex:1"><option value="">Now belongs to</option>' + OWNERS.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + '</option>'; }).join("") + '</select></div>' +
+      '<input type="text" id="pfWhy" maxlength="160" placeholder="Reason (e.g. traded in August: Glen got it for Kelce)" style="margin-top:6px"><p style="margin-top:8px"><button class="btn ghost" onclick="pickFix()">Move the pick</button></p></div>';
     if (isRole("ops") && d.mode === "test") html += '<div class="card"><div class="eyebrow">🧪 Ops</div><p style="margin:0">Wipe every test trade and reset the pick ledger.</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p></div>';
     $("#dsk").innerHTML = html;
+    loadTrades().then(function (t) { var S = $("#pfS"), R = $("#pfR"); if (!S) return;
+      S.innerHTML = t.seasons.map(function (y) { return '<option>' + y + '</option>'; }).join(""); R.innerHTML = Array.apply(null, Array(t.rounds)).map(function (_, i) { return '<option value="' + (i + 1) + '">Round ' + (i + 1) + '</option>'; }).join(""); }).catch(function () {});
   }).catch(function (e) { if ($("#dsk")) $("#dsk").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
+function pickFix() {
+  var y = $("#pfS").value, r = $("#pfR").value, o = $("#pfO").value, to = $("#pfT").value, why = $("#pfWhy").value.trim();
+  if (!o || !to || !why) { toast("Pick the original team, the new owner and a reason"); return; }
+  if (!confirm("Move " + oname(o) + "'s " + y + " round " + r + " pick to " + oname(to) + "?")) return;
+  authed("pickfix", { pid: y + "-R" + r + "-" + o, to: to, reason: why }).then(function (x) { if (!x.ok) throw new Error(x.error); TRADES = null; toast("✓ Pick moved"); render(); }).catch(function (e) { toast(e.message); });
+}
 function wipeTrades() { if (!confirm("Wipe ALL test trades and reset every pick to its original team?")) return; authed("wipetrades").then(function (r) { if (!r.ok) throw new Error(r.error); TRADES = null; toast("Wiped"); render(); }).catch(function (e) { toast(e.message); }); }
 
 // ---- ⚔️ Rivalries: head-to-head from ESPN history (data/SPL_Matchups.csv → league-data.js). R = regular season, P = playoffs, C = consolation.
@@ -1186,7 +1198,10 @@ SCREENS.ops.after = function () {
       '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>' +
       '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>' +
       (function () { var L = window.LEAGUE_DATA || {}, g = L.games || [], last = g.length ? g[g.length - 1] : null, age = L.generated ? (Date.now() - new Date(L.generated).getTime()) / 864e5 : 99;
-        return '<div class="kv"><span>History robot</span><span>' + ok(age < 9, (L.generated ? "updated " + ago(L.generated) : "never") + (last ? " · through " + last[0] + " wk " + last[1] : "")) + '</span></div>'; })();
+        var lg = L.ledger, la = lg ? (Date.now() - new Date(lg.at).getTime()) / 864e5 : 99;
+        return '<div class="kv"><span>History robot</span><span>' + ok(age < 9, (L.generated ? "updated " + ago(L.generated) : "never") + (last ? " · through " + last[0] + " wk " + last[1] : "")) + '</span></div>' +
+          '<div class="kv"><span>Ledger robot</span><span>' + ok(la < 1.5, lg ? "synced " + ago(lg.at) + " · " + lg.trades + " trades · " + (lg.mode === "test" ? "test files" : "gold") : "not run yet") + '</span></div>' +
+          (lg ? '<div class="kv"><span>Rules in force</span><span>' + esc(lg.rules.pickSeasons.join(", ")) + ' picks (' + esc(lg.rules.pickYearsFrom) + ') · contracts ' + esc(lg.rules.contracts) + ' (' + esc(lg.rules.contractsFrom) + ')</span></div>' : ''); })();
   }).catch(function (e) { $("#opsHealth").innerHTML = '<div class="eyebrow">System</div>' + ok(false, e.message); });
 };
 

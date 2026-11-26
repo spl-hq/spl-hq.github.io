@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.5";
+var VERSION = "0.6";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -16,7 +16,15 @@ var ESPN_WRITES = false;        // kill switch: no ESPN writes yet (approved tra
 // 🔁 Trade center. TRADE_MODE "test" = demo trades: nothing is owed on ESPN and Ops can wipe them all. "live" after Joe signs off.
 // Defaults until Joe answers the in-app questions: 2027 picks only, 17 rounds, contracts travel with the player, commish approves.
 var TRADE_MODE = "test";
-var PICK_SEASONS = [2027], PICK_ROUNDS = 17;
+var PICK_ROUNDS = 17, FIRST_PICK_SEASON = SEASON + 1;
+// League rules the app runs on come from Joe's answers in the app (League → Questions), with these defaults until he answers.
+var PICK_YEARS_OF = { "Next season only": 1, "2 seasons": 2, "3 seasons": 3, "No limit": 3 };
+function joeAnswer_(qid) { var a = null; rows_("Answers").forEach(function (r) { if (r.who === "reilly" && r.qid === qid && r.choice) a = String(r.choice); }); return a; }
+function rules_() {
+  var py = joeAnswer_("pick_years"), kt = joeAnswer_("keeper_travels"), n = PICK_YEARS_OF[py] || 1, seasons = [];
+  for (var i = 0; i < n; i++) seasons.push(FIRST_PICK_SEASON + i);
+  return { pickSeasons: seasons, pickYearsFrom: py ? "Joe" : "default", contracts: /resets/i.test(kt || "") ? "resets" : "travels", contractsFrom: kt ? "Joe" : "default" };
+}
 var APP_URL = "https://spl-hq.github.io/";
 var MAX_FAILS_PER_HOUR = 30; // league-wide wrong passphrases before sign-in pauses for the hour (signed-in phones keep working)
 
@@ -50,6 +58,7 @@ function doGet(e) {
   try {
     if (p.action === "health") return json(health_(p.fresh === "1"));
     if (p.action === "standings") return json(standings_());
+    if (p.action === "ledger") return json(ledger_());
     return json({ ok: true, app: "SPL HQ", version: VERSION });
   } catch (err) { return json({ ok: false, error: String(err && err.message || err) }); }
 }
@@ -57,7 +66,7 @@ function doGet(e) {
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
 var READS = { me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1 }; // never wait on the script lock
-var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1 }; // rate-limited per owner
+var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1 }; // rate-limited per owner
 function doPost(e) {
   var b = {};
   try { b = JSON.parse((e && e.postData && e.postData.contents) || "{}"); } catch (err) { return json({ ok: false, error: "bad json" }); }
@@ -86,6 +95,7 @@ function doPost(e) {
       case "offer":    return json(offer_(me, b));
       case "respond":  return json(respond_(me, b));
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
+      case "pickfix":  return json(desk ? pickFix_(me, b) : { ok: false, error: "Commish only" });
       case "wipetrades": return json(isRole_(me, "ops") ? wipeTrades_(me) : { ok: false, error: "Ops only" });
       default:         return json({ ok: false, error: "unknown action" });
     }
@@ -456,11 +466,32 @@ function notify_(ownerId, kind, subject, body, room) {
 // a keeper contract travels with its player. Nobody approves a trade they're in.
 function oid_(id) { return OWNER_SEED.filter(function (r) { return r[0] === id; })[0]; }
 function oName_(id) { var r = oid_(id); return r ? r[1] : id; }
+// Every tradeable season gets its 17 rounds × 12 picks the first time it's needed (seasons follow Joe's pick_years answer).
 function seedPicks_() {
-  var have = rows_("Picks"); if (have.length) return have;
-  var now = new Date();
-  PICK_SEASONS.forEach(function (y) { for (var r = 1; r <= PICK_ROUNDS; r++) OWNER_SEED.forEach(function (o) { append_("Picks", [y + "-R" + r + "-" + o[0], y, r, o[0], o[0], now, "seed"]); }); });
-  return rows_("Picks");
+  var have = rows_("Picks"), got = {}, now = new Date(), added = 0; have.forEach(function (p) { got[p.season] = 1; });
+  rules_().pickSeasons.forEach(function (y) { if (got[y]) return;
+    for (var r = 1; r <= PICK_ROUNDS; r++) OWNER_SEED.forEach(function (o) { append_("Picks", [y + "-R" + r + "-" + o[0], y, r, o[0], o[0], now, "seed"]); added++; }); });
+  return added ? rows_("Picks") : have;
+}
+// 🧾 Ledger feed for the ledger-sync robot (GitHub Action): approved trades + the live pick ledger + the rules in force.
+// League-level facts only (no notes, contacts or DMs); the robot writes them into the repo's gold files.
+function ledger_() {
+  var r = rules_(), picks = seedPicks_();
+  return { ok: true, version: VERSION, mode: TRADE_MODE, at: new Date().toISOString(), rules: r,
+    picks: picks.map(function (p) { return { pid: p.pid, season: Number(p.season), round: Number(p.round), original: p.original, owner: p.owner, via: p.via, updated: p.updated_ts }; }),
+    trades: offers_().filter(function (o) { return o.status === "APPROVED"; }).map(function (o) { return { id: o.offer_id, approved: o.updated_ts, from: o.from, to: o.to, mode: o.mode,
+      fromSends: o.giveO, toSends: o.getO, by: o.by }; }) };
+}
+// Commish fix for the pick ledger (a pick traded before the app existed, a typo): move one pick, with a reason. Logged + posted.
+function pickFix_(me, b) {
+  var picks = seedPicks_(), idx = -1; picks.forEach(function (p, i) { if (p.pid === b.pid) idx = i; });
+  if (idx < 0) return { ok: false, error: "Unknown pick" }; if (!oid_(b.to)) return { ok: false, error: "Pick an owner" };
+  if (!String(b.reason || "").trim()) return { ok: false, error: "Give a reason (the league sees it)." };
+  var p = picks[idx], from = p.owner; if (from === b.to) return { ok: false, error: "Already theirs." };
+  p.owner = b.to; p.updated_ts = new Date(); p.via = "fix:" + me.owner; setRow_("Picks", idx, p);
+  botPost_("league", "🎟️ Pick ledger fix: " + p.season + " round " + p.round + " (" + oName_(p.original) + "'s) now belongs to " + oName_(b.to) + " · “" + clip_(b.reason, 160) + "” (" + me.name + ")", "");
+  log_("pickfix", me.owner + " " + p.pid + " " + from + "→" + b.to + " " + clip_(b.reason, 160));
+  return { ok: true };
 }
 function offers_() { return rows_("Offers").map(function (r) { r.giveO = parseJ_(r.give); r.getO = parseJ_(r.get); return r; }); }
 function parseJ_(s) { try { return JSON.parse(s || "{}"); } catch (e) { return {}; } }
@@ -500,7 +531,8 @@ function trades_(me) {
   var moves = []; all.filter(function (r) { return r.status === "APPROVED"; }).forEach(function (r) {
     (r.giveO.players || []).forEach(function (p) { moves.push({ player: p.n, to: r.to, at: r.updated_ts }); });
     (r.getO.players || []).forEach(function (p) { moves.push({ player: p.n, to: r.from, at: r.updated_ts }); }); });
-  return { ok: true, mode: TRADE_MODE, seasons: PICK_SEASONS, rounds: PICK_ROUNDS,
+  var rl = rules_();
+  return { ok: true, mode: TRADE_MODE, seasons: rl.pickSeasons, rounds: PICK_ROUNDS, rules: rl,
     picks: picks.map(function (p) { return { pid: p.pid, season: Number(p.season), round: Number(p.round), original: p.original, owner: p.owner, via: p.via }; }),
     offers: mine.map(pub_offer_).reverse().slice(0, 80), moves: moves };
 }

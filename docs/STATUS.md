@@ -11,6 +11,11 @@ _Read first. Newest on top._ **Last updated:** 2026-11-25 by Claude (chat)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-25 · v0.8 (backend v0.6) · 🤖 **Ledger robot** (`ledger-sync.yml`, every 2 h): approved trades → `Trade_Log.csv`, live pick ledger →
+  `Draft_Pick_Ownership.csv`, keeper contracts follow traded players in `Keeper_Contracts.csv` (marked `[trade id]`, applied once), then
+  `league-data.js` rebuilt. Test mode writes to `data/test/` only. **Rules from Joe's answers**: pick seasons (next 1/2/3) seed themselves;
+  contracts travel or reset. 🎟️ **Pick ledger fix** on the Commish desk (move a pick with a reason; league chat told). Ops desk: Ledger
+  robot freshness + rules in force. Backend: public `?action=ledger` (league facts only, no notes/contacts), `pickfix`.
 - 2026-11-25 · v0.7.1 · 🤖 Automated upkeep (Mike: the site maintains itself). History robot runs every Tuesday ~6 AM ET (+ Wednesday backstop) and rebuilds `league-data.js`; Ops desk shows "History robot · updated N ago · through YYYY wk N" (red if older than 9 days). CLAUDE.md gains the standing rule: anything that goes stale gets a robot.
 - 2026-11-25 · v0.7 · ⚔️ **Rivalries** + league history. New robot `.github/workflows/espn-history.yml` (`tools/pull_history.py`, secrets ESPN_S2/SWID)
   pulled every SPL season ESPN has into gold `data/SPL_Matchups.csv`: 2006–2026, ~1,800 games, every team resolved to an owner via the
