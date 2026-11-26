@@ -250,12 +250,27 @@ a.btn.ghost{text-decoration:none}
 </nav>
 <div class="toast" id="toast"></div>
 <button class="upd" id="upd" type="button">✨ Update ready · <b>Tap to refresh</b></button>
+<script>
+// 📱 Home Screen height fix (Mike's screenshots 11/25): an iPhone Home Screen app with a see-through status bar reports a
+// viewport one status-bar shorter than the screen, so a 100dvh frame stops ~54 pt above the bottom edge. Size the frame to the
+// real screen when installed + portrait; in a browser innerHeight is right and nothing changes.
+(function () {
+  function fit() {
+    var sa = window.navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+    var h = window.innerHeight;
+    if (sa && matchMedia("(orientation: portrait)").matches && screen.height > h) h = screen.height;
+    document.body.style.height = h + "px";
+  }
+  document.addEventListener("DOMContentLoaded", fit); window.addEventListener("resize", fit); window.addEventListener("orientationchange", function () { setTimeout(fit, 300); });
+  window._fit = fit;
+})();
+</script>
 <script src="league-data.js"></script>
 <script>
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.8.1";
+var APP_VERSION = "0.8.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [

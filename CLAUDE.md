@@ -52,7 +52,7 @@ Gold `#B88A2E` (Needs you, keeper tags, champions) · Red `#C8102E` (injuries, a
 The theme lives in the "Nittany" block at the end of the `<style>` (CSS variables `--lime` = Beaver Blue, `--night` = white).
 Headings condensed uppercase 800; numbers monospace. Bottom tabs: Home · Match · Team · Chat · League. SPL crest top-left → Home.
 Icons sit on Nittany Navy.
-**Layout frame:** `body` is a full-height flex column (header · `main#view` scrolls · tab bar). Never `position:fixed` a bar over a scrolling page and never scroll `window`: scroll `#view` (iOS Home Screen apps float fixed bars and tint the status bar otherwise). Never park anything (even hidden/translated) under the status bar: iOS blurs whatever sits there. Hidden overlays use `display:none`.
+**Layout frame:** `body` is a full-height flex column (header · `main#view` scrolls · tab bar). Never `position:fixed` a bar over a scrolling page and never scroll `window`: scroll `#view` (iOS Home Screen apps float fixed bars and tint the status bar otherwise). Never park anything (even hidden/translated) under the status bar: iOS blurs whatever sits there. Hidden overlays use `display:none`. The frame height is set by the small fit script at the top of `<body>` (Home Screen apps under-report the height by the status bar); don't replace it with 100vh/100dvh.
 
 ## Layout
 ```

@@ -11,6 +11,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-25 by Claude (chat)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-25 · v0.8.2 · 📱 Home Screen bottom gap (round 3): installed with a see-through status bar, iOS reports a viewport one status bar (~54 pt) shorter than the screen, so the frame stopped short and navy showed under the tab bar. A tiny script sizes the frame to `screen.height` when installed + portrait (browser unchanged). Top is confirmed fixed (navy behind the clock).
 - 2026-11-25 · v0.8.1 · 📱 Home Screen header/footer, round 2 (Mike's screenshot): the hidden ✨ Update pill was parked under the status bar, and iOS blurs anything there (the washed-out band, with the pill's text faintly visible). Pill is now not rendered until needed and drops in below the header. html/body are navy (only the scrolling middle is light), tab bar labels sit closer to the home indicator, white to the bottom edge.
 - 2026-11-25 · v0.8 (backend v0.6) · 🤖 **Ledger robot** (`ledger-sync.yml`, every 2 h): approved trades → `Trade_Log.csv`, live pick ledger →
   `Draft_Pick_Ownership.csv`, keeper contracts follow traded players in `Keeper_Contracts.csv` (marked `[trade id]`, applied once), then
