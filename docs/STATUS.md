@@ -14,6 +14,10 @@ _Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Limes
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.13.3 (backend v0.10.2) · 🏷️ **Test team names = real SPL names + "(test)"** (Mike): Mirror's first step renames each ESPN test team
+  ("Bad Attitude Gang (test)", "Reeling RaMPaGe (test)", "Farrington's FREELANCERS (test)", "Fluff Muffins (test)"); the Ops card flags teams still to rename.
+  LM team edit `PUT …/teams/<id>` `{name}` is **not proven** (MAFFL never wrote team names): read back + logged; if ESPN refuses the full name
+  (length), one shorter try ("FREELANCERS (test)"); a rename is idempotent, so that second try can't double-apply.
 - 2026-11-26 · v0.13.2 (backend v0.10.1) · 🪞 Mirror v2 + MAFFL's exact trade body. Read MAFFL (`_ops/apps-script/mod_espn.js`, APP_DESIGN §10b): the LM trade write
   now sends MAFFL's proven body (adds `expirationDate`, `isActingAsTeamOwner`, `skipTransactionCounters`; scoring period from `mStatus.latestScoringPeriod`).
   The mirror gains a **move** step: an SPL player sitting on the wrong test team is moved with that proven LM trade instead of drop + add (a dropped

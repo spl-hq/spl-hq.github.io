@@ -309,10 +309,15 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
   const SPL = { "Bad Attitude Gang": [1, 2], "Reilly's RaMPaGe": [3, 4], "Farrington's FREELANCERS": [5], "Fluff Muffins": [6], "Tijuana Trojans": [7] };
   const NAMES = { 1: "Josh Allen", 2: "Bijan Robinson", 3: "Chris Olave", 4: "Sam LaPorta", 5: "Derrick Henry", 6: "Puka Nacua", 7: "Smith Guy", 9: "Junk One", 10: "Junk Two" };
   const T = { 1: [9], 2: [], 3: [10, 3], 4: [] }; // test league before the mirror (team 3 = Mike's SWID)
-  const posts = []; let rejectTrades = false;
+  const posts = []; let rejectTrades = false; const NAMES_T = {};
   const ent = id => ({ playerId: id, lineupSlotId: 20, playerPoolEntry: { player: { id, fullName: NAMES[id], defaultPositionId: 2, proTeamId: 2, stats: [] } } });
   const mock = (url, o) => {
     const res = (code, b) => ({ getResponseCode: () => code, getContentText: () => JSON.stringify(b) });
+    if (o && o.method === "put") {
+      const tid = +/teams\/(\d+)$/.exec(url)[1], b = JSON.parse(o.payload); posts.push(b);
+      if (b.name.length > 24) return res(400, { messages: ["Team name too long"] });
+      NAMES_T[tid] = b.name; return res(200, {});
+    }
     if (o && o.method === "post") {
       ok(/lm-api-writes.*leagues\/1722387564\/transactions\/$/.test(url), "write goes only to the test league (" + url.split("/leagues/")[1] + ")");
       const b = JSON.parse(o.payload); posts.push(b);
@@ -327,7 +332,7 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
     }
     const lid = /leagues\/(\d+)/.exec(url)[1];
     if (lid === "19583") return res(200, { scoringPeriodId: 13, settings: { name: "SPL" }, teams: Object.keys(SPL).map((n, i) => ({ id: i + 1, name: n, roster: { entries: SPL[n].map(ent) } })) });
-    return res(200, { scoringPeriodId: 13, settings: { name: "Testing MAFFL HQ" }, teams: [4, 3, 2, 1].map(id => ({ id, name: "Test " + id, owners: id === 3 ? ["{XYZ}"] : ["{OTHER}"], roster: { entries: T[id].map(ent) } })) });
+    return res(200, { scoringPeriodId: 13, settings: { name: "Testing MAFFL HQ" }, teams: [4, 3, 2, 1].map(id => ({ id, name: NAMES_T[id] || "Test " + id, owners: id === 3 ? ["{XYZ}"] : ["{OTHER}"], roster: { entries: T[id].map(ent) } })) });
   };
   const w = makeEnv({ ESPN_S2: "abc", SWID: "XYZ" }, mock);
   w.M.menuCheck(); const mp = (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(w.alerts[0]) || [])[1];
@@ -342,6 +347,11 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
   ok(d.writes === false && w.post({ action: "mirror", token: wm, owner: "reilly", step: "drops" }).ok === false && posts.length === 0, "writes off: nothing sent");
   ok(w.post({ action: "espnwrites", token: wj, on: true }).ok === false, "only ops flips the ESPN switch");
   ok(w.post({ action: "espnwrites", token: wm, on: true }).writes === true, "Mike turns ESPN writes on");
+  ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: "names" }));
+  ok(NAMES_T[3] === "Bad Attitude Gang (test)" && NAMES_T[1] === "Reeling RaMPaGe (test)" && NAMES_T[4] === "Fluff Muffins (test)", "test teams renamed to the real SPL names + (test)");
+  ok(NAMES_T[2] === "FREELANCERS (test)" && posts.filter(b => b.name).length === 5, "too long for ESPN → one shorter try");
+  ok(w.post({ action: "testleague", token: wm }).teams.every(t => !t.rename), "names read back: nothing left to rename");
+  posts.length = 0;
   ["drops", "moves"].forEach(st => ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: st })));
   ok(T[1].includes(3) && posts.some(b => b.type === "TRADE_PROPOSAL" && b.items[0].playerId === 3 && b.items[0].fromTeamId === 3 && b.items[0].toTeamId === 1), "Olave moved Mike's test team → Joe's by LM trade (no waivers)");
   let last; ["murello", "reilly", "farrington", "glen"].forEach(o => { last = w.post({ action: "mirror", token: wm, owner: o, step: "adds" }); });
@@ -349,7 +359,7 @@ ok(e.post({ action: "react", key: "2026-12:slate", emoji: "🔥" }).ok === false
   d = w.post({ action: "testleague", token: wm });
   ok(d.teams.every(x => x.match === x.want && x.drops === 0 && x.adds === 0), "after the mirror every test team matches its SPL roster");
   ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.memberId === "{XYZ}") && posts.filter(b => b.type === "FREEAGENT").every(b => b.items.length === 1), "commish moves, one player per add/drop, no retries");
-  ok(w.sheets.EspnLog.rows.length === posts.length + 1, "every write logged");
+  ok(w.sheets.EspnLog.rows.length === posts.length + 6, "every write logged");
   // Demo trade: Mike's Allen for Joe's Olave → Joe accepts → Joe approves (commish-to-commish) → ESPN moves it, read back
   let o = w.post({ action: "offer", token: wm, to: "reilly", give: { players: [{ n: "Josh Allen", id: 1 }] }, get: { players: [{ n: "Chris Olave" }] } });
   ok(o.ok && o.offer.give.players[0].id === 1, "offers keep the ESPN player id");

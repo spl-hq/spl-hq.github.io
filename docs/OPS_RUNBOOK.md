@@ -57,6 +57,7 @@ _Owner: Mike (ops). Last updated 2026-11-26 (v0.13)._ Keep this current whenever
 
 ## 4c. ESPN test league (WS5)
 - Ops desk → **🏈 ESPN test league**: writes switch, each of the 4 test teams vs its SPL roster, **🪞 Mirror SPL rosters**, ESPN write log (Sheet tab `EspnLog`).
+- Test team names: Mirror renames them to the real SPL team + " (test)" (backend `testName_`; short fallback `SHORT_TEAM`).
 - Mapping: Mike's own ESPN team = Mike; the other 3 by ESPN team id = Joe, Al, Glen (`DEMO_OWNERS` in `backend/logic.js`).
 - Reset after a demo: Mirror again + Wipe test trades. Mirror on a day without games (locked players can be refused).
 - A trade ESPN refused shows on the Commish desk under **Do on ESPN** with ESPN's reason. Never re-run it blindly: check ESPN first (it may be pending), then do it by hand and tap ✓ Done on ESPN.
