@@ -25,7 +25,7 @@ function ledger_() {
   return { ok: true, version: VERSION, mode: TRADE_MODE, at: new Date().toISOString(), rules: r,
     picks: picks.map(function (p) { return { pid: p.pid, season: Number(p.season), round: Number(p.round), original: p.original, owner: p.owner, via: p.via, updated: p.updated_ts }; }),
     trades: offers_().filter(function (o) { return o.status === "APPROVED"; }).map(function (o) { return { id: o.offer_id, approved: o.updated_ts, from: o.from, to: o.to, mode: o.mode,
-      fromSends: o.giveO, toSends: o.getO, by: o.by }; }), drafts: draftLedger_() };
+      fromSends: o.giveO, toSends: o.getO, by: o.by }; }), drafts: draftLedger_(), keepers: keepLedger_() };
 }
 // Commish fix for the pick ledger (a pick traded before the app existed, a typo): move one pick, with a reason. Logged + posted.
 function pickFix_(me, b) {

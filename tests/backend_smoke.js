@@ -43,6 +43,8 @@ function makeEnv(props, espn) {
       if (m) { partFetches++; return { getResponseCode: () => 200, getContentText: () => parts[m[1]] }; }
       if (/api\.github\.com/.test(url)) return ghFetch(url, o);
       if (/spl-hq\.github\.io\/\?|main\/index\.html/.test(url)) { const v = /raw\.githubusercontent/.test(url) ? GH.main : GH.live; return { getResponseCode: () => 200, getContentText: () => 'var APP_VERSION = "' + v + '";' }; }
+      const g = /raw\.githubusercontent\.com\/spl-hq\/spl-hq\.github\.io\/main\/data\/([\w.]+)\?/.exec(url); // gold CSVs from the working tree
+      if (g) return { getResponseCode: () => 200, getContentText: () => fs.readFileSync(path.join(__dirname, "..", "data", g[1]), "utf8") };
       return espn(url, o); } }
   };
   const M = {};
@@ -310,6 +312,36 @@ ok(L.drafts.length === 1 && L.drafts[0].kind === "div" && L.drafts[0].mode === "
 r = e.post({ action: "draftwipe", token: mike }); ok(r.ok && r.cleared === 2 && e.post({ action: "drafts", token: mike }).drafts.length === 0, "ops clears rehearsals");
 r = e.post({ action: "settings", token: glen }); ok(r.notify.draft === false || r.notify.draft === true, "draft notify key exists");
 ok(e.post({ action: "settings", token: owen }).notify.draft === true, "on-the-clock emails on by default");
+
+// 15b · 🔒 Keeper Signing Day: scenarios + declarations (mod_keepers)
+r = e.post({ action: "kplans", token: mike, season: 2027, plans: [{ name: "Keep both", signs: [{ player: "Bench Guy", term: 2 }] }, { name: "=Cut Bowers", cuts: ["C2025-murello-bowers"] }, {}, {}] });
+ok(r.ok && r.plans.length === 3 && r.plans[2].name === "Plan C", "scenarios saved (max 3, named)");
+r = e.post({ action: "keepers", token: mike, season: 2027 }); ok(r.ok && r.plans[1].name === "=Cut Bowers" && e.sheets.KeeperPlans.rows[1][2].indexOf("=Cut") > 0, "scenarios follow the sign-in (formula-guarded in the Sheet)");
+ok(e.post({ action: "kdeclare", token: mike, signs: [] }).error === "Signing Day isn't open.", "no declaring before Signing Day opens");
+ok(e.post({ action: "kwindow", token: glen, op: "open", mode: "test" }).ok === false, "owners can't open Signing Day");
+r = e.post({ action: "kwindow", token: mike, op: "open", mode: "test", season: 2027, closes: "2099-09-01" }); ok(r.ok && r.window.status === "open", "desk opens a rehearsal Signing Day");
+ok(e.sheets.Chat.rows.some(x => /Rehearsal: 2027 Keeper Signing Day is open/.test(x[4])), "league chat hears it's open");
+r = e.post({ action: "kdeclare", token: mike, check: true, signs: [{ player: "Josh Allen", term: 1 }] });
+ok(r.ok && !r.valid && r.kp === 18 && r.errors.some(x => /over the 10 KP cap by 8/.test(x)), "check: Allen (R1 = 10) on top of Bowers 5 + Shough 3 is over the cap");
+r = e.post({ action: "kdeclare", token: mike, check: true, signs: [{ player: "Chris Olave", term: 1 }, { player: "Nobody Atall", term: 1 }] });
+ok(r.errors.some(x => /Olave: contract just ran out/.test(x)) && r.errors.some(x => /Nobody Atall isn't on your ESPN roster/.test(x)), "no extensions + must be on your roster");
+r = e.post({ action: "kdeclare", token: mike, signs: [{ player: "Josh Allen", term: 1 }] }); ok(!r.ok && /over the 10 KP cap/.test(r.error), "over-cap declaration refused");
+r = e.post({ action: "kdeclare", token: mike, cuts: ["C2025-murello-bowers"], signs: [{ player: "Bench Guy", term: 2 }] });
+ok(r.ok && r.kp === 7.5 && r.items.cuts[0].pen["2027"] === 2.5 && r.items.signs[0].kp["2028"] === 3 && r.items.keep[0].player === "Tyler Shough", "terminate Bowers (−2.5) + sign Bench Guy 2-yr (2 → 3): 7.5 KP");
+ok(e.sheets.Chat.rows.some(x => /🧪 Mike declared his 2027 keepers: Tyler Shough \(3\), 🆕 Bench Guy 2-yr \(2\) · ✂️ terminated Brock Bowers \(−2.5 penalty\) · 7.5 of 10 KP/.test(x[4])), "declaration posted to league chat");
+r = e.post({ action: "kdeclare", token: mike, signs: [{ player: "Bench Guy", term: 1, tag: true }, { player: "Josh Allen", term: 1 }] }); ok(!r.ok && /4 keepers|over the 10/.test(r.error), "three keeper max / cap hold on a change");
+r = e.post({ action: "kdeclare", token: mike, signs: [{ player: "Bench Guy", term: 3, tag: true }] });
+ok(r.ok && r.items.signs[0].kp["2028"] === "F" && r.items.firstLost && r.kp === 10, "Franchise Tag: year-one KP, then F years, no 1st");
+ok(e.sheets.Chat.rows.some(x => /Mike changed his 2027 keepers/.test(x[4])), "a change says so");
+ok(e.post({ action: "kdeclare", token: glen, owner: "murello", signs: [] }).ok === false, "owners can't declare for someone else");
+r = e.post({ action: "keepers", token: glen }); ok(r.decls.length === 1 && r.decls[0].owner === "murello" && r.decls[0].kp === 10 && r.window.mode === "test", "everyone sees the board (latest declaration only)");
+ok(e.get({ action: "ledger" }).keepers.length === 0, "nothing final while open");
+r = e.post({ action: "kwindow", token: joeTok, op: "close" }); ok(r.ok && r.window.status === "closed" && r.window.done, "commish closes Signing Day");
+ok(e.sheets.Chat.rows.some(x => /🏁 🧪 Rehearsal 2027 Signing Day is done \(closed by Joe\): 1 of 12 declared/.test(x[4])), "results posted once");
+L = e.get({ action: "ledger" }); ok(L.keepers.length === 1 && L.keepers[0].status === "final" && L.keepers[0].mode === "test" && L.keepers[0].items.signs[0].tag, "ledger feed carries final declarations");
+ok(e.post({ action: "kdeclare", token: mike, signs: [] }).error === "Signing Day isn't open.", "closed = no more changes");
+ok(e.post({ action: "kwindow", token: joeTok, op: "wipe" }).error === "Ops only", "only ops wipes a rehearsal");
+r = e.post({ action: "kwindow", token: mike, op: "wipe" }); ok(r.ok && r.wiped === 1 && e.get({ action: "ledger" }).keepers.length === 0 && !e.post({ action: "keepers", token: mike }).window, "ops wipes the rehearsal");
 
 // 5b · 🔥 reel reactions (WS4)
 r = e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "🔥" }); ok(r.ok && r.on && r.reacts["🔥"].join() === "glen", "Glen reacts 🔥");

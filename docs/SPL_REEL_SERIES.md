@@ -69,6 +69,7 @@ A card with empty space under its content is missing a part: add chips or tiles,
 | 📥 Trades to approve | `review` | commish | Instant | Until decided | data |
 | ⏱️ On the clock | `dclock` | me | Instant | Until you pick | data |
 | 🔒 Signing Day (last 3 days) | `signing` | me | Instant | Until the day | data (Season_Calendar) |
+| 🔒 Declare your keepers | `kdecl` | me | Instant | While Signing Day is open + you haven't declared | backend (KeeperDecl) |
 
 ### You
 | Series | id | Drop | Lives | Writer | Notes |
@@ -80,11 +81,13 @@ A card with empty space under its content is missing a part: add chips or tiles,
 | 🔒 Signing Day | `signing` | Instant (off-season) | Until the day | data | Countdown, KP committed, x of 3. |
 | 💬 League chat | `chat` | Instant | Until read | data | |
 | 🔒 Your 2027 keepers | `keepers` | Vault | Until next issue | data | |
+| ✅ Your keepers are in | `kdecl` | Instant | While Signing Day is open | backend | Your declaration (keep / 🆕 / 🏷️ / ✂️), total KP, Change them. |
 
 ### League
 | Series | id | Drop | Writer | Tray | Notes |
 |---|---|---|---|---|---|
 | 🏟️ Scoreboard · live | `slate` | Instant (games on) | data | 🔥 😱 🥱 👏 🤡 | Live week only. |
+| 📋 Signing Day board → 🏁 results | `kboard` | Instant (each declaration) | backend | 💸 🤑 🤡 👀 🔥 | Who's in + their keepers while open; results for 14 days after close. |
 | 📣 The week | `headline` | Edition | robot `headline`/`hot`/`cold` | 🔥 😂 🤯 🤡 💀 | Never the top score. Winners by margin. |
 | 🏅 Week awards | `awards` | Edition | data | 🏆 🧠 🔥 😬 👏 | Four tiles: High score · Coach of the Week (biggest jump over his own average) · Low score · Biggest climb in the table (or the league average). No margins: 📣 The week owns them. |
 | ⭐ Power 5 | `power5` | Edition | robot `power5` (else record + PF) | 📈 😤 🙏 👀 🔥 | Your row highlighted, or "You: #7" under it. |

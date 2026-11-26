@@ -1,12 +1,13 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS7 ops + robots + architecture audit)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS7 ops + robots + architecture audit; keeper Signing Day v0.17)
 
 ## Now
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
-- **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
+- **🔒 Keeper Signing Day live (v0.17):** try it: 📥 Desk → Commish · Joe's view → 🔒 Keeper Signing Day → 🧪 Rehearse it, then League → Keepers → build a plan → Declare. Wipe from the same card when done.
+- **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Shoot Out Draft (Keeper declarations ✅ v0.17) + Seed 3 picks (ESPN `/schedule` write).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
@@ -18,6 +19,19 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.17 (backend v0.13.0) · 🔒 **Keeper calculator → Signing Day in the app** (Mike). League → 🔒 Keepers rebuilt around **plans**:
+  up to 3 named scenarios (＋ Plan · Copy · Rename · Delete), yours saved with your sign-in (any phone, private until you declare; other
+  teams' plans stay on the phone). Per plan: **✂️ terminate?** on any carried contract (half of each year left lands as a cap penalty),
+  **🏷️ Franchise Tag** (year-one KP, then F years, "Your 1st ✗" row), 1y/2y/3y term chips, eligibility on every candidate (under contract,
+  no extensions, terminated, picked up in season = "OK only if by Week 14"), cap profile '27–'29, **⚖️ Compare plans** table.
+  **✍️ Declare** (while Signing Day is open): server check first (re-priced from gold CSVs on main + your ESPN roster: 10 KP, 3 max, one tag),
+  then 🔒 Lock it in → posted to league chat; change it until close (league sees "changed"). Commish can enter one for an owner.
+  **📋 Signing Day board** on Keepers + reel. Reel: ⚡ needs-you **Declare your keepers** (`kdecl`), ✅ your declaration, 📋 board → 🏁 results
+  (`kboard`, 14 days). **📥 Commish desk → 🔒 Keeper Signing Day:** open live (everyone emailed) or 🧪 rehearse, close date, close now
+  (results post), ops wipes rehearsals. Closes by itself after the date (ledger robot's 2-h call finalizes). New backend part
+  `mod_keepers.js` (KeeperPlans + KeeperDecl tabs, Script property KEEPER_WINDOW, actions keepers/kplans/kdeclare/kwindow). 🤖 ledger-sync:
+  final declarations → gold `data/Keeper_Declarations.csv`; live also adds the new contracts + terminations to `Keeper_Contracts.csv`
+  (marked [decl id], once). Rehearsals → `data/test/` only. SW cache `splhq-v31`.
 - 2026-11-26 · docs · 🏈 New `docs/ESPN_CAPABILITIES.md` for the Joe conversation: what the app can write to ESPN (proven: trades, add/drop), what ESPN's LM Tools can do that we haven't captured yet (edit H2H matchups incl. the Seed 3 pick, adjust scoring, schedule settings, draft order, keeper rounds, divisions), what ESPN refused (team rename) and what SPL HQ owns because ESPN can't.
 - 2026-11-26 · v0.16 (backend v0.12.0) · 🛠️ **WS7 Ops + robots, and the pre-Joe architecture audit** (`docs/OPS_AUDIT_2026-11-26.md`).
   Found: GitHub's cron had never fired here (0 scheduled runs since the repo was made). New backend part `mod_ops.js` + hourly `tick`

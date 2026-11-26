@@ -7,6 +7,13 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **Keeper calculator → Signing Day declarations in the app** (Mike: "love the scenarios that turn into declare keepers… posts to
+  league message board, hits owner cards"). Up to 3 named plans per owner, saved with the sign-in (private until declared). Declaring = the
+  official Signing Day act: the backend re-prices from gold + the ESPN roster, enforces 10 KP / three keepers / one tag, posts to league chat
+  and the reel; changeable until close; no declaration = carried contracts stand. A desk role opens/closes the window (rehearsal or live); it
+  also closes by itself after its date. Final declarations → ledger robot → contracts (live) / `data/test/` (rehearsal). Joe still owns the
+  rules: anything the constitution leaves open goes to his 📋 Questions.
+
 - 2026-11-26 · **WS7: the backend watches the robots** (Mike: ops ready before Joe). GitHub's cron never fired on this repo, so an hourly
   Apps Script `tick` (`mod_ops.js`) reads the robots' runs via the GitHub API (`GH_TOKEN`, Actions-only token) and runs late ones; alerts email
   ops on change only; failures are never retried blindly. Sheet backup = daily CSV zip to the ops inbox (no new Google scopes, no loader
@@ -117,7 +124,7 @@ SPL-only: pick-your-opponent playoff pick → ESPN `/schedule` write; keeper dea
 6. Joe signs off → `WRITE_LEAGUE` = 19583.
 7. Reel robots + playoff-pick write (2027 season).
 8. ✅ WS4 Reel cards (v0.12–0.13): series catalog + drops + budget, Edition/Play/Vault/Preview cards, votes, reactions, card-lines robot, Up next + rivalry grade, pick wire, cap impact, Signing Day.
-9. WS3 off-season in the app: ✅ Divisional + Slot draft rooms (v0.11) · ⬜ SPL Draft room · ⬜ Keeper declarations · ⬜ Shoot Out Draft + Seed 3 pick (ESPN `/schedule` write).
+9. WS3 off-season in the app: ✅ Divisional + Slot draft rooms (v0.11) · ⬜ SPL Draft room · ✅ Keeper declarations (v0.17) · ⬜ Shoot Out Draft + Seed 3 pick (ESPN `/schedule` write).
 
 ## 8. Open (asked in the app: League → 📋 Questions)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules · Joe's #1 wish.
