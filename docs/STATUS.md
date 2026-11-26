@@ -17,6 +17,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-26 · v0.15.1 · 🩹 Your avatar on reel cards was a stretched oval (its class `me` also matched the header avatar button's pill style). Renamed to `avme`.
 - 2026-11-26 · v0.15 · 🎨 **Reel card facelift** (Mike: the cards are the main experience; many wasted space, read oddly or were formatted wrong).
   New card kit after MAFFL REEL's faces (`docs/SPL_REEL_SERIES.md` → The card kit): owner avatars (initials, yours gold-ringed), score bugs,
   mini bugs, matchup heroes, stat tiles, fact chips, bars, meters, ranked rows. Every card redone: 🏁 Your result (headline "L by 15.1" + score

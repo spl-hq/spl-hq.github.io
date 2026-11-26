@@ -140,7 +140,7 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .kv.tap{cursor:pointer;align-items:center} .kv.upn{align-items:center} .kv.upn>span:first-child{text-align:left;flex:1}
 /* 🎨 Card kit (facelift 11/26): avatars, score bugs, chips, bars, meters, tiles, power rows */
 .av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#041E42;color:#fff;font:800 13px var(--head);letter-spacing:.02em;flex:none}
-.av.me{background:#1E407C;box-shadow:0 0 0 2px #fff,0 0 0 4px #B88A2E} .av.lg{width:58px;height:58px;font-size:21px} .av.sm{width:24px;height:24px;font-size:10px}
+.av.avme{background:#1E407C;box-shadow:0 0 0 2px #fff,0 0 0 4px #B88A2E} .av.lg{width:58px;height:58px;font-size:21px} .av.sm{width:24px;height:24px;font-size:10px}
 .bug{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:4px 0 2px}
 .bug .bl{display:flex;align-items:center;gap:12px;padding:12px 14px} .bug .bl+.bl{border-top:1px solid var(--line)}
 .bug .bn{flex:1;min-width:0;line-height:1.2} .bug .bn b{display:block;font:700 17px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .bug .bn small{font-size:12px;color:var(--muted)}
@@ -373,7 +373,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.15";
+var APP_VERSION = "0.15.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1547,7 +1547,7 @@ function draftCards(D, me) {
 
 // ======== 🎨 Card kit (facelift 11/26, after MAFFL REEL's faces): avatars, score bugs, chips, bars, meters, tiles ========
 function avI(id) { var w = String(fullOf(id) || oname(id) || "?").trim().split(/\s+/); return (w.length > 1 ? w[0][0] + w[w.length - 1][0] : w[0].slice(0, 2)).toUpperCase(); }
-function av(id, cls) { return '<span class="av' + (ME && id === ME.owner ? " me" : "") + (cls ? " " + cls : "") + '">' + esc(avI(id)) + '</span>'; }
+function av(id, cls) { return '<span class="av' + (ME && id === ME.owner ? " avme" : "") + (cls ? " " + cls : "") + '">' + esc(avI(id)) + '</span>'; }
 function who(id) { return ME && id === ME.owner ? "You" : esc(oname(id)); }
 // Score bug: [{o, sub, pts}] two rows; the leader/winner is highlighted (gold wash, blue score).
 function bug(a, b, live) { var lead = a.pts === b.pts ? "" : a.pts > b.pts ? "a" : "b";
