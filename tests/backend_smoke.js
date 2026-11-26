@@ -7,7 +7,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); 
 
 function makeEnv(props, espn) {
   const sheets = {}, mails = [], cache = {}, alerts = [];
-  const mkSheet = (name) => ({ name, rows: [], appendRow(r) { this.rows.push(r); }, setFrozenRows() {},
+  const mkSheet = (name) => ({ name, rows: [], appendRow(r) { this.rows.push(r); }, setFrozenRows() {}, deleteRow(i) { this.rows.splice(i - 1, 1); },
     getRange(r, c, nr, nc) { const s = this; return { setValues(v) { const row = (s.rows[r - 1] || []).slice(); v[0].forEach((x, i) => { row[c - 1 + i] = x; }); s.rows[r - 1] = row; } }; },
     getLastColumn() { return this.rows[0] ? this.rows[0].length : 0; },
     getLastRow() { return this.rows.length; }, getName() { return this.name; },
@@ -241,6 +241,57 @@ ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Pick ledger fix/.test(r[4]
 // Joe answers "Contract resets" → rule flips
 e.post({ action: "answers", token: joeTok, items: [{ qid: "keeper_travels", question: "q", choice: "Contract resets" }] });
 ok(e.get({ action: "ledger" }).rules.contracts === "resets", "contract rule follows Joe's answer");
+
+// 15 · 🗓️ off-season drafts (WS3): Divisional Draft + Slot Draft
+const pete = e.post({ action: "login", pin: e.post({ action: "issue", token: mike, owner: "sikora" }).phrase }).token;
+const hoos = e.post({ action: "login", pin: e.post({ action: "issue", token: mike, owner: "hoosier" }).phrase }).token;
+const owen = e.post({ action: "login", pin: e.post({ action: "issue", token: mike, owner: "salerno" }).phrase }).token;
+ok(e.post({ action: "draftopen", token: glen, kind: "div", order: ["murello", "salerno", "chappie", "hoosier"] }).error === "Commish only", "owners can't open a draft");
+ok(/4 different owners/.test(e.post({ action: "draftopen", token: joeTok, kind: "div", order: ["murello", "murello", "chappie", "hoosier"] }).error), "div order needs 4 different owners");
+r = e.post({ action: "draftopen", token: joeTok, kind: "div", mode: "test", season: 2027, order: ["murello", "salerno", "chappie", "hoosier"] });
+ok(r.ok, "Joe opens a rehearsal Divisional Draft (2025's order)");
+const dv = r.id;
+ok(e.post({ action: "draftopen", token: joeTok, kind: "div", mode: "test", season: 2027, order: ["murello", "salerno", "chappie", "hoosier"] }).ok === false, "one open rehearsal per draft");
+let D = e.post({ action: "drafts", token: glen }).drafts.find(x => x.id === dv);
+ok(D && D.clock === "murello" && D.turns.join() === "murello,salerno,chappie,hoosier,hoosier,chappie,salerno,murello", "snake: the team who goes 4th also goes 5th");
+ok(e.sheets.Chat.rows.some(x => x[6] === dv && /Rehearsal: The 2027 Divisional Draft is open/.test(x[4])), "league chat announces the draft");
+ok(/Mike is on the clock/.test(e.post({ action: "draftpick", token: owen, id: dv, choice: { pick: "reilly", into: "salerno" } }).error), "can't pick out of turn");
+ok(/already in/.test(e.post({ action: "draftpick", token: mike, id: dv, choice: { pick: "salerno", into: "murello" } }).error), "founders are already placed");
+r = e.post({ action: "draftpick", token: mike, id: dv, n: 1, choice: { pick: "reilly", into: "murello" } });
+ok(r.ok && r.draft.divs.murello.join() === "murello,reilly" && r.draft.clock === "salerno", "Mike takes Joe into his division");
+ok(e.post({ action: "draftpick", token: mike, id: dv, n: 1, choice: { pick: "glen", into: "murello" } }).stale === true, "double tap: stale pick refused");
+r = e.post({ action: "draftpick", token: owen, id: dv, choice: { pick: "glen", into: "chappie" } });
+ok(r.ok && r.draft.assigned.chappie === 1, "Owen assigns Glen to Drew's division");
+r = e.post({ action: "draftpick", token: joeTok, id: dv, choice: { pick: "farrington", into: "murello" } });
+ok(r.ok && r.draft.divs.murello.length === 3 && e.sheets.Chat.rows.some(x => /Drew assigns Al to Mike's division \(entered by Joe\)/.test(x[4])), "commish enters Drew's pick (Drew isn't signed up yet)");
+ok(/one each/.test(e.post({ action: "draftpick", token: hoos, id: dv, choice: { pick: "patel", into: "chappie" } }).error), "only one owner assigned into a division");
+ok(/full/.test(e.post({ action: "draftpick", token: hoos, id: dv, choice: { pick: "patel", into: "murello" } }).error), "full division refused");
+r = e.post({ action: "draftpick", token: hoos, id: dv, choice: { pick: "patel", into: "hoosier" } }); ok(r.ok && r.draft.clock === "hoosier", "Hoos #4, and goes again (4th also goes 5th)");
+r = e.post({ action: "draftpick", token: hoos, id: dv, choice: { pick: "moyer", into: "hoosier" } }); ok(r.ok && r.draft.clock === "chappie", "Hoos #5");
+ok(e.post({ action: "draftundo", token: glen, id: dv }).error === "Commish only", "owners can't undo");
+ok(e.post({ action: "draftundo", token: joeTok, id: dv }).ok && e.post({ action: "drafts", token: glen }).drafts.find(x => x.id === dv).clock === "hoosier", "commish undoes the last pick");
+e.post({ action: "draftpick", token: hoos, id: dv, choice: { pick: "moyer", into: "hoosier" } });
+r = e.post({ action: "draftpick", token: joeTok, id: dv, choice: { pick: "smith", into: "chappie" } }); ok(r.ok, "Drew #6");
+r = e.post({ action: "draftpick", token: owen, id: dv, choice: { pick: "bucher", into: "salerno" } }); ok(r.ok && r.draft.clock === "murello", "Owen #7");
+ok(/full/.test(e.post({ action: "draftpick", token: mike, id: dv, choice: { pick: "sikora", into: "murello" } }).error), "Mike's division is full: he must assign");
+r = e.post({ action: "draftpick", token: mike, id: dv, choice: { pick: "sikora", into: "salerno" } });
+ok(r.ok && r.draft.status === "done" && r.draft.clock === null && Object.values(r.draft.divs).every(x => x.length === 3), "last pick fills the last slot: 4 divisions of 3");
+ok(e.sheets.Chat.rows.some(x => /2027 Divisional Draft is done/.test(x[4])), "done posted");
+// slot draft
+const order12 = ["murello", "salerno", "moyer", "glen", "patel", "reilly", "chappie", "hoosier", "farrington", "bucher", "smith", "sikora"];
+ok(/12 different/.test(e.post({ action: "draftopen", token: mike, kind: "slot", order: order12.slice(0, 11) }).error), "slot order needs all 12");
+r = e.post({ action: "draftopen", token: mike, kind: "slot", mode: "test", order: order12 }); ok(r.ok, "Mike opens a rehearsal Slot Draft");
+const sd = r.id;
+ok(e.post({ action: "draftpick", token: mike, id: sd, choice: { slot: 13 } }).ok === false, "slots are 1–12");
+ok(e.post({ action: "draftpick", token: mike, id: sd, choice: { slot: 1 } }).ok, "Mike takes slot 1");
+ok(/taken/.test(e.post({ action: "draftpick", token: owen, id: sd, choice: { slot: 1 } }).error), "taken slot refused");
+r = e.post({ action: "draftpick", token: owen, id: sd, choice: { slot: 12 } }); ok(r.ok && r.draft.slots[12] === "salerno", "Owen takes 12 (the 12/13 turn)");
+ok(e.post({ action: "draftwipe", token: joeTok }).error === "Ops only", "only ops clears rehearsals");
+L = e.get({ action: "ledger" });
+ok(L.drafts.length === 1 && L.drafts[0].kind === "div" && L.drafts[0].mode === "test" && L.drafts[0].divs.salerno.join() === "salerno,glen,bucher,sikora".split(",").filter(x=>x!=="glen").join(), "ledger feed carries finished drafts");
+r = e.post({ action: "draftwipe", token: mike }); ok(r.ok && r.cleared === 2 && e.post({ action: "drafts", token: mike }).drafts.length === 0, "ops clears rehearsals");
+r = e.post({ action: "settings", token: glen }); ok(r.notify.draft === false || r.notify.draft === true, "draft notify key exists");
+ok(e.post({ action: "settings", token: owen }).notify.draft === true, "on-the-clock emails on by default");
 
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));

@@ -302,7 +302,7 @@ a.btn.ghost{text-decoration:none}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.10";
+var APP_VERSION = "0.11";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -346,6 +346,9 @@ var QUESTIONS = [
   { qid: "commish_trades", q: "When you and Mike trade with each other, who approves it?",
     why: "Nobody approves their own trade. Until you answer, either of you can approve a Joe ↔ Mike trade and the league card says so.",
     choices: ["Either of us, flagged to the league", "A third owner (name below)", "League vote", "Auto-approve after the review window"] },
+  { qid: "div_draft", q: "Divisional Draft: the app runs it like this. Right?",
+    why: "The 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1. A pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division). If your division is full, you must assign.",
+    choices: ["Yes, that's it", "Close (explain below)", "No (explain below)"] },
   { qid: "first_wish", q: "If the app could do one thing for you as commish, what would it be?",
     why: "Your answer goes to the top of the build list.", choices: [] }
 ];
@@ -397,7 +400,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", droom: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
@@ -439,6 +442,7 @@ function buildFeed(d) {
   if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and the reel becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
   if (ME && isDesk()) { var n = Object.keys(MY || {}).length;
     if (n < QUESTIONS.length) cards.push({ id: "questions", needs: 1, scope: "me", eb: "📋 For the commish", title: (me === "reilly" ? "Your questions, Joe" : "Questions for Joe"), body: '<div class="big">' + n + '<small class="muted" style="font-size:20px"> / ' + QUESTIONS.length + '</small></div><p>' + (me === "reilly" ? "Quick calls that decide how trades, picks and keeper contracts work in the app." : "Joe's answers shape the trade center. Answered so far.") + '</p>', action: [n ? "Keep going" : "Answer them", "go('joe')"] }); }
+  if (ME) draftCards(d.drafts, me).forEach(function (c) { cards.push(c); });
   var T = d.trades;
   if (ME && T && T.ok && T.offers) {
     T.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }).forEach(function (o) {
@@ -509,6 +513,7 @@ function buildFeed(d) {
   // 💬 League chat, if something new
   var lr = (CHAT.rooms || []).filter(function (r) { return r.room === "league"; })[0];
   if (lr && lr.who !== me && new Date(lr.last).getTime() > seen("league")) cards.push({ id: "chat:" + new Date(lr.last).getTime(), scope: "league", eb: "💬 League chat", title: esc(oname(lr.who)) + " says", body: '<p class="story">“' + esc(lr.text) + '”</p>', action: ["Open chat", "go('chat','league')"] });
+  cards = cards.filter(function (c) { return c.needs; }).concat(cards.filter(function (c) { return !c.needs; })); // needs-you cards lead
   return { wk: wk, cards: cards };
 }
 SCREENS.home = function () { return '<div class="feedwrap"><div class="ibar" id="ibar"></div><div class="feed" id="feed"><div class="fslot"><div class="dcard"><p class="muted">Loading your reel…</p></div></div></div><div class="irail" id="irail"></div></div><div class="undo" id="undo"><span id="undot"></span><button id="undob">Undo</button></div>'; };
@@ -517,7 +522,8 @@ SCREENS.home.after = function () {
   var jobs = [load("standings", 300000).then(function (r) { d.stand = r; }).catch(function () {})];
   if (ME) { jobs.push((WEEK && Date.now() - (WEEK._at || 0) < 60000 ? Promise.resolve(WEEK) : authed("week", {})).then(function (r) { if (r.ok) { r._at = r._at || Date.now(); WEEK = r; } d.week = r; }).catch(function () {}));
     jobs.push(pollRooms().catch(function () {}));
-    jobs.push(loadTrades(true).then(function (t) { d.trades = t; }).catch(function () {})); }
+    jobs.push(loadTrades(true).then(function (t) { d.trades = t; }).catch(function () {}));
+    jobs.push(loadDrafts(true).then(function (x) { d.drafts = x; }).catch(function () {})); }
   Promise.all(jobs).then(function () { if (!$("#feed")) return; HOME_D = d; drawFeed(0); });
 };
 var HOME_D = null;
@@ -1263,9 +1269,193 @@ SCREENS.gm = function (arg) {
 };
 
 window.gmToggle = function (el) { var st = el.querySelector(".strip"); st.style.display = st.style.display ? "" : "none"; };
+// ---- 🗓️ Off-season (WS3): the April drafts run live in the app. One engine in the backend (Drafts + DraftPicks tabs), one room per draft.
+// Orders come from last season's finish (constitution §E.3 + §F.2), computed here from ESPN history; the commish confirms them when he opens a draft.
+var DRAFTS = null;
+function loadDrafts(fresh) {
+  if (!ME) return Promise.reject(new Error("Sign in to see the drafts."));
+  if (!fresh && DRAFTS && Date.now() - DRAFTS._at < 15000) return Promise.resolve(DRAFTS);
+  return authed("drafts").then(function (d) { if (!d.ok) throw new Error(d.error); d._at = Date.now(); DRAFTS = d; return d; });
+}
+// Who finished where in season y. done = SPL Bowl played; otherwise "if the season ended today" (seeds 1–5 by the table, #6 = most points of the rest).
+function offOrder(y) {
+  var h = histOf(y); if (!h) return null;
+  var r = { y: y, done: !!h.champ, champ: h.champ, runner: h.runner, nonPO: [] };
+  if (r.done) {
+    r.nonPO = h.teams.filter(function (t) { return t[9] === "missed"; }).map(function (t) { return t[0]; });
+    var po = LD("games").filter(function (g) { return g[0] === y && g[2] === "P"; }), wks = [];
+    po.forEach(function (g) { if (wks.indexOf(g[1]) < 0) wks.push(g[1]); }); wks.sort(function (a, b) { return a - b; });
+    var semi = wks[wks.length - 2], wc = wks[wks.length - 3];
+    var opp = function (wk, id) { var g = po.filter(function (x) { return x[1] === wk && (x[3] === id || x[5] === id); })[0]; return g ? (g[3] === id ? g[5] : g[3]) : null; };
+    r.lostToChamp = opp(semi, h.champ); r.lostToRunner = opp(semi, h.runner);
+    // Sides: a wildcard loser beaten by the champ (or by the team the champ beat) is on the champ's side. A re-seeded bracket can put both
+    // wildcard winners on one side (2024): then the one closer to the champ takes the champ's side and the order is flagged for the commish.
+    var wg = po.filter(function (g) { return g[1] === wc; }).map(function (g) { var w = g[4] > g[6] ? g[3] : g[5]; return { w: w, l: w === g[3] ? g[5] : g[3] }; });
+    var rank = function (x) { return x.w === h.champ ? 0 : x.w === h.runner ? 3 : x.w === r.lostToChamp ? 1 : 2; };
+    wg.sort(function (a, b) { return rank(a) - rank(b); });
+    if (wg.length === 2) { r.wcChamp = wg[0].l; r.wcRunner = wg[1].l; r.sideNote = rank(wg[0]) <= 1 && rank(wg[1]) <= 1 ? "Both wildcard winners ended up on the champ's side of the bracket; the loser who fell to the champ is counted on his side. Commish to confirm." : ""; }
+  } else {
+    var rest = h.teams.slice(5), six = rest.slice().sort(function (a, b) { return (b[5] || 0) - (a[5] || 0); })[0];
+    r.nonPO = rest.filter(function (t) { return t !== six; }).map(function (t) { return t[0]; });
+  }
+  var nth = ["Best record to miss the playoffs", "2nd best to miss", "3rd best to miss", "4th best to miss", "5th best to miss", "Worst record"];
+  r.div = [[r.nonPO[0], nth[0]], [r.nonPO[1], nth[1]], [r.wcRunner, "Wildcard loser, side without the champ"], [r.wcChamp, "Wildcard loser, the champ's side"]];
+  r.slot = r.nonPO.map(function (id, i) { return [id, nth[i]]; }).concat([[r.wcRunner, "Wildcard loser, runner-up's side"], [r.wcChamp, "Wildcard loser, champ's side"],
+    [r.lostToRunner, "Lost to the runner-up in the semis"], [r.lostToChamp, "Lost to the champ in the semis"], [r.runner, "SPL Bowl runner-up"], [r.champ, "SPL Champ"]]);
+  return r;
+}
+function lastDoneSeason() { var hs = LD("history").filter(function (h) { return h.champ; }).map(function (h) { return h.y; }); return Math.max.apply(null, hs.length ? hs : [0]); }
+function orderList(list, offer) {
+  return list.map(function (x, i) { return '<div class="kv"><span style="text-align:left"><span class="muted" style="font:600 12px var(--mono)">' + (i + 1) + '</span> ' + (x[0] ? '<b>' + esc(oname(x[0])) + '</b>' : '<span class="muted">TBD</span>') +
+    '<br><small class="muted">' + esc(x[1]) + '</small></span>' + (offer ? '<span><button class="chip" onclick="opMove(' + i + ')">↑</button></span>' : '') + '</div>'; }).join("");
+}
+function calDate(key) { var c = LD("calendar").filter(function (x) { return x.key === key; })[0]; return c && c.date ? c.date : ""; }
+var OFF_EVENTS = [
+  ["winter_meeting", "🗳️", "Winter Meeting", "Rule votes. The SPL Draft date gets picked."],
+  ["div_slot_drafts", "🧭", "Divisional Draft", "April. Four owners build the four divisions, snake style.", "div"],
+  ["div_slot_drafts", "🎰", "Slot Draft", "April. Everyone claims an SPL Draft slot 1–12.", "slot"],
+  ["signing_day", "🔒", "Keeper Signing Day", "10 days before the SPL Draft. 10 KP, three keepers max."],
+  ["spl_draft", "📝", "SPL Draft", "17 rounds, snake. The live draft room is next on the build list."],
+  ["shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week 14: top seeds pick their Week 14 opponents."]];
+SCREENS.offseason = function () {
+  var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, o = offOrder(y), start = calDate("offseason");
+  var html = back("league", "League") + '<h2>Off-season</h2>' +
+    '<div class="card lead"><div class="eyebrow">🗓️ ' + next + ' off-season</div>' + (start && dayDiff(start) > 0 ? '<div class="big">' + dayDiff(start) + '<small style="font-size:18px;opacity:.75"> days</small></div><p>until it starts (' + esc(fmtDate(start)) + ', the day after the Super Bowl). Pick trading opens then.</p>'
+      : '<p style="margin:0">It\'s on. Every off-season event runs here, live, on your phone.</p>') + '</div>' +
+    '<div id="offlive"></div>';
+  OFF_EVENTS.forEach(function (ev) {
+    var d = calDate(ev[0]), list = ev[4] && o ? o[ev[4]] : null;
+    html += '<div class="card"><div class="eyebrow">' + ev[1] + ' ' + esc(ev[2]) + (d ? ' · ' + esc(fmtDate(d)) : '') + '</div><p style="margin:0">' + esc(ev[3]) + '</p>' +
+      (list ? '<details style="margin-top:8px"' + (ev[4] === "div" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">' + next + ' order, from ' + y + (o.done ? "" : " · if the season ended today") + '</summary>' + orderList(list) +
+        (o.done ? '' : '<p class="muted" style="font-size:12px">Locks when the ' + y + ' SPL Bowl is final. The playoff spots fill in as the bracket plays out.</p>') + (o.sideNote ? '<p class="gold" style="font-size:12px">' + esc(o.sideNote) + '</p>' : '') + '</details>' : '') +
+      (ev[0] === "signing_day" ? '<button class="btn ghost" style="margin-top:10px" onclick="go(\'keepers\')">Your keepers + cap ›</button>' : '') + '</div>';
+  });
+  html += '<div id="offpast"></div>';
+  if (isDesk()) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · run a draft</div><p style="margin:0 0 10px">Open a draft and the league gets pinged; whoever\'s on the clock gets an email. You can enter a pick for an owner who isn\'t signed up yet, and undo the last pick.</p>' +
+    '<div class="row" style="flex-wrap:wrap"><button class="btn" onclick="opOpen(\'div\',\'test\')">🧪 Rehearse Divisional</button><button class="btn" onclick="opOpen(\'slot\',\'test\')">🧪 Rehearse Slot</button></div>' +
+    '<div class="row" style="flex-wrap:wrap;margin-top:8px"><button class="btn ghost" onclick="opOpen(\'div\',\'live\')">Open the real ' + next + ' Divisional</button><button class="btn ghost" onclick="opOpen(\'slot\',\'live\')">Open the real ' + next + ' Slot</button></div>' +
+    (isOps() ? '<p style="margin:10px 0 0;font-size:13px"><a href="javascript:void 0" onclick="opWipe()">Clear all rehearsals</a> (ops)</p>' : '') + '</div>';
+  return html + '<p class="muted" style="font-size:12px">Rules: constitution §B, §E, §F. Orders computed from ESPN history; the commish confirms the order when he opens a draft. Results are copied to the repo by the ledger robot.</p>';
+};
+SCREENS.offseason.after = function () {
+  if (!ME) { $("#offlive").innerHTML = '<div class="card"><p style="margin:0">Sign in to see live drafts and results.</p></div>'; return; }
+  loadDrafts(true).then(function (d) {
+    var live = d.drafts.filter(function (x) { return x.status === "open"; }), done = d.drafts.filter(function (x) { return x.status === "done"; });
+    var a = $("#offlive"); if (a) a.innerHTML = live.map(draftTile).join("");
+    var b = $("#offpast"); if (b && done.length) b.innerHTML = '<div class="eyebrow" style="margin-top:6px">🏁 Finished</div>' + done.map(draftTile).join("");
+  }).catch(function (e) { var a = $("#offlive"); if (a) a.innerHTML = '<div class="card"><p class="coral" style="margin:0">' + esc(e.message) + '</p></div>'; });
+};
+function draftTile(x) {
+  var mine = x.clock && ME && x.clock === ME.owner;
+  return '<div class="card' + (mine ? " lead" : "") + '" style="cursor:pointer' + (x.status === "open" && !mine ? ";border-color:var(--lime)" : "") + '" onclick="go(\'droom\',\'' + x.id + '\')"><div class="eyebrow">' + (x.mode === "test" ? "🧪 Rehearsal · " : "") + x.season + ' ' + esc(x.name) + '</div>' +
+    (x.status === "open" ? '<b>' + (mine ? "You're on the clock" : "Live · pick " + (x.picks.length + 1) + " of " + x.turns.length + " · " + esc(oname(x.clock)) + " is up") + '</b>' : '<b>Done</b> <small class="muted">' + esc(resultLine(x)) + '</small>') + ' ›</div>';
+}
+function resultLine(x) {
+  if (x.kind === "slot") return [1, 2, 3].map(function (k) { return k + ". " + oname(x.slots[k]); }).join(" · ") + " …";
+  return Object.keys(x.divs || {}).map(function (f) { return x.divs[f].map(oname).join("/"); }).join(" · ");
+}
+// Commish: open a draft (order prefilled; ↑ to adjust)
+var OP = null;
+window.opOpen = function (kind, mode) {
+  var y = (LD("seasons").slice(-1)[0] || 2026), src = mode === "live" ? y : lastDoneSeason(), o = offOrder(src) || { div: [], slot: [] };
+  OP = { kind: kind, mode: mode, season: y + 1, src: src, done: o.done, note: o.sideNote, list: (kind === "div" ? o.div : o.slot).map(function (x) { return x.slice(); }) };
+  if (kind === "slot") { var have = OP.list.map(function (x) { return x[0]; }); OWNERS.forEach(function (w) { if (have.indexOf(w.id) < 0) { var gap = OP.list.filter(function (x) { return !x[0]; })[0]; if (gap) gap[0] = w.id; } }); }
+  opPaint();
+};
+function opPaint() {
+  var sh = $("#sheet"); if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
+  var K = OP.kind === "div" ? "Divisional Draft" : "Slot Draft", miss = OP.list.some(function (x) { return !x[0]; });
+  sh.innerHTML = '<div class="sbody"><div class="row" style="justify-content:space-between"><h2 style="margin:0">' + (OP.mode === "test" ? "🧪 " : "") + esc(K) + '</h2><button class="btn ghost" onclick="opClose()">Close</button></div>' +
+    '<p class="muted" style="margin:6px 0 10px">' + (OP.mode === "test" ? "Rehearsal using " + OP.src + "'s real order. Practice only: anyone can watch, Mike can clear it." : "The real " + OP.season + " draft. The league is pinged when you open it.") + '</p>' +
+    (OP.mode === "live" && !OP.done ? '<div class="card" style="border-color:var(--coral);padding:10px 14px"><small class="coral">The ' + OP.src + ' season isn\'t final yet: this order is "if the season ended today". Fix it with ↑ before opening.</small></div>' : '') +
+    '<div class="card">' + orderList(OP.list, true) + '</div>' + (OP.note ? '<p class="gold" style="font-size:12px">' + esc(OP.note) + '</p>' : '') +
+    (miss ? '<p class="coral" style="font-size:13px">Some spots are TBD (the bracket isn\'t played yet).</p>' : '') +
+    (OP.kind === "slot" ? '' : '<p class="muted" style="font-size:12px">Snake: 1-2-3-4-4-3-2-1. Each pick takes an owner into your division or assigns him to another (one assigned-in per division).</p>') +
+    '<button class="btn" style="width:100%" ' + (miss ? "disabled" : "") + ' onclick="opGo(this)">Open the draft</button></div>';
+}
+window.opMove = function (i) { if (!OP || i < 1) return; var t = OP.list[i - 1]; OP.list[i - 1] = OP.list[i]; OP.list[i] = t; opPaint(); };
+window.opClose = function () { var sh = $("#sheet"); if (sh) sh.remove(); OP = null; };
+window.opGo = function (btn) {
+  btn.disabled = true; btn.textContent = "Opening…";
+  authed("draftopen", { kind: OP.kind, mode: OP.mode, season: OP.season, order: OP.list.map(function (x) { return x[0]; }) }).then(function (r) {
+    if (!r.ok) throw new Error(r.error); opClose(); DRAFTS = null; go("droom", r.id);
+  }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = "Open the draft"; });
+};
+window.opWipe = function () { if (!confirm("Clear every rehearsal draft?")) return; authed("draftwipe").then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; toast("Cleared " + r.cleared); render(); }).catch(function (e) { toast(e.message); }); };
+
+// The draft room. Polls every 4 s while open.
+var DSEL = null;
+SCREENS.droom = function (id) {
+  if (!ME) return back("offseason", "Off-season") + '<h2>Draft room</h2>' + needSignIn("to enter the draft room");
+  return back("offseason", "Off-season") + '<div id="dr"><div class="card"><p class="muted">Loading the draft…</p></div></div>';
+};
+SCREENS.droom.after = function (id) {
+  DSEL = null; var last = "";
+  var pull = function () { loadDrafts(true).then(function (d) { var x = d.drafts.filter(function (z) { return z.id === id; })[0]; var sig = x ? x.status + x.picks.length : "none";
+    if (sig !== last) { last = sig; DSEL = null; drawRoom(x); } }).catch(function (e) { if ($("#dr")) $("#dr").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; }); };
+  pull(); timers.push(setInterval(function () { if (!document.hidden && $("#dr") && (!DRAFTS || DRAFTS.drafts.some(function (z) { return z.id === id && z.status === "open"; }))) pull(); }, 4000));
+};
+function drawRoom(x) {
+  var box = $("#dr"); if (!box) return;
+  if (!x) { box.innerHTML = '<div class="card"><p style="margin:0">This draft was cancelled or cleared.</p></div>'; return; }
+  var me = ME.owner, mine = x.clock === me, canPick = x.status === "open" && (mine || isDesk()), n = x.picks.length;
+  var html = '<h2 style="margin-bottom:4px">' + (x.mode === "test" ? "🧪 " : "") + x.season + ' ' + esc(x.name) + '</h2>' + (x.mode === "test" ? '<p class="muted" style="margin:0 0 10px;font-size:13px">Rehearsal: practice only.</p>' : '');
+  if (x.status === "open") html += '<div class="card' + (mine ? " lead" : "") + '"' + (mine ? "" : ' style="border-color:var(--gold)"') + '><div class="eyebrow">⏱️ Pick ' + (n + 1) + ' of ' + x.turns.length + '</div><div style="font:800 26px var(--head);text-transform:uppercase">' + (mine ? "You're on the clock" : esc(oname(x.clock)) + " is up") + '</div>' +
+    (!mine && isDesk() ? '<p style="font-size:13px">Commish: you can enter ' + esc(oname(x.clock)) + '\'s pick below (the league sees it was you).</p>' : '') + '</div>';
+  else html += '<div class="card lead"><div class="eyebrow">🏁 Final</div><div style="font:800 22px var(--head);text-transform:uppercase">' + (x.kind === "slot" ? "The " + x.season + " SPL Draft order" : "The " + x.season + " divisions") + '</div></div>';
+  html += x.kind === "slot" ? slotBoard(x, canPick) : divBoard(x, canPick);
+  html += '<div class="card"><div class="eyebrow">📜 Picks</div>' + x.turns.map(function (t, i) { var p = x.picks[i];
+    return '<div class="pk"><span class="no">' + (i + 1) + '</span><span><b>' + esc(oname(t)) + '</b>' + (p ? ' <small class="muted">' + esc(pickTxt(x, p)) + (p.by !== p.owner ? " · entered by " + esc(oname(p.by)) : "") + '</small>' : i === n && x.status === "open" ? ' <span class="via">ON THE CLOCK</span>' : '') + '</span></div>'; }).join("") + '</div>';
+  if (isDesk()) html += '<div class="row" style="flex-wrap:wrap;margin-bottom:12px">' + (n ? '<button class="btn ghost" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') + (x.status === "open" ? '<button class="btn ghost" onclick="drCancel(\'' + x.id + '\')">Cancel draft</button>' : '') + '</div>';
+  box.innerHTML = html; DR = x;
+}
+var DR = null;
+function pickTxt(x, p) { return x.kind === "slot" ? "slot " + p.choice.slot : p.choice.into === p.owner ? "took " + oname(p.choice.pick) : "sent " + oname(p.choice.pick) + " to " + oname(p.choice.into) + "'s division"; }
+function snakePicks(slot) { return [1, 2, 3].map(function (r) { return (r - 1) * 12 + (r % 2 ? slot : 13 - slot); }); }
+function slotBoard(x, canPick) {
+  return '<div class="card"><div class="eyebrow">🎰 SPL Draft slots · snake</div><div class="grid">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { var o = x.slots[k];
+    return '<button class="tile" style="min-height:64px;' + (o ? "" : canPick ? "border-color:var(--lime)" : "") + '"' + (!o && canPick ? ' onclick="drSlot(' + k + ')"' : ' disabled') + '><b>Slot ' + k + '</b><small>' + (o ? esc(oname(o)) : "picks " + snakePicks(k).join(", ") + "…") + '</small></button>'; }).join("") + '</div></div>';
+}
+function divBoard(x, canPick) {
+  var placed = {}; Object.keys(x.divs).forEach(function (f) { x.divs[f].forEach(function (id) { placed[id] = 1; }); });
+  var who = x.clock, pool = OWNERS.filter(function (o) { return !placed[o.id]; });
+  var html = '<div class="grid">' + x.order.map(function (f) { var m = x.divs[f], full = m.length >= 3, sel = DSEL && DSEL.pick;
+    var ok = sel && !full && (f === who || x.assigned[f] < 1 || (x.divs[who].length >= 3 && !x.order.some(function (g) { return g !== who && x.divs[g].length < 3 && x.assigned[g] < 1; })));
+    return '<div class="tile" style="cursor:default;' + (f === who && x.status === "open" ? "border-color:var(--gold)" : "") + '"><small class="muted">' + esc(oname(f)) + "'s division" + (x.assigned[f] ? " · 1 assigned" : "") + '</small>' +
+      m.map(function (id, i) { return '<div style="font-weight:' + (i ? 600 : 800) + ';font-size:14px;margin-top:4px">' + esc(oname(id)) + '</div>'; }).join("") +
+      (full ? '' : '<div class="muted" style="font-size:12px;margin-top:4px">' + (3 - m.length) + ' open</div>') +
+      (ok ? '<button class="btn" style="margin-top:8px;padding:8px 10px;font-size:13px;width:100%" onclick="drDiv(\'' + f + '\')">' + (f === who ? "Take " + esc(oname(sel)) : "Assign here") + '</button>' : '') + '</div>'; }).join("") + '</div>';
+  if (x.status === "open") html += '<div class="card" style="margin-top:12px"><div class="eyebrow">🧍 Still unplaced · ' + pool.length + '</div><div class="chips">' + pool.map(function (o) {
+    return '<button class="chip' + (DSEL && DSEL.pick === o.id ? " on" : "") + '"' + (canPick ? ' onclick="drPool(\'' + o.id + '\')"' : ' disabled') + '>' + esc(o.name) + '</button>'; }).join("") + '</div>' +
+    (canPick ? '<p class="muted" style="font-size:12px;margin:0">' + (DSEL ? "Now tap a division: " + esc(oname(who)) + "'s own, or assign him elsewhere." : "Tap an owner, then a division.") + '</p>' : '') + '</div>';
+  return html;
+}
+window.drPool = function (id) { DSEL = { pick: id }; drawRoom(DR); };
+window.drDiv = function (into) { if (!DSEL) return; var p = DSEL.pick, x = DR;
+  if (!confirm((into === x.clock ? oname(x.clock) + " takes " + oname(p) + " into his division?" : oname(x.clock) + " assigns " + oname(p) + " to " + oname(into) + "'s division?"))) return;
+  drSend({ pick: p, into: into }); };
+window.drSlot = function (k) { var x = DR; if (!confirm(oname(x.clock) + " takes slot " + k + " (picks " + snakePicks(k).join(", ") + "…)?")) return; drSend({ slot: k }); };
+function drSend(choice) { var x = DR;
+  authed("draftpick", { id: x.id, n: x.picks.length + 1, choice: choice }).then(function (r) { if (!r.ok) { if (r.stale) { DRAFTS = null; render(); } throw new Error(r.error); } DSEL = null; DRAFTS = null; toast("✓ Pick in"); drawRoom(r.draft); }).catch(function (e) { toast(e.message); }); }
+window.drUndo = function (id) { if (!confirm("Take back the last pick?")) return; authed("draftundo", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; render(); }).catch(function (e) { toast(e.message); }); };
+window.drCancel = function (id) { if (!confirm("Cancel this draft? The league is told.")) return; authed("draftcancel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; go("offseason"); }).catch(function (e) { toast(e.message); }); };
+// Reel cards: you're on the clock (needs you), a draft is live, results (7 days)
+function draftCards(D, me) {
+  var out = []; if (!D || !D.ok) return out;
+  D.drafts.forEach(function (x) { var t = (x.mode === "test" ? "🧪 " : "") + x.season + " " + x.name;
+    if (x.status === "open" && x.clock === me) out.push({ id: "dclock:" + x.id + ":" + x.picks.length, needs: 1, scope: "me", eb: "⏱️ " + esc(t), title: "You're on the clock", body: '<p>Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + '. The league is waiting on you.</p>', action: ["Make your pick", "go('droom','" + x.id + "')"] });
+    else if (x.status === "open") out.push({ id: "dlive:" + x.id + ":" + x.picks.length, scope: "league", eb: "🗓️ " + esc(t) + " · live", title: esc(oname(x.clock)) + " is up", body: '<p>Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + '.' + (x.picks.length ? ' Last: ' + esc(oname(x.picks[x.picks.length - 1].owner)) + ' ' + esc(pickTxt(x, x.picks[x.picks.length - 1])) + '.' : '') + '</p>', action: ["Watch the room", "go('droom','" + x.id + "')"] });
+    else if (x.status === "done" && Date.now() - new Date(x.updated).getTime() < 7 * 864e5) out.push({ id: "ddone:" + x.id, scope: "league", eb: "🏁 " + esc(t), title: x.kind === "slot" ? "Draft order is set" : "Divisions are set",
+      body: x.kind === "slot" ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { return '<div class="kv' + (x.slots[k] === me ? " mine" : "") + '"><span>Slot ' + k + '</span><span>' + esc(oname(x.slots[k])) + '</span></div>'; }).join("")
+        : x.order.map(function (f) { return '<div class="kv"><span>' + esc(oname(f)) + "'s</span><span>" + x.divs[f].slice(1).map(oname).map(esc).join(", ") + '</span></div>'; }).join(""), action: ["See the room", "go('droom','" + x.id + "')"] });
+  });
+  return out;
+}
+
 // ---- League grid
 var LEAGUE_TILES = [
   ["standings", "📊", "Standings", "Live from ESPN"], ["trades", "🔁", "Trades", "Offers + trade wire"],
+  ["offseason", "🗓️", "Off-season", "Live drafts + Signing Day"],
   ["keepers", "🔒", "Keepers", "Cap + forecaster"], ["draft", "📝", "Draft", "Every pick, who dealt what"],
   ["history", "📚", "History", "Champions since 2006"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
@@ -1308,7 +1498,7 @@ SCREENS.standings.after = function () {
 // ---- ⚙️ Settings (MAFFL REEL pattern): @handle, contact info, email toggles
 var NOTIFY = [["Trades", [["received", "Offer received", "Someone sends you a trade offer"], ["countered", "Counter-offer", "They counter your offer"],
   ["accepted", "Offer accepted", "They accept your offer"], ["declined", "Offer declined", "They pass on your offer"], ["commish", "Commish decision", "A trade you're in is approved or negated"]]],
-  ["Chat & league", [["chat", "DMs and @mentions", "Someone messages or @mentions you (one email per chat every 30 min)"], ["announce", "Commish announcements", "📣 Alerts from the commish (deadlines, rules, drafts)"]]]];
+  ["Chat & league", [["chat", "DMs and @mentions", "Someone messages or @mentions you (one email per chat every 30 min)"], ["announce", "Commish announcements", "📣 Alerts from the commish (deadlines, rules, drafts)"], ["draft", "On the clock", "⏱️ It's your pick in a Divisional or Slot draft"]]]];
 SCREENS.settings = function () { if (!ME) return SCREENS.signin(); return back("you", ME.name) + '<h2>⚙️ Settings</h2><div id="set"><div class="card"><p class="muted">Loading your settings…</p></div></div>'; };
 SCREENS.settings.after = function () {
   if (!$("#set")) return;
@@ -1319,7 +1509,7 @@ SCREENS.settings.after = function () {
       '<div class="card"><div class="eyebrow">Your contact info</div><p style="margin:0 0 8px;font-size:13px">Only signed-in SPL owners see it, never the public site. Used for trade texts and emails.</p>' +
       '<label class="lbl">Email <small>(two? separate with a comma)</small></label><input type="text" id="stEmail" inputmode="email" autocomplete="email" maxlength="120" value="' + esc(S.email) + '" placeholder="you@example.com">' +
       '<label class="lbl">Mobile</label><input type="text" id="stPhone" inputmode="tel" autocomplete="tel" maxlength="20" value="' + esc(fmtPhone(S.phone)) + '" placeholder="(412) 555-0123"></div>' +
-      '<div class="card"><div class="eyebrow">Email me when…</div><p style="margin:0 0 8px;font-size:13px">Email only, for now. Commish announcements start on; the rest are off until you turn them on.</p>' +
+      '<div class="card"><div class="eyebrow">Email me when…</div><p style="margin:0 0 8px;font-size:13px">Email only, for now. Commish announcements and On the clock start on; the rest are off until you turn them on.</p>' +
       '<div class="row"><button class="btn ghost" id="stOn">All on</button><button class="btn ghost" id="stOff">All off</button></div>' +
       NOTIFY.map(function (g) { return '<label class="lbl" style="margin-top:14px">' + g[0] + '</label>' + g[1].map(function (n) {
         return '<label class="tg"><div><b>' + n[1] + '</b><small>' + n[2] + '</small></div><input type="checkbox" data-nt="' + n[0] + '"' + (S.notify[n[0]] ? " checked" : "") + '></label>'; }).join(""); }).join("") + '</div>' +

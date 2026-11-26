@@ -1,16 +1,30 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS2)
+_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, WS3 part 1)
 
 ## Now
+- **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Keeper declarations on Signing Day, Shoot Out Draft + Seed 3 picks (ESPN `/schedule` write).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
 
 ## Open questions (in the app: League → 📋 Questions)
-ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
+ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules (new) · Joe's #1 wish.
 
 ## Recently shipped
+- 2026-11-26 · v0.11 (backend v0.8.0) · 🗓️ **WS3 part 1: the April drafts run live in the app.** New League tile **Off-season**: countdown to the
+  2027 off-season, every event in order (Winter Meeting, Divisional, Slot, Signing Day, SPL Draft, Shoot Out) with the 2027 orders computed from
+  the 2026 finish ("if the season ended today" until the SPL Bowl is final; checked against 2025: the computed orders match what the league did).
+  🧭 **Divisional Draft room**: 4 founders snake 1-2-3-4-4-3-2-1; tap an owner, then your division or "Assign here" (one assigned-in per
+  division; a full division must assign). 🎰 **Slot Draft room**: claim a slot 1–12, each shows its snake picks. Commish (desk roles) opens a
+  draft (order prefilled, ↑ to adjust), can enter a pick for an owner not signed up yet (league sees "entered by"), undo the last pick, cancel.
+  🧪 Rehearsals use the last finished season's real order; ops clears them. League chat gets every pick; the owner on the clock gets an email
+  (new Settings toggle **On the clock**, on by default) and a ⏱️ needs-you reel card; live + results cards for everyone. Needs-you cards now
+  always lead the reel. Backend: Drafts + DraftPicks tabs, `drafts`/`draftopen`/`draftpick`/`draftundo`/`draftcancel`/`draftwipe`, ledger feed
+  gains finished drafts. 🤖 `ledger-sync` now also writes gold `data/Offseason_Drafts.csv` (rehearsals → `data/test/`), and `build_data.py`
+  derives `offseason` (divisions + SPL Draft slots by season) for the SPL Draft room. New 📋 question for Joe: does the Divisional Draft work
+  the way the app runs it? (Re-seeded brackets like 2024 put both wildcard winners on the champ's side; the app counts the one who fell to the
+  champ on his side and flags it.)
 - 2026-11-26 · v0.10 · 🏆 **WS2 League screens** (no more "Coming soon" on League). 📖 **Rules**: rulebook from new gold `data/SPL_Rulebook.md`
   (the 2023 constitution, same words, rebuilt for the phone), search with highlights, each section badged ✓ current / Joe to confirm / out of date;
   🗓️ Timeline (`data/Season_Calendar.csv`: 2027 off-season dates + how the league got here); ⚖️ vs ESPN (`data/Rules_Conflicts.csv`, C1–C10).

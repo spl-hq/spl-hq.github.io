@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-26 · **WS3: one draft engine for every off-season draft.** Divisional + Slot ship first (backend `Drafts`/`DraftPicks`); the SPL Draft room and the Shoot Out Draft reuse the same engine with their own config. Orders are computed in the app from ESPN history and **confirmed by the commish when he opens a draft** (he can reorder), so an unclear bracket never blocks a draft. Rehearsals (`mode` test) run any time on the last finished season's order. A commish may enter a pick for any owner (recorded and posted as "entered by"). Divisional Draft reading (4 founders, each starts a division; full division must assign; one assigned-in per division) goes to Joe as a 📋 question. Gold: `data/Offseason_Drafts.csv` (robot-written).
 - 2026-11-26 · **WS2 League screens built from gold.** Rulebook text lives in `data/SPL_Rulebook.md` (amend there; the 2023 docx conversion stays as the archive). History + GM Rankings are *derived* from ESPN games (no hand-kept standings); missing seasons go in `Season_Results_Manual.csv`. GM Rankings are our career table until Glen shares his formula. Dates the commish sets go in `Season_Calendar.csv`.
 - 2026-11-26 · **Desks behind the login, not in League** (Mike, WS1). Header Desk button for desk roles only. Joe (commish) sees the Commish desk only; Mike (ops + commish) gets the Ops desk plus Joe's Commish desk as "Joe's view", read-only except trades Joe is in and backup after `BACKUP_WAIT_H` = 48 h (default until Joe answers otherwise). Pick ledger fixes are Joe's. Questions live inside the desk.
 - 2026-11-25 · **League history = ESPN 19583, 2006–2026** in gold `data/SPL_Matchups.csv` (robot-written). Missing: 2004–05 (pre-ESPN) and 2020–21 (no scores on ESPN). Ask Joe/Glen for those seasons' results to backfill by hand.
@@ -81,6 +82,7 @@ SPL-only: pick-your-opponent playoff pick → ESPN `/schedule` write; keeper dea
 5. Trade center on the test league → demo to Joe.
 6. Joe signs off → `WRITE_LEAGUE` = 19583.
 7. Reel robots + playoff-pick write (2027 season).
+8. WS3 off-season in the app: ✅ Divisional + Slot draft rooms (v0.11) · ⬜ SPL Draft room · ⬜ Keeper declarations · ⬜ Shoot Out Draft + Seed 3 pick (ESPN `/schedule` write).
 
 ## 8. Open (asked in the app: League → 📋 Questions)
-ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Joe's #1 wish.
+ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules · Joe's #1 wish.

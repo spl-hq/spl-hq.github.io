@@ -5,6 +5,7 @@ picks + trade log are rewritten from the backend each time; contract moves are m
 
   live mode → data/Draft_Pick_Ownership.csv, data/Trade_Log.csv, data/Keeper_Contracts.csv (owner_id / status / notes)
   test mode → the same files under data/test/ (practice trades never touch the real files)
+  drafts    → data/Offseason_Drafts.csv (finished live drafts) · data/test/Offseason_Drafts.csv (finished rehearsals)
 Rules come from the backend (Joe's answers in the app): contracts "travels" (owner changes) or "resets" (contract ends)."""
 import csv, json, os, re, sys, urllib.request, datetime, shutil, io
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -58,6 +59,30 @@ for t in trades:
 if moved:
     buf = io.StringIO(); buf.writelines(head); w = csv.DictWriter(buf, fieldnames=fields, lineterminator="\n"); w.writeheader(); w.writerows(rows)
     open(dst, "w", encoding="utf-8").write(buf.getvalue())
-status = {"at": stamp, "mode": mode, "backend": L.get("version"), "trades": len(trades), "picks": len(picks), "rules": rules, "contractMoves": moved}
+# 🗓️ Off-season drafts (Divisional + Slot): every finished draft, one row per pick. A draft's own mode decides the folder
+# (live → data/, rehearsal → data/test/), independent of the trade mode.
+drafts = L.get("drafts", [])
+def dchoice(d, p):
+    c = p["choice"]
+    if d["kind"] == "slot": return f"slot {c['slot']}", "", str(c["slot"])
+    return ("takes " if c["into"] == p["owner"] else "assigns ") + c["pick"], c["into"], c["pick"]
+ch3 = False
+for m, folder in (("live", os.path.join(ROOT, "data")), ("test", os.path.join(ROOT, "data", "test"))):
+    ds = sorted([d for d in drafts if d["mode"] == m], key=lambda d: (d["season"], d["kind"], d["done"]))
+    if m == "test" and not ds and not os.path.exists(os.path.join(folder, "Offseason_Drafts.csv")): continue
+    os.makedirs(folder, exist_ok=True)
+    rows_ = []
+    for d in ds:
+        for p in d["picks"]:
+            what, into, val = dchoice(d, p)
+            rows_.append({"season": d["season"], "draft": d["kind"], "draft_id": d["id"], "pick": p["n"], "owner_id": p["owner"], "choice": what,
+                          "division_of": into, "value": val, "entered_by": p["by"] if p["by"] != p["owner"] else "", "finished": str(d["done"])[:10]})
+    ch3 = write(os.path.join(folder, "Offseason_Drafts.csv"),
+        [("TEST MODE (rehearsals) -- " if m == "test" else "") + "Offseason_Drafts.csv -- GOLD, robot-written by tools/ledger_sync.py from the app's draft rooms",
+         "(League -> Off-season). Do not hand-edit: undo/redo picks in the app and the robot copies them here.",
+         "draft: div = Divisional Draft (division_of = the founder whose division the owner joins; value = that owner) | slot = Slot Draft (value = SPL Draft slot).",
+         f"Synced {stamp}."],
+        ["season", "draft", "draft_id", "pick", "owner_id", "choice", "division_of", "value", "entered_by", "finished"], rows_) or ch3
+status = {"at": stamp, "drafts": len(drafts), "mode": mode, "backend": L.get("version"), "trades": len(trades), "picks": len(picks), "rules": rules, "contractMoves": moved}
 open(os.path.join(ROOT, "data", "ledger_status.json"), "w").write(json.dumps(status, indent=1) + "\n")
-print(json.dumps(status, indent=1), "\nchanged:", ch1, ch2, bool(moved))
+print(json.dumps(status, indent=1), "\nchanged:", ch1, ch2, ch3, bool(moved))
