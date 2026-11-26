@@ -1,5 +1,5 @@
 # SPL_Matchups.csv  --  GOLD (robot-written by tools/pull_history.py from ESPN league 19583; re-run to refresh).
-# Pulled 2026-11-26T03:58Z. One row per game; byes and unplayed games skipped.
+# Pulled 2026-11-26T04:01Z. One row per game; byes and unplayed games skipped.
 # playoff_tier: NONE = regular season, WINNERS_BRACKET = playoffs, others = consolation. owner_id blank = unresolved (see report).
 season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away_pts,winner,source
 2006,1,NONE,moyer,Kimble's Finast,106.8,chappie,Happiest Slappies,55.0,HOME,espn-leagueHistory
@@ -1802,6 +1802,6 @@ season,week,playoff_tier,home_owner,home_team,home_pts,away_owner,away_team,away
 2026,12,NONE,glen,Fluff Muffins,9.5,patel,Cheater's Streakers,14.5,UNDECIDED,espn-season
 2026,12,NONE,moyer,Kimble's Finast,4.4,hoosier,Hoosier's Dynamos,0.0,UNDECIDED,espn-season
 2026,12,NONE,murello,Bad Attitude Gang,0.0,farrington,Farrington's FREELANCERS,2.0,UNDECIDED,espn-season
-2026,12,NONE,salerno,Ween's Machine,16.8,reilly,Reilly's RaMPaGe,0.0,UNDECIDED,espn-season
-2026,12,NONE,sikora,The Gunz,12.5,chappie,BlaKK BoCCes,0.0,UNDECIDED,espn-season
+2026,12,NONE,salerno,Ween's Machine,22.2,reilly,Reilly's RaMPaGe,0.0,UNDECIDED,espn-season
+2026,12,NONE,sikora,The Gunz,12.7,chappie,BlaKK BoCCes,0.0,UNDECIDED,espn-season
 2026,12,NONE,smith,Tijuana Trojans,8.0,bucher,Los Beasters Big Sky,0.0,UNDECIDED,espn-season
