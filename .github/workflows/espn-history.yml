@@ -1,0 +1,25 @@
+name: ESPN history pull
+# Pulls every SPL season ESPN has into data/SPL_Matchups.csv (gold) and commits it.
+# Runs when this file or tools/pull_history.py changes on main, or by hand (Actions → ESPN history pull → Run workflow).
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/espn-history.yml", "tools/pull_history.py"]
+permissions:
+  contents: write
+concurrency: { group: espn-history, cancel-in-progress: false }
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/pull_history.py
+        env:
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+          SWID: ${{ secrets.SWID }}
+      - name: Commit if changed
+        run: |
+          git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
+          git add data/SPL_Matchups.csv docs/HISTORY_PULL_REPORT.md
+          git diff --cached --quiet || (git commit -m "ESPN history pull: data/SPL_Matchups.csv" && git pull --rebase && git push)
