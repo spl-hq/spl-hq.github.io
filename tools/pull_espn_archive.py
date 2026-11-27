@@ -116,7 +116,7 @@ for y in range(this_year, 2003, -1):
     # transactions: ESPN hands them out per scoring period
     seen, nt, ntr = set(), 0, 0
     for sp in range(0, 19):
-        tx, _ = season(y, ["mTransactions2"], f"&scoringPeriodId={sp}")
+        _, tx = get(f"{BASE}/seasons/{y}/segments/0/leagues/{LID}?view=mTransactions2&scoringPeriodId={sp}")
         if sp == 1: DBG.append(f"{y}: mTransactions2 sp1 → {len((tx or {}).get('transactions') or [])} rows, keys {sorted((tx or {}).keys())[:8]}")
         for x in ((tx or {}).get("transactions") or []):
             if x.get("status") != "EXECUTED" or x.get("id") in seen: continue
@@ -136,10 +136,13 @@ for y in range(this_year, 2003, -1):
     # mTransactions2 is usually empty for past seasons: fall back to the league's activity feed (what ESPN's "Recent Activity" shows)
     if not nt:
         ACT = {178: "ADD", 180: "WAIVER_ADD", 179: "DROP", 181: "DROP", 239: "DROP", 244: "TRADE"}
-        for off in range(0, 10000, 1000):
-            filt = {"topics": {"filterType": {"value": ["ACTIVITY_TRANSACTIONS"]}, "limit": 1000, "limitPerMessageSet": {"value": 50}, "offset": off,
+        for off in range(0, 6000, 50):
+            filt = {"topics": {"filterType": {"value": ["ACTIVITY_TRANSACTIONS"]}, "limit": 50, "limitPerMessageSet": {"value": 25}, "offset": off,
                                "sortMessageDate": {"order": "DESC"}, "sortFor": {"order": "DESC"}, "filterIncludeMessageTypeIds": {"value": [178, 179, 180, 181, 239, 244]}}}
             st, cm = get(f"{BASE}/seasons/{y}/segments/0/leagues/{LID}/communication/?view=kona_league_communication", filt)
+            if st == 400 and off == 0:  # older seasons reject the message-type filter: ask without it
+                f2 = json.loads(json.dumps(filt)); f2["topics"].pop("filterIncludeMessageTypeIds", None)
+                st, cm = get(f"{BASE}/seasons/{y}/segments/0/leagues/{LID}/communication/?view=kona_league_communication", f2)
             topics = (cm or {}).get("topics") or []
             if off == 0: DBG.append(f"{y}: activity HTTP {st}, {len(topics)} topics, keys {sorted((cm or {}).keys())[:6] if isinstance(cm, dict) else type(cm).__name__}")
             for tp in topics:
@@ -155,7 +158,7 @@ for y in range(this_year, 2003, -1):
                                   "transaction_id": tp.get("id"), "type": "ACTIVITY_" + k, "move": k, "player_id": m.get("targetId"), "player": n, "position": pos,
                                   "from_owner": own(m.get("from")) if k in ("TRADE", "DROP") else "", "to_owner": own(m.get("to")) if k == "TRADE" else own(m.get("for") or m.get("to"))})
                     nt += 1
-            if len(topics) < 1000: break
+            if len(topics) < 50: break
             time.sleep(0.3)
     report.append(f"| {y} | {src} | {len(tm)} teams | {len(picks)} picks (pool {pool}) | {nr} roster rows | {ntr} trades / {nt} moves |")
     time.sleep(0.5)
