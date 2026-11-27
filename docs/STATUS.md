@@ -23,6 +23,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.4 (backend v0.17.2) · 📅 **Off-season → SPL Calendar** (Mike: "is it just a calendar?"). League tile + screen renamed;
+  the screen is now the league year in order: "Next up" with a countdown, then **this season** (trade deadline ✓, Shoot Out Draft, Shoot Out,
+  Playoffs, SPL Bowl: dates from the calendar file, else the date their rule gives, marked ≈: NFL week Sundays, Shoot Out Draft = the
+  Tuesday after Week 13) and **the next off-season** (off-season starts, Winter Meeting, Divisional, Slot, Signing Day, SPL Draft). Each row
+  links where it has a page (draft room → 🔴 Live / Room, Your keepers, Trades, Rules, Match, Past champs); past rows greyed ✓; draft orders
+  and the Shoot Out preview fold out under their event. Live/finished draft tiles dropped (the League Drafts row has them). `#calendar` works
+  too (old `#offseason` links kept). Chat's "draft done" line points to League → Drafts. SW `splhq-v55`.
 - 2026-11-27 · v0.23.3 · 🔒 **Keepers: one grid** (Mike: the 3-year outlook and "Your keepers" are the same thing). The keepers card is now the
   table: one row per keeper (carried, 🆕 new, ✂️ terminated as penalty, old penalties) with 2027 / 2028 / 2029 KP, ⋯ to terminate / change the
   deal / remove, "＋ Add a keeper" rows for open slots, then Total, KP left and Your 1st. Separate outlook card gone. SW `splhq-v54`.

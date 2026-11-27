@@ -507,7 +507,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.23.3";
+var APP_VERSION = "0.23.4";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -639,7 +639,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", droom: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", calendar: "league", droom: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 // ✕ on every search box (Mike 11/27): any input whose placeholder starts with "Search" gets a clear button, wherever it's drawn
 // (screens, sheets, redraws). Clearing fires the input's own input handler, so every list resets the way it does on typing.
@@ -2060,32 +2060,56 @@ var OFF_EVENTS = [
   ["signing_day", "🔒", "Keeper Signing Day", "10 days before the SPL Draft. 10 KP, three keepers max."],
   ["spl_draft", "📝", "SPL Draft", "17 rounds, snake, live in the app: traded picks, keepers and tags already on the board."],
   ["shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week 14: Rule 1 sets the matchups that decide a playoff spot, then the top seeds pick their Week 14 opponents.", "shootout"]];
+// 📅 SPL Calendar (Mike 11/27: "is it just a calendar? rename it"): the league year in order, this season's remaining dates, then the next
+// off-season, each with a link where it has a page (draft room, keepers, rules). Dates come from gold Season_Calendar.csv (commish-set or
+// the rule's timing); draft orders + the Shoot Out preview fold out under their event. Route stays #offseason (old links), #calendar too.
+function calRows() {
+  var cy = curSeason(), ns = nextSeason(), inSeason = !offSeason(), rows = [];
+  // In-season events with no set date get the date their rule gives (NFL week n's Sunday; the Shoot Out Draft = the Tuesday after Week 13), marked ≈.
+  var iso = function (t) { return new Date(t).toISOString().slice(0, 10); }, sun = function (n) { return iso(weekTue(cy, n) - 2 * 864e5); };
+  var add = function (season, key, icon, name, note, link, extra, est) { var c = calOf(season, key) || {}; rows.push({ season: season, key: key, icon: icon, name: name, date: c.date || est || "", est: !c.date && !!est, note: c.note || note, link: link, extra: extra || "" }); };
+  if (inSeason) {
+    add(cy, "trade_deadline", "⏰", "Trade deadline", "Set on ESPN", ["trades", "Trades ›"]);
+    add(cy, "shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week " + regWks(), ["kind:shootout", "Room ›"], lastFinal(cy) ? "shootout" : "", iso(weekTue(cy, regWks() - 1)));
+    add(cy, "shootout", "🔥", "SPL Shoot Out", "Week " + regWks() + " · highest score takes the pot", ["match", "Match ›"], "", sun(regWks()));
+    add(cy, "playoffs", "🏆", "SPL Playoffs", "Weeks 15–17 · Seed 3 picks its Week 15 opponent", ["rules", "Rules ›"], "", sun(15));
+    add(cy, "spl_bowl", "🥇", "SPL Bowl", "Week 17", ["history", "Past champs ›"], "", sun(17));
+  }
+  add(ns, "offseason", "🏈", "Off-season starts", "Day after the Super Bowl · pick trading opens", ["trades", "Trades ›"]);
+  add(ns, "winter_meeting", "🗳️", "Winter Meeting", "Rule votes · the SPL Draft date gets picked", ["rules", "Rules ›"]);
+  add(ns, "div_slot_drafts", "🧭", "Divisional Draft", "April · four owners build the four divisions", ["kind:div", "Room ›"], "div");
+  add(ns, "div_slot_drafts", "🎰", "Slot Draft", "April · everyone claims an SPL Draft slot", ["kind:slot", "Room ›"], "slot");
+  add(ns, "signing_day", "🔒", "Keeper Signing Day", "10 days before the SPL Draft · 10 KP, three keepers max", ["keepers", "Your keepers ›"]);
+  add(ns, "spl_draft", "📝", "SPL Draft", "17 rounds, snake · as close to NFL kickoff as possible", ["kind:spl", "Room ›"]);
+  return rows;
+}
 SCREENS.offseason = function () {
-  var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, o = offOrder(y), start = calDate("offseason");
-  var html = back("league", "League") + '<h2>Off-season</h2>' +
-    '<div class="card lead"><div class="eyebrow">🗓️ ' + next + ' off-season</div>' + (start && dayDiff(start) > 0 ? '<div class="big">' + dayDiff(start) + '<small style="font-size:18px;opacity:.75"> days</small></div><p>until it starts (' + esc(fmtDate(start)) + ', the day after the Super Bowl). Pick trading opens then.</p>'
-      : '<p style="margin:0">It\'s on. Every off-season event runs here, live, on your phone.</p>') + '</div>' +
-    '<div id="offlive"></div>';
-  OFF_EVENTS.forEach(function (ev) {
-    var d = calDate(ev[0]), list = ev[4] && ev[4] !== "shootout" && o ? o[ev[4]] : null;
-    html += '<div class="card"><div class="eyebrow">' + ev[1] + ' ' + esc(ev[2]) + (d ? ' · ' + esc(fmtDate(d)) : '') + '</div><p style="margin:0">' + esc(ev[3]) + '</p>' +
-      (list ? '<details style="margin-top:8px"' + (ev[4] === "div" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">' + next + ' order, from ' + y + (o.done ? "" : " · if the season ended today") + '</summary>' + orderList(list) +
-        (o.done ? '' : '<p class="muted" style="font-size:12px">Locks when the ' + y + ' SPL Bowl is final. The playoff spots fill in as the bracket plays out.</p>') + (o.sideNote ? '<p class="gold" style="font-size:12px">' + esc(o.sideNote) + '</p>' : '') + '</details>' : '') +
-      (ev[0] === "signing_day" ? '<button class="btn ghost" style="margin-top:10px" onclick="go(\'keepers\')">Your keepers + cap ›</button>' : '') +
-      (ev[4] === "shootout" && lastFinal(curSeason()) && !offSeason() ? '<details style="margin-top:8px"' + (seasonPhase() === "shootout" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">' + curSeason() + ' Shoot Out, as it stands</summary>' + shootPreview(curSeason()) + '</details>' : '') + '</div>';
+  var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, o = offOrder(y), rows = calRows(), nx = rows.filter(function (r) { return r.date && dayDiff(r.date) >= 0; })[0];
+  var html = back("league", "League") + '<h2>SPL Calendar</h2>' +
+    (nx ? '<div class="card lead"><div class="eyebrow">Next up</div><div style="font:800 22px var(--head);text-transform:uppercase">' + nx.icon + ' ' + esc(nx.name) + '</div><p style="margin:4px 0 0">' + (nx.est ? "≈ " : "") + esc(fmtDate(nx.date)) + ' · ' + esc(untilTxt(nx.date)) + '</p></div>' : '');
+  var sea = null;
+  rows.forEach(function (r) {
+    if (r.season !== sea) { sea = r.season; html += '<div class="eyebrow" style="margin:14px 0 6px">' + (r.season === curSeason() && !offSeason() ? "🏈 The " + r.season + " season" : "🗓️ The " + r.season + " off-season") + '</div>'; }
+    var past = r.date && dayDiff(r.date) < 0, k = r.link[0].indexOf("kind:") === 0 ? r.link[0].slice(5) : "";
+    var list = r.extra && r.extra !== "shootout" && o ? o[r.extra] : null;
+    html += '<div class="card" style="padding:12px 14px' + (past ? ';opacity:.6' : '') + '"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px"><div style="flex:1;min-width:0">' +
+      '<div class="eyebrow" style="margin:0">' + (r.date ? (r.est ? "≈ " : "") + esc(fmtDate(r.date)) + (past ? " · ✓ done" : " · " + esc(untilTxt(r.date))) : "Date TBD") + '</div><b>' + r.icon + ' ' + esc(r.name) + '</b><br><small class="muted">' + esc(r.note) + '</small></div>' +
+      (k ? '<span id="calk_' + k + '"><button class="chip" onclick="go(\'league\')">Drafts ›</button></span>' : '<button class="chip" onclick="go(\'' + r.link[0] + '\')">' + esc(r.link[1]) + '</button>') + '</div>' +
+      (list ? '<details style="margin-top:8px"><summary class="muted" style="cursor:pointer;font-size:13px">' + next + ' order, from ' + y + (o.done ? "" : " · if the season ended today") + '</summary>' + orderList(list) +
+        (o.done ? '' : '<p class="muted" style="font-size:12px">Locks when the ' + y + ' SPL Bowl is final.</p>') + (o.sideNote ? '<p class="gold" style="font-size:12px">' + esc(o.sideNote) + '</p>' : '') + '</details>' : '') +
+      (r.extra === "shootout" ? '<details style="margin-top:8px"' + (seasonPhase() === "shootout" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">The Shoot Out, as it stands</summary>' + shootPreview(curSeason()) + '</details>' : '') + '</div>';
   });
-  html += '<div id="offpast"></div>';
-  if (isDesk()) html += '<div class="card" style="border-color:var(--gold);cursor:pointer" onclick="go(\'' + (isOps() ? "ops" : "desk") + '\')"><div class="eyebrow">📥 Commish</div><p style="margin:0">Open, undo, cancel and load drafts into ESPN from your ' + (isOps() ? "🛠️ Ops desk" : "📥 Commish desk") + ' → 🗓️ Drafts. ›</p></div>';
-  return html + '<p class="muted" style="font-size:12px">Rules: constitution §B, §E, §F. Orders computed from ESPN history; the commish confirms the order when he opens a draft. Results are copied to the repo by the ledger robot.</p>';
+  if (isDesk()) html += '<div class="card" style="border-color:var(--gold);cursor:pointer" onclick="go(\'' + (isOps() ? "ops" : "desk") + '\')"><div class="eyebrow">📥 Commish</div><p style="margin:0">Open, undo, cancel and load drafts into ESPN from your ' + (isOps() ? "🛠️ Ops desk" : "📥 Commish desk") + ' → 🗓️ Drafts. Set a date: tell Mike (it goes in the calendar file). ›</p></div>';
+  return html + '<p class="muted" style="font-size:12px">Dates: constitution §B and the commish (set at the Winter Meeting). Draft orders are computed from ESPN history; the commish confirms them when he opens a draft.</p>';
 };
+SCREENS.calendar = SCREENS.offseason;
 SCREENS.offseason.after = function () {
-  if (!ME) { $("#offlive").innerHTML = '<div class="card"><p style="margin:0">Sign in to see live drafts and results.</p></div>'; return; }
-  loadDrafts(true).then(function (d) {
-    var live = d.drafts.filter(function (x) { return x.status === "open"; }), done = d.drafts.filter(function (x) { return x.status === "done"; });
-    var a = $("#offlive"); if (a) a.innerHTML = live.map(draftTile).join("");
-    var b = $("#offpast"); if (b && done.length) b.innerHTML = '<div class="eyebrow" style="margin-top:6px">🏁 Finished</div>' + done.map(draftTile).join("");
-  }).catch(function (e) { var a = $("#offlive"); if (a) a.innerHTML = '<div class="card"><p class="coral" style="margin:0">' + esc(e.message) + '</p></div>'; });
+  if (!ME) return;
+  loadDrafts(true).then(function (D) { DRAFT_BTNS.forEach(function (k) { var el = $("#calk_" + k[0]); if (!el) return;
+    var ls = D.drafts.filter(function (x) { return x.kind === k[0]; }), pick = ls.filter(function (x) { return x.status === "open"; })[0] || ls.filter(function (x) { return x.mode === "live"; })[0] || ls[0];
+    if (pick) el.innerHTML = '<button class="chip"' + (pick.status === "open" ? ' style="border-color:var(--lime)"' : '') + ' onclick="go(\'droom\',\'' + pick.id + '\')">' + (pick.status === "open" ? "🔴 Live ›" : (pick.mode === "test" ? "🧪 " : "") + "Room ›") + '</button>'; }); }).catch(function () {});
 };
+SCREENS.calendar.after = SCREENS.offseason.after;
 function draftTile(x) {
   var mine = x.clock && ME && x.clock === ME.owner;
   return '<div class="card' + (mine ? " lead" : "") + '" style="cursor:pointer' + (x.status === "open" && !mine ? ";border-color:var(--lime)" : "") + '" onclick="go(\'droom\',\'' + x.id + '\')"><div class="eyebrow">' + (x.mode === "test" ? "🧪 Rehearsal · " : "") + x.season + ' ' + esc(x.name) + '</div>' +
@@ -2669,7 +2693,7 @@ function phaseCard(D, me) {
   if (ph === "offseason") { var nx = offNext(); if (!nx.length) return null;
     return { id: "offnext:" + nextSeason() + ":" + nx[0].name + ":" + (nx[0].date || ""), scope: "league", eb: "🗓️ The " + nextSeason() + " off-season", title: nx[0].icon + " " + esc(nx[0].name) + (nx[0].date ? " · " + esc(untilTxt(nx[0].date)) : ""),
       body: nx.slice(0, 5).map(function (e) { return '<div class="kv"><span>' + e.icon + ' ' + esc(e.name) + '</span><span class="muted">' + (e.date ? esc(fmtDate(e.date)) : "TBD") + '</span></div>'; }).join("") +
-        '<p class="story">Every off-season draft runs live in the app: you get pinged when you\'re on the clock.</p>', action: ["The off-season", "go('offseason')"] }; }
+        '<p class="story">Every off-season draft runs live in the app: you get pinged when you\'re on the clock.</p>', action: ["SPL Calendar", "go('offseason')"] }; }
   if (ph !== "shootout") return null;
   var y = curSeason(), opened = D && D.ok && D.drafts.some(function (x) { return x.kind === "shootout" && x.mode === "live" && x.season === y; });
   if (opened || !(y >= LIVE_SEASON || isDesk())) return null;
@@ -2695,7 +2719,7 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
 // ---- League grid
 // Mike 11/27: Standings → bottom of Match; Trades + Keepers live on the Team tab (GM desk). Drafts get their own row of buttons up top.
 var LEAGUE_TILES = [
-  ["offseason", "🗓️", "Off-season", "Calendar + Signing Day"], ["draft", "📝", "Draft boards", "Every pick since 2006"],
+  ["offseason", "📅", "SPL Calendar", "Every date, with links"], ["draft", "📝", "Draft boards", "Every pick since 2006"],
   ["history", "📚", "History", "Champions since 2006"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
   ["feedback", "💡", "Ideas", "Feedback to the site"]
@@ -2719,7 +2743,7 @@ SCREENS.league = function () {
   }).join("") + '</div>';
 };
 // 🗓️ Drafts row: one button per draft, always in the same place (Mike 11/27: "once I leave a draft room I can't find my way back").
-// Each goes to the newest live draft of its kind (else the newest rehearsal, else the off-season calendar); 🔴 = open now, gold = you're on the clock.
+// Each goes to the newest live draft of its kind (else the newest rehearsal, else the SPL Calendar); 🔴 = open now, gold = you're on the clock.
 var DRAFT_BTNS = [["spl", "📝", "SPL Draft"], ["div", "🧭", "Divisional"], ["slot", "🎰", "Slot Draft"], ["shootout", "🎯", "Shoot Out"]];
 function draftBtn(k, D) {
   var ls = D ? D.drafts.filter(function (x) { return x.kind === k[0]; }) : [], pick = ls.filter(function (x) { return x.status === "open"; })[0] || ls.filter(function (x) { return x.mode === "live"; })[0] || ls[0];
@@ -3088,7 +3112,7 @@ var TOUR_STEPS = [
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat and a DM with any owner. Trade news and commish alerts land here too. Tag an owner with his @handle."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out), then the off-season calendar, every draft board since 2006, champions, GM rankings, rivalries and the rules."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out), then the off-season calendar, then the SPL Calendar, champions, GM rankings, rivalries and the rules."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish: trades to approve, Mike's questions for you (the number on this button), and opening the off-season drafts and Signing Day.", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
 var TR = null;
