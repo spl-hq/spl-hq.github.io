@@ -404,6 +404,21 @@ tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:point
 .tbtn button{background:none;border:0;font:800 13px var(--head);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 4px;min-width:70px;text-align:left;cursor:pointer}
 .tbtn .go{background:#1E407C;color:#fff;border-radius:999px;padding:10px 18px;text-align:center}
 .tbub .tx{position:absolute;top:8px;right:8px;width:32px;height:32px;font-size:16px;color:var(--muted);background:none;border:0;cursor:pointer}
+.kswitch{display:flex;background:#E1E4E8;border-radius:10px;padding:3px;gap:3px;margin:0 0 12px} .kswitch button{flex:1;border:0;background:none;padding:8px 4px;border-radius:8px;font:700 13px var(--body,inherit);color:#5F666D;cursor:pointer}
+.kswitch button.on{background:#fff;color:#041E42;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.ksum .big small{font-size:16px;opacity:.75} .ksum .kmut{opacity:.8;font:600 12px var(--mono)} .kdots{display:flex;gap:6px;justify-content:flex-end;margin-bottom:4px} .kdots i{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.55)} .kdots i.on{background:#96BEE6;border-color:#96BEE6}
+.ksum .kstat{font-size:12px;opacity:.9;margin-top:6px} .ksum.lead .kstat a{color:#96BEE6} .kwarn{margin-top:8px;font-weight:700;font-size:13px;color:#ffd0d6} .ksum.kdone{border-color:var(--gold)} .ksum.kdone .kstat{color:var(--muted)}
+.kslot{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer} .kslot .kn{flex:1;min-width:0} .kslot .kn b{font-size:15px} .kslot .kn small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.kpos{color:var(--muted);font-size:11px !important;display:inline !important} .kslot .kp,.kcand .kp{font:800 20px var(--mono);color:#041E42;min-width:28px;text-align:right} .kmore{color:var(--muted);width:14px;text-align:center}
+.kslot.add .kn b{color:#1E407C} .kslot.add{border-top-style:dashed} .kslot.cut .kn b{text-decoration:line-through;color:var(--muted)} .kslot.pen{cursor:default} .kslot.pen .kn b{font-size:13px;color:var(--coral)}
+.kplanbtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 10px;font:700 12px var(--mono);color:#1E407C;cursor:pointer;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kfine{font-size:12px;color:var(--muted);margin:8px 0 0} .kdeclbtn{width:100%;margin:2px 0 4px;padding:14px} .kmkt{cursor:pointer;margin-top:12px} .kmkt b{display:block} .kmkt small{color:var(--muted)}
+.kcand{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer} .kcand .kn{flex:1;min-width:0} .kcand .kn small{display:block;color:var(--muted);font-size:12px;margin-top:2px} .kcand .kn small .av{vertical-align:-6px}
+.kcand.off{opacity:.55;cursor:default} .kfil{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap} .kfil button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 11px;font:700 12px var(--mono);color:#5F666D;cursor:pointer} .kfil button.on{background:#1E407C;border-color:#1E407C;color:#fff}
+.kterm{display:grid;grid-template-columns:1fr 1fr;gap:8px} .kterm button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 10px;text-align:left;cursor:pointer} .kterm button b{display:block;font-size:14px;color:#041E42} .kterm button small{color:var(--muted);font:600 12px var(--mono)}
+.kterm button.on{border-color:#1E407C;box-shadow:0 0 0 2px #1E407C inset} .kterm2{margin-top:8px;font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap} .kterm2 button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font:700 12px var(--mono);color:#1E407C} .kterm2 button.on{background:#1E407C;color:#fff} .kterm2 small{color:var(--muted);width:100%}
+.kplan{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer} .kplan.on{border-color:#1E407C;box-shadow:0 0 0 1px #1E407C inset} .kplan small{display:block} .kplyr{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;margin-top:4px;color:var(--muted)} .kplyr b{font-family:var(--mono);color:#041E42}
+.knote{margin-top:12px;padding:10px 12px;border-radius:10px;background:#FFF6E3;border:1px solid #E3D3AE;font-size:13px;line-height:1.5;color:#5a4410} .krules p{font-size:14px;margin:10px 0 0} .ksh h2{font-size:20px}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -459,7 +474,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.19.5";
+var APP_VERSION = "0.20";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -594,7 +609,7 @@ function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
   if (!SCREENS[name]) name = "home";
-  var tab = name === "keepers" && ME && (!arg || arg === ME.owner) ? "team" : TAB_OF[name]; // your keepers = your GM desk
+  var tab = name === "keepers" && ME && (!arg || arg === ME.owner || /^@|!$/.test(arg)) ? "team" : TAB_OF[name]; // your keepers = your GM desk
   document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === tab); });
   var dk = $("#deskBtn"); if (dk) dk.classList.toggle("on", name === "desk" || name === "ops" || name === "joe");
   $("#view").innerHTML = SCREENS[name](arg); $("#view").scrollTop = 0;
@@ -1499,68 +1514,252 @@ function kblocked(name, id) {
   return "";
 }
 function kv1(v) { return v == null ? '<span class="muted">·</span>' : v === "F" ? '<span class="gold">F</span>' : v; }
+// 🔒 Keepers v2 (Mike 11/27: "clunky, messy, too much going on"). Your keepers live on the GM desk as three slots under one cap
+// summary; everything else is a tap away in a sheet. Mine · Market · League switch:
+//   Mine (#keepers)            cap summary · 3 slots (carried / new / terminated) · one Declare button (confirm says it goes to the
+//                              league + the commish, changeable until close) · plans in a sheet (switch, compare, new/copy/rename/delete)
+//   Market (#keepers=@market)  every keepable player on the other 11 rosters at or under a KP price (default = your room), by position
+//   League (#keepers=@league)  Signing Day board · each team's committed cap (tap = read-only) · every contract · how keepers work
+//   A team (#keepers=<id>)     read-only; commish can enter that owner's keepers while Signing Day is open (#keepers=<id>!)
+function kseg(on) {
+  return '<div class="kswitch">' + (ME ? [["", "Mine"]] : []).concat([["@market", "Market"], ["@league", "League"]]).map(function (x) {
+    return '<button class="' + (x[0] === on ? "on" : "") + '" onclick="go(\'keepers\'' + (x[0] ? ',\'' + x[0] + '\'' : '') + ')">' + x[1] + '</button>'; }).join("") + '</div>';
+}
+function ksheet(html) {
+  var sh = $("#sheet"); if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
+  sh.onclick = function (e) { if (e.target === sh) pclose(); };
+  sh.innerHTML = '<div class="sbody ksh">' + html + '</div>'; sh.style.display = ""; sh.scrollTop = 0;
+}
+function kyrsTxt(sch, y0) { // "4 KP in '28 · 5 in '29" from a season → KP schedule
+  var ys = Object.keys(sch).map(Number).filter(function (y) { return y > y0; }).sort();
+  if (!ys.length) return "Last year of his deal";
+  return ys.map(function (y, i) { var v = sch[y]; return (v === "F" ? "tag" : v + (i ? "" : " KP")) + " in '" + String(y).slice(2); }).join(" · ");
+}
+function kstatusLine(W, KW, dec, sd) {
+  if (W) return (dec ? "✅ Declared " + ago(dec.ts) + " · " : "⏳ Signing Day open · ") + (W.closes ? "closes " + fmtDate(W.closes) : "until the commish closes it") + (W.mode === "test" ? " · 🧪" : "");
+  if (KW && KW.done) return "🏁 Signing Day " + KW.season + " is done" + (KW.mode === "test" ? " (rehearsal)" : "");
+  return sd.date ? "⏳ Signing Day " + fmtDate(sd.date) + " · " + untilTxt(sd.date) : "⏳ Signing Day: 10 days before the SPL Draft (date TBD)";
+}
 SCREENS.keepers = function (arg) {
-  var id = arg || (ME ? ME.owner : OWNERS[0].id), o = owner(id) || {}, mine = kmine(id), y0 = KP_YRS[0];
+  arg = String(arg || "");
   if (ME && !KEEP) { loadKeep().then(function () { if (/^#keepers/.test(location.hash)) render(); }).catch(function () {}); }
-  var list = kscn(id), si = ksel(id), sc = list[si], C = kcalc(id, sc), t0 = C.yrs[y0], cuts = sc.cuts || [], W = kwinOpen(), dec = kdeclOf(id), sd = signingDay();
-  var html = mine ? gmBar("keepers") : back(ME ? "keepers" : "league", ME ? "Your keepers" : "League") + '<h2>Keepers · ' + esc(o.name || "") + '</h2>';
-  // ⏳ Signing Day: the window (rehearsal / open / done) or the countdown
-  var KW = KEEP && KEEP.window && +KEEP.window.season === y0 ? KEEP.window : null;
-  html += '<div class="card' + (W && mine && !dec ? " needsb" : "") + '"><div class="eyebrow">⏳ Keeper Signing Day ' + y0 + (KW && KW.mode === "test" ? ' · 🧪 rehearsal' : '') + '</div>' +
-    (W ? '<p style="margin:0"><b>Open' + (W.closes ? ' until ' + esc(fmtDate(W.closes)) + '</b> (' + esc(untilTxt(W.closes)) + ')' : '</b>') + '. Build a plan below, then declare it. You can change it until it closes.</p>'
-      : KW && KW.done ? '<p style="margin:0"><b>Done.</b> The declarations below are final' + (KW.mode === "test" ? " (rehearsal: nothing official changed)" : "; the ledger robot writes them into the contracts") + '.</p>'
-      : sd.date ? '<div class="big">' + Math.max(0, dayDiff(sd.date)) + '<small class="muted" style="font-size:18px"> days</small></div><p>' + esc(fmtDate(sd.date)) + (sd.from ? ' · 10 days before the SPL Draft' : '') + '. Declaring opens in the app before then.</p>'
-      : '<p style="margin:0"><b>10 days before the SPL Draft.</b> The draft date gets picked at the Winter Meeting' + (sd.wm ? ' (target ' + esc(fmtDate(sd.wm)) + ', ' + esc(untilTxt(sd.wm)) + ')' : '') + '. Plan now; declaring opens in the app before Signing Day.</p>') +
-    (dec ? '<div class="kdec"><div class="eyebrow">✅ ' + (mine ? "You" : esc(o.name)) + ' declared · ' + esc(ago(dec.ts)) + '</div>' + kdeclRows(dec) + '</div>' : '') + '</div>';
-  // 🗂️ scenarios
-  html += '<div class="hscroll kscn">' + list.map(function (x, i) { return '<button class="chip' + (i === si ? " on" : "") + '" onclick="kPick(\'' + id + '\',' + i + ')">' + esc(x.name) + '</button>'; }).join("") +
-    (list.length < 3 ? '<button class="chip" onclick="kNew(\'' + id + '\')">＋ Plan</button>' : '') + '</div>' +
-    '<p class="muted" style="font-size:12px;margin:-4px 0 8px">' + (mine ? "Your plans follow your sign-in (any phone). Nobody else sees them until you declare." : ME ? "Plans for " + esc(o.name) + "'s team stay on this phone." : "Sign in and your plans follow you to any phone.") +
-    ' <a href="javascript:void 0" onclick="kRename(\'' + id + '\')">Rename</a>' + (list.length > 1 ? ' · <a href="javascript:void 0" onclick="kDel(\'' + id + '\')">Delete</a>' : '') + ' · <a href="javascript:void 0" onclick="kCopy(\'' + id + '\')">Copy</a></p>';
-  // 🔒 cap for this plan
-  html += '<div class="card' + (mine ? " lead" : "") + '"><div class="eyebrow">🔒 ' + esc(sc.name) + ' · ' + y0 + ' cap</div>' +
-    '<div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="big">' + t0.room + '<small style="font-size:18px;opacity:.7"> KP left</small></div></div><div style="text-align:right;font:600 12px var(--mono)">' + C.count + ' of 3 keepers' + (t0.first ? '<br>🏷️ tag: no ' + y0 + ' 1st' : '') + '</div></div>' +
-    '<div class="meter"><i class="k" style="width:' + Math.min(100, t0.k * 10) + '%"></i><i class="p" style="width:' + Math.min(100, t0.p * 10) + '%"></i><i class="h" style="width:' + Math.min(100, t0.h * 10) + '%"></i></div>' +
-    '<p style="font-size:12px;margin:0">' + t0.k + ' KP kept · ' + t0.p + ' KP cap penalties · ' + t0.h + ' KP new signings · of 10</p>' +
-    C.errors.map(function (e) { return '<p style="font-weight:700;margin:6px 0 0;color:' + (mine ? "#ffd0d6" : "var(--coral)") + '">' + esc(e) + '</p>'; }).join("") + '</div>';
-  // 📈 cap profile: carried (✂️ terminate what-if), penalties, new signings (term + tag), KP left, 1st-round picks
-  var rows = C.carried.map(function (c) { var cut = cuts.indexOf(c.id) >= 0;
-      return '<tr' + (cut ? ' class="kx"' : '') + '><td><span class="kpl">' + esc(c.player) + '</span> <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') +
-        '<br><small class="muted">' + (cut ? '✂️ terminated: half of each year left' : c.term + '-yr · signed ' + c.signed) + ' · <a href="javascript:void 0" onclick="kCut(\'' + id + '\',\'' + c.id + '\')">' + (cut ? "keep him" : "terminate?") + '</a></small></td>' +
-        KP_YRS.map(function (y) { var v = c.kp[y]; return '<td class="n' + (cut && typeof v === "number" ? " coral" : "") + '">' + (cut ? (typeof v === "number" ? v / 2 : '<span class="muted">·</span>') : kv1(v)) + '</td>'; }).join("") + '</tr>'; }).join("") +
-    C.pens.map(function (c) { return '<tr><td><span class="coral">' + esc(c.player) + '</span><br><small class="muted">cap penalty · ' + esc(c.status) + '</small></td>' + KP_YRS.map(function (y) { var v = c.pen[y]; return '<td class="n coral">' + (v == null ? '<span class="muted">·</span>' : v) + '</td>'; }).join("") + '</tr>'; }).join("") +
-    (sc.signs || []).map(function (s, i) { var sch = kschedule(s, y0);
-      return '<tr><td><b>' + esc(s.player) + '</b> <span class="via">NEW</span>' + (s.tag ? ' <span class="tag">🏷️ TAG</span>' : '') + '<br><small class="muted">' + (s.round ? "R" + s.round + " in " + (y0 - 1) : "undrafted") + ' · ' + KP_ROUND(s.round) + ' KP year one</small>' +
-        '<div class="kseg">' + [1, 2, 3].map(function (n) { return '<button class="' + (s.term === n ? "on" : "") + '" onclick="kTerm(\'' + id + '\',' + i + ',' + n + ')">' + n + 'y</button>'; }).join("") +
-        '<button class="' + (s.tag ? "on" : "") + '" onclick="kTag(\'' + id + '\',' + i + ')">🏷️ Tag</button><button onclick="kDrop(\'' + id + '\',' + i + ')">✕</button></div></td>' +
-        KP_YRS.map(function (y) { return '<td class="n">' + kv1(sch[y]) + '</td>'; }).join("") + '</tr>'; }).join("");
-  html += '<div class="card"><div class="eyebrow">📈 Cap profile · ' + esc(sc.name) + '</div><table><tr><th>Contract</th>' + KP_YRS.map(function (y) { return '<th class="n">\'' + String(y).slice(2) + '</th>'; }).join("") + '</tr>' +
-    (rows || '<tr><td colspan="4" class="muted">Nothing carried into ' + y0 + '. Try a signing below.</td></tr>') +
-    '<tr><td><b>KP left</b></td>' + KP_YRS.map(function (y) { var r = C.yrs[y].room; return '<td class="n"><b class="' + (r < 0 ? "coral" : "") + '">' + r + '</b></td>'; }).join("") + '</tr>' +
-    (KP_YRS.some(function (y) { return C.yrs[y].first; }) ? '<tr><td><b>Your 1st</b> <small class="muted">(tag)</small></td>' + KP_YRS.map(function (y) { return '<td class="n">' + (C.yrs[y].first ? '<span class="coral">✗</span>' : '✓') + '</td>'; }).join("") + '</tr>' : '') + '</table>' +
-    '<p class="muted" style="font-size:12px">10 KP a season, three keepers max. Year 2 = Year 1 + 1, Year 3 = Year 2 + 1, no extensions. 🏷️ Franchise Tag: year-one KP, then F (0 KP) but your 1st every year of the tag. ✂️ Terminating on Signing Day costs half of each year left (it comes off the 10 KP first).</p></div>';
-  // 🧪 try a signing
-  html += '<div class="card"><div class="eyebrow">🧪 Try a signing · ' + esc(sc.name) + '</div><p style="margin:0 0 8px;font-size:13px">Year-one price = the round he went in the ' + (y0 - 1) + ' draft (R1 10 · R2 8 · R3 6 · R4–5 4 · R6–8 3 · R9+ or undrafted 2).</p>' +
-    '<input type="text" id="kq" placeholder="Search a player…" autocomplete="off"><div id="kc" style="margin-top:6px"><p class="muted" style="font-size:13px">' + (ME ? "Loading " + esc(o.name) + "'s roster…" : "Type a name, or sign in to see this team's roster.") + '</p></div></div>';
-  // ⚖️ compare plans
-  if (list.length > 1) html += '<div class="card"><div class="eyebrow">⚖️ Compare plans</div><table><tr><th>Plan</th>' + KP_YRS.map(function (y) { return '<th class="n">\'' + String(y).slice(2) + ' left</th>'; }).join("") + '<th class="n">Keep</th></tr>' +
-    list.map(function (x, i) { var c = kcalc(id, x); return '<tr' + (i === si ? ' class="kon"' : '') + ' onclick="kPick(\'' + id + '\',' + i + ')" style="cursor:pointer"><td><b>' + esc(x.name) + '</b>' + (c.errors.length ? ' <span class="coral">⚠</span>' : '') + '<br><small class="muted">' + esc(kplanTxt(id, x)) + '</small></td>' +
-      KP_YRS.map(function (y) { var r = c.yrs[y].room; return '<td class="n"><b class="' + (r < 0 ? "coral" : "") + '">' + r + '</b>' + (c.yrs[y].first ? '<br><small class="coral" style="white-space:nowrap">✗ 1st</small>' : '') + '</td>'; }).join("") + '<td class="n">' + c.count + '/3</td></tr>'; }).join("") + '</table></div>';
-  // ✍️ declare
-  if (W && (mine || isDesk())) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">✍️ Declare ' + (mine ? "your" : esc(o.name) + "'s") + ' ' + y0 + ' keepers' + (W.mode === "test" ? ' · 🧪 rehearsal' : '') + '</div>' +
-    '<p style="margin:0 0 8px;font-size:13px">' + (dec ? "Already declared. Declaring again replaces it (the league sees the change)." : "Declaring posts it to league chat and the reel.") + (mine ? "" : " Commish: entering it for " + esc(o.name) + " (the league sees who entered it).") + ' Carried contracts you don\'t terminate are kept.</p>' +
-    '<button class="btn" onclick="kDeclare(\'' + id + '\')">Declare ' + esc(sc.name) + '</button><div id="kdres"></div></div>';
-  // 📋 the league board
-  if (KW && KEEP.decls.length) html += kboardCard(KW);
-  // 📚 archive
-  html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">📚 Every contract in the league (' + LD("contracts").length + ')</summary><table style="margin-top:8px"><tr><th>Player</th><th>Owner</th><th class="n">Term</th><th class="n">\'' + String(y0 - 1).slice(2) + '</th></tr>' +
-    LD("contracts").slice().sort(function (a, b) { return a.owner < b.owner ? -1 : a.owner > b.owner ? 1 : 0; }).map(function (c) { var v = c.status === "active" ? c.kp[y0 - 1] : c.pen[y0 - 1];
-      return '<tr><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + (c.status !== "active" ? ' <span class="tag" style="color:var(--coral)">' + esc(c.status.toUpperCase()) + '</span>' : '') + '</td><td>' + esc(oname(c.owner)) + '</td><td class="n">' + c.signed + '+' + c.term + '</td><td class="n' + (c.status !== "active" ? " coral" : "") + '">' + (v == null ? "·" : v) + '</td></tr>'; }).join("") +
-    '</table><p class="muted" style="font-size:12px">Contracts follow traded players, and Signing Day declarations become contracts, automatically (ledger robot).</p></details>';
-  html += '<div class="card"><div class="eyebrow">👀 ' + (mine ? "Other teams" : "Another team") + '</div><select style="width:100%" onchange="if(this.value)go(\'keepers\',this.value)"><option value="">See another team\'s cap + plans…</option>' +
-    OWNERS.filter(function (x) { return x.id !== id; }).map(function (x) { return '<option value="' + x.id + '">' + esc(x.name) + ' · ' + esc(x.team) + '</option>'; }).join("") + '</select></div>';
-  return html;
+  if (arg === "@market") return kMarketView();
+  if (arg === "@league" || (!ME && !arg)) return kLeagueView();
+  var edit = /!$/.test(arg), id = arg.replace(/!$/, "") || ME.owner;
+  if (id !== ME.owner && !edit) return kTeamView(id);
+  return kMineView(id, edit);
 };
+function kMineView(id, edit) {
+  var y0 = KP_YRS[0], o = owner(id) || {}, list = kscn(id), si = ksel(id), sc = list[si], C = kcalc(id, sc), t0 = C.yrs[y0], cuts = sc.cuts || [];
+  var W = kwinOpen(), KW = KEEP && KEEP.window && +KEEP.window.season === y0 ? KEEP.window : null, dec = kdeclOf(id), sd = signingDay();
+  var html = (edit ? '<button class="back" onclick="go(\'keepers\',\'' + id + '\')">‹ ' + esc(o.name) + '</button>' + '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small>📥 <b>Commish:</b> entering ' + esc(o.name) + '\'s keepers. The league sees who entered them.</small></div>' : gmBar("keepers") + kseg(""));
+  // Declared (and not changing it): the declaration, read-only, with Change
+  if (dec && !KCHANGE[id]) {
+    return html + '<div class="card ksum kdone"><div class="eyebrow">🔒 ' + (edit ? esc(o.name) + "'s" : "Your") + ' ' + y0 + ' keepers</div><div class="kstat">' + esc(kstatusLine(W, KW, dec, sd)) + '</div>' +
+      '<div class="kdec kdl">' + kdeclRows(dec) + '</div>' +
+      (W ? '<p style="margin:12px 0 0"><button class="btn ghost kwbtn" onclick="KCHANGE[\'' + id + '\']=1;render()">Change ' + (edit ? "them" : "my keepers") + '</button></p><p class="kfine">You can change them until Signing Day closes. The league sees the change.</p>' : '') + '</div>' +
+      '<p class="kfine" style="text-align:center"><a href="javascript:void 0" onclick="kRules()">How keepers work</a></p>';
+  }
+  // ① cap summary
+  var dots = [0, 1, 2].map(function (i) { return '<i class="' + (i < C.count ? "on" : "") + (i >= 3 ? "" : "") + '"></i>'; }).join("");
+  html += '<div class="card lead ksum"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">' + y0 + ' cap · <a href="javascript:void 0" onclick="kRules()" style="color:#96BEE6">rules</a></div><div class="big">' + t0.room + '<small> KP left</small></div></div>' +
+    '<div style="text-align:right"><div class="kdots">' + dots + '</div><small class="kmut">' + C.count + ' of 3 keepers</small></div></div>' +
+    '<div class="meter"><i class="k" style="width:' + Math.min(100, t0.k * 10) + '%"></i><i class="p" style="width:' + Math.min(100, t0.p * 10) + '%"></i><i class="h" style="width:' + Math.min(100, t0.h * 10) + '%"></i></div>' +
+    '<div class="kstat">' + esc(kstatusLine(W, KW, dec, sd)) + '</div>' +
+    (C.errors.length ? '<div class="kwarn">⚠ ' + esc(C.errors.join(" · ")) + '</div>' : '') + '</div>';
+  // ② the slots
+  var rows = [], kept = 0;
+  C.carried.forEach(function (c) { var cut = cuts.indexOf(c.id) >= 0;
+    if (cut) { var pen = typeof c.kp[y0] === "number" ? c.kp[y0] / 2 : 0;
+      rows.push('<div class="kslot cut" onclick="kSlot(\'' + id + '\',\'c\',\'' + c.id + '\')"><span class="kn"><b>' + esc(c.player) + '</b><small>✂️ Terminated · penalty</small></span><b class="kp coral">' + pen + '</b><span class="kmore">⋯</span></div>'); return; }
+    kept++; rows.push('<div class="kslot" onclick="kSlot(\'' + id + '\',\'c\',\'' + c.id + '\')"><span class="kn"><b>' + esc(c.player) + '</b> <small class="kpos">' + esc(c.pos) + '</small>' +
+      '<small>' + (c.kp[y0] === "F" ? "🏷️ Tag year · no 1st · " : "") + esc(kyrsTxt(c.kp, y0)) + '</small></span><b class="kp">' + (c.kp[y0] === "F" ? "F" : c.kp[y0]) + '</b><span class="kmore">⋯</span></div>'); });
+  (sc.signs || []).forEach(function (s, i) { var sch = kschedule(s, y0), via = kvia(s.player, id); kept++;
+    rows.push('<div class="kslot new" onclick="kSlot(\'' + id + '\',\'s\',' + i + ')"><span class="kn"><b>🆕 ' + esc(s.player) + '</b> <small class="kpos">' + esc(s.pos || "") + '</small>' +
+      '<small>' + (via ? '<span class="gold">On ' + esc(oname(via)) + '\'s roster · trade for him first</span>' : (s.tag ? "🏷️ Tag · " : "") + s.term + '-yr · ' + esc(kyrsTxt(sch, y0))) + '</small></span><b class="kp">' + sch[y0] + '</b><span class="kmore">⋯</span></div>'); });
+  for (var e = kept; e < 3; e++) rows.push('<div class="kslot add" onclick="kAddSheet(\'' + id + '\')"><span class="kn"><b>＋ Add a keeper</b><small>' + (t0.room > 0 ? "Up to " + t0.room + " KP fits" : "No KP left in this plan") + '</small></span></div>');
+  C.pens.forEach(function (c) { if (typeof c.pen[y0] === "number") rows.push('<div class="kslot pen"><span class="kn"><b>Cap penalty · ' + esc(c.player) + '</b><small>From an earlier termination</small></span><b class="kp coral">' + c.pen[y0] + '</b><span class="kmore"></span></div>'); });
+  var fut = KP_YRS.slice(1).map(function (y) { return "'" + String(y).slice(2) + ": " + C.yrs[y].room + " KP left" + (C.yrs[y].first ? " · no 1st" : ""); }).join(" · ");
+  html += '<div class="card kslots"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:2px"><div class="eyebrow" style="margin:0">' + (edit ? esc(o.name) + "'s" : "Your") + ' keepers</div>' +
+    '<button class="kplanbtn" onclick="kPlans(\'' + id + '\')">' + (list.length > 1 ? esc(sc.name) : "Plans") + ' ▾</button></div>' + rows.join("") +
+    '<p class="kfine">' + esc(fut) + (list.length < 2 ? ' · Try another way: Plans ▾' : '') + '</p></div>';
+  // ③ declare
+  if (W) html += '<button class="btn kdeclbtn" onclick="kDeclare(\'' + id + '\')">' + (dec ? "Declare the change" : "Declare " + (edit ? "these" : "my") + " keepers") + ' · ' + (10 - t0.room) + ' / 10 KP</button>' +
+    (dec ? '<p class="kfine" style="text-align:center"><a href="javascript:void 0" onclick="KCHANGE[\'' + id + '\']=0;render()">Keep what I declared</a></p>' : '');
+  else html += '<p class="kfine" style="text-align:center">Declaring opens in the app before Signing Day. Your plans are saved' + (edit ? "" : " with your sign-in") + '.</p>';
+  html += '<div class="card kmkt" onclick="go(\'keepers\',\'@market\')"><b>🔎 Keeper market</b><small>Keepable players on every other roster at ' + Math.max(2, Math.floor(t0.room)) + ' KP or less ›</small></div>';
+  return html;
+}
+var KCHANGE = {};
+function kvia(name, id) { // a planned signing that sits on someone else's roster (a trade target)
+  if (!ROSTERS || !ROSTERS.teams) return ""; var n = pnorm(name), hit = "";
+  ROSTERS.teams.forEach(function (t) { t.players.forEach(function (p) { if (pnorm(p.n) === n) hit = t.owner; }); }); return hit && hit !== id ? hit : "";
+}
+// ⋯ on a slot: carried → terminate / keep; new → term, tag, remove
+window.kSlot = function (id, kind, key) {
+  var y0 = KP_YRS[0], sc = kscn(id)[ksel(id)], h = '';
+  if (kind === "c") { var c = contractsOf(id).filter(function (x) { return x.id === key; })[0]; if (!c) return; var cut = (sc.cuts || []).indexOf(c.id) >= 0;
+    var pens = Object.keys(c.kp).filter(function (y) { return +y >= y0 && typeof c.kp[y] === "number"; }).map(function (y) { return c.kp[y] / 2 + " KP in '" + y.slice(2); });
+    h = '<div class="eyebrow">' + esc(c.pos) + ' · ' + c.term + '-yr deal, signed ' + c.signed + (c.tag ? ' · 🏷️ tag' : '') + '</div><h2 style="margin:2px 0 10px">' + esc(c.player) + '</h2>' +
+      '<div class="pkp">' + Object.keys(c.kp).sort().map(function (y) { return '<span' + (+y === y0 ? ' class="on"' : '') + '>\'' + y.slice(2) + ' <b>' + (c.kp[y] === "F" ? "F" : c.kp[y]) + '</b></span>'; }).join("") + '</div>' +
+      (cut ? '<p>Terminated in this plan. Penalty: ' + esc(pens.join(", ")) + '.</p><button class="btn" onclick="kCut(\'' + id + '\',\'' + c.id + '\')">Keep him</button>'
+        : '<p>Terminating him on Signing Day frees his slot but costs half of each year left: <b>' + esc(pens.join(", ") || "nothing") + '</b>. He goes back into the draft pool.</p><button class="btn ghost" style="border-color:var(--coral);color:var(--coral)" onclick="kCut(\'' + id + '\',\'' + c.id + '\')">✂️ Terminate in this plan</button>');
+  } else { var s = (sc.signs || [])[key]; if (!s) return; var cost = KP_ROUND(s.round);
+    h = '<div class="eyebrow">' + (s.round ? "Round " + s.round + " in " + (y0 - 1) : "Undrafted in " + (y0 - 1)) + ' · ' + cost + ' KP year one</div><h2 style="margin:2px 0 10px">' + esc(s.player) + '</h2>' + kTermPick(id, "s:" + key, s.round, s.term, s.tag) +
+      '<p class="row" style="gap:8px;margin-top:12px"><button class="btn ghost" onclick="kDrop(\'' + id + '\',' + key + ')">Remove</button><button class="btn ghost" onclick="pclose();pcard(\'' + esc(s.player).replace(/'/g, "\\'") + '\')">Player file</button></p>';
+  }
+  ksheet(h + '<p style="margin:14px 0 0"><button class="btn ghost" onclick="pclose()">Done</button></p>');
+};
+function kTermPick(id, target, round, term, tag) { // 1 / 2 / 3 years or the tag, each with its price path
+  var c = KP_ROUND(round), opt = [[1, 0, c + " KP"], [2, 0, c + " → " + (c + 1)], [3, 0, c + " → " + (c + 1) + " → " + (c + 2)], [1, 1, c + " KP + your 1st"]];
+  return '<div class="kterm">' + opt.map(function (x) { var on = term === x[0] && !!tag === !!x[1];
+    return '<button class="' + (on ? "on" : "") + '" onclick="kSetTerm(\'' + id + '\',\'' + target + '\',' + x[0] + ',' + x[1] + ')"><b>' + (x[1] ? "🏷️ Franchise Tag" : x[0] + (x[0] > 1 ? " years" : " year")) + '</b><small>' + x[2] + '</small></button>'; }).join("") + '</div>' +
+    (tag ? '<div class="kterm2">Tag length: ' + [1, 2, 3].map(function (n) { return '<button class="' + (term === n ? "on" : "") + '" onclick="kSetTerm(\'' + id + '\',\'' + target + '\',' + n + ',1)">' + n + 'y</button>'; }).join("") + '<small>KP once, your 1st every year of the tag</small></div>' : '');
+}
+window.kSetTerm = function (id, target, term, tag) {
+  if (target.charAt(0) === "s") { var i = +target.slice(2); kEdit(id, function (sc) { sc.signs[i].term = term; sc.signs[i].tag = !!tag; }); kSlot(id, "s", i); return; }
+  var c = KCAND[+target.slice(2)]; if (!c) return; pclose();
+  kEdit(id, function (sc) { if ((sc.signs || []).some(function (x) { return pnorm(x.player) === pnorm(c.n); })) { toast("Already in this plan"); return; }
+    (sc.signs = sc.signs || []).push({ player: c.n, pos: c.pos || "", round: c.r, term: term, tag: !!tag }); toast("Added " + c.n); });
+};
+// ＋ Add a keeper: your roster, priced, fits first; can't-keeps greyed with the reason; search; tap = pick the term
+window.kAddSheet = function (id, q) {
+  var y0 = KP_YRS[0], sc = kscn(id)[ksel(id)], room = kcalc(id, sc).yrs[y0].room, inPlan = {};
+  (sc.signs || []).forEach(function (s) { inPlan[pnorm(s.player)] = 1; });
+  var draw = function (roster) {
+    KCAND = []; var qq = pnorm(q || ""), seen = {}, items = [];
+    (roster || []).concat(qq.length > 1 ? LD("draft").filter(function (d) { return d[0] === y0 - 1; }).map(function (d) { return { n: d[6], pos: "", other: 1 }; }) : []).forEach(function (p) {
+      var k = pnorm(p.n); if (!k || seen[k] || inPlan[k] || p.pos === "D/ST" || p.pos === "K" || (qq.length > 1 && k.indexOf(qq) < 0)) return; seen[k] = 1;
+      var why = kblocked(p.n, id); if (/with you/.test(why)) return;
+      var r = draftedRound(p.n, y0 - 1), cost = KP_ROUND(r); items.push({ p: p, why: why, r: r, cost: cost, fits: !why && cost <= room, fa: /Free agent|Waiver/.test(p.acq || "") }); });
+    items.sort(function (a, b) { return (a.why ? 2 : a.fits ? 0 : 1) - (b.why ? 2 : b.fits ? 0 : 1) || b.cost - a.cost || (b.p.sp || 0) - (a.p.sp || 0); });
+    var list = items.slice(0, 40).map(function (x) {
+      if (x.why) return '<div class="kcand off"><span class="kn"><b>' + esc(x.p.n) + '</b> <small class="kpos">' + esc(x.p.pos) + '</small><small>' + esc(x.why) + '</small></span></div>';
+      var ci = KCAND.push({ n: x.p.n, r: x.r, pos: x.p.pos }) - 1;
+      return '<div class="kcand" onclick="kPickCand(\'' + id + '\',' + ci + ')"><span class="kn"><b>' + esc(x.p.n) + '</b> <small class="kpos">' + esc(x.p.pos) + '</small><small>' + (x.r ? "R" + x.r : "Undrafted") +
+        (x.fits ? " · fits" : ' · <span class="coral">' + (x.cost - room) + ' KP over</span>') + (x.fa ? ' · <span class="gold">picked up: OK if by Week 14</span>' : '') + (x.p.other ? ' · not on your roster' : '') + '</small></span><b class="kp">' + x.cost + '</b></div>'; }).join("");
+    ksheet('<div class="row" style="justify-content:space-between"><h2 style="margin:0">Add a keeper</h2><button class="btn ghost" onclick="pclose()">Close</button></div>' +
+      '<p class="kfine" style="margin:4px 0 8px">' + room + ' KP left in ' + esc(sc.name) + '. Price = the round he went in the ' + (y0 - 1) + ' draft.</p>' +
+      '<input type="text" id="kaq" placeholder="Search any ' + (y0 - 1) + ' draftee" autocomplete="off" value="' + esc(q || "") + '">' +
+      '<div id="kal" style="margin-top:6px">' + (list || '<p class="muted">Nobody left to add.</p>') + '</div>' +
+      '<div class="card kmkt" style="margin-top:12px" onclick="pclose();go(\'keepers\',\'@market\')"><b>🔎 Nothing you love? Keeper market</b><small>Keepable players on every other roster at ' + Math.max(2, Math.floor(room)) + ' KP or less ›</small></div>');
+    var inp = $("#kaq"); if (inp) { inp.oninput = function () { var v = inp.value, pos = inp.selectionStart; kAddSheet(id, v); var i2 = $("#kaq"); if (i2) { i2.focus(); i2.setSelectionRange(pos, pos); } }; }
+  };
+  if (ROSTERS) { var t = teamRoster(ROSTERS, id); draw(t ? t.players : []); return; }
+  ksheet('<p class="muted">Loading your roster…</p>');
+  loadRosters().then(function (d) { var t = teamRoster(d, id); draw(t ? t.players : []); }).catch(function () { draw([]); });
+};
+window.kPickCand = function (id, ci) { var c = KCAND[ci]; if (!c) return;
+  ksheet('<div class="eyebrow">' + (c.r ? "Round " + c.r + " in " + (KP_YRS[0] - 1) : "Undrafted") + '</div><h2 style="margin:2px 0 10px">' + esc(c.n) + '</h2><p class="kfine" style="margin:0 0 8px">How long?</p>' + kTermPick(id, "k:" + ci, c.r, 0, 0) +
+    '<p style="margin:14px 0 0"><button class="btn ghost" onclick="kAddSheet(\'' + id + '\')">‹ Back</button></p>'); };
+// Plans ▾: switch, compare, new / copy / rename / delete
+window.kPlans = function (id) {
+  var list = kscn(id), si = ksel(id), y0 = KP_YRS[0];
+  ksheet('<div class="row" style="justify-content:space-between"><h2 style="margin:0">Plans</h2><button class="btn ghost" onclick="pclose()">Close</button></div>' +
+    '<p class="kfine" style="margin:4px 0 10px">Up to 3 ways to do Signing Day. ' + (kmine(id) ? "Saved with your sign-in; nobody sees them until you declare." : "Saved on this phone.") + '</p>' +
+    list.map(function (x, i) { var c = kcalc(id, x);
+      return '<div class="kplan' + (i === si ? " on" : "") + '" onclick="ksel(\'' + id + '\',' + i + ');pclose();render()"><div class="row" style="justify-content:space-between"><b>' + (i === si ? "✓ " : "") + esc(x.name) + (c.errors.length ? ' <span class="coral">⚠</span>' : '') + '</b><small class="mono">' + c.count + '/3</small></div>' +
+        '<small class="muted">' + esc(kplanTxt(id, x)) + '</small><div class="kplyr">' + KP_YRS.map(function (y) { var r = c.yrs[y].room; return '<span>\'' + String(y).slice(2) + ' <b class="' + (r < 0 ? "coral" : "") + '">' + r + '</b> left' + (c.yrs[y].first ? ' · <span class="coral">no 1st</span>' : '') + '</span>'; }).join("") + '</div></div>'; }).join("") +
+    '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">' + (list.length < 3 ? '<button class="btn ghost" onclick="pclose();kNew(\'' + id + '\')">＋ New</button><button class="btn ghost" onclick="pclose();kCopy(\'' + id + '\')">Copy this one</button>' : '') +
+    '<button class="btn ghost" onclick="pclose();kRename(\'' + id + '\')">Rename</button>' + (list.length > 1 ? '<button class="btn ghost" onclick="pclose();kDel(\'' + id + '\')">Delete</button>' : '') + '</div>');
+};
+window.kRules = function () {
+  var y0 = KP_YRS[0];
+  ksheet('<div class="row" style="justify-content:space-between"><h2 style="margin:0">How keepers work</h2><button class="btn ghost" onclick="pclose()">Close</button></div><div class="krules">' +
+    '<p><b>10 KP a season, three keepers max.</b> On Signing Day (10 days before the SPL Draft) you keep up to three players and their KP has to fit under 10.</p>' +
+    '<p><b>Price</b> = the round he went in the ' + (y0 - 1) + ' SPL Draft: R1 10 · R2 8 · R3 6 · R4–5 4 · R6–8 3 · R9+ or undrafted 2. Then +1 KP each extra year.</p>' +
+    '<p><b>1, 2 or 3 years, no extensions.</b> When a deal runs out he goes back in the draft.</p>' +
+    '<p><b>🏷️ Franchise Tag:</b> normal KP in year one, nothing after, but your 1st-round pick every year of the tag (and you can\'t trade your 1st).</p>' +
+    '<p><b>✂️ Terminating</b> a deal on Signing Day costs half of each year left, and it comes off your 10 KP first. He goes back in the draft.</p>' +
+    '<p><b>Contracts travel in trades.</b> Players picked up after Week 14 can\'t get a new contract.</p>' +
+    '<p class="kfine">From the SPL constitution (League → Rules). Joe has the final word.</p></div>');
+};
+// ✍️ Declare: server check → confirm sheet that says where it goes and that it can change until close
+window.kDeclare = function (id) {
+  var W = kwinOpen(), sc = kscn(id)[ksel(id)], body = { owner: id, cuts: sc.cuts || [], signs: (sc.signs || []).map(function (s) { return { player: s.player, term: s.term, tag: !!s.tag }; }) };
+  ksheet('<p class="muted">Checking with the league server…</p>');
+  authed("kdeclare", Object.assign({ check: true }, body)).then(function (r) {
+    if (!r.ok) throw new Error(r.error);
+    if (!r.valid) { ksheet('<h2 style="margin:0 0 8px">Not quite</h2><div class="kerr">' + r.errors.map(function (e) { return '<p>⚠ ' + esc(e) + '</p>'; }).join("") + '</div><p style="margin-top:12px"><button class="btn ghost" onclick="pclose()">Fix it</button></p>'); return; }
+    ksheet('<h2 style="margin:0 0 4px">Declare ' + (kmine(id) ? "your" : esc(oname(id)) + "'s") + ' ' + KP_YRS[0] + ' keepers?</h2>' + (W && W.mode === "test" ? '<p class="kfine" style="margin:0">🧪 Rehearsal: nothing official changes.</p>' : '') +
+      '<div class="kdec">' + kdeclRows({ items: r.items, kp: r.kp }) + '</div>' + (r.warns || []).map(function (w) { return '<p class="gold" style="font-size:12px;margin:6px 0 0">⚠ ' + esc(w) + '</p>'; }).join("") +
+      '<div class="knote">📣 <b>This goes out to the league.</b> Your keepers post to league chat and the reel, and the commish sees them on his desk.<br>✏️ <b>Not final yet:</b> you can change them until Signing Day closes' + (W && W.closes ? ' (' + esc(fmtDate(W.closes)) + ')' : '') + '. The league sees any change.</div>' +
+      '<p class="row" style="gap:8px;margin-top:12px"><button class="btn" id="kgo">🔒 Declare</button><button class="btn ghost" onclick="pclose()">Not yet</button></p>');
+    $("#kgo").onclick = function () { this.disabled = true; authed("kdeclare", body).then(function (x) { if (!x.ok) throw new Error(x.error); KEEP = x.state; KEEP._at = Date.now(); KCHANGE[id] = 0; pclose(); toast("✓ Declared · posted to league chat"); render(); })
+      .catch(function (e) { toast(e.message); var b = $("#kgo"); if (b) b.disabled = false; }); };
+  }).catch(function (e) { ksheet('<p class="coral">' + esc(e.message) + '</p><p><button class="btn ghost" onclick="pclose()">Close</button></p>'); });
+};
+// 🔎 Keeper market: every keepable player on the other rosters at or under a price. A player under contract brings his contract
+// (that's his price); everyone else costs his draft round. Tap a player for his file (and Trade for him).
+var KMKT = { max: null, pos: "" };
+function kMarketView() {
+  var y0 = KP_YRS[0], me = ME && ME.owner, room = me ? kcalc(me, kscn(me)[ksel(me)]).yrs[y0].room : 10;
+  if (KMKT.max == null) KMKT.max = Math.max(2, Math.min(10, Math.floor(room)));
+  var html = (ME ? gmBar("keepers") : back("league", "League") + '<h2>Keepers</h2>') + kseg("@market");
+  html += '<div class="card"><div class="eyebrow">🔎 Keeper market · ' + y0 + '</div><p class="kfine" style="margin:0 0 8px">Every player on another SPL roster you could keep at <b>' + KMKT.max + ' KP or less</b>' + (me ? ' (you have ' + room + ' left)' : '') + '. Trade for him before Signing Day, then keep him.</p>' +
+    '<div class="kfil">' + [2, 3, 4, 6, 8, 10].map(function (v) { return '<button class="' + (v === KMKT.max ? "on" : "") + '" onclick="KMKT.max=' + v + ';render()">≤ ' + v + '</button>'; }).join("") + '</div>' +
+    '<div class="kfil">' + ["", "QB", "RB", "WR", "TE"].map(function (v) { return '<button class="' + (v === KMKT.pos ? "on" : "") + '" onclick="KMKT.pos=\'' + v + '\';render()">' + (v || "All") + '</button>'; }).join("") + '</div>' +
+    '<div id="kmk">' + (ME ? '<p class="muted">Loading every roster…</p>' : needSignIn("to see every roster")) + '</div></div>';
+  return html;
+}
+function kMarketDraw() {
+  var box = $("#kmk"); if (!box || !ME) return;
+  loadRosters().then(function (d) {
+    var y0 = KP_YRS[0], me = ME.owner, out = [];
+    d.teams.forEach(function (t) { if (t.owner === me) return; t.players.forEach(function (p) {
+      if (p.pos === "D/ST" || p.pos === "K" || (KMKT.pos && p.pos !== KMKT.pos)) return;
+      var why = kblocked(p.n, me), c = contractOf(p.n), price, how;
+      if (why && /under contract/.test(why) && c && c.kp[y0] != null) { price = c.kp[y0] === "F" ? 0 : c.kp[y0]; how = "🔒 contract" + (c.kp[y0] === "F" ? " · tag year" : "") + " · " + kyrsTxt(c.kp, y0).replace("Last year of his deal", "last year"); }
+      else if (why) return;
+      else { var r = draftedRound(p.n, y0 - 1); price = KP_ROUND(r); how = (r ? "R" + r : "Undrafted") + " · new deal" + (/Free agent|Waiver/.test(p.acq || "") ? " · picked up (OK if by Wk 14)" : ""); }
+      if (price > KMKT.max) return;
+      out.push({ p: p, o: t.owner, price: price, how: how }); }); });
+    out.sort(function (a, b) { return (b.p.sp || 0) - (a.p.sp || 0) || a.price - b.price; });
+    box.innerHTML = out.length ? '<p class="kfine" style="margin:0 0 4px">' + out.length + ' players · best season first · tap for his file</p>' + out.slice(0, 60).map(function (x) {
+      return '<div class="kcand" onclick="pcard(\'' + esc(x.p.n).replace(/'/g, "\\'") + '\')"><span class="kn"><b>' + esc(x.p.n) + '</b> <small class="kpos">' + esc(x.p.pos) + (x.p.tm ? " · " + esc(x.p.tm) : "") + '</small>' +
+        '<small>' + av(x.o, "sm") + ' ' + esc(oname(x.o)) + ' · ' + esc(x.how) + (x.p.sp != null ? ' · ' + fmtPts(x.p.sp) + ' pts' : '') + '</small></span><b class="kp">' + x.price + '</b></div>'; }).join("")
+      : '<p class="muted">Nobody at ' + KMKT.max + ' KP or less' + (KMKT.pos ? " at " + KMKT.pos : "") + '. Try a higher price.</p>';
+  }).catch(function (e) { box.innerHTML = '<p class="coral">' + esc(e.message || "Couldn't load the rosters from ESPN.") + '</p>'; });
+}
+// League: the board, every team's committed cap, every contract
+function kLeagueView() {
+  var y0 = KP_YRS[0], KW = KEEP && KEEP.window && +KEEP.window.season === y0 ? KEEP.window : null;
+  var html = (ME ? gmBar("keepers") : back("league", "League") + '<h2>Keepers</h2>') + kseg("@league");
+  if (KW && KEEP.decls.length) html += kboardCard(KW);
+  html += '<div class="card"><div class="eyebrow">🏈 ' + y0 + ' caps · what\'s already committed</div>' + OWNERS.map(function (o) {
+    var cs = contractsOf(o.id), carried = cs.filter(function (c) { return c.status === "active" && c.kp[y0] != null; }), pen = cs.reduce(function (s, c) { return s + (c.status !== "active" && typeof (c.pen || {})[y0] === "number" ? c.pen[y0] : 0); }, 0);
+    var kp = carried.reduce(function (s, c) { return s + kpOf(c, y0); }, 0) + pen, dec = kdeclOf(o.id);
+    return '<div class="kcand" onclick="go(\'keepers\',\'' + o.id + '\')"><span class="kn"><b>' + av(o.id, "sm") + ' ' + esc(o.name) + '</b><small>' + (carried.map(function (c) { return c.player; }).join(", ") || "Nothing carried") + (dec ? " · ✅ declared" : "") + '</small></span><b class="kp">' + kp + '</b></div>'; }).join("") +
+    '<p class="kfine">KP carried into ' + y0 + ' (contracts + penalties), before anyone signs someone new.</p></div>';
+  html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">📚 Every contract in the league (' + LD("contracts").length + ')</summary><table style="margin-top:8px"><tr><th>Player</th><th>Owner</th><th class="n">Term</th><th class="n">\'' + String(y0).slice(2) + '</th></tr>' +
+    LD("contracts").slice().sort(function (a, b) { return a.owner < b.owner ? -1 : a.owner > b.owner ? 1 : 0; }).map(function (c) { var v = c.status === "active" ? c.kp[y0] : c.pen[y0];
+      return '<tr onclick="pcard(\'' + esc(c.player).replace(/'/g, "\\'") + '\')"><td>' + esc(c.player) + ' <small class="muted">' + esc(c.pos) + '</small>' + (c.tag ? ' <span class="tag">TAG</span>' : '') + (c.status !== "active" ? ' <span class="tag" style="color:var(--coral)">' + esc(c.status.toUpperCase()) + '</span>' : '') + '</td><td>' + esc(oname(c.owner)) + '</td><td class="n">' + c.signed + '+' + c.term + '</td><td class="n' + (c.status !== "active" ? " coral" : "") + '">' + (v == null ? "·" : v) + '</td></tr>'; }).join("") +
+    '</table></details><p class="kfine" style="text-align:center"><a href="javascript:void 0" onclick="kRules()">How keepers work</a></p>';
+  return html;
+}
+// Another team, read-only (commish can enter their keepers while Signing Day is open)
+function kTeamView(id) {
+  var y0 = KP_YRS[0], o = owner(id) || {}, cs = contractsOf(id), dec = kdeclOf(id), W = kwinOpen();
+  var carried = cs.filter(function (c) { return c.status === "active" && c.kp[y0] != null; }), pens = cs.filter(function (c) { return c.status !== "active" && typeof (c.pen || {})[y0] === "number"; });
+  var kp = carried.reduce(function (s, c) { return s + kpOf(c, y0); }, 0) + pens.reduce(function (s, c) { return s + c.pen[y0]; }, 0);
+  var html = '<button class="back" onclick="go(\'keepers\',\'@league\')">‹ League keepers</button>' + '<div class="row" style="gap:10px;align-items:center;margin-bottom:10px">' + av(id, "lg") + '<div><h2 style="margin:0">' + esc(o.name || id) + '</h2><small class="muted">' + esc(o.team || "") + '</small></div></div>';
+  html += '<div class="card"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">' + y0 + ' cap</div><div class="big">' + (dec ? 10 - dec.kp : 10 - kp) + '<small class="muted" style="font-size:16px"> KP left</small></div></div><small class="muted">' + (dec ? ((dec.items.keep || []).length + (dec.items.signs || []).length) + ' of 3 declared' : carried.length + ' of 3 carried') + '</small></div>' +
+    (dec ? '<div class="kdec"><div class="eyebrow">✅ Declared ' + esc(ago(dec.ts)) + '</div>' + kdeclRows(dec) + '</div>'
+      : carried.map(function (c) { return '<div class="kslot" onclick="pcard(\'' + esc(c.player).replace(/'/g, "\\'") + '\')"><span class="kn"><b>' + esc(c.player) + '</b> <small class="kpos">' + esc(c.pos) + '</small><small>' + esc(kyrsTxt(c.kp, y0)) + '</small></span><b class="kp">' + (c.kp[y0] === "F" ? "F" : c.kp[y0]) + '</b></div>'; }).join("") +
+        pens.map(function (c) { return '<div class="kslot pen"><span class="kn"><b>Cap penalty · ' + esc(c.player) + '</b></span><b class="kp coral">' + c.pen[y0] + '</b></div>'; }).join("") +
+        (carried.length || pens.length ? '' : '<p class="muted" style="margin:8px 0 0">Nothing carried into ' + y0 + '.</p>')) + '</div>';
+  if (W && isDesk()) html += '<button class="btn ghost kdeclbtn" onclick="go(\'keepers\',\'' + id + '!\')">📥 Enter ' + esc(o.name) + '\'s keepers (commish)</button>';
+  return html;
+}
+SCREENS.keepers.after = function (arg) { if (String(arg || "") === "@market") kMarketDraw(); if (ME && !ROSTERS && /^(|[a-z]+!?)$/.test(String(arg || ""))) loadRosters().then(function () { if (/^#keepers(=[a-z]+!?)?$/.test(location.hash) && !$("#sheet")) render(); }).catch(function () {}); };
+var KCAND = [];
+function kEdit(id, fn) { var list = JSON.parse(JSON.stringify(kscn(id))), i = ksel(id); fn(list[i], list, i); kscnSave(id, list); render(); }
+window.kDrop = function (id, i) { pclose(); kEdit(id, function (sc) { sc.signs.splice(i, 1); }); };
+window.kCut = function (id, cid) { pclose(); kEdit(id, function (sc) { sc.cuts = sc.cuts || []; var k = sc.cuts.indexOf(cid); if (k >= 0) sc.cuts.splice(k, 1); else sc.cuts.push(cid); }); };
+window.kNew = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))); if (list.length >= 3) return; list.push({ name: "Plan " + "ABC"[list.length], cuts: [], signs: [] }); kscnSave(id, list); ksel(id, list.length - 1); render(); };
+window.kCopy = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))); if (list.length >= 3) { toast("Three plans max: delete one first"); return; } var c = JSON.parse(JSON.stringify(list[ksel(id)])); c.name = (c.name + " copy").slice(0, 24); list.push(c); kscnSave(id, list); ksel(id, list.length - 1); render(); };
+window.kRename = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))), i = ksel(id), n = prompt("Name this plan", list[i].name); if (n == null || !n.trim()) return; list[i].name = n.trim().slice(0, 24); kscnSave(id, list); render(); };
+window.kDel = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))), i = ksel(id); if (list.length < 2 || !confirm("Delete " + list[i].name + "?")) return; list.splice(i, 1); kscnSave(id, list); ksel(id, 0); render(); };
 function kplanTxt(id, x) {
   var cut = (x.cuts || []).map(function (cid) { var c = contractsOf(id).filter(function (k) { return k.id === cid; })[0]; return c ? "✂️ " + c.player : ""; }).filter(Boolean);
   var add = (x.signs || []).map(function (s) { return "＋ " + s.player + " " + (s.tag ? "tag " : "") + s.term + "y"; });
@@ -1581,57 +1780,6 @@ function kboardCard(KW) {
       return '<details class="kbd"><summary><span class="byline">' + av(d.owner, "sm") + '<b>' + esc(oname(d.owner)) + '</b></span><span class="muted" style="font-size:12px">' + n + ' kept' + ((it.signs || []).some(function (s) { return s.tag; }) ? " · 🏷️" : "") + ((it.cuts || []).length ? " · ✂️" + it.cuts.length : "") + '</span><b class="mono">' + d.kp + ' KP</b></summary>' + kdeclRows(d) + '</details>'; }).join("") +
     (KW.done ? '' : '<p class="muted" style="font-size:12px;margin:8px 0 0">Waiting on: ' + esc(OWNERS.filter(function (o) { return !inn[o.id]; }).map(function (o) { return o.name; }).join(", ") || "nobody") + '</p>') + '</div>';
 }
-SCREENS.keepers.after = function (arg) {
-  var id = arg || (ME ? ME.owner : OWNERS[0].id), y0 = KP_YRS[0], roster = null;
-  var line = function (name, pos, extra, acq) {
-    var r = draftedRound(name, y0 - 1), cost = KP_ROUND(r), blocked = kblocked(name, id), fa = /Free agent|Waiver/.test(acq || "");
-    return '<div class="cand"><span><b>' + esc(name) + '</b> <small class="muted">' + esc(pos || "") + '</small><br><small class="muted">' + (blocked ? esc(blocked) : (r ? "R" + r + " in " + (y0 - 1) : "undrafted") + ' · ' + cost + " → " + (cost + 1) + " → " + (cost + 2) + " KP") + esc(extra || "") + (fa && !blocked ? ' · <span class="gold">picked up in season: OK only if by Week 14</span>' : '') + '</small></span>' +
-      (blocked ? '' : [1, 2, 3].map(function (t) { return '<button onclick="kAdd(\'' + id + '\',' + (KCAND.push({ n: name, r: r, pos: pos }) - 1) + ',' + t + ')">' + t + 'y</button>'; }).join("") + '<button onclick="kAdd(\'' + id + '\',' + (KCAND.push({ n: name, r: r, pos: pos }) - 1) + ',1,1)">🏷️</button>') + '</div>';
-  };
-  var draw = function () {
-    var box = $("#kc"); if (!box) return;
-    var q = pnorm($("#kq").value); KCAND = [];
-    if (q.length > 1) {
-      var seen = {}, out = [];
-      (roster || []).concat(LD("draft").filter(function (d) { return d[0] === y0 - 1; }).map(function (d) { return { n: d[6], pos: "" }; })).forEach(function (p) {
-        var k = pnorm(p.n); if (!k || seen[k] || k.indexOf(q) < 0) return; seen[k] = 1; out.push(line(p.n, p.pos, "", p.acq));
-      });
-      out.push(line($("#kq").value.trim(), "", " · if he went undrafted"));
-      box.innerHTML = out.slice(0, 12).join("");
-    } else if (roster) {
-      box.innerHTML = '<div class="eyebrow" style="margin-top:6px">' + esc(oname(id)) + "'s roster now</div>" + roster.filter(function (p) { return p.pos !== "D/ST"; }).map(function (p) { return line(p.n, p.pos, "", p.acq); }).join("");
-    }
-  };
-  $("#kq").oninput = draw;
-  if (ME) loadRosters().then(function (d) { if (!d.ok) throw new Error(d.error); var t = teamRoster(d, id); roster = t ? t.players.map(function (p) { return { n: p.n, pos: p.pos, acq: p.acq }; }) : []; draw(); })
-    .catch(function () { var b = $("#kc"); if (b) b.innerHTML = '<p class="muted" style="font-size:13px">Couldn\'t load the roster from ESPN. Search by name instead.</p>'; });
-};
-var KCAND = [];
-function kEdit(id, fn) { var list = JSON.parse(JSON.stringify(kscn(id))), i = ksel(id); fn(list[i], list, i); kscnSave(id, list); render(); }
-window.kAdd = function (id, ci, term, tag) { var c = KCAND[ci] || {}; if (!c.n) return;
-  kEdit(id, function (sc) { if ((sc.signs || []).some(function (x) { return pnorm(x.player) === pnorm(c.n); })) { toast("Already in this plan"); return; }
-    (sc.signs = sc.signs || []).push({ player: c.n, pos: c.pos || "", round: c.r, term: term, tag: !!tag }); toast("Added to " + sc.name); }); };
-window.kDrop = function (id, i) { kEdit(id, function (sc) { sc.signs.splice(i, 1); }); };
-window.kTerm = function (id, i, n) { kEdit(id, function (sc) { sc.signs[i].term = n; }); };
-window.kTag = function (id, i) { kEdit(id, function (sc) { sc.signs[i].tag = !sc.signs[i].tag; }); };
-window.kCut = function (id, cid) { kEdit(id, function (sc) { sc.cuts = sc.cuts || []; var k = sc.cuts.indexOf(cid); if (k >= 0) sc.cuts.splice(k, 1); else sc.cuts.push(cid); }); };
-window.kPick = function (id, i) { ksel(id, i); render(); };
-window.kNew = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))); if (list.length >= 3) return; list.push({ name: "Plan " + "ABC"[list.length], cuts: [], signs: [] }); kscnSave(id, list); ksel(id, list.length - 1); render(); };
-window.kCopy = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))); if (list.length >= 3) { toast("Three plans max: delete one first"); return; } var c = JSON.parse(JSON.stringify(list[ksel(id)])); c.name = (c.name + " copy").slice(0, 24); list.push(c); kscnSave(id, list); ksel(id, list.length - 1); render(); };
-window.kRename = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))), i = ksel(id), n = prompt("Name this plan", list[i].name); if (n == null || !n.trim()) return; list[i].name = n.trim().slice(0, 24); kscnSave(id, list); render(); };
-window.kDel = function (id) { var list = JSON.parse(JSON.stringify(kscn(id))), i = ksel(id); if (list.length < 2 || !confirm("Delete " + list[i].name + "?")) return; list.splice(i, 1); kscnSave(id, list); ksel(id, 0); render(); };
-window.kDeclare = function (id) {
-  var sc = kscn(id)[ksel(id)], body = { owner: id, cuts: sc.cuts || [], signs: (sc.signs || []).map(function (s) { return { player: s.player, term: s.term, tag: !!s.tag }; }) }, box = $("#kdres");
-  box.innerHTML = '<p class="muted">Checking with the league server…</p>';
-  authed("kdeclare", Object.assign({ check: true }, body)).then(function (r) {
-    if (!r.ok) throw new Error(r.error);
-    if (!r.valid) { box.innerHTML = '<div class="kerr">' + r.errors.map(function (e) { return '<p>⚠ ' + esc(e) + '</p>'; }).join("") + '</div>'; return; }
-    box.innerHTML = '<div class="kdec" style="margin-top:10px">' + kdeclRows({ items: r.items, kp: r.kp }) + '</div>' + (r.warns || []).map(function (w) { return '<p class="gold" style="font-size:12px;margin:4px 0">⚠ ' + esc(w) + '</p>'; }).join("") +
-      '<p style="margin-top:10px"><button class="btn" id="kgo">🔒 Lock it in</button></p>';
-    $("#kgo").onclick = function () { this.disabled = true; authed("kdeclare", body).then(function (x) { if (!x.ok) throw new Error(x.error); KEEP = x.state; KEEP._at = Date.now(); toast("✓ Declared · posted to league chat"); render(); })
-      .catch(function (e) { toast(e.message); var b = $("#kgo"); if (b) b.disabled = false; }); };
-  }).catch(function (e) { box.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
-};
 // 📥 Commish desk: open / close Signing Day (rehearsal or live), see who's in. Ops wipes rehearsals.
 function kdeskCard() {
   var W = KEEP && KEEP.window, y = KP_YRS[0], sd = signingDay(), n = KEEP ? KEEP.decls.length : 0;

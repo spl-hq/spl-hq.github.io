@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -23,6 +23,18 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.20 (backend v0.14.2) · 🔒 **Keepers v2: calmer + the keeper market** (Mike: "clunky, messy, too much going on"). Your keepers
+  (GM desk → Keepers) get a **Mine · Market · League** switch. **Mine** = one cap summary (KP left, 3 slot dots, Signing Day line, rules
+  link) + three **slots** (carried · 🆕 new · ✂️ terminated · cap penalties) + one **Declare** button. Everything else is a tap away in a
+  sheet: ⋯ on a carried keeper = terminate with the exact penalty; ⋯ on a new one = 1/2/3 years or 🏷️ tag, remove, player file;
+  ＋ Add a keeper = your roster priced, fits first, can't-keeps greyed with the reason, search any last-year draftee; **Plans ▾** = switch,
+  compare ('27–'29 left, no-1st), new/copy/rename/delete. **Declare** checks with the server, then a confirm sheet says it goes out to the
+  league (chat + reel) and the commish (his desk; live declarations also email him), and that it can change until Signing Day closes.
+  Declared = a read-only "✅ Declared" card with Change. 🔎 **Keeper market** (Mike): every keepable player on the other 11 rosters at
+  ≤ N KP (default = your room; ≤2/3/4/6/8/10, position filter), best season first; players under contract show their contract price;
+  tap = player file → Trade for him. Planned signings on someone else's roster show "trade for him first". **League** = Signing Day
+  board, every team's committed cap (tap = read-only team; commish can enter an owner's keepers while it's open), every contract.
+  Other teams are read-only now (no planning for them).
 - 2026-11-27 · v0.19.5 · 🩹 **Injury tags short everywhere** (Mike: "we're good with O, Q, IR"). One app helper `injAb` turns ESPN's
   status into O / Q / D / P / IR / SSPD / DTD on Match (lineup row tag + tap-open line), Team roster, player file and the trade grid.
   Fixes the Match row tag too, which showed "I" for Injured Reserve (first letter). App-side only, no backend change. SW `splhq-v42`.

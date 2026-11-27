@@ -7,6 +7,11 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **Keepers v2** (Mike). Your keepers = three slots under one cap summary; details live in sheets, not stacked cards.
+  Mine · Market · League switch inside the GM desk's Keepers. Other teams' keepers are read-only (no planning for them). Declaring
+  shows a confirm that it goes to the league + the commish and can change until close. New: the **keeper market** (every keepable
+  player league-wide at or under a KP price) for off-season shopping.
+
 - 2026-11-27 · **History sources** (Mike). ESPN is pulled by a robot for everything it kept (2006–2026, except empty 2020–21). The SPL Packet is
   transcribed once into gold (`Draft_Picks.csv` for SPL rounds 2019+, `Keeper_Matrix_History.csv`, `Packet_Trade_Notes.csv`). SPL rounds come from
   the Packet boards, not ESPN (keepers were keyed in as ESPN picks). 2020 (NFL.com) gaps get filled from Glen's power rankings.

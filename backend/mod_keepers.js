@@ -179,6 +179,8 @@ function kdeclare_(me, b, desk) {
   append_("KeeperDecl", [id, new Date(), w.season, w.mode, who, JSON.stringify(p.items), p.kp, me.owner, "in", clip_(b.note, 200)]);
   botPost_("league", "🔒 " + (w.mode === "test" ? "🧪 " : "") + oName_(who) + (had ? " changed his " : " declared his ") + w.season + " keepers: " + declText_(p.items) + " · " + p.kp + " of 10 KP" +
     (p.items.firstLost ? " · 🏷️ no 1st" : "") + (me.owner !== who ? " (entered by " + me.name + ")" : "") + ".", id);
+  if (w.mode === "live") owners_().forEach(function (o) { if (isRole_(o, "commish") && o.owner !== who && o.owner !== me.owner)
+    notify_(o.owner, "commish", oName_(who) + (had ? " changed his " : " declared his ") + w.season + " keepers", oName_(who) + ": " + declText_(p.items) + " · " + p.kp + " of 10 KP.\n\nSigning Day board: " + APP_URL + "#keepers=@league"); });
   log_("kdeclare", id + " " + who + " " + w.mode + " " + w.season + " " + p.kp + "KP by " + me.owner);
   return { ok: true, id: id, items: p.items, kp: p.kp, warns: p.warns, state: keepers_(me, { season: w.season }) };
 }
