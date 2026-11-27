@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.24.1 / backend 0.17.5 · 💬 **SPL HQ chat posts link to the right place** (Mike: every bot post said "Open trade", even draft
+  openings/cancels). The button now follows the post's ref: trade → "Open trade", draft → "Open draft room", Signing Day → "Open keepers",
+  anything else → no button. Draft-cancel posts carry no link (a cancelled room is hidden; old ones are suppressed too). SW `splhq-v61`.
 - 2026-11-27 · v0.24.0 (backend v0.17.4) · 📥 **Commish desk gets the Ops desk treatment, minus the backend** (Mike). Joe's desk now folds like
   the Ops desk (Open all / Close all; a section that needs Joe opens itself: trades waiting, ESPN to-dos, open questions, a live draft):
   ⏳ Trades to approve · 🏈 Do on ESPN · 🗓️ **Drafts with full controls** (live drafts with Room / ↩ Undo / ✕ Cancel / 🏈 **Load into ESPN**

@@ -514,7 +514,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.24.0";
+var APP_VERSION = "0.24.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -647,6 +647,11 @@ function needSignIn(what) {
 
 // ---- router
 var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", calendar: "league", droom: "league" };
+// SPL HQ bot posts carry a ref; the button follows what it points at (T… trade offer, D… draft room unless cancelled, K…/keep: Signing Day). Unknown refs get no button.
+function hqLink(ref, text) {
+  ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone var to = /^T[0-9A-Z]+$/.test(ref) ? ["trades", ref, "Open trade"] : /^D[0-9A-Z]+$/.test(ref) ? ["droom", ref, "Open draft room"] : /^(K[0-9A-Z]+|keep:\d{4})$/.test(ref) ? ["keepers", "", "Open keepers"] : null;
+  return to ? '<div style="margin-top:6px"><button class="back" onclick="go(\'' + to[0] + '\'' + (to[1] ? ',\'' + esc(to[1]) + '\'' : '') + ')">' + to[2] + ' ›</button></div>' : '';
+}
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 // ✕ on every search box (Mike 11/27): any input whose placeholder starts with "Search" gets a clear button, wherever it's drawn
 // (screens, sheets, redraws). Clearing fires the input's own input handler, so every list resets the way it does on typing.
@@ -1427,7 +1432,7 @@ SCREENS.chat.after = function (room) {
     var V = $("#view"), atBottom = V.scrollTop + V.clientHeight >= V.scrollHeight - 80;
     el.innerHTML = msgs.length ? msgs.map(function (m) {
       var mine = m.who === ME.owner, t = new Date(m.ts);
-      if (m.who === "hq") return '<div class="msg hq"><div class="who">SPL HQ</div>' + esc(m.text) + (m.ref ? '<div style="margin-top:6px"><button class="back" onclick="go(\'trades\',\'' + esc(m.ref) + '\')">Open trade ›</button></div>' : '') + '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
+      if (m.who === "hq") return '<div class="msg hq"><div class="who">SPL HQ</div>' + esc(m.text) + hqLink(m.ref, m.text) + '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
       return '<div class="msg' + (mine ? " me" : "") + (m.del ? " del" : "") + '" ' + (mine && !m.del ? 'onclick="delMsg(\'' + esc(m.id) + '\')"' : (isRole("commish") && room === "league" && !m.del ? 'onclick="delMsg(\'' + esc(m.id) + '\')"' : '')) + '>' +
         (!mine && room === "league" ? '<div class="who">' + esc(oname(m.who)) + '</div>' : '') + (m.del ? "Message deleted" : esc(m.text).replace(/\n/g, "<br>")) +
         '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';

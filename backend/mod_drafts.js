@@ -139,7 +139,7 @@ function draftCancel_(me, b) {
   var f = findDraft_(String(b.id || "")); if (!f) return { ok: false, error: "Draft not found" };
   var r = cleanRow_(f.row); if (r.status === "cancelled") return { ok: true };
   r.status = "cancelled"; r.updated_ts = new Date(); setRow_("Drafts", f.idx, r);
-  botPost_("league", "🗓️ " + (r.mode === "test" ? "🧪 Rehearsal " : "") + r.season + " " + (DRAFT_KINDS[r.kind] || {}).name + " cancelled by " + me.name + ".", r.draft_id);
+  botPost_("league", "🗓️ " + (r.mode === "test" ? "🧪 Rehearsal " : "") + r.season + " " + (DRAFT_KINDS[r.kind] || {}).name + " cancelled by " + me.name + ".", ""); // no link: a cancelled room is hidden
   log_("draftcancel", r.draft_id + " by " + me.owner); return { ok: true };
 }
 function draftWipe_(me) { // ops: clear every rehearsal (cancelled = hidden; picks stay in the Sheet for the record)
