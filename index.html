@@ -507,7 +507,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.23.4";
+var APP_VERSION = "0.23.5";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2187,7 +2187,7 @@ function deskDrafts(D) {
       (x.kind === "spl" ? '<div id="dke' + x.id + '" style="font-size:12px;margin-top:4px" class="muted">🏈 ESPN: …</div>' : '') +
       (x.kind === "shootout" && !open && x.mode === "live" ? '<div style="font-size:12px;margin-top:4px" class="gold">🏈 Set Week ' + regWks() + ' on ESPN: LM Tools → Edit Schedule.</div>' : '') +
       '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px"><button class="chip" onclick="go(\'droom\',\'' + x.id + '\')">Room ›</button>' + (x.picks.length ? '<button class="chip" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') +
-      (open ? '<button class="chip" onclick="drCancel(\'' + x.id + '\')">✕ Cancel</button>' : '') + (x.kind === "spl" && isOps() ? '<button class="chip" onclick="dkEspn(\'' + x.id + '\',this)">🏈 Load into ESPN</button>' : '') + '</div></div>'; };
+      (open ? '<button class="chip" onclick="drCancel(\'' + x.id + '\')">✕ Cancel</button>' : '') + (x.kind === "spl" && isOps() ? '<button class="chip"' + (open ? '' : ' style="border-color:var(--gold);background:rgba(184,138,46,.12)"') + ' onclick="dkEspn(\'' + x.id + '\',this)">🏈 Load into ESPN' + (open ? ' (after the draft)' : '') + '</button>' : '') + '</div></div>'; };
   var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, inSeason = lastFinal(curSeason()) && !offSeason();
   var kinds = [["spl", "📝 SPL Draft", next], ["div", "🧭 Divisional", next], ["slot", "🎰 Slot", next]].concat(inSeason ? [["shootout", "🎯 Shoot Out", curSeason()]] : []);
   return (live.length ? live.map(row).join("") : '<p class="muted" style="margin:4px 0 8px;font-size:13px">No draft is live.</p>') +

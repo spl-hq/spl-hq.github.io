@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.5 (backend v0.17.3) · 🏈 **SPL Draft → ESPN is one batch after the draft** (Mike: "batch, not one at a time"). Live drafts no
+  longer add each pick to ESPN as it's made; the desk's 🏈 Load into ESPN (gold once the draft is final) loads the whole board, picks + keepers,
+  25 per call until done, re-runnable to finish or repair (reads ESPN first, never re-adds). SW `splhq-v56`.
 - 2026-11-27 · v0.23.4 (backend v0.17.2) · 📅 **Off-season → SPL Calendar** (Mike: "is it just a calendar?"). League tile + screen renamed;
   the screen is now the league year in order: "Next up" with a countdown, then **this season** (trade deadline ✓, Shoot Out Draft, Shoot Out,
   Playoffs, SPL Bowl: dates from the calendar file, else the date their rule gives, marked ≈: NFL week Sundays, Shoot Out Draft = the

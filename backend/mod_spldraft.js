@@ -74,8 +74,8 @@ function splLedger_(s) { return s.cells.map(function (c) { return { r: c.r, p: c
 // 🏈 Board → ESPN (Mike 11/27: "if we use the app to draft, it gets loaded into ESPN"). The proven LM add (the roster mirror's call):
 // each drafted player and each keeper goes onto his owner's ESPN team. Writes only reach WRITE_LEAGUE (test league until Joe signs off;
 // there only the 4 demo owners have a team). Never a blind retry: every sync reads ESPN first and only adds players who aren't already on
-// that team; one POST per player; every attempt is logged in DraftEspn (and EspnLog). A live SPL Draft tries each pick's add right after
-// the pick (one POST); the desk's "Load into ESPN" works through whatever is left, 25 players per call. Rehearsals load only from the desk.
+// that team; one POST per player; every attempt is logged in DraftEspn (and EspnLog). One batch after the draft (Mike 11/27: "batch, not one
+// at a time"): the desk's "Load into ESPN" works through the whole board, 25 players per call, and can be run again to finish/repair.
 // ESPN's own "offline draft results" call isn't captured yet; if ESPN refuses adds before its draft is marked done, the desk shows ESPN's reason.
 function splEspnTargets_(s) {
   return s.cells.filter(function (c) { return c.player && c.skip !== "tag"; }).map(function (c) { return { n: c.n, owner: c.owner, player: c.player, keeper: c.skip === "keeper", pid: null }; });
@@ -111,10 +111,6 @@ function splEspnSync_(me, b, one) {
     todo.forEach(function (t) { var tm = team[t.owner]; if (tm && t.pid && on[t.pid] === tm.id && !(where[t.pid] && where[t.pid].id === tm.id)) { splEspnLog_(s.id, t, "on", tm.id, "on " + tm.team + " (read back)", me.owner); ok++; } }); }
   log_("draftespn", s.id + " sent " + sent + " on " + ok + " fail " + fails.length + " left " + left + " by " + me.owner);
   return { ok: true, sent: sent, on: ok, left: left, fails: fails.slice(0, 10), status: splEspnStatus_(s.id, all.length) };
-}
-function splEspnAfterPick_(me, s, n) { // live draft: try this pick's add right away (one POST); quiet on failure, the desk shows it
-  if (s.mode !== "live" || !writesOn_()) return;
-  try { var st = draftState_(findDraft_(s.id).row, rows_("DraftPicks")), c = st.cells[st.turnAt[n - 1]]; if (c) splEspnSync_(me, { id: s.id }, c.n); } catch (e) { log_("draftespn", s.id + " #" + n + " " + String(e.message || e).slice(0, 120)); }
 }
 function draftEspn_(me, b) { // desk read: the ESPN load status of an SPL Draft
   var f = findDraft_(String(b.id || "")); if (!f) return { ok: false, error: "Draft not found" };
