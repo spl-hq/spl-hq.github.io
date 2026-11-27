@@ -495,7 +495,7 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
   const joeT = w.post({ action: "login", pin: w.post({ action: "issue", token: wm, owner: "reilly" }).phrase }).token;
   ok(w.post({ action: "opsx", token: joeT }).ok === false, "opsx is ops only");
   let x = w.post({ action: "opsx", token: wm });
-  ok(x.ok && x.robots.list.length === 5 && x.robots.tokenExp === GH.exp && x.sheet.limit === 10000000 && x.cookie.set && x.tick.at, "Ops desk feed: robots, token expiry, sheet size, cookie, tick");
+  ok(x.ok && x.robots.list.length === 6 && x.robots.tokenExp === GH.exp && x.sheet.limit === 10000000 && x.cookie.set && x.tick.at, "Ops desk feed: robots, token expiry, sheet size, cookie, tick");
   const nb = w.mails.length; x = w.post({ action: "opsx", token: wm, run: "backup" });
   ok(x.did && x.did.sentAt && w.mails.length === nb + 1, "Back up now sends one");
   x = w.post({ action: "opsx", token: wm, run: "tick" }); ok(x.did && x.did.ok && JSON.parse(w.props.OPS_TICK).by === "desk", "Run checks now from the desk");

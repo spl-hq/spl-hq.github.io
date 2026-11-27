@@ -1,0 +1,30 @@
+name: ESPN archive pull
+# Everything ESPN still has about past SPL seasons (Mike 11/27): draft boards, team names/divisions/records, final rosters,
+# trades + adds/drops → data/ESPN_*.csv (robot gold) + docs/ESPN_ARCHIVE_REPORT.md. Safe to re-run: each file is rebuilt from ESPN.
+# Weekly (this season's draft + transactions keep growing), when the script changes, or by hand.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 9 * * 3"   # Wednesdays 4:41 AM ET
+  push:
+    branches: [main]
+    paths: [".github/workflows/espn-archive.yml", "tools/pull_espn_archive.py", "data/SPL_Owner_Registry.csv"]
+permissions:
+  contents: write
+concurrency: { group: "${{ github.workflow }}", cancel-in-progress: false }
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/pull_espn_archive.py
+        env:
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+          SWID: ${{ secrets.SWID }}
+      - run: python3 tools/build_data.py
+      - name: Commit if changed
+        run: |
+          git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
+          git add data/ESPN_*.csv docs/ESPN_ARCHIVE_REPORT.md league-data.js
+          git diff --cached --quiet || (git commit -m "ESPN archive pull: drafts, teams, rosters, transactions" && bash tools/robot_push.sh)

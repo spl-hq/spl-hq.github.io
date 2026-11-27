@@ -11,6 +11,7 @@
 var ROBOTS = [
   { file: "ledger-sync.yml", name: "Ledger sync", every: 2, grace: 1.5, why: "pick ledger, trades, contracts → repo" },
   { file: "espn-history.yml", name: "ESPN history pull", every: 24, grace: 4, why: "finals + schedule from ESPN", anchor: { dow: 2, utc: 11.3 } }, // + Tue 6:17 AM ET for the 7 AM Edition
+  { file: "espn-archive.yml", name: "ESPN archive pull", every: 24 * 7, grace: 24, why: "past drafts, teams, rosters, trades from ESPN" },
   { file: "card-lines.yml", name: "Card lines", every: 0, why: "follows each history pull" },
   { file: "build-data.yml", name: "Build league data", every: 0, why: "on every data/ change" },
   { file: "checks.yml", name: "Checks (CI)", every: 0, why: "on every app/backend push" }
