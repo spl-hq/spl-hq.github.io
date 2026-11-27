@@ -458,6 +458,10 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 .dgrid td.gkp,.chips span.gkp{background:#F6EEDC} .dgrid td.gtg{background:#F6EEDC;outline:1px dashed #B88A2E;outline-offset:-3px}
 .dgrid td.now{box-shadow:inset 0 0 0 2px #B88A2E;background:#FFF8E6}
 .dgrid td.mine small.pk{color:#1E407C;font-weight:800}
+/* ✕ clear button on search boxes */
+.srch{position:relative;display:block}.srch input{padding-right:40px !important}
+.srchx{display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:#E8EAED;color:#5F666D;font:700 13px var(--body);padding:0;line-height:30px;text-align:center;cursor:pointer}
+.srch.has .srchx{display:block}
 </style>
 </head>
 <body>
@@ -500,7 +504,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.23.0";
+var APP_VERSION = "0.23.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -634,6 +638,18 @@ function needSignIn(what) {
 // ---- router
 var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", droom: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
+// ✕ on every search box (Mike 11/27): any input whose placeholder starts with "Search" gets a clear button, wherever it's drawn
+// (screens, sheets, redraws). Clearing fires the input's own input handler, so every list resets the way it does on typing.
+function srchWrap(inp) {
+  if (inp._sx || !inp.parentNode) return; inp._sx = 1;
+  var w = document.createElement("span"); w.className = "srch"; w.style.margin = inp.style.margin || ""; ["marginTop", "marginBottom"].forEach(function (k) { if (inp.style[k]) { w.style[k] = inp.style[k]; inp.style[k] = "0"; } });
+  inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+  var b = document.createElement("button"); b.type = "button"; b.className = "srchx"; b.setAttribute("aria-label", "Clear"); b.textContent = "✕"; w.appendChild(b);
+  var sync = function () { w.classList.toggle("has", !!inp.value); }; sync(); inp.addEventListener("input", sync);
+  b.addEventListener("click", function (e) { e.preventDefault(); inp.value = ""; inp.dispatchEvent(new Event("input", { bubbles: true })); var i2 = document.getElementById(inp.id) || inp; if (i2.focus) i2.focus(); sync(); });
+}
+function srchScan(root) { (root || document).querySelectorAll('input[placeholder^="Search"]').forEach(srchWrap); }
+if (window.MutationObserver) new MutationObserver(function () { srchScan(); }).observe(document.documentElement, { childList: true, subtree: true });
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
@@ -2295,8 +2311,13 @@ window.splList = function () {
     var gone = {}; x.cells.forEach(function (c) { if (c.player) gone[pn(c.player)] = 1; });
     var q = pn(SPLQ), canPick = x.status === "open" && (x.clock === ME.owner || isDesk());
     var list = P.players.filter(function (p) { return !gone[pn(p[1])] && (!SPLP || p[2] === SPLP) && (!q || pn(p[1]).indexOf(q) >= 0); }).slice(0, 40);
-    el.innerHTML = list.length ? list.map(function (p, i) { return '<div class="kv"><span style="text-align:left;flex:1"><small class="muted mono">' + (p[4] < 999 ? p[4] : "–") + '</small> <b>' + esc(p[1]) + '</b> <small class="muted">' + esc(p[2] + " " + p[3]) + '</small></span>' +
-      (canPick ? '<button class="chip" onclick="splPick(' + i + ')">Draft</button>' : '') + '</div>'; }).join("") : '<p class="muted">No one left who matches.</p>';
+    // Searching (Mike 11/27): players already off the board still show, greyed, with why (kept / tagged / drafted where, by whom).
+    var why = function (c) { return c.skip === "keeper" ? "🔒 " + oname(c.owner) + "'s keeper" : c.skip === "tag" ? "🏷️ " + oname(c.orig) + "'s Franchise Tag" : "Drafted " + rp(c) + " · " + oname(c.owner); };
+    var taken = q.length > 1 ? x.cells.filter(function (c) { return c.player && pn(c.player).indexOf(q) >= 0 && (!SPLP || !c.pos || c.pos === SPLP); }) : [];
+    var gh = taken.map(function (c) { return '<div class="kv" style="opacity:.55"><span style="text-align:left;flex:1"><b>' + esc(c.player) + '</b> <small class="muted">' + esc(c.pos || ((contractsOf(c.owner).filter(function (z) { return pn(z.player) === pn(c.player); })[0] || {}).pos || "")) + '</small><br><small class="muted">' + esc(why(c)) + '</small></span><span class="muted" style="font-size:12px">Gone</span></div>'; }).join("");
+    if (!list.length && gh) { el.innerHTML = gh; el._list = []; return; }
+    el.innerHTML = gh + (list.length ? list.map(function (p, i) { return '<div class="kv"><span style="text-align:left;flex:1"><small class="muted mono">' + (p[4] < 999 ? p[4] : "–") + '</small> <b>' + esc(p[1]) + '</b> <small class="muted">' + esc(p[2] + " " + p[3]) + '</small></span>' +
+      (canPick ? '<button class="chip" onclick="splPick(' + i + ')">Draft</button>' : '') + '</div>'; }).join("") : '<p class="muted">No one left who matches.</p>');
     el._list = list;
   }).catch(function (e) { el.innerHTML = '<p class="coral" style="font-size:13px">' + esc(e.message) + '</p><p class="muted" style="font-size:12px">You can still type a player in below.</p>'; });
 };

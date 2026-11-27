@@ -23,6 +23,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.1 · 🔎 **Search shows who's gone + ✕ on every search box** (Mike). SPL Draft room: searching a kept, tagged or drafted
+  player shows him greyed with why ("🔒 Mike's keeper", "🏷️ Hoos's Franchise Tag", "Drafted 3.05 · Joe") instead of "no matches". Every
+  input whose placeholder starts with "Search" (rules, keeper add, keeper market, draft room, any new one) gets a ✕ clear button by
+  itself (MutationObserver wraps it; clearing fires the box's own input handler). SW `splhq-v52`.
 - 2026-11-27 · v0.23.0 (backend v0.17.0) · 🗓️ **Draft controls on the desks, ▦ grid board, board → ESPN** (Mike). **Desks:** a 🗓️ Drafts card
   on Joe's 📥 Commish desk and Mike's 🛠️ Ops desk (first section, badge "🔴 N live"): every live draft (pick n of N, who's up and for how long,
   last pick) with Room · ↩ Undo · ✕ Cancel; Open a draft (🧪 Rehearse / Open real per kind; Shoot Out only in season, "real" only in its window);
