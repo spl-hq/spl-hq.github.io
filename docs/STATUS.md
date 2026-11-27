@@ -23,6 +23,11 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.20.0 · 👋 Tour: **2nd welcome card "It all lands on Home"** (Mike): ⚡ your move up top (your pick in the Shoot Out, Slot
+  or Divisional draft, a trade offer, keepers to declare; gold stays first), 🗞️ every week of the season (Tue result/awards/Power 5/table,
+  live game Sunday, who's next by Thursday, trades as they happen), 🎯 polls + trivia, 🗓️ off-season too. Cards 1/2 → 2/2 with Back;
+  Home stop trimmed to how-to. **No "reel" anywhere owners read** (sign-in card, loading, end card, Saved/Done sheet, keepers note,
+  veto question; card-lines robot prompt told never to say it); rule added to CLAUDE.md. **Home tab icon = tiny SPL crest.** SW `splhq-v39`.
 - 2026-11-27 · v0.20.1 · 🔁 **ESPN trades + pickups in player files.** Archive robot fixed (transactions come from the season endpoint, not
   leagueHistory): 3,288 moves for 2018–19 + 2022–26 (2017 and earlier: ESPN keeps none; 2020–21 empty) → `ESPN_Transactions.csv`.
   `player-history.js` adds trades + pickups ("Traded Matt → Mike · Nov 9", "Picked up by …"). SW `splhq-v44`.

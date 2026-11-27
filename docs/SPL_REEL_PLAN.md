@@ -19,6 +19,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
   keeper status for next season, and his SPL paper trail from gold (drafts, keeper contracts, terminations, trades in the app).
   Grows with the data: older draft boards (2019–2025, SPL Packet) go into `data/Draft_Picks.csv` and show up with no app change.
   Team tab header is now a compact desk header (team, record, rank, division, streak, next game); no big blue team card.
+- 2026-11-27 · **No "reel" on the site; Home tab = the crest** (Mike). Owners only ever hear "Home" / "your Home screen"; "reel" stays
+  internal (code, docs). The Home tab's 🏠 is now a tiny SPL crest, matching the header crest (both go Home). Tour gets a 2nd welcome
+  card, "It all lands on Home": your move up top (Shoot Out / Slot / Divisional picks, trade offers, keepers), every week of the season,
+  polls + trivia, off-season too. The Home stop keeps only how to use it (scroll, swipe, Saved/Done).
 - 2026-11-27 · **👋 Welcome tour, first visit only** (Mike, after MAFFL REEL's one-tour version). Once per owner (per phone), the first
   time they land on a tab's front screen signed in: a welcome card, then 8 stops across the tabs (Desk stop only for desk owners). Replay
   from You → Show me around again; Ops desk → 👋 Welcome tour: for me now, or for one owner / everyone on their next open (backend stamp

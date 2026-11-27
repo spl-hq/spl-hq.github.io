@@ -46,7 +46,7 @@ nav.tabs{position:relative;flex:none;z-index:10;padding-bottom:max(6px, calc(var
   display:flex;padding:6px 4px calc(var(--bot) + 6px)}
 nav.tabs button{flex:1;background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;
   color:var(--muted);font:600 11px var(--body);cursor:pointer}
-nav.tabs button span{font-size:20px;line-height:1}
+nav.tabs button span{font-size:20px;line-height:1} nav.tabs .tcrest{display:block;width:20px;height:20px;object-fit:contain}
 nav.tabs button.on{color:var(--lime)}
 h2{font:800 26px/1.05 var(--head);text-transform:uppercase;letter-spacing:.03em;margin:4px 0 12px}
 h3{font:800 18px/1.1 var(--head);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
@@ -383,7 +383,7 @@ tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:point
 .ptl div{display:grid;grid-template-columns:40px 22px 1fr;gap:4px;padding:7px 0;border-bottom:1px solid #EEF0F2;font-size:13px;align-items:baseline} .ptl div:last-child{border:0} .ptl .py{font:700 12px var(--mono);color:var(--muted)}
 .gmtop{flex:none;padding:12px 14px 0}
 .tiles2.tq{margin:0 0 12px} .tq2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px} .tq2 .btn{width:100%;margin:0} .card.needsb,.tile.needsb{border-color:var(--gold)} .tile.needsb small{color:var(--gold);font-weight:700} .mono{font-family:var(--mono)}
-/* 👋 Welcome tour (Mike 11/27, after MAFFL REEL): first visit = a welcome card over the app, then one stop per tab (the app switches
+/* 👋 Welcome tour (Mike 11/27, after MAFFL REEL): first visit = two welcome cards over the app (SPL HQ · it all lands on Home), then one stop per tab (the app switches
    tabs; tab buttons get a gold ring, anything else a cut-out). The tab bar stays visible: the scrim stops above it. Hidden = display:none. */
 .tour{position:fixed;inset:0;z-index:90;display:none;pointer-events:none}.tour.on{display:block}
 .tscrim{position:absolute;left:0;right:0;top:0;height:var(--navtop,100%);background:rgba(4,30,66,.62);overflow:hidden;pointer-events:auto}.tour.hole .tscrim{background:none}
@@ -393,7 +393,7 @@ tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:point
 .twel{position:absolute;left:50%;top:calc(var(--navtop,100%) / 2);transform:translate(-50%,-50%);width:min(calc(100vw - 28px),420px);max-height:calc(var(--navtop,100%) - 24px);overflow:auto;pointer-events:auto;background:#fff;border-radius:20px;padding:22px 20px 14px;box-shadow:0 14px 40px rgba(0,0,0,.35);border-top:5px solid var(--gold);text-align:center}
 .twel img{width:64px;height:64px;border-radius:14px;background:#041E42}.twel .tkick{margin-top:6px;font:800 13px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
 .twel h2{margin:4px 0 12px;font:800 28px/1.05 var(--head);text-transform:uppercase;color:#041E42}
-.twel ul{list-style:none;margin:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:10px}
+.twel.tw2{padding-top:18px}.twel.tw2 li{padding:8px 12px} .twel ul{list-style:none;margin:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:10px}
 .twel li{display:flex;gap:12px;align-items:flex-start;background:#F1F2F4;border-radius:12px;padding:10px 12px}.twel li span{font-size:22px;line-height:1.2}
 .twel li p{margin:0;font-size:14px;line-height:1.4;color:#3C4248}.twel li b{display:block;font:800 16px/1.25 var(--head);text-transform:uppercase;letter-spacing:.02em;color:#041E42}
 .tbub{position:absolute;pointer-events:auto;left:50%;transform:translateX(-50%);width:min(calc(100vw - 24px),420px);background:#fff;border-radius:16px;padding:16px 16px 12px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
@@ -444,7 +444,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 </header>
 <main id="view"></main>
 <nav class="tabs" id="tabs">
-  <button data-t="home"><span>🏠</span>Home</button>
+  <button data-t="home"><span><img class="tcrest" src="icons/crest.png?v=3" alt=""></span>Home</button>
   <button data-t="match"><span>⚔️</span>Match</button>
   <button data-t="team"><span>🏈</span>Team</button>
   <button data-t="chat"><span>💬</span>Chat</button>
@@ -518,7 +518,7 @@ var QUESTIONS = [
   { qid: "first_wish", q: "If the app could do one thing for you as commish, what would it be?",
     why: "Your answer goes to the top of the build list.", choices: [] },
   { qid: "veto_vote", q: "Trades go to a league veto vote inside the app, by the constitution. Run it that way?",
-    why: "Every accepted trade posts to league chat and lands as a card on every owner's reel: owners vote veto, comment and react. In season: 24 hours, 6 vetoes from the 9 uninvolved owners kill it. Off-season: final after 72 hours unless someone challenges, then 6 vetoes. No veto → it goes through and the app moves the players on ESPN. Your trades with Mike go to the same vote, so nobody approves his own. (ESPN's own veto is set to 8 votes; the app would follow the constitution's 6.)",
+    why: "Every accepted trade posts to league chat and lands as a card on every owner's Home screen: owners vote veto, comment and react. In season: 24 hours, 6 vetoes from the 9 uninvolved owners kill it. Off-season: final after 72 hours unless someone challenges, then 6 vetoes. No veto → it goes through and the app moves the players on ESPN. Your trades with Mike go to the same vote, so nobody approves his own. (ESPN's own veto is set to 8 votes; the app would follow the constitution's 6.)",
     choices: ["Yes, run it that way", "Yes, and I can overrule", "No, I approve every trade", "Other (explain)"] },
   { qid: "mike_calls", q: "Mike made these calls for the app. Good with all three?",
     why: "1) A traded keeper keeps his contract as-is (KP, years left). 2) Only next season's picks can be traded (2027, 17 rounds). 3) Divisional Draft: the 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1; a pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division); if your division is full, you must assign.",
@@ -648,7 +648,7 @@ function buildFeed(d) {
   // The issue = the newest finished week whose Edition has dropped (Tuesday 7 AM ET); until then last week's issue stays up.
   var issue = fw; if (!OFF) while (issue > 1 && weekTue(season, issue) > now) issue--;
   // ⚡ Needs you
-  if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and the reel becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
+  if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and Home becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
   if (ME) draftCards(d.drafts, me).forEach(function (c) { cards.push(c); });
   var kd = keeperDeadlineCard(me); if (kd) cards.push(kd);
   var kb = keeperBoardCard(me); if (kb) cards.push(kb);
@@ -713,7 +713,7 @@ function buildFeed(d) {
     .sort(function (a, b) { return (b.rel === a.rel ? 0 : b.rel > a.rel ? 1 : -1) || GROUP_ORD[a.group] - GROUP_ORD[b.group] || a.rank - b.rank; });
   return { wk: issue || (W && W.week) || 0, cards: needs.concat(rest) };
 }
-SCREENS.home = function () { return '<div class="feedwrap"><div class="ibar" id="ibar"></div><div class="feed" id="feed"><div class="fslot"><div class="dcard"><p class="muted">Loading your reel…</p></div></div></div><div class="irail" id="irail"></div></div><div class="undo" id="undo"><span id="undot"></span><button id="undob">Undo</button></div>'; };
+SCREENS.home = function () { return '<div class="feedwrap"><div class="ibar" id="ibar"></div><div class="feed" id="feed"><div class="fslot"><div class="dcard"><p class="muted">Loading Home…</p></div></div></div><div class="irail" id="irail"></div></div><div class="undo" id="undo"><span id="undot"></span><button id="undob">Undo</button></div>'; };
 SCREENS.home.after = function () {
   var d = {};
   var jobs = [load("standings", 300000).then(function (r) { d.stand = r; }).catch(function () {})];
@@ -736,7 +736,7 @@ function drawFeed(keep) {
   $("#ibar").innerHTML = (nSv ? '<button class="saved" onclick="openBucket(\'pin\')">⭐ Saved ' + nSv + '</button>' : '') + (nDn ? '<button class="saved dnc" onclick="openBucket(\'clr\')">✓ Done ' + nDn + '</button>' : '') +
     '<span class="ihow">' + (FEED.length ? "← done · save →" : "") + '</span><span class="icount">' + (FEED.length ? FEED.length + " left" : "All caught up") + '</span>';
   var end = '<div class="dcard endc"><div class="zero">' + (left ? left : "✓") + '</div><h3 class="dt">' + (left ? "That's everything" : "All caught up") + '</h3><p class="story">' +
-    (left ? (left === 1 ? "1 card is" : left + " cards are") + " still in your reel. Swipe each one: ← done, → save." : (FEED_N ? "You cleared your reel." : "Nothing new right now.")) +
+    (left ? (left === 1 ? "1 card is" : left + " cards are") + " still on Home. Swipe each one: ← done, → save." : (FEED_N ? "You cleared Home." : "Nothing new right now.")) +
     (nn ? " The " + (nn === 1 ? "one" : nn) + " at the top that need" + (nn === 1 ? "s" : "") + " you stay until handled." : "") + (nSv ? " Your saved cards are up top." : "") + '</p>' +
     '<div class="row" style="margin-top:16px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="go(\'chat\')">💬 Chat</button><button class="btn ghost" onclick="go(\'match\')">⚔️ Your game</button></div>' +
     (FEED.length > 1 ? '<p style="margin-top:12px"><button class="back" onclick="document.getElementById(\'feed\').scrollTo({top:0,behavior:\'smooth\'})">Back to the top</button></p>' : '') + '</div>';
@@ -787,14 +787,14 @@ function openBucket(kind) {
   sh.innerHTML = '<div class="sbody"><div class="row" style="justify-content:space-between"><h2 style="margin:0">' + (saved ? "⭐ Saved" : "✓ Done") + '</h2><button class="btn ghost" onclick="closeBucket()">Close</button></div>' +
     '<p class="muted" style="margin:6px 0 12px">' + (saved ? "Stays here until you send it back or mark it done." : "Cleared cards stay " + DONE_DAYS + " days, then drop off.") + '</p>' +
     a.map(function (it, i) { var old = it.w !== curW; return '<div style="margin-bottom:14px">' + it.html + '<div class="row" style="margin-top:6px">' +
-      (old ? '' : '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'back\')">↩ Back to reel</button>') +
+      (old ? '' : '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'back\')">↩ Back to Home</button>') +
       (saved ? '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'done\')">✓ Done</button>' : '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'save\')">⭐ Save</button>') + '</div></div>'; }).join("") + '</div>';
 }
 function closeBucket() { var sh = $("#sheet"); if (sh) sh.remove(); drawFeed(FPOS); }
 function bucketAct(kind, i, op) {
   var it = bk(kind)[i]; if (!it) return; markCard(kind, it, false);
   if (op === "done") markCard("clr", it, true); if (op === "save") markCard("pin", it, true);
-  toast(op === "done" ? "✓ Done" : op === "save" ? "⭐ Saved" : "Back in your reel"); openBucket(kind);
+  toast(op === "done" ? "✓ Done" : op === "save" ? "⭐ Saved" : "Back on Home"); openBucket(kind);
 }
 
 // ---- shared bits for Match / Team / Chat
@@ -1686,7 +1686,7 @@ window.kDeclare = function (id) {
     if (!r.valid) { ksheet('<h2 style="margin:0 0 8px">Not quite</h2><div class="kerr">' + r.errors.map(function (e) { return '<p>⚠ ' + esc(e) + '</p>'; }).join("") + '</div><p style="margin-top:12px"><button class="btn ghost" onclick="pclose()">Fix it</button></p>'); return; }
     ksheet('<h2 style="margin:0 0 4px">Declare ' + (kmine(id) ? "your" : esc(oname(id)) + "'s") + ' ' + KP_YRS[0] + ' keepers?</h2>' + (W && W.mode === "test" ? '<p class="kfine" style="margin:0">🧪 Rehearsal: nothing official changes.</p>' : '') +
       '<div class="kdec">' + kdeclRows({ items: r.items, kp: r.kp }) + '</div>' + (r.warns || []).map(function (w) { return '<p class="gold" style="font-size:12px;margin:6px 0 0">⚠ ' + esc(w) + '</p>'; }).join("") +
-      '<div class="knote">📣 <b>This goes out to the league.</b> Your keepers post to league chat and the reel, and the commish sees them on his desk.<br>✏️ <b>Not final yet:</b> you can change them until Signing Day closes' + (W && W.closes ? ' (' + esc(fmtDate(W.closes)) + ')' : '') + '. The league sees any change.</div>' +
+      '<div class="knote">📣 <b>This goes out to the league.</b> Your keepers post to league chat and everyone\'s Home screen, and the commish sees them on his desk.<br>✏️ <b>Not final yet:</b> you can change them until Signing Day closes' + (W && W.closes ? ' (' + esc(fmtDate(W.closes)) + ')' : '') + '. The league sees any change.</div>' +
       '<p class="row" style="gap:8px;margin-top:12px"><button class="btn" id="kgo">🔒 Declare</button><button class="btn ghost" onclick="pclose()">Not yet</button></p>');
     $("#kgo").onclick = function () { this.disabled = true; authed("kdeclare", body).then(function (x) { if (!x.ok) throw new Error(x.error); KEEP = x.state; KEEP._at = Date.now(); KCHANGE[id] = 0; pclose(); toast("✓ Declared · posted to league chat"); render(); })
       .catch(function (e) { toast(e.message); var b = $("#kgo"); if (b) b.disabled = false; }); };
@@ -2741,7 +2741,7 @@ SCREENS.ops.after = function () {
 // (for me now; for one owner or everyone on their next open, via a backend stamp that "me" hands back). Seen = per owner, per phone.
 // A missing or off-screen target (not a desk owner, still loading) is skipped. Step: [screen to show ("" = stay), target, title, text, only-if].
 var TOUR_STEPS = [
-  ["home", "#tabs [data-t='home']", "🏠 Home = your reel", "One card a screen: scroll up for the next. Swipe ← when you're done with a card, → to save it. Gold Needs you cards stay on top until you handle them."],
+  ["home", "#tabs [data-t='home']", "Home", "One card a screen: scroll up for the next. Swipe ← when you're done with a card, → to save it; ⭐ Saved and ✓ Done wait at the top. The crest up top brings you here too."],
   ["match", "#tabs [data-t='match']", "⚔️ Match", "Your game, live from ESPN: the score, both lineups and every other game. Step back through any week."],
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
@@ -2761,18 +2761,26 @@ function tourMaybe() {
     tourStart(); }, 900);
 }
 function tourStart() { if (!ME) return; store(tourKey(), 1); var sh = $("#sheet"); if (sh) sh.remove();
-  TR = { i: null, steps: TOUR_STEPS.filter(function (s) { return !s[4] || s[4](); }) }; if (tourScreen() !== "home") go("home"); setTimeout(tourDraw, 250); }
+  TR = { i: -2, steps: TOUR_STEPS.filter(function (s) { return !s[4] || s[4](); }) }; if (tourScreen() !== "home") go("home"); setTimeout(tourDraw, 250); }
 function tourReplay() { if (!ME) return go("signin"); store(tourKey(), null); tourStart(); }
 // Ops desk replay for someone else: "me" carries the newest stamp for this owner; a stamp this phone hasn't seen = show it once more.
 function tourStampCheck(st) { if (!st || !ME) return; var k = "tour_stamp_" + ME.owner; if (store(k) === st) return; store(k, st); store(tourKey(), null); tourMaybe(); }
-function tourCard() {
-  var first = (ME && ME.name) || "";
-  tourPaint("", '<div class="twel"><img src="icons/crest.png?v=3" alt=""><div class="tkick">' + (first ? "Welcome, " + esc(first) : "Welcome") + '</div>' +
-    '<h2>This is SPL HQ</h2>' +
-    '<ul><li><span>👤</span><p><b>It\'s yours.</b>You\'re signed in: your reel, your team, your trades, your keepers, your chats.</p></li>' +
-    '<li><span>📡</span><p><b>Live from ESPN.</b>Scores, lineups and rosters keep updating through game day.</p></li>' +
-    '<li><span>🤝</span><p><b>Everything but your lineup.</b>Trades, keepers and Signing Day, the off-season drafts and league chat happen here. Lineups still get set on ESPN.</p></li></ul>' +
-    '<div class="tbtn"><button id="tskip">Skip</button><small></small><button class="go" id="tnext">Show me around ›</button></div></div>');
+function tourCard(k) {
+  var first = (ME && ME.name) || "", li = function (e, b, t) { return '<li><span>' + e + '</span><p><b>' + b + '</b>' + t + '</p></li>'; };
+  if (k === -2) return tourPaint("", '<div class="twel"><img src="icons/crest.png?v=3" alt=""><div class="tkick">' + (first ? "Welcome, " + esc(first) : "Welcome") + '</div>' +
+    '<h2>This is SPL HQ</h2><ul>' +
+    li("👤", "It\'s yours.", "You\'re signed in: your Home screen, your team, your trades, your keepers, your chats.") +
+    li("📡", "Live from ESPN.", "Scores, lineups and rosters keep updating through game day.") +
+    li("🤝", "Everything but your lineup.", "Trades, keepers and Signing Day, the off-season drafts and league chat happen here. Lineups still get set on ESPN.") + '</ul>' +
+    '<div class="tbtn"><button id="tskip">Skip</button><small>1 / 2</small><button class="go" id="tnext">Next ›</button></div></div>');
+  // 2 of 2 (Mike 11/27): how the league reaches you, all on Home: what needs you, the week's drops, play, and the off-season.
+  tourPaint("", '<div class="twel tw2"><div class="tkick">How you\'ll hear about it</div>' +
+    '<h2>It all lands on Home</h2><ul>' +
+    li("⚡", "Your move, up top.", "Your pick in the Shoot Out, Slot or Divisional draft, a trade offer, keepers to declare. Gold cards stay first until you handle them.") +
+    li("🗞️", "Every week of the season.", "Tuesday: your result, awards, Power 5, the table. Your game live on Sunday, who you play next by Thursday, trades as they happen.") +
+    li("🎯", "Polls and trivia.", "Game of the Week vote, a weekly quiz, and a bite of league history midweek.") +
+    li("🗓️", "Off-season too.", "Live drafts, the Signing Day board, keeper prices and the cap.") + '</ul>' +
+    '<div class="tbtn"><button id="tskip">‹ Back</button><small>2 / 2</small><button class="go" id="tnext">Show me around ›</button></div></div>');
 }
 // One spotlight: a tab button (in the bar) gets a gold ring; anything else a cut-out with the bubble above or below it.
 function tourSpot(el, title, text, n, of) {
@@ -2788,10 +2796,10 @@ function tourSpot(el, title, text, n, of) {
 }
 function tourPaint(cut, h, mode) { var o = $("#tour"); o.className = "tour on" + (mode ? " " + mode : ""); o.style.setProperty("--navtop", tourNavTop() + "px");
   o.innerHTML = '<div class="tscrim">' + cut + '</div><div class="tnav"></div>' + h;
-  $("#tnext").onclick = tourNext; $("#tskip").onclick = TR && TR.i != null ? tourBack : tourEnd; if ($("#tx")) $("#tx").onclick = tourEnd; }
+  $("#tnext").onclick = tourNext; $("#tskip").onclick = TR && TR.i > -2 ? tourBack : tourEnd; if ($("#tx")) $("#tx").onclick = tourEnd; }
 function tourDraw() {
   var o = $("#tour"); if (!TR) { o.className = "tour"; o.innerHTML = ""; return; }
-  if (TR.i == null) return tourCard();
+  if (TR.i < 0) return tourCard(TR.i);
   var s = TR.steps[TR.i]; if (!s) return tourEnd();
   if (s[0] && tourScreen() !== s[0]) { o.className = "tour"; o.innerHTML = ""; go(s[0]); var at = TR.i; setTimeout(function () { if (TR && TR.i === at) tourDraw(); }, 350); return; } // let the tab paint first
   var el = document.querySelector(s[1]), skip = TR.back ? tourBack : tourNext; if (!el || !el.getClientRects().length) return skip();
@@ -2799,8 +2807,8 @@ function tourDraw() {
   if (!$("#tabs").contains(el) && (r.top < 0 || r.top + Math.min(r.height, 60) > nav)) { el.scrollIntoView({ block: "center" }); r = el.getBoundingClientRect(); if (r.top < 0 || r.top + Math.min(r.height, 60) > nav) return skip(); }
   tourSpot(el, s[2], s[3], TR.i + 1, TR.steps.length);
 }
-function tourBack() { if (!TR || TR.i == null) return; TR.back = 1; TR.i = TR.i ? TR.i - 1 : null; if (TR.i == null && tourScreen() !== "home") { go("home"); setTimeout(tourDraw, 300); } else tourDraw(); } // step 1 → the welcome card
-function tourNext() { if (!TR) return; TR.back = 0; TR.i = TR.i == null ? 0 : TR.i + 1; if (TR.i >= TR.steps.length) tourEnd(); else tourDraw(); }
+function tourBack() { if (!TR || TR.i <= -2) return; TR.back = 1; TR.i--; if (TR.i < 0 && tourScreen() !== "home") { go("home"); setTimeout(tourDraw, 300); } else tourDraw(); } // stop 1 → the 2nd welcome card
+function tourNext() { if (!TR) return; TR.back = 0; TR.i++; if (TR.i >= TR.steps.length) tourEnd(); else tourDraw(); }
 function tourEnd() { TR = null; tourDraw(); if (tourScreen() !== "home") go("home"); }
 window.addEventListener("resize", function () { if (TR) tourDraw(); });
 // 🛠️ Ops desk → 👋 Welcome tour: replay for me (now), for one owner or for everyone (on their next open).

@@ -114,7 +114,7 @@ facts = {"league": "SPL (State Penn League), 12 owners, keeper league, half-PPR,
          "coach_of_the_week": {"owner": coach["owner"], "pts": round(coach_pts, 1), "season_avg": coach["avg"], "over_avg": round(coach_pts - coach["avg"], 1)} if coach else None,
          "next_week": nxt, "keeper_kp_2027": kp27}
 
-PROMPT = """You write the short lines on the SPL HQ reel cards (SPL = State Penn League: 12 old friends, keeper league, half-PPR,
+PROMPT = """You write the short lines on the SPL HQ Home screen cards (never call them a "reel"; SPL = State Penn League: 12 old friends, keeper league, half-PPR,
 Super Flex; top 6 make the playoffs, Week 14 is the SPL Shoot Out). The app shows plain facts if you don't write, so a missing line is fine
 and a wrong line is not.
 
