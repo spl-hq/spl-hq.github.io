@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.20.1 · 🔁 **ESPN trades + pickups in player files.** Archive robot fixed (transactions come from the season endpoint, not
+  leagueHistory): 3,288 moves for 2018–19 + 2022–26 (2017 and earlier: ESPN keeps none; 2020–21 empty) → `ESPN_Transactions.csv`.
+  `player-history.js` adds trades + pickups ("Traded Matt → Mike · Nov 9", "Picked up by …"). SW `splhq-v44`.
 - 2026-11-27 · v0.20 (backend v0.14.2) · 🔒 **Keepers v2: calmer + the keeper market** (Mike: "clunky, messy, too much going on"). Your keepers
   (GM desk → Keepers) get a **Mine · Market · League** switch. **Mine** = one cap summary (KP left, 3 slot dots, Signing Day line, rules
   link) + three **slots** (carried · 🆕 new · ✂️ terminated · cap penalties) + one **Declare** button. Everything else is a tap away in a

@@ -95,7 +95,7 @@ draft.sort(key=lambda d: (-d[0], d[1], d[3] or 999))
 # d = SPL Draft picks [season, round, overall, owner, slot owner, player, src (p = Packet/gold board, e = ESPN), flags]
 #   gold Draft_Picks.csv wins for its seasons (SPL rounds); ESPN_Draft_Boards.csv fills the rest (2006-2018; empty 2020-21 skipped).
 # k = Keeper Matrix history [season, owner, player, pos, term, kp_by_season, cut, franchise]
-# r = final rosters ESPN kept [season, owner, player, how acquired]
+# r = final rosters ESPN kept [season, owner, player, how acquired]; t = trades + pickups ESPN kept (2018-19, 2022-26)
 ph = {"d": [], "k": [], "r": []}
 gold_seasons = {d[0] for d in draft}
 for d in draft: ph["d"].append([d[0], d[1], d[3], d[4], d[5], d[6], "p", d[7]])
@@ -104,13 +104,21 @@ for r in opt_rows("ESPN_Draft_Boards.csv"):
     ph["d"].append([int(r["season"]), int(r["round"]), int(r["overall_pick"] or 0), r["owner_id"], r["owner_id"], r["player"], "e", "K" if r["keeper"] == "Y" else ""])
 for r in opt_rows("Keeper_Matrix_History.csv"):
     ph["k"].append([int(r["season"]), r["owner_id"], r["player"] or r["player_raw"], r["position"], r["contract_length"], r["kp_by_season"], r["cut"] == "Y", r["franchise"] == "Y"])
+# t = moves ESPN kept [season, date, move (TRADE / ADD), from owner, to owner, player]: trades + pickups (drops left out: size)
+ph["t"] = []; seen_t = set()
+for r in opt_rows("ESPN_Transactions.csv"):
+    mv = "TRADE" if "TRADE" in r["move"] else r["move"]
+    if mv not in ("TRADE", "ADD") or not r["player"] or not r["to_owner"]: continue
+    k = (r["season"], r["date"][:10], mv, r["player"], r["to_owner"])
+    if k in seen_t: continue
+    seen_t.add(k); ph["t"].append([int(r["season"]), r["date"][:10], mv, r["from_owner"], r["to_owner"], r["player"]])
 for r in opt_rows("ESPN_Season_Rosters.csv"):
     if r["player"]: ph["r"].append([int(r["season"]), r["owner_id"], r["player"], r["acquired"]])
 open(os.path.join(ROOT, "player-history.js"), "w", encoding="utf-8").write(
     "// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
     "// Sources: data/Draft_Picks.csv, ESPN_Draft_Boards.csv, Keeper_Matrix_History.csv, ESPN_Season_Rosters.csv. Loaded on demand by player files.\n"
     f"var PLAYER_HISTORY = {json.dumps(ph, ensure_ascii=False, separators=(',', ':'))};\n")
-print("player-history.js:", len(ph["d"]), "picks ·", len(ph["k"]), "keeper rows ·", len(ph["r"]), "roster rows")
+print("player-history.js:", len(ph["d"]), "picks ·", len(ph["k"]), "keeper rows ·", len(ph["r"]), "roster rows ·", len(ph["t"]), "moves")
 
 # ---- 📖 Rules: data/SPL_Rulebook.md (gold) -> sections of safe HTML; conflicts + calendar CSVs.
 import html as _h

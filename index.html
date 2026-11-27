@@ -474,7 +474,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.20";
+var APP_VERSION = "0.20.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1041,6 +1041,8 @@ function pcard(name) {
     PH.k.filter(function (k) { return pnorm(k[2]) === n; }).forEach(function (k) {
       var kp = String(k[5] || "").split("|").filter(Boolean).map(function (x) { var p = x.split(":"); return "'" + p[0].slice(2) + " " + p[1]; }).join(" → ");
       ev.push({ y: k[0], o: 1, ic: k[6] ? "✂️" : k[7] ? "🏷️" : "🔒", t: (k[6] ? "Cut, cap penalty on " : k[7] ? "Franchise-tagged on " : "Kept on ") + "<b>" + esc(oname(k[1])) + "</b>'s " + k[0] + " Keeper Matrix" + (/^\d/.test(k[4] || "") ? " (" + String(k[4]).match(/^\d+/)[0] + "-yr)" : "") + (kp ? ": " + esc(kp) + " KP" : "") }); });
+    (PH.t || []).filter(function (t) { return pnorm(t[5]) === n; }).forEach(function (t) {
+      ev.push({ y: t[0], o: 2.5, ic: t[2] === "TRADE" ? "🔁" : "➕", t: (t[2] === "TRADE" ? "Traded " + (t[3] ? "<b>" + esc(oname(t[3])) + "</b> → " : "to ") + "<b>" + esc(oname(t[4])) + "</b>" : "Picked up by <b>" + esc(oname(t[4])) + "</b>") + ' <small class="muted">· ' + esc(fmtDay(t[1])) + '</small>' }); });
     var rs = PH.r.filter(function (r) { return pnorm(r[2]) === n; }).sort(function (a, b) { return a[0] - b[0]; }), runs = [];
     rs.forEach(function (r) { var l = runs[runs.length - 1]; if (l && l.o === r[1] && l.b === r[0] - 1) l.b = r[0]; else runs.push({ o: r[1], a: r[0], b: r[0], how: r[3] }); });
     runs.forEach(function (x) { ev.push({ y: x.b, o: 3, ic: "🏁", t: "Finished " + (x.a === x.b ? x.a : x.a + "–" + x.b) + " on <b>" + esc(oname(x.o)) + "</b>'s roster" + (x.how && x.how !== "draft" ? ' <small class="muted">· ' + esc(x.how === "add" ? "picked up" : x.how) + '</small>' : '') }); });
@@ -1048,7 +1050,7 @@ function pcard(name) {
   ev.sort(function (a, b) { return b.y - a.y || b.o - a.o; });
   h += '<div class="card"><div class="eyebrow">📜 In the SPL</div>' + (ev.length ? '<div class="ptl">' + ev.map(function (e) { return '<div><span class="py">' + e.y + '</span><span>' + e.ic + '</span><span>' + e.t + '</span></div>'; }).join("") + '</div>'
       : '<p class="muted" style="margin:0">No SPL draft, keeper or trade on file for him yet.</p>') +
-    '<p class="muted" style="font-size:11px;margin:10px 0 0">' + (PH ? 'SPL Drafts 2006–2026 (2020 off ESPN, not on file) · Keeper Matrix 2019–2026 · final rosters ESPN kept · trades in the app.' : 'Loading the full history…') + '</p></div>';
+    '<p class="muted" style="font-size:11px;margin:10px 0 0">' + (PH ? 'SPL Drafts 2006–2026 (2020 not on file) · Keeper Matrix 2019–2026 · final rosters 2006–2025 · ESPN trades + pickups 2018–26 (not 2020–21) · trades in the app.' : 'Loading the full history…') + '</p></div>';
   if (cur && ME && cur.o !== ME.owner) h += '<div class="row" style="gap:8px"><button class="btn" onclick="pclose();go(\'trade\',\'' + cur.o + '\')">🔁 Trade for him</button><button class="btn ghost" onclick="pclose();go(\'team\',\'' + cur.o + '\')">' + esc(oname(cur.o)) + '\'s roster</button></div>';
   sh.innerHTML = h + '</div>'; sh.style.display = ""; sh.scrollTop = 0;
   if (ME && !TRADES) loadTrades().then(function () { if ($("#sheet") && $(".pfile")) pcard(name); }).catch(function () {});
@@ -1056,6 +1058,7 @@ function pcard(name) {
     sc.onload = function () { if ($("#sheet") && $(".pfile")) pcard(name); }; sc.onerror = function () { PH_LOADING = 0; }; document.head.appendChild(sc); }
 }
 var PH_LOADING = 0;
+function fmtDay(d) { var x = new Date(d + "T12:00"); return isNaN(x) ? d : x.toLocaleDateString([], { month: "short", day: "numeric" }); }
 function pclose() { var sh = $("#sheet"); if (sh) sh.remove(); }
 // ---- 🔁 Trade center: players + draft picks + keeper contracts in one offer
 var TRADES = null;

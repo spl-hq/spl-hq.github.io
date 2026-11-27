@@ -5,8 +5,7 @@ _2026-11-27 · Mike asked "what historic info do you need from me?" This is the 
 ## ✅ Done 11/27 (round 1)
 - **ESPN archive robot** (`espn-archive.yml` → `tools/pull_espn_archive.py`): 2006–2026 draft boards (4,283 picks), 252 team-seasons
   (names, divisions, records, final rank), 3,702 final-roster rows → `data/ESPN_*.csv`, report `docs/ESPN_ARCHIVE_REPORT.md`. ESPN has no 2004–05.
-  **2020 and 2021 exist on ESPN as empty shells** (12 teams, no draft, no games). Transactions came back empty from ESPN's transaction view;
-  the robot now also tries ESPN's activity feed (results in the report after its next run).
+  **2020 and 2021 exist on ESPN as empty shells** (12 teams, no draft, no games). Transactions: 3,288 trades/adds/drops for 2018–19 + 2022–26 (ESPN keeps none before 2018).
 - **SPL Packet 2026.xlsx transcribed** (every tab read): SPL Draft boards **2019, 2021–2025** → `Draft_Picks.csv` (1,043 picks, names matched to
   ESPN; 2 left flagged), **Keeper Matrix 2019–2026** → new `Keeper_Matrix_History.csv` (254 rows; 1 flagged: Al's 2019 QB "Prior"), the trade notes
   under each board → new `Packet_Trade_Notes.csv` (64 notes, word for word). Board tags solved from ESPN: **MOS = Craig, NUD/NUDE = Amit**.
