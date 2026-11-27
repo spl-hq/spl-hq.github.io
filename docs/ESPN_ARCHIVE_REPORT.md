@@ -1,18 +1,18 @@
 # ESPN archive pull report
 
-_Robot: tools/pull_espn_archive.py · 2026-11-27T12:21Z · league 19583._
+_Robot: tools/pull_espn_archive.py · 2026-11-27T12:29Z · league 19583._
 
 | Season | Source | Teams | Draft | Final rosters | Transactions |
 |---|---|---|---|---|---|
-| 2026 | season | 12 teams | 204 picks (pool 11618) | 0 roster rows | 0 trades / 0 moves |
-| 2025 | season | 12 teams | 204 picks (pool 2876) | 214 roster rows | 0 trades / 0 moves |
-| 2024 | season | 12 teams | 204 picks (pool 2887) | 212 roster rows | 0 trades / 0 moves |
-| 2023 | season | 12 teams | 204 picks (pool 9649) | 212 roster rows | 0 trades / 0 moves |
-| 2022 | season | 12 teams | 204 picks (pool 9003) | 210 roster rows | 0 trades / 0 moves |
+| 2026 | season | 12 teams | 204 picks (pool 11618) | 0 roster rows | 1 trades / 369 moves |
+| 2025 | season | 12 teams | 204 picks (pool 2876) | 214 roster rows | 9 trades / 476 moves |
+| 2024 | season | 12 teams | 204 picks (pool 2887) | 212 roster rows | 3 trades / 426 moves |
+| 2023 | season | 12 teams | 204 picks (pool 9649) | 212 roster rows | 8 trades / 484 moves |
+| 2022 | season | 12 teams | 204 picks (pool 9003) | 210 roster rows | 1 trades / 533 moves |
 | 2021 | season | 12 teams | 204 picks (pool 8339) | 0 roster rows | 0 trades / 0 moves |
 | 2020 | season | 12 teams | 204 picks (pool 7863) | 0 roster rows | 0 trades / 0 moves |
-| 2019 | season | 12 teams | 204 picks (pool 7252) | 204 roster rows | 0 trades / 0 moves |
-| 2018 | season | 12 teams | 204 picks (pool 6437) | 204 roster rows | 0 trades / 0 moves |
+| 2019 | season | 12 teams | 204 picks (pool 7252) | 204 roster rows | 0 trades / 504 moves |
+| 2018 | season | 12 teams | 204 picks (pool 6437) | 204 roster rows | 4 trades / 496 moves |
 | 2017 | leagueHistory | 12 teams | 204 picks (pool 7057) | 204 roster rows | 0 trades / 0 moves |
 | 2016 | leagueHistory | 12 teams | 204 picks (pool 5082) | 203 roster rows | 0 trades / 0 moves |
 | 2015 | leagueHistory | 12 teams | 204 picks (pool 4749) | 204 roster rows | 0 trades / 0 moves |
@@ -28,22 +28,22 @@ _Robot: tools/pull_espn_archive.py · 2026-11-27T12:21Z · league 19583._
 | 2005 | — | ESPN has no league (HTTP 404/404) | | | |
 | 2004 | — | ESPN has no league (HTTP 404/404) | | | |
 
-Totals: 4283 picks · 252 team-seasons · 3702 roster rows · 0 moves.
+Totals: 4283 picks · 252 team-seasons · 3702 roster rows · 3288 moves.
 
 ## Transaction probe
 
-- 2026: mTransactions2 sp1 → 0 rows, keys []
-- 2026: activity HTTP 400, 0 topics, keys NoneType
-- 2025: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
-- 2025: activity HTTP 400, 0 topics, keys NoneType
-- 2024: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
-- 2024: activity HTTP 400, 0 topics, keys NoneType
-- 2023: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
-- 2023: activity HTTP 400, 0 topics, keys NoneType
-- 2022: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
-- 2022: activity HTTP 400, 0 topics, keys NoneType
+- 2026: mTransactions2 sp1 → 96 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
+- 2025: mTransactions2 sp1 → 57 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
+- 2024: mTransactions2 sp1 → 36 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
+- 2023: mTransactions2 sp1 → 45 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
+- 2022: mTransactions2 sp1 → 44 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
 - 2021: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
 - 2021: activity HTTP 400, 0 topics, keys NoneType
+- 2020: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
+- 2020: activity HTTP 400, 0 topics, keys NoneType
+- 2019: mTransactions2 sp1 → 59 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
+- 2018: mTransactions2 sp1 → 238 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status', 'transactions']
+- 2017: mTransactions2 sp1 → 0 rows, keys []
 
 ## Unresolved owners (add an alias to data/SPL_Owner_Registry.csv, then re-run)
 
