@@ -23,6 +23,14 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.22.1 (backend v0.16.1) · 🔒 **Keepers v2.1** (Mike's notes on the new screen). The first switch button is your **team name**
+  (Bad Attitude Gang), not "Mine". **Plans are visible**: plan chips right on your keepers card + "＋ New plan" + ⚖️ Compare (⋯ with one plan),
+  with a one-line nudge while you only have one. **📈 3-year outlook** is back: every keeper by '27/'28/'29, terminated ones as penalties,
+  Total + KP left rows, "Your 1st" row with a tag. **Declaring opens by itself when the off-season starts** (Season_Calendar 2027 offseason =
+  Feb 15) and closes on Signing Day (its date, else 10 days before the SPL Draft): backend `autoWin_` in mod_keepers, a commish open/close or a
+  rehearsal still wins; the hourly tick + ledger robot post "the off-season is here: declaring is open" once and email owners. Until then the
+  Declare button is hidden and the screen says when it opens. **Keeper market search**: type any name to search every roster (yours too) at any
+  price; can't-keeps show why. Chat text now says Team → Keepers. SW `splhq-v50`.
 - 2026-11-27 · v0.22.0 (backend v0.16.0) · 📝 **SPL Draft room + League tab cleanup** (Mike). New backend part `mod_spldraft.js` on the draft engine:
   17-round snake over the 12 Slot Draft slots; when the commish opens it the board is built once: each cell's owner from the pick ledger (traded
   picks land with their owner, "via X's pick"), a Franchise Tag eats the tagger's own 1st, keepers (active contracts with KP for that season,

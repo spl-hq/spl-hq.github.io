@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **Keeper declaring opens when the off-season starts** (Mike), by itself from the calendar, and stays open until Signing Day
+  closes it. No commish step needed; rehearsals and a commish close still work. Plans + the 3-year outlook are always on the keepers card.
+
 - 2026-11-27 · **League tab = Drafts first** (Mike). A row of draft buttons (SPL Draft, Divisional, Slot, Shoot Out) always in the same spot so
   owners can get back into a room; Standings move to the bottom of Match; Trades + Keepers tiles go (the GM desk on Team has both).
 - 2026-11-27 · **SPL Draft room** (Mike: "let's build it"). The board is frozen when the commish opens the draft (pick ledger + keepers + tags);

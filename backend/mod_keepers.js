@@ -50,10 +50,31 @@ function contracts_() {
 function draftRound_(name, season) { var n = pn_(name), p = gold_("Draft_Picks.csv").filter(function (d) { return Number(d.season) === season && pn_(d.player) === n; })[0]; return p ? Number(p.round) : 0; }
 
 // ---- window
+// Declaring opens by itself when the off-season starts (Season_Calendar "offseason") and closes on Signing Day ("signing_day", else
+// 10 days before "spl_draft"; no date yet = open until one is set or the commish closes it). A rehearsal or a commish open/close is
+// stored in KEEPER_WINDOW and wins; a finished or wiped rehearsal gives way to the calendar once the off-season starts.
+function autoWin_() {
+  try {
+    var y = SEASON + 1, cal = gold_("Season_Calendar.csv"), get = function (k) { var r = cal.filter(function (c) { return Number(c.season) === y && c.key === k; })[0]; return r && r.date ? String(r.date).slice(0, 10) : ""; };
+    var off = get("offseason"); if (!off || Date.now() < new Date(off + "T00:00:00-05:00").getTime()) return null;
+    var closes = get("signing_day"); if (!closes && get("spl_draft")) { var t = new Date(get("spl_draft") + "T12:00:00Z"); t.setUTCDate(t.getUTCDate() - 10); closes = t.toISOString().slice(0, 10); }
+    return { season: y, mode: "live", status: "open", closes: closes, by: "calendar", ts: off, done: false, auto: true };
+  } catch (e) { return null; }
+}
 function kwin_() {
-  var w = parseJ_(prop_("KEEPER_WINDOW")); if (!w || !w.season) return null;
+  var w = parseJ_(prop_("KEEPER_WINDOW"));
+  if (!w || !w.season) w = autoWin_(); else if (w.mode === "test" && w.done) w = autoWin_() || w; // a finished rehearsal shows until the off-season opens
+  if (!w) return null;
   if (w.status === "open" && w.closes && Date.now() > new Date(w.closes + "T23:59:59-05:00").getTime()) w.status = "closed"; // closes by itself at midnight ET
   return w;
+}
+// The calendar opened it: tell the league once (league chat + owners' announcement emails).
+function keepAnnounce_() {
+  var w = kwin_(); if (!w || !w.auto || w.status !== "open" || prop_("KEEPER_AUTO_ANN") === String(w.season)) return;
+  setProp_("KEEPER_AUTO_ANN", String(w.season));
+  botPost_("league", "🔒 The off-season is here: " + w.season + " keeper declaring is open" + (w.closes ? " until Signing Day (" + w.closes + ")" : " until Signing Day") + ". Plan + declare: SPL HQ → Team → Keepers. 10 KP, three keepers max.", "keep:" + w.season);
+  owners_().forEach(function (o) { notify_(o.owner, "announce", w.season + " keeper declaring is open", "The off-season is here. Plan and declare your " + w.season + " keepers in SPL HQ" + (w.closes ? " by " + w.closes : "") + ". You can change them until Signing Day.\n\n" + APP_URL + "#keepers"); });
+  log_("kauto", "open " + w.season);
 }
 function setKwin_(w) { setProp_("KEEPER_WINDOW", JSON.stringify(w)); }
 function kwindow_(me, b) {
@@ -64,7 +85,7 @@ function kwindow_(me, b) {
     if (mode === "live" && rows_("KeeperDecl").some(function (r) { return Number(r.season) === season && r.mode === "live" && r.status === "final"; }))
       return { ok: false, error: "The " + season + " Signing Day is already done." };
     w = { season: season, mode: mode, status: "open", closes: closes, by: me.owner, ts: new Date().toISOString(), done: false }; setKwin_(w);
-    botPost_("league", "🔒 " + (mode === "test" ? "🧪 Rehearsal: " : "") + season + " Keeper Signing Day is open" + (closes ? " until " + closes : "") + ". Plan + declare: SPL HQ → League → Keepers. 10 KP, three keepers max.", "keep:" + season);
+    botPost_("league", "🔒 " + (mode === "test" ? "🧪 Rehearsal: " : "") + season + " Keeper Signing Day is open" + (closes ? " until " + closes : "") + ". Plan + declare: SPL HQ → Team → Keepers. 10 KP, three keepers max.", "keep:" + season);
     if (mode === "live") owners_().forEach(function (o) { notify_(o.owner, "announce", season + " Keeper Signing Day is open", "Declare your " + season + " keepers in SPL HQ" + (closes ? " by " + closes : "") + ".\n\n" + APP_URL + "#keepers"); });
     log_("kwindow", "open " + mode + " " + season + " by " + me.owner); return { ok: true, window: w };
   }
@@ -185,6 +206,6 @@ function kdeclare_(me, b, desk) {
   return { ok: true, id: id, items: p.items, kp: p.kp, warns: p.warns, state: keepers_(me, { season: w.season }) };
 }
 function keepLedger_() { // final declarations for the robot (league facts only); finalizes a window that closed by date
-  try { keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); }
+  try { keepAnnounce_(); keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); }
   return rows_("KeeperDecl").filter(function (r) { return r.status === "final"; }).map(pubDecl_);
 }

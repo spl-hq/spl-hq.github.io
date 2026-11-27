@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.16.0";
+var VERSION = "0.16.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -324,7 +324,7 @@ function menuCheck() {
     "\nESPN · test " + WRITE_LEAGUE + ": " + line(h.espnTest) +
     "\nEmails left today: " + h.mailLeft + boot);
 }
-function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
+function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepAnnounce_(); keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
 
 // ---------------------------------------------------------------- parts: the rest of the backend, in this same scope
 // logic.js is the CORE (config, routing, Sheet helpers, sign-in, questions, health). The other parts live next to it as

@@ -421,6 +421,11 @@ tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:point
 .kterm button.on{border-color:#1E407C;box-shadow:0 0 0 2px #1E407C inset} .kterm2{margin-top:8px;font-size:13px;display:flex;align-items:center;gap:6px;flex-wrap:wrap} .kterm2 button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font:700 12px var(--mono);color:#1E407C} .kterm2 button.on{background:#1E407C;color:#fff} .kterm2 small{color:var(--muted);width:100%}
 .kplan{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer} .kplan.on{border-color:#1E407C;box-shadow:0 0 0 1px #1E407C inset} .kplan small{display:block} .kplyr{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;margin-top:4px;color:var(--muted)} .kplyr b{font-family:var(--mono);color:#041E42}
 .knote{margin-top:12px;padding:10px 12px;border-radius:10px;background:#FFF6E3;border:1px solid #E3D3AE;font-size:13px;line-height:1.5;color:#5a4410} .krules p{font-size:14px;margin:10px 0 0} .ksh h2{font-size:20px}
+.kswitch button:first-child{flex:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .kplans{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px}
+.kplans button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font:700 13px var(--body,inherit);color:#5F666D;cursor:pointer} .kplans button.on{background:#1E407C;border-color:#1E407C;color:#fff}
+.kplans button.add{border-style:dashed;color:#1E407C} .kplans button.more{margin-left:auto;color:#1E407C}
+.kout table{width:100%} .kout td small{display:block;color:var(--muted);font-size:11px} .kout tr.kcut b{text-decoration:line-through;color:var(--muted)} .kout tr.kcut td.n{color:var(--coral)}
+.kout tr.ktot td{border-top:2px solid var(--line);font-weight:800} .kout tr.kleft td{font-weight:800;color:#1E407C} .kout td.n{font-family:var(--mono);text-align:right;width:44px}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -476,7 +481,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.22.0";
+var APP_VERSION = "0.22.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1532,7 +1537,7 @@ function kv1(v) { return v == null ? '<span class="muted">·</span>' : v === "F"
 //   League (#keepers=@league)  Signing Day board · each team's committed cap (tap = read-only) · every contract · how keepers work
 //   A team (#keepers=<id>)     read-only; commish can enter that owner's keepers while Signing Day is open (#keepers=<id>!)
 function kseg(on) {
-  return '<div class="kswitch">' + (ME ? [["", "Mine"]] : []).concat([["@market", "Market"], ["@league", "League"]]).map(function (x) {
+  return '<div class="kswitch">' + (ME ? [["", (owner(ME.owner) || {}).team || "My team"]] : []).concat([["@market", "Market"], ["@league", "League"]]).map(function (x) {
     return '<button class="' + (x[0] === on ? "on" : "") + '" onclick="go(\'keepers\'' + (x[0] ? ',\'' + x[0] + '\'' : '') + ')">' + x[1] + '</button>'; }).join("") + '</div>';
 }
 function ksheet(html) {
@@ -1589,14 +1594,28 @@ function kMineView(id, edit) {
       '<small>' + (via ? '<span class="gold">On ' + esc(oname(via)) + '\'s roster · trade for him first</span>' : (s.tag ? "🏷️ Tag · " : "") + s.term + '-yr · ' + esc(kyrsTxt(sch, y0))) + '</small></span><b class="kp">' + sch[y0] + '</b><span class="kmore">⋯</span></div>'); });
   for (var e = kept; e < 3; e++) rows.push('<div class="kslot add" onclick="kAddSheet(\'' + id + '\')"><span class="kn"><b>＋ Add a keeper</b><small>' + (t0.room > 0 ? "Up to " + t0.room + " KP fits" : "No KP left in this plan") + '</small></span></div>');
   C.pens.forEach(function (c) { if (typeof c.pen[y0] === "number") rows.push('<div class="kslot pen"><span class="kn"><b>Cap penalty · ' + esc(c.player) + '</b><small>From an earlier termination</small></span><b class="kp coral">' + c.pen[y0] + '</b><span class="kmore"></span></div>'); });
-  var fut = KP_YRS.slice(1).map(function (y) { return "'" + String(y).slice(2) + ": " + C.yrs[y].room + " KP left" + (C.yrs[y].first ? " · no 1st" : ""); }).join(" · ");
-  html += '<div class="card kslots"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:2px"><div class="eyebrow" style="margin:0">' + (edit ? esc(o.name) + "'s" : "Your") + ' keepers</div>' +
-    '<button class="kplanbtn" onclick="kPlans(\'' + id + '\')">' + (list.length > 1 ? esc(sc.name) : "Plans") + ' ▾</button></div>' + rows.join("") +
-    '<p class="kfine">' + esc(fut) + (list.length < 2 ? ' · Try another way: Plans ▾' : '') + '</p></div>';
+  html += '<div class="card kslots"><div class="eyebrow" style="margin:0 0 8px">' + (edit ? esc(o.name) + "'s" : "Your") + ' ' + y0 + ' keepers</div>' +
+    '<div class="kplans">' + list.map(function (x, i) { return '<button class="' + (i === si ? "on" : "") + '" onclick="ksel(\'' + id + '\',' + i + ');render()">' + esc(x.name) + '</button>'; }).join("") +
+    (list.length < 3 ? '<button class="add" onclick="kNew(\'' + id + '\')">＋ New plan</button>' : '') +
+    '<button class="more" onclick="kPlans(\'' + id + '\')">' + (list.length > 1 ? "⚖️ Compare" : "⋯") + '</button></div>' +
+    (list.length < 2 ? '<p class="kfine" style="margin:0 0 4px">Weighing options? Make up to 3 plans (keep both, cut one, tag a stud) and compare them before you declare.</p>' : '') +
+    rows.join("") + '</div>';
+  // 📈 3-year outlook: every keeper by season, totals, KP left (Mike: "I loved the 3 year outlook")
+  var orow = function (name, sub, sch, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td><b>' + esc(name) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</td>' + KP_YRS.map(function (y) { var v = sch[y]; return '<td class="n">' + (v == null ? '<span class="muted">·</span>' : v) + '</td>'; }).join("") + '</tr>'; };
+  var orows = C.carried.map(function (c) { var cut = cuts.indexOf(c.id) >= 0, sch = {};
+      KP_YRS.forEach(function (y) { var v = c.kp[y]; if (v != null) sch[y] = cut ? (typeof v === "number" ? v / 2 : null) : v; });
+      return orow(c.player, cut ? "✂️ terminated · penalty" : c.tag ? "🏷️ tag" : "", sch, cut ? "kcut" : ""); }).join("") +
+    (sc.signs || []).map(function (s2) { return orow("🆕 " + s2.player, (s2.tag ? "🏷️ tag · " : "") + s2.term + "-yr", kschedule(s2, y0)); }).join("") +
+    C.pens.map(function (c) { var sch = {}; KP_YRS.forEach(function (y) { if (typeof c.pen[y] === "number") sch[y] = c.pen[y]; }); return orow(c.player, "old cap penalty", sch, "kcut"); }).join("");
+  html += '<div class="card kout"><div class="eyebrow">📈 3-year outlook · ' + esc(sc.name) + '</div><table><tr><th>Keeper</th>' + KP_YRS.map(function (y) { return '<th class="n">\'' + String(y).slice(2) + '</th>'; }).join("") + '</tr>' +
+    (orows || '<tr><td colspan="4" class="muted">Nobody yet. Add a keeper above.</td></tr>') +
+    '<tr class="ktot"><td>Total</td>' + KP_YRS.map(function (y) { var t = C.yrs[y]; return '<td class="n">' + Math.round((t.k + t.p + t.h) * 10) / 10 + '</td>'; }).join("") + '</tr>' +
+    '<tr class="kleft"><td>KP left</td>' + KP_YRS.map(function (y) { var r2 = C.yrs[y].room; return '<td class="n' + (r2 < 0 ? " coral" : "") + '">' + r2 + '</td>'; }).join("") + '</tr>' +
+    (KP_YRS.some(function (y) { return C.yrs[y].first; }) ? '<tr><td>Your 1st</td>' + KP_YRS.map(function (y) { return '<td class="n">' + (C.yrs[y].first ? '<span class="coral">✗</span>' : '✓') + '</td>'; }).join("") + '</tr>' : '') + '</table></div>';
   // ③ declare
   if (W) html += '<button class="btn kdeclbtn" onclick="kDeclare(\'' + id + '\')">' + (dec ? "Declare the change" : "Declare " + (edit ? "these" : "my") + " keepers") + ' · ' + (10 - t0.room) + ' / 10 KP</button>' +
     (dec ? '<p class="kfine" style="text-align:center"><a href="javascript:void 0" onclick="KCHANGE[\'' + id + '\']=0;render()">Keep what I declared</a></p>' : '');
-  else html += '<p class="kfine" style="text-align:center">Declaring opens in the app before Signing Day. Your plans are saved' + (edit ? "" : " with your sign-in") + '.</p>';
+  else { var offd = (calOf(y0, "offseason") || {}).date; html += '<p class="kfine" style="text-align:center">🔒 Declaring opens ' + (offd ? esc(fmtDate(offd)) + ', when the off-season starts' : 'when the off-season starts') + ', and stays open until Signing Day. Plan now: your plans are saved' + (edit ? "" : " with your sign-in") + '.</p>'; }
   html += '<div class="card kmkt" onclick="go(\'keepers\',\'@market\')"><b>🔎 Keeper market</b><small>Keepable players on every other roster at ' + Math.max(2, Math.floor(t0.room)) + ' KP or less ›</small></div>';
   return html;
 }
@@ -1701,7 +1720,7 @@ window.kDeclare = function (id) {
 };
 // 🔎 Keeper market: every keepable player on the other rosters at or under a price. A player under contract brings his contract
 // (that's his price); everyone else costs his draft round. Tap a player for his file (and Trade for him).
-var KMKT = { max: null, pos: "" };
+var KMKT = { max: null, pos: "", q: "" };
 function kMarketView() {
   var y0 = KP_YRS[0], me = ME && ME.owner, room = me ? kcalc(me, kscn(me)[ksel(me)]).yrs[y0].room : 10;
   if (KMKT.max == null) KMKT.max = Math.max(2, Math.min(10, Math.floor(room)));
@@ -1709,26 +1728,28 @@ function kMarketView() {
   html += '<div class="card"><div class="eyebrow">🔎 Keeper market · ' + y0 + '</div><p class="kfine" style="margin:0 0 8px">Every player on another SPL roster you could keep at <b>' + KMKT.max + ' KP or less</b>' + (me ? ' (you have ' + room + ' left)' : '') + '. Trade for him before Signing Day, then keep him.</p>' +
     '<div class="kfil">' + [2, 3, 4, 6, 8, 10].map(function (v) { return '<button class="' + (v === KMKT.max ? "on" : "") + '" onclick="KMKT.max=' + v + ';render()">≤ ' + v + '</button>'; }).join("") + '</div>' +
     '<div class="kfil">' + ["", "QB", "RB", "WR", "TE"].map(function (v) { return '<button class="' + (v === KMKT.pos ? "on" : "") + '" onclick="KMKT.pos=\'' + v + '\';render()">' + (v || "All") + '</button>'; }).join("") + '</div>' +
+    '<input type="text" id="kmq" placeholder="Search any player in the league" autocomplete="off" value="' + esc(KMKT.q) + '" style="margin-top:6px">' +
     '<div id="kmk">' + (ME ? '<p class="muted">Loading every roster…</p>' : needSignIn("to see every roster")) + '</div></div>';
   return html;
 }
 function kMarketDraw() {
-  var box = $("#kmk"); if (!box || !ME) return;
+  var box = $("#kmk"), inp = $("#kmq"); if (!box || !ME) return;
+  if (inp && !inp._k) { inp._k = 1; inp.oninput = function () { KMKT.q = inp.value; kMarketDraw(); }; }
   loadRosters().then(function (d) {
-    var y0 = KP_YRS[0], me = ME.owner, out = [];
-    d.teams.forEach(function (t) { if (t.owner === me) return; t.players.forEach(function (p) {
-      if (p.pos === "D/ST" || p.pos === "K" || (KMKT.pos && p.pos !== KMKT.pos)) return;
-      var why = kblocked(p.n, me), c = contractOf(p.n), price, how;
+    var y0 = KP_YRS[0], me = ME.owner, out = [], q = pnorm(KMKT.q), search = q.length > 1;
+    d.teams.forEach(function (t) { if (t.owner === me && !search) return; t.players.forEach(function (p) {
+      if (p.pos === "D/ST" || p.pos === "K" || (KMKT.pos && p.pos !== KMKT.pos) || (search && pnorm(p.n).indexOf(q) < 0)) return;
+      var why = kblocked(p.n, me), c = contractOf(p.n), price = null, how;
       if (why && /under contract/.test(why) && c && c.kp[y0] != null) { price = c.kp[y0] === "F" ? 0 : c.kp[y0]; how = "🔒 contract" + (c.kp[y0] === "F" ? " · tag year" : "") + " · " + kyrsTxt(c.kp, y0).replace("Last year of his deal", "last year"); }
-      else if (why) return;
+      else if (why) { if (!search) return; how = "Can't keep: " + why; }
       else { var r = draftedRound(p.n, y0 - 1); price = KP_ROUND(r); how = (r ? "R" + r : "Undrafted") + " · new deal" + (/Free agent|Waiver/.test(p.acq || "") ? " · picked up (OK if by Wk 14)" : ""); }
-      if (price > KMKT.max) return;
+      if (!search && price > KMKT.max) return;
       out.push({ p: p, o: t.owner, price: price, how: how }); }); });
-    out.sort(function (a, b) { return (b.p.sp || 0) - (a.p.sp || 0) || a.price - b.price; });
-    box.innerHTML = out.length ? '<p class="kfine" style="margin:0 0 4px">' + out.length + ' players · best season first · tap for his file</p>' + out.slice(0, 60).map(function (x) {
-      return '<div class="kcand" onclick="pcard(\'' + esc(x.p.n).replace(/'/g, "\\'") + '\')"><span class="kn"><b>' + esc(x.p.n) + '</b> <small class="kpos">' + esc(x.p.pos) + (x.p.tm ? " · " + esc(x.p.tm) : "") + '</small>' +
-        '<small>' + av(x.o, "sm") + ' ' + esc(oname(x.o)) + ' · ' + esc(x.how) + (x.p.sp != null ? ' · ' + fmtPts(x.p.sp) + ' pts' : '') + '</small></span><b class="kp">' + x.price + '</b></div>'; }).join("")
-      : '<p class="muted">Nobody at ' + KMKT.max + ' KP or less' + (KMKT.pos ? " at " + KMKT.pos : "") + '. Try a higher price.</p>';
+    out.sort(function (a, b) { return (b.p.sp || 0) - (a.p.sp || 0) || (a.price || 0) - (b.price || 0); });
+    box.innerHTML = out.length ? '<p class="kfine" style="margin:6px 0 4px">' + out.length + ' player' + (out.length > 1 ? "s" : "") + (search ? ' named like "' + esc(KMKT.q) + '" · any price' : ' · best season first') + ' · tap for his file</p>' + out.slice(0, 60).map(function (x) {
+      return '<div class="kcand' + (x.price == null ? " off" : "") + '" onclick="pcard(\'' + esc(x.p.n).replace(/'/g, "\\'") + '\')"><span class="kn"><b>' + esc(x.p.n) + '</b> <small class="kpos">' + esc(x.p.pos) + (x.p.tm ? " · " + esc(x.p.tm) : "") + '</small>' +
+        '<small>' + av(x.o, "sm") + ' ' + (x.o === me ? "Yours" : esc(oname(x.o))) + ' · ' + esc(x.how) + (x.p.sp != null ? ' · ' + fmtPts(x.p.sp) + ' pts' : '') + '</small></span><b class="kp">' + (x.price == null ? "✗" : x.price) + '</b></div>'; }).join("")
+      : '<p class="muted" style="margin-top:8px">' + (search ? 'Nobody on an SPL roster matches "' + esc(KMKT.q) + '"' + (KMKT.pos ? " at " + KMKT.pos : "") + '. Free agents can\'t be kept.' : 'Nobody at ' + KMKT.max + ' KP or less' + (KMKT.pos ? " at " + KMKT.pos : "") + '. Try a higher price, or search a name.') + '</p>';
   }).catch(function (e) { box.innerHTML = '<p class="coral">' + esc(e.message || "Couldn't load the rosters from ESPN.") + '</p>'; });
 }
 // League: the board, every team's committed cap, every contract

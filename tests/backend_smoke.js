@@ -392,6 +392,16 @@ ok(e.post({ action: "kdeclare", token: mike, signs: [] }).error === "Signing Day
 ok(e.post({ action: "kwindow", token: joeTok, op: "wipe" }).error === "Ops only", "only ops wipes a rehearsal");
 r = e.post({ action: "kwindow", token: mike, op: "wipe" }); ok(r.ok && r.wiped === 1 && e.get({ action: "ledger" }).keepers.length === 0 && !e.post({ action: "keepers", token: mike }).window, "ops wipes the rehearsal");
 
+// 15c · 🔒 declaring opens by itself when the off-season starts (Season_Calendar 2027 offseason = Feb 15)
+{ const realNow = Date.now; Date.now = () => Date.parse("2027-03-01T15:00:00Z");
+  try { const k = makeEnv({}, espnOk); k.M.menuCheck(); const kp = k.post({ action: "issue", token: (() => { const m = /\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(k.alerts[0]); return k.post({ action: "login", pin: m[1] }).token; })(), owner: "glen" }).phrase;
+    const kg = k.post({ action: "login", pin: kp }).token, w = k.post({ action: "keepers", token: kg }).window;
+    ok(w && w.auto && w.mode === "live" && w.status === "open" && w.season === 2027, "off-season start opens live declaring by itself");
+    k.get({ action: "ledger" }); k.get({ action: "ledger" });
+    ok(k.sheets.Chat.rows.filter(x => /off-season is here: 2027 keeper declaring is open/.test(x[4])).length === 1, "…and tells the league once");
+  } finally { Date.now = realNow; } }
+ok(!e.post({ action: "keepers", token: mike }).window, "before the off-season: nothing open");
+
 // 5b · 🔥 reel reactions (WS4)
 r = e.post({ action: "react", token: glen, key: "2026-12:slate", emoji: "🔥" }); ok(r.ok && r.on && r.reacts["🔥"].join() === "glen", "Glen reacts 🔥");
 e.post({ action: "react", token: owen, key: "2026-12:slate", emoji: "🔥" }); e.post({ action: "react", token: owen, key: "2026-12:high", emoji: "😂" });
