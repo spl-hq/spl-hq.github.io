@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.15.0";
+var VERSION = "0.16.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -71,7 +71,7 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, reacts: 1, social: 1, opsx: 1, keepers: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
+var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
 var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1 }; // rate-limited per owner
 function doPost(e) {
   SH_ = {}; ROWS_ = {};
@@ -105,6 +105,7 @@ function doPost(e) {
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
       case "pickfix":  return json(!desk ? { ok: false, error: "Commish only" } : isBackup_(me) ? { ok: false, error: "Pick fixes are Joe's call (read-only in Joe's view)." } : pickFix_(me, b));
       case "drafts":   return json(drafts_(me));
+      case "splpool":  return json(splPool_());
       case "reacts":   return json(reacts_(b.keys));
       case "react":    return json(react_(me, b));
       case "social":   return json(social_(me, b));
@@ -332,7 +333,7 @@ function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepFinalize
 // this is its pattern, WS6). Each part is cached 5 min under VERSION (bump VERSION when you change any part) with a 6-hour
 // last-good copy; a part that won't compile is skipped for its last good copy and ops is emailed (once an hour).
 var REPO = "spl-hq/spl-hq.github.io";
-var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_ops", "mod_keepers"];
+var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_spldraft", "mod_ops", "mod_keepers"];
 function compiles_(src) { try { new Function(src); return true; } catch (e) { return false; } }
 function badPush_(name, r) {
   if (!r || r.getResponseCode() !== 200) return; var c = CacheService.getScriptCache(); if (c.get("badpush_" + name)) return; c.put("badpush_" + name, "1", 3600);

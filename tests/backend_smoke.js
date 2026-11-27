@@ -53,6 +53,10 @@ function makeEnv(props, espn) {
   return { M, sheets, mails, alerts, props, get: p => out(M.doGet({ parameter: p })), post: b => out(M.doPost({ postData: { contents: JSON.stringify(b) } })) };
 }
 const espnOk = (url) => {
+  if (/kona_player_info/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ players: [
+    { player: { id: 1, fullName: "Bijan Robinson", defaultPositionId: 2, proTeamId: 1, draftRanksByRankType: { PPR: { rank: 1 } } } },
+    { player: { id: 2, fullName: "Ja'Marr Chase", defaultPositionId: 3, proTeamId: 4, draftRanksByRankType: { PPR: { rank: 2 } } } },
+    { player: { id: 3, fullName: "Some Kicker", defaultPositionId: 5, proTeamId: 4, draftRanksByRankType: { PPR: { rank: 3 } } } }] }) };
   if (/proTeamSchedules/.test(url)) return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ settings: { proTeams: [{ id: 2, proGamesByScoringPeriod: { 12: [{ homeProTeamId: 2, awayProTeamId: 21, date: 1 }] } }] } }) };
   const lid = /leagues\/(\d+)/.exec(url)[1];
   const pl = (name, pos, team, slot, pts) => ({ lineupSlotId: slot, acquisitionType: "DRAFT", playerPoolEntry: { appliedStatTotal: pts, player: { fullName: name, defaultPositionId: pos, proTeamId: team,
@@ -333,6 +337,30 @@ L = e.get({ action: "ledger" }); ok(L.drafts.length === 1 && L.drafts[0].kind ==
 e.post({ action: "draftwipe", token: mike });
 r = e.post({ action: "settings", token: glen }); ok(r.notify.draft === false || r.notify.draft === true, "draft notify key exists");
 ok(e.post({ action: "settings", token: owen }).notify.draft === true, "on-the-clock emails on by default");
+
+// 15a2 · 📝 SPL Draft room (mod_spldraft): board from the pick ledger + keepers, 17-round snake, one player per turn
+r = e.post({ action: "splpool", token: glen }); ok(r.ok && r.players.length === 2 && r.players[0][1] === "Bijan Robinson", "player pool: ESPN PPR ranks, no kickers");
+r = e.post({ action: "draftopen", token: joeTok, kind: "spl", mode: "test", season: 2027, order: order12 }); ok(r.ok, "commish opens a rehearsal SPL Draft");
+const sp = r.id;
+D = e.post({ action: "drafts", token: glen }).drafts.find(x => x.id === sp);
+const kc = D.cells.filter(c => c.skip === "keeper");
+ok(D.cells.length === 204 && D.rounds === 17 && kc.length === 10 && D.turns.length === 194, "204 cells, the 10 carried 2027 keepers skip theirs: 194 turns");
+const mk = kc.filter(c => c.owner === "murello").map(c => c.r);
+ok(mk.length === 2 && mk.every(r => r >= 16), "Mike's 2 keepers fill his last two picks (rounds 16–17)");
+ok(D.cells[12].orig === order12[11] && D.cells[23].orig === order12[0], "snake: round 2 runs 12 → 1");
+ok(D.clock === D.cells[0].owner && D.at.n === 1, "the owner of pick 1 (per the pick ledger) is on the clock");
+ok(e.sheets.Chat.rows.some(x => x[6] === sp && /10 keepers and 0 Franchise Tag/.test(x[4])), "league hears the board is set");
+const tok = { murello: mike, salerno: owen, glen, hoosier: hoos, reilly: joeTok };
+const pick = (pl, extra) => e.post(Object.assign({ action: "draftpick", token: joeTok, id: sp, choice: { player: pl, pos: "RB", tm: "ATL" } }, extra || {}));
+ok(/is gone .*keeper/.test(pick("Brock Bowers").error), "a keeper can't be drafted");
+r = pick("Bijan Robinson"); ok(r.ok && r.draft.cells[0].player === "Bijan Robinson" && r.draft.picks.length === 1, "commish enters pick 1");
+ok(/is gone \(R1\.1/.test(pick("bijan  robinson").error), "same player twice refused (names normalized)");
+{ const up = e.post({ action: "drafts", token: mike }).drafts.find(x => x.id === sp).clock, other = up === "glen" ? owen : glen;
+  ok(/on the clock/.test(e.post({ action: "draftpick", token: other, id: sp, choice: { player: "X Y" } }).error), "can't pick out of turn"); }
+for (let i = 2; i <= 12; i++) pick("Player " + i);
+ok(e.sheets.Chat.rows.some(x => x[6] === sp && /SPL Draft · Round 1: .*Bijan Robinson/.test(x[4])) && !e.sheets.Chat.rows.some(x => x[6] === sp && /pick 2:/.test(x[4])), "one chat post per round, not per pick");
+ok(e.post({ action: "draftundo", token: joeTok, id: sp }).ok && e.post({ action: "drafts", token: mike }).drafts.find(x => x.id === sp).picks.length === 11, "undo works on the SPL board");
+e.post({ action: "draftwipe", token: mike });
 
 // 15b · 🔒 Keeper Signing Day: scenarios + declarations (mod_keepers)
 r = e.post({ action: "kplans", token: mike, season: 2027, plans: [{ name: "Keep both", signs: [{ player: "Bench Guy", term: 2 }] }, { name: "=Cut Bowers", cuts: ["C2025-murello-bowers"] }, {}, {}] });

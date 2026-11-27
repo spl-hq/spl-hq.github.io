@@ -23,9 +23,9 @@ jobs:
       - name: Commit if changed
         run: |
           git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
-          git add data league-data.js
+          git add data league-data.js player-history.js
           # ledger_status.json alone changing (timestamp) is still committed at most once a day so the Ops desk sees the robot alive
-          if git diff --cached --quiet -- data/Draft_Pick_Ownership.csv data/Trade_Log.csv data/Keeper_Contracts.csv data/Offseason_Drafts.csv data/test league-data.js; then
+          if git diff --cached --quiet -- data/Draft_Pick_Ownership.csv data/Trade_Log.csv data/Keeper_Contracts.csv data/Offseason_Drafts.csv data/Draft_Picks.csv data/Keeper_Declarations.csv data/test league-data.js; then
             last=$(git log -1 --format=%ct -- data/ledger_status.json 2>/dev/null || echo 0); now=$(date +%s)
             if [ $((now - last)) -lt 86000 ]; then git reset -q; echo "nothing new"; exit 0; fi
           fi

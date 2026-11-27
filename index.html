@@ -476,7 +476,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.21.2";
+var APP_VERSION = "0.22.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -608,7 +608,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "league", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", droom: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", droom: "league" };
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
 function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
@@ -817,10 +817,11 @@ function soon(title, what) {
 var WEEK = null;
 SCREENS.match = function (arg) {
   if (!ME) return '<h2>Match</h2>' + needSignIn("to see your matchup");
-  return '<h2>Match</h2><div id="mt"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>';
+  return '<h2>Match</h2><div id="mt"><div class="card"><p class="muted">Loading from ESPN…</p></div></div><div id="mtst" class="card"><p class="muted">Standings loading…</p></div>';
 };
 SCREENS.match.after = function (arg) {
   if (!$("#mt")) return;
+  fillStand("#mtst");
   var parts = String(arg || "").split(":"), wk = Number(parts[0]) || null, gi = parts[1] != null && parts[1] !== "" ? Number(parts[1]) : null;
   var draw = function (d) {
     if (!$("#mt")) return;
@@ -1995,7 +1996,7 @@ var OFF_EVENTS = [
   ["div_slot_drafts", "🧭", "Divisional Draft", "April. Four owners build the four divisions, snake style.", "div"],
   ["div_slot_drafts", "🎰", "Slot Draft", "April. Everyone claims an SPL Draft slot 1–12.", "slot"],
   ["signing_day", "🔒", "Keeper Signing Day", "10 days before the SPL Draft. 10 KP, three keepers max."],
-  ["spl_draft", "📝", "SPL Draft", "17 rounds, snake. The live draft room is next on the build list."],
+  ["spl_draft", "📝", "SPL Draft", "17 rounds, snake, live in the app: traded picks, keepers and tags already on the board."],
   ["shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week 14: Rule 1 sets the matchups that decide a playoff spot, then the top seeds pick their Week 14 opponents.", "shootout"]];
 SCREENS.offseason = function () {
   var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, o = offOrder(y), start = calDate("offseason");
@@ -2013,8 +2014,8 @@ SCREENS.offseason = function () {
   });
   html += '<div id="offpast"></div>';
   if (isDesk()) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · run a draft</div><p style="margin:0 0 10px">Open a draft and the league gets pinged; whoever\'s on the clock gets an email. You can enter a pick for an owner who isn\'t signed up yet, and undo the last pick.</p>' +
-    '<div class="row" style="flex-wrap:wrap"><button class="btn" onclick="opOpen(\'div\',\'test\')">🧪 Rehearse Divisional</button><button class="btn" onclick="opOpen(\'slot\',\'test\')">🧪 Rehearse Slot</button>' + (lastFinal(curSeason()) && !offSeason() ? '<button class="btn" onclick="opOpen(\'shootout\',\'test\')">🧪 Rehearse Shoot Out</button>' : '') + '</div>' +
-    '<div class="row" style="flex-wrap:wrap;margin-top:8px"><button class="btn ghost" onclick="opOpen(\'div\',\'live\')">Open the real ' + next + ' Divisional</button><button class="btn ghost" onclick="opOpen(\'slot\',\'live\')">Open the real ' + next + ' Slot</button>' + (seasonPhase() === "shootout" ? '<button class="btn ghost" onclick="opOpen(\'shootout\',\'live\')">Open the real ' + curSeason() + ' Shoot Out</button>' : '') + '</div>' +
+    '<div class="row" style="flex-wrap:wrap"><button class="btn" onclick="opOpen(\'div\',\'test\')">🧪 Rehearse Divisional</button><button class="btn" onclick="opOpen(\'slot\',\'test\')">🧪 Rehearse Slot</button><button class="btn" onclick="opOpen(\'spl\',\'test\')">🧪 Rehearse SPL Draft</button>' + (lastFinal(curSeason()) && !offSeason() ? '<button class="btn" onclick="opOpen(\'shootout\',\'test\')">🧪 Rehearse Shoot Out</button>' : '') + '</div>' +
+    '<div class="row" style="flex-wrap:wrap;margin-top:8px"><button class="btn ghost" onclick="opOpen(\'div\',\'live\')">Open the real ' + next + ' Divisional</button><button class="btn ghost" onclick="opOpen(\'slot\',\'live\')">Open the real ' + next + ' Slot</button><button class="btn ghost" onclick="opOpen(\'spl\',\'live\')">Open the real ' + next + ' SPL Draft</button>' + (seasonPhase() === "shootout" ? '<button class="btn ghost" onclick="opOpen(\'shootout\',\'live\')">Open the real ' + curSeason() + ' Shoot Out</button>' : '') + '</div>' +
     (isOps() ? '<p style="margin:10px 0 0;font-size:13px"><a href="javascript:void 0" onclick="opWipe()">Clear all rehearsals</a> (ops)</p>' : '') + '</div>';
   return html + '<p class="muted" style="font-size:12px">Rules: constitution §B, §E, §F. Orders computed from ESPN history; the commish confirms the order when he opens a draft. Results are copied to the repo by the ledger robot.</p>';
 };
@@ -2032,6 +2033,7 @@ function draftTile(x) {
     (x.status === "open" ? '<b>' + (mine ? "You're on the clock" : "Live · pick " + (x.picks.length + 1) + " of " + x.turns.length + " · " + esc(oname(x.clock)) + " is up") + '</b>' : '<b>Done</b> <small class="muted">' + esc(resultLine(x)) + '</small>') + ' ›</div>';
 }
 function resultLine(x) {
+  if (x.kind === "spl") return x.picks.length + " picks · " + (x.cells || []).filter(function (c) { return c.skip === "keeper"; }).length + " keepers";
   if (x.kind === "shootout") return (x.pairs || []).slice(0, 3).map(function (p) { return oname(p[0]) + " v " + oname(p[1]); }).join(" · ") + " …";
   if (x.kind === "slot") return [1, 2, 3].map(function (k) { return k + ". " + oname(x.slots[k]); }).join(" · ") + " …";
   return Object.keys(x.divs || {}).map(function (f) { return x.divs[f].map(oname).join("/"); }).join(" · ");
@@ -2039,6 +2041,13 @@ function resultLine(x) {
 // Commish: open a draft (order prefilled; ↑ to adjust)
 var OP = null;
 window.opOpen = function (kind, mode) {
+  if (kind === "spl") { var ns = (LD("seasons").slice(-1)[0] || 2026) + 1, g = ((window.LEAGUE_DATA || {}).offseason || {})[String(ns)] || {}, sl = g.slots || {}, src = "the " + ns + " Slot Draft";
+    var fin = (DRAFTS ? DRAFTS.drafts : []).filter(function (x) { return x.kind === "slot" && x.status === "done" && x.season === ns && (mode === "test" || x.mode === "live"); })[0];
+    if (!Object.keys(sl).length && fin) { sl = fin.slots; src = (fin.mode === "test" ? "the 🧪 rehearsal " : "the ") + ns + " Slot Draft"; }
+    var list = Object.keys(sl).length ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { return [sl[k], "Slot " + k]; }) : null;
+    if (!list) { var o = offOrder(mode === "live" ? ns - 1 : lastDoneSeason()) || { slot: [] }; src = "no Slot Draft yet: " + (o.y || "") + "'s finish (slot = Slot Draft choice order)"; list = o.slot.map(function (x, i) { return [x[0], "Slot " + (i + 1) + " · " + x[1]]; }); }
+    var have = list.map(function (x) { return x[0]; }); OWNERS.forEach(function (w) { if (have.indexOf(w.id) < 0) { var gap = list.filter(function (x) { return !x[0]; })[0]; if (gap) gap[0] = w.id; } });
+    OP = { kind: kind, mode: mode, season: ns, src: src, done: true, list: list }; opPaint(); return; }
   if (kind === "shootout") { var cy = curSeason(), th = shootThru(cy), SS = shootSeeds(cy, th);
     OP = { kind: kind, mode: mode, season: cy, src: cy, thru: th, done: th >= regWks() - 1, list: SS.map(function (t) { return [t.owner, t.label]; }), fixed: shootRule1(SS) }; opPaint(); return; }
   var y = (LD("seasons").slice(-1)[0] || 2026), src = mode === "live" ? y : lastDoneSeason(), o = offOrder(src) || { div: [], slot: [] };
@@ -2049,13 +2058,14 @@ window.opOpen = function (kind, mode) {
 function opPaint() {
   var sh = $("#sheet"); if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
   if (OP.kind === "shootout") return soPaint(sh);
-  var K = OP.kind === "div" ? "Divisional Draft" : "Slot Draft", miss = OP.list.some(function (x) { return !x[0]; });
+  var K = OP.kind === "div" ? "Divisional Draft" : OP.kind === "spl" ? "SPL Draft" : "Slot Draft", miss = OP.list.some(function (x) { return !x[0]; });
   sh.innerHTML = '<div class="sbody"><div class="row" style="justify-content:space-between"><h2 style="margin:0">' + (OP.mode === "test" ? "🧪 " : "") + esc(K) + '</h2><button class="btn ghost" onclick="opClose()">Close</button></div>' +
-    '<p class="muted" style="margin:6px 0 10px">' + (OP.mode === "test" ? "Rehearsal using " + OP.src + "'s real order. Practice only: anyone can watch, Mike can clear it." : "The real " + OP.season + " draft. The league is pinged when you open it.") + '</p>' +
+    (OP.kind === "spl" ? '<p class="muted" style="margin:6px 0 10px">' + (OP.mode === "test" ? "Rehearsal. " : "The real " + OP.season + " draft. ") + 'Order from ' + esc(OP.src) + '. 17 rounds, snake. When you open it the board is built once: traded picks land with their owners (pick ledger), a Franchise Tag takes the tagger\'s own 1st, and keepers fill each team\'s last open picks (keeper contracts on file for ' + OP.season + ').</p>' : '') +
+    '<p class="muted" style="margin:6px 0 10px' + (OP.kind === "spl" ? ";display:none" : "") + '">' + (OP.mode === "test" ? "Rehearsal using " + OP.src + "'s real order. Practice only: anyone can watch, Mike can clear it." : "The real " + OP.season + " draft. The league is pinged when you open it.") + '</p>' +
     (OP.mode === "live" && !OP.done ? '<div class="card" style="border-color:var(--coral);padding:10px 14px"><small class="coral">The ' + OP.src + ' season isn\'t final yet: this order is "if the season ended today". Fix it with ↑ before opening.</small></div>' : '') +
     '<div class="card">' + orderList(OP.list, true) + '</div>' + (OP.note ? '<p class="gold" style="font-size:12px">' + esc(OP.note) + '</p>' : '') +
     (miss ? '<p class="coral" style="font-size:13px">Some spots are TBD (the bracket isn\'t played yet).</p>' : '') +
-    (OP.kind === "slot" ? '' : '<p class="muted" style="font-size:12px">Snake: 1-2-3-4-4-3-2-1. Each pick takes an owner into your division or assigns him to another (one assigned-in per division).</p>') +
+    (OP.kind === "slot" || OP.kind === "spl" ? '' : '<p class="muted" style="font-size:12px">Snake: 1-2-3-4-4-3-2-1. Each pick takes an owner into your division or assigns him to another (one assigned-in per division).</p>') +
     '<button class="btn" style="width:100%" ' + (miss ? "disabled" : "") + ' onclick="opGo(this)">Open the draft</button></div>';
 }
 function soPaint(sh) {
@@ -2084,8 +2094,8 @@ window.opWipe = function () { if (!confirm("Clear every rehearsal draft?")) retu
 // The draft room. Polls every 4 s while open.
 var DSEL = null;
 SCREENS.droom = function (id) {
-  if (!ME) return back("offseason", "Off-season") + '<h2>Draft room</h2>' + needSignIn("to enter the draft room");
-  return back("offseason", "Off-season") + '<div id="dr"><div class="card"><p class="muted">Loading the draft…</p></div></div>';
+  if (!ME) return back("league", "League") + '<h2>Draft room</h2>' + needSignIn("to enter the draft room");
+  return back("league", "League") + '<div id="dr"><div class="card"><p class="muted">Loading the draft…</p></div></div>';
 };
 SCREENS.droom.after = function (id) {
   DSEL = null; var last = "";
@@ -2096,6 +2106,7 @@ SCREENS.droom.after = function (id) {
 function drawRoom(x) {
   var box = $("#dr"); if (!box) return;
   if (!x) { box.innerHTML = '<div class="card"><p style="margin:0">This draft was cancelled or cleared.</p></div>'; return; }
+  if (x.kind === "spl") { DR = x; splRoom(x); return; }
   var me = ME.owner, mine = x.clock === me, canPick = x.status === "open" && (mine || isDesk()), n = x.picks.length;
   var html = '<h2 style="margin-bottom:4px">' + (x.mode === "test" ? "🧪 " : "") + x.season + ' ' + esc(x.name) + '</h2>' + (x.mode === "test" ? '<p class="muted" style="margin:0 0 10px;font-size:13px">Rehearsal: practice only.</p>' : '');
   if (x.status === "open") html += '<div class="card' + (mine ? " lead" : "") + '"' + (mine ? "" : ' style="border-color:var(--gold)"') + '><div class="eyebrow">⏱️ Pick ' + (n + 1) + ' of ' + x.turns.length + '</div><div style="font:800 26px var(--head);text-transform:uppercase">' + (mine ? "You're on the clock" : esc(oname(x.clock)) + " is up") + '</div>' +
@@ -2109,7 +2120,7 @@ function drawRoom(x) {
   box.innerHTML = html; DR = x;
 }
 var DR = null;
-function pickTxt(x, p) { return x.kind === "shootout" ? (p.by === "auto" ? "vs " + oname(p.choice.opp) + " (the last two)" : "picked " + oname(p.choice.opp)) : x.kind === "slot" ? "slot " + p.choice.slot : p.choice.into === p.owner ? "took " + oname(p.choice.pick) : "sent " + oname(p.choice.pick) + " to " + oname(p.choice.into) + "'s division"; }
+function pickTxt(x, p) { if (x.kind === "spl") return "took " + p.choice.player + (p.choice.pos ? " (" + p.choice.pos + ")" : ""); return x.kind === "shootout" ? (p.by === "auto" ? "vs " + oname(p.choice.opp) + " (the last two)" : "picked " + oname(p.choice.opp)) : x.kind === "slot" ? "slot " + p.choice.slot : p.choice.into === p.owner ? "took " + oname(p.choice.pick) : "sent " + oname(p.choice.pick) + " to " + oname(p.choice.into) + "'s division"; }
 function snakePicks(slot) { return [1, 2, 3].map(function (r) { return (r - 1) * 12 + (r % 2 ? slot : 13 - slot); }); }
 function slotBoard(x, canPick) {
   return '<div class="card"><div class="eyebrow">🎰 SPL Draft slots · snake</div><div class="grid">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { var o = x.slots[k];
@@ -2127,6 +2138,76 @@ function shootBoard(x, canPick) {
       (canPick ? '<p class="muted" style="font-size:12px;margin:0">Tap the team ' + esc(oname(x.clock)) + ' wants in Week ' + regWks() + '.' + (pool.length === 3 ? ' The other two play each other.' : '') + '</p>' : '') + '</div>'; }
   return html;
 }
+// ---- 📝 The SPL Draft room (mod_spldraft): 🎯 Pick (best available from ESPN's PPR ranks, search, position, or type a name) ·
+// 📋 Board (round by round; 🔒 keepers, 🏷️ tags, your picks shaded) · 🧢 Teams (any team's haul so far, keepers included).
+var SPLV = "pick", SPLP = "", SPLQ = "", SPLT = null, POOL = null;
+function loadPool() {
+  if (POOL && Date.now() - POOL._at < 6 * 36e5) return Promise.resolve(POOL);
+  var c = kept("splpool", 6); if (c) { POOL = c; POOL._at = Date.now(); return Promise.resolve(POOL); }
+  return authed("splpool").then(function (d) { if (!d.ok) throw new Error(d.error); d._at = Date.now(); POOL = d; keep("splpool", d); return d; });
+}
+function rp(c) { return c.r + "." + String(c.p).padStart(2, "0"); }
+function splRoom(x) {
+  var box = $("#dr"), me = ME.owner, n = x.picks.length, at = x.at, mine = x.clock === me, canPick = x.status === "open" && (mine || isDesk());
+  var myNext = x.cells.filter(function (c) { return c.owner === me && !c.skip && !c.player; }).slice(0, 4);
+  var html = '<h2 style="margin-bottom:4px">' + (x.mode === "test" ? "🧪 " : "") + x.season + ' SPL Draft</h2>' + (x.mode === "test" ? '<p class="muted" style="margin:0 0 10px;font-size:13px">Rehearsal: practice only.</p>' : '');
+  if (x.status === "open" && at) html += '<div class="card' + (mine ? " lead" : "") + '"' + (mine ? "" : ' style="border-color:var(--gold)"') + '><div class="eyebrow">⏱️ Round ' + at.r + ' · pick ' + rp(at) + ' · #' + at.n + ' overall</div><div style="font:800 26px var(--head);text-transform:uppercase">' + (mine ? "You're on the clock" : esc(oname(x.clock)) + " is up") + '</div>' +
+    (at.owner !== at.orig ? '<small' + (mine ? '' : ' class="muted"') + '>via ' + esc(oname(at.orig)) + '\'s pick</small><br>' : '') +
+    (myNext.length && !mine ? '<small class="muted">Your next: ' + myNext.map(rp).join(" · ") + ' (' + (myNext[0].n - at.n) + ' picks away)</small>' : '') +
+    (!mine && isDesk() ? '<p style="font-size:13px;margin:6px 0 0">Commish: you can enter ' + esc(oname(x.clock)) + '\'s pick (the league sees it was you).</p>' : '') + '</div>';
+  else if (x.status !== "open") html += '<div class="card lead"><div class="eyebrow">🏁 Final</div><div style="font:800 22px var(--head);text-transform:uppercase">The ' + x.season + ' SPL Draft is in the books</div></div>';
+  var last = x.picks.slice(-3).reverse();
+  if (last.length) html += '<div class="card" style="padding:10px 14px">' + last.map(function (p, i) { var c = x.cells[x.turnAt[x.picks.length - 1 - i]] || {};
+    return '<div class="kv"><span style="text-align:left;flex:1"><small class="muted mono">' + rp(c) + '</small> <b>' + esc(p.choice.player) + '</b> <small class="muted">' + esc((p.choice.pos || "") + " " + (p.choice.tm || "")) + '</small></span><span class="muted">' + esc(oname(p.owner)) + '</span></div>'; }).join("") + '</div>';
+  html += '<div class="hscroll" style="margin-bottom:10px">' + [["pick", "🎯 " + (canPick ? "Pick" : "Best available")], ["board", "📋 Board"], ["teams", "🧢 Teams"]].map(function (t) {
+    return '<button class="chip' + (SPLV === t[0] ? " on" : "") + '" onclick="splView(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join("") + '</div><div id="splv"></div>';
+  if (x.status === "done" && isDesk()) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · do on ESPN</div><p style="margin:0">Key the board into ESPN\'s offline draft (keepers included). The app copies its board into the draft history by itself.</p></div>';
+  if (isDesk()) html += '<div class="row" style="flex-wrap:wrap;margin:12px 0">' + (n ? '<button class="btn ghost" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') + (x.status === "open" ? '<button class="btn ghost" onclick="drCancel(\'' + x.id + '\')">Cancel draft</button>' : '') + '</div>';
+  box.innerHTML = html; splDraw();
+}
+window.splView = function (v) { SPLV = v; splRoom(DR); };
+function splDraw() {
+  var x = DR, el = $("#splv"); if (!x || !el) return;
+  if (SPLV === "board") { var rs = []; for (var r = 1; r <= x.rounds; r++) rs.push(r);
+    el.innerHTML = rs.map(function (r) { var cs = x.cells.filter(function (c) { return c.r === r; });
+      return '<div class="card" style="padding:10px 14px"><div class="eyebrow">Round ' + r + (r % 2 ? "" : " · snake back") + '</div>' + cs.map(function (c) { var now = x.at && x.at.n === c.n;
+        return '<div class="kv' + (c.owner === ME.owner ? " mine" : "") + '"' + (now ? ' style="background:rgba(184,138,46,.14)"' : '') + '><span style="text-align:left;flex:1"><small class="muted mono">' + rp(c) + '</small> ' +
+          (c.skip === "keeper" ? '🔒 <b>' + esc(c.player) + '</b> <small class="gold">keeper</small>' : c.skip === "tag" ? '🏷️ <small class="gold">Franchise Tag · ' + esc(c.player) + '</small>' : c.player ? '<b>' + esc(c.player) + '</b> <small class="muted">' + esc((c.pos || "") + " " + (c.tm || "")) + '</small>' : now ? '<span class="via">ON THE CLOCK</span>' : '<span class="muted">—</span>') +
+          '</span><span class="muted" style="font-size:13px">' + esc(oname(c.owner)) + (c.owner !== c.orig ? ' <small>(' + esc(oname(c.orig)) + '\'s)</small>' : '') + '</span></div>'; }).join("") + '</div>'; }).join("");
+    var cur = el.querySelector('[style*="184,138,46"]'); if (cur && x.status === "open") setTimeout(function () { cur.scrollIntoView({ block: "center" }); }, 50); return; }
+  if (SPLV === "teams") { var t = SPLT || ME.owner, cs = x.cells.filter(function (c) { return c.owner === t; });
+    var kpos = function (c) { var k = contractsOf(c.owner).filter(function (z) { return pn(z.player) === pn(c.player); })[0]; return k ? k.pos : ""; };
+    cs.forEach(function (c) { if (c.skip === "keeper" && !c.pos) c.pos = kpos(c); });
+    var pos = {}; cs.forEach(function (c) { if (c.player && c.skip !== "tag") { var k = c.pos || "?"; pos[k] = (pos[k] || 0) + 1; } });
+    el.innerHTML = '<div class="hscroll" style="margin-bottom:8px">' + OWNERS.map(function (o) { return '<button class="chip' + (o.id === t ? " on" : "") + '" onclick="SPLT=\'' + o.id + '\';splDraw()">' + esc(o.name) + '</button>'; }).join("") + '</div>' +
+      '<div class="card"><div class="eyebrow">🧢 ' + esc(oname(t)) + ' · ' + cs.filter(function (c) { return c.player && c.skip !== "tag"; }).length + ' of ' + cs.filter(function (c) { return c.skip !== "tag"; }).length + '</div>' + chips(Object.keys(pos).map(function (k) { return k + " " + pos[k]; })) +
+      cs.map(function (c) { return '<div class="kv"><span style="text-align:left;flex:1"><small class="muted mono">' + rp(c) + '</small> ' + (c.skip === "keeper" ? '🔒 <b>' + esc(c.player) + '</b> <small class="muted">' + esc(c.pos || "") + ' · keeper</small>' : c.skip === "tag" ? '🏷️ <small class="gold">1st spent on the tag (' + esc(c.player) + ')</small>' : c.player ? '<b>' + esc(c.player) + '</b> <small class="muted">' + esc((c.pos || "") + " " + (c.tm || "")) + '</small>' : '<span class="muted">to come</span>') + '</span>' +
+        (c.owner !== c.orig ? '<small class="muted">' + esc(oname(c.orig)) + '\'s pick</small>' : '') + '</div>'; }).join("") + '</div>'; return; }
+  var canPick = x.status === "open" && (x.clock === ME.owner || isDesk());
+  el.innerHTML = '<div class="card"><input type="text" id="splq" placeholder="Search players…" autocomplete="off" value="' + esc(SPLQ) + '" oninput="SPLQ=this.value;splList()" style="margin-bottom:8px">' +
+    '<div class="hscroll">' + ["", "QB", "RB", "WR", "TE", "D/ST"].map(function (p) { return '<button class="chip' + (SPLP === p ? " on" : "") + '" onclick="SPLP=\'' + p + '\';splDraw()">' + (p || "All") + '</button>'; }).join("") + '</div>' +
+    '<div id="spll"><p class="muted">Loading ESPN\'s player pool…</p></div>' +
+    (canPick ? '<details style="margin-top:10px"><summary class="muted" style="cursor:pointer;font-size:13px">Not on the list? Type him in</summary><div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><input type="text" id="splN" placeholder="Player name" style="flex:2;min-width:150px">' +
+      '<select id="splP" style="flex:1">' + ["QB", "RB", "WR", "TE", "D/ST"].map(function (p) { return '<option>' + p + '</option>'; }).join("") + '</select><input type="text" id="splT" placeholder="Team" maxlength="4" style="width:70px">' +
+      '<button class="btn" onclick="splManual()">Draft</button></div></details>' : '') + '</div>';
+  splList();
+}
+window.splList = function () {
+  var el = $("#spll"); if (!el) return;
+  loadPool().then(function (P) { var x = DR; if (!$("#spll")) return;
+    var gone = {}; x.cells.forEach(function (c) { if (c.player) gone[pn(c.player)] = 1; });
+    var q = pn(SPLQ), canPick = x.status === "open" && (x.clock === ME.owner || isDesk());
+    var list = P.players.filter(function (p) { return !gone[pn(p[1])] && (!SPLP || p[2] === SPLP) && (!q || pn(p[1]).indexOf(q) >= 0); }).slice(0, 40);
+    el.innerHTML = list.length ? list.map(function (p, i) { return '<div class="kv"><span style="text-align:left;flex:1"><small class="muted mono">' + (p[4] < 999 ? p[4] : "–") + '</small> <b>' + esc(p[1]) + '</b> <small class="muted">' + esc(p[2] + " " + p[3]) + '</small></span>' +
+      (canPick ? '<button class="chip" onclick="splPick(' + i + ')">Draft</button>' : '') + '</div>'; }).join("") : '<p class="muted">No one left who matches.</p>';
+    el._list = list;
+  }).catch(function (e) { el.innerHTML = '<p class="coral" style="font-size:13px">' + esc(e.message) + '</p><p class="muted" style="font-size:12px">You can still type a player in below.</p>'; });
+};
+function pn(s) { return String(s || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv)\b/g, "").replace(/[^a-z0-9]/g, ""); }
+window.splPick = function (i) { var p = ($("#spll") || {})._list[i]; if (!p) return; var x = DR;
+  if (!confirm(oname(x.clock) + " takes " + p[1] + " (" + p[2] + ", " + p[3] + ") at " + rp(x.at) + "?")) return; drSend({ player: p[1], pos: p[2], tm: p[3], pid: p[0] }); };
+window.splManual = function () { var n = ($("#splN") || {}).value || "", x = DR; n = n.trim(); if (!n) return toast("Type a name");
+  var pos = $("#splP").value, tm = ($("#splT").value || "").trim().toUpperCase(); if (!confirm(oname(x.clock) + " takes " + n + " (" + pos + (tm ? ", " + tm : "") + ") at " + rp(x.at) + "?")) return; drSend({ player: n, pos: pos, tm: tm }); };
 window.drShoot = function (id) { var x = DR; if (!confirm(oname(x.clock) + " picks " + oname(id) + " for Week " + regWks() + "?")) return; drSend({ opp: id }); };
 function divBoard(x, canPick) {
   var placed = {}; Object.keys(x.divs).forEach(function (f) { x.divs[f].forEach(function (id) { placed[id] = 1; }); });
@@ -2148,7 +2229,7 @@ window.drDiv = function (into) { if (!DSEL) return; var p = DSEL.pick, x = DR;
   drSend({ pick: p, into: into }); };
 window.drSlot = function (k) { var x = DR; if (!confirm(oname(x.clock) + " takes slot " + k + " (picks " + snakePicks(k).join(", ") + "…)?")) return; drSend({ slot: k }); };
 function drSend(choice) { var x = DR;
-  authed("draftpick", { id: x.id, n: x.picks.length + 1, choice: choice }).then(function (r) { if (!r.ok) { if (r.stale) { DRAFTS = null; render(); } throw new Error(r.error); } DSEL = null; DRAFTS = null; toast("✓ Pick in"); drawRoom(r.draft); }).catch(function (e) { toast(e.message); }); }
+  authed("draftpick", { id: x.id, n: x.picks.length + 1, choice: choice }).then(function (r) { if (!r.ok) { if (r.stale) { DRAFTS = null; render(); } throw new Error(r.error); } DSEL = null; DRAFTS = null; SPLQ = ""; toast("✓ Pick in"); drawRoom(r.draft); }).catch(function (e) { toast(e.message); }); }
 window.drUndo = function (id) { if (!confirm("Take back the last pick?")) return; authed("draftundo", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; render(); }).catch(function (e) { toast(e.message); }); };
 window.drCancel = function (id) { if (!confirm("Cancel this draft? The league is told.")) return; authed("draftcancel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; go("offseason"); }).catch(function (e) { toast(e.message); }); };
 // Reel cards: you're on the clock (needs you), a draft is live, results (7 days)
@@ -2490,10 +2571,9 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
 }
 
 // ---- League grid
+// Mike 11/27: Standings → bottom of Match; Trades + Keepers live on the Team tab (GM desk). Drafts get their own row of buttons up top.
 var LEAGUE_TILES = [
-  ["standings", "📊", "Standings", "Live from ESPN"], ["trades", "🔁", "Trades", "Offers + trade wire"],
-  ["offseason", "🗓️", "Off-season", "Live drafts + Signing Day"],
-  ["keepers", "🔒", "Keepers", "Cap + forecaster"], ["draft", "📝", "Draft", "Every pick, who dealt what"],
+  ["offseason", "🗓️", "Off-season", "Calendar + Signing Day"], ["draft", "📝", "Draft boards", "Every pick since 2006"],
   ["history", "📚", "History", "Champions since 2006"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
   ["feedback", "💡", "Ideas", "Feedback to the site"]
@@ -2511,9 +2591,29 @@ function phaseHero() {
 }
 SCREENS.league = function () {
   var tiles = LEAGUE_TILES.slice(); if (seasonPhase() === "offseason") tiles.sort(function (a, b) { return (b[0] === "offseason") - (a[0] === "offseason"); });
-  return '<h2>League</h2>' + phaseHero() + '<div class="grid">' + tiles.map(function (t) {
+  return '<h2>League</h2>' + phaseHero() + '<div class="eyebrow" style="margin:4px 0 8px">🗓️ Drafts</div><div id="lgdr" class="grid" style="margin-bottom:16px">' + DRAFT_BTNS.map(function (k) { return draftBtn(k, null); }).join("") + '</div>' +
+    '<div class="eyebrow" style="margin:4px 0 8px">🏛️ The league</div><div class="grid">' + tiles.map(function (t) {
     return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span style="font-size:22px">' + t[1] + '</span><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></button>';
   }).join("") + '</div>';
+};
+// 🗓️ Drafts row: one button per draft, always in the same place (Mike 11/27: "once I leave a draft room I can't find my way back").
+// Each goes to the newest live draft of its kind (else the newest rehearsal, else the off-season calendar); 🔴 = open now, gold = you're on the clock.
+var DRAFT_BTNS = [["spl", "📝", "SPL Draft"], ["div", "🧭", "Divisional"], ["slot", "🎰", "Slot Draft"], ["shootout", "🎯", "Shoot Out"]];
+function draftBtn(k, D) {
+  var ls = D ? D.drafts.filter(function (x) { return x.kind === k[0]; }) : [], pick = ls.filter(function (x) { return x.status === "open"; })[0] || ls.filter(function (x) { return x.mode === "live"; })[0] || ls[0];
+  var mine = pick && pick.status === "open" && ME && pick.clock === ME.owner, sub = !D ? (ME ? "…" : "Sign in") : !pick ? "Not open yet" :
+    (pick.mode === "test" ? "🧪 " : "") + pick.season + " · " + (pick.status === "open" ? (mine ? "You're on the clock" : "🔴 Live · " + oname(pick.clock) + " up") : "Final");
+  return '<button class="tile"' + (mine ? ' style="border-color:var(--gold)"' : pick && pick.status === "open" ? ' style="border-color:var(--lime)"' : '') + ' onclick="' + (pick ? "go('droom','" + pick.id + "')" : "go('offseason')") + '"><span style="font-size:22px">' + k[1] + '</span><b>' + k[2] + '</b><small' + (mine ? ' class="gold"' : '') + '>' + esc(sub) + '</small></button>';
+}
+SCREENS.league.after = function () {
+  if (!ME) return;
+  loadDrafts().then(function (D) { var g = $("#lgdr"); if (!g) return;
+    var extra = D.drafts.filter(function (x) { return !DRAFT_BTNS.some(function (k) { return k[0] === x.kind; }); });
+    g.innerHTML = DRAFT_BTNS.map(function (k) { return draftBtn(k, D); }).join("");
+    var all = D.drafts.slice().sort(function (a, b) { return (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1) || new Date(b.updated || b.ts) - new Date(a.updated || a.ts); });
+    if (all.length > 1) g.insertAdjacentHTML("afterend", '<details class="card" style="margin-top:-6px"><summary class="muted" style="cursor:pointer;font-size:13px">Every draft room (' + all.length + ')</summary>' + all.map(function (x) {
+      return '<div class="kv" style="cursor:pointer" onclick="go(\'droom\',\'' + x.id + '\')"><span style="text-align:left;flex:1">' + (x.mode === "test" ? "🧪 " : "") + x.season + ' ' + esc(x.name) + '</span><span class="muted">' + (x.status === "open" ? "Live ›" : "Final ›") + '</span></div>'; }).join("") + '</details>');
+  }).catch(function () {});
 };
 SCREENS.soon = function (what) {
   var t = LEAGUE_TILES.filter(function (x) { return x[0] === "soon=" + what; })[0] || ["", "", "Coming soon", ""];
@@ -2527,22 +2627,24 @@ function sortTeams(ts) {
     return (b.w - b.l) - (a.w - a.l) || b.pf - a.pf;
   });
 }
-SCREENS.standings = function () { return back("league", "League") + '<h2>Standings</h2><div id="stand" class="card"><p class="muted">Loading from ESPN…</p></div>'; };
-SCREENS.standings.after = function () {
+SCREENS.standings = function () { return back("match", "Match") + '<h2>Standings</h2><div id="stand" class="card"><p class="muted">Loading from ESPN…</p></div>'; };
+SCREENS.standings.after = function () { fillStand("#stand"); };
+// Standings live at the bottom of Match (Mike 11/27: no Standings tile on League); #standings stays for old links.
+function fillStand(sel) {
   load("standings", 300000).then(function (d) {
     if (!d.ok) throw new Error(d.error);
     var byDiv = {}; d.teams.forEach(function (t) { (byDiv[t.div || "League"] = byDiv[t.div || "League"] || []).push(t); });
     var all = sortTeams(d.teams);
-    var html = '<div class="eyebrow">' + esc(d.name) + (d.week ? " · Week " + d.week : "") + ' · ESPN</div><h3>Overall</h3><table><tr><th>#</th><th>Team</th><th class="n">W–L</th><th class="n">PF</th></tr>' +
+    var html = '<div class="eyebrow">📊 Standings' + (d.week ? " · Week " + d.week : "") + ' · ESPN</div><h3>Overall</h3><table><tr><th>#</th><th>Team</th><th class="n">W–L</th><th class="n">PF</th></tr>' +
       all.map(function (x, i) { var o = owner(x.owner) || teamOwner(x.name); return '<tr><td class="muted">' + (i + 1) + '</td><td>' + esc(x.name) + (o ? ' <span class="muted">· ' + esc(o.name) + '</span>' : '') + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td><td class="n">' + x.pf + '</td></tr>'; }).join("") + '</table>';
     Object.keys(byDiv).sort().forEach(function (k) {
       if (k === "League") return;
       html += '<h3 style="margin-top:18px">' + esc(k) + '</h3><table>' + sortTeams(byDiv[k]).map(function (x) { return '<tr><td>' + esc(x.name) + '</td><td class="n">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + '</td></tr>'; }).join("") + '</table>';
     });
     html += '<p class="muted" style="margin-top:10px;font-size:12px">Updated ' + new Date(d.at).toLocaleString() + '. Refreshes every 15 min.</p>';
-    $("#stand").innerHTML = html;
-  }).catch(function (e) { $("#stand").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
-};
+    if ($(sel)) $(sel).innerHTML = html;
+  }).catch(function (e) { if ($(sel)) $(sel).innerHTML = '<div class="eyebrow">📊 Standings</div><p class="muted" style="margin:6px 0 0">Couldn\'t reach ESPN (' + esc(e.message) + '). Pull down to retry.</p>'; });
+}
 
 // ---- ⚙️ Settings (MAFFL REEL pattern): @handle, contact info, email toggles
 var NOTIFY = [["Trades", [["received", "Offer received", "Someone sends you a trade offer"], ["countered", "Counter-offer", "They counter your offer"],
@@ -2859,11 +2961,11 @@ SCREENS.ops.after = function () {
 // A missing or off-screen target (not a desk owner, still loading) is skipped. Step: [screen to show ("" = stay), target, title, text, only-if].
 var TOUR_STEPS = [
   ["home", "#tabs [data-t='home']", "Home", "One card a screen: scroll up for the next. Swipe ← when you're done with a card, → to save it; ⭐ Saved and ✓ Done wait at the top. The crest up top brings you here too."],
-  ["match", "#tabs [data-t='match']", "⚔️ Match", "Your game, live from ESPN: the score, both lineups and every other game. Step back through any week."],
+  ["match", "#tabs [data-t='match']", "⚔️ Match", "Your game, live from ESPN: the score, both lineups and every other game. Standings sit at the bottom. Step back through any week."],
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat and a DM with any owner. Trade news and commish alerts land here too. Tag an owner with his @handle."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Standings, the trade wire, off-season drafts, keepers, every SPL Draft, champions since 2006, GM rankings, rivalries and the rules."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out), then the off-season calendar, every draft board since 2006, champions, GM rankings, rivalries and the rules."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish: trades to approve, Mike's questions for you (the number on this button), and opening the off-season drafts and Signing Day.", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
 var TR = null;

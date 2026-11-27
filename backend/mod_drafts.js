@@ -15,15 +15,15 @@
 //          fixed = the Rule 1 matchups (playoff-berth deciders), computed in the app and confirmed by the commish when he opens it.
 //          The best-seeded unmatched owner picks any unmatched opponent; the last two left are paired automatically (by "auto").
 //          Week 14 on ESPN is set by the commish (LM Tools → Edit Schedule) until the /schedule write is captured.
-// Coming next on the same engine: spl (the SPL Draft room).
+//   spl  · the SPL Draft (17 rounds, snake, traded picks, keepers + tags skip their cells): mod_spldraft.js.
 // mode "test" = rehearsal (anyone can watch, ops can wipe, robot writes data/test/); "live" = the real thing for that season.
 // The on-the-clock owner picks; a commish (Joe or Mike) can enter a pick for him (recorded as "by"). Commish can undo the last pick.
-var DRAFT_KINDS = { div: { name: "Divisional Draft", n: 4 }, slot: { name: "Slot Draft", n: 12 }, shootout: { name: "Shoot Out Draft", n: 12 } };
+var DRAFT_KINDS = { div: { name: "Divisional Draft", n: 4 }, slot: { name: "Slot Draft", n: 12 }, shootout: { name: "Shoot Out Draft", n: 12 }, spl: { name: "SPL Draft", n: 12 } };
 function turns_(kind, order) { return kind === "div" ? order.concat(order.slice().reverse()) : order.slice(); }
 function draftRows_() { return rows_("Drafts").map(function (d) { var o = parseJ_(d.order); d.fixedA = [];
-  if (o && !Array.isArray(o) && Array.isArray(o.seeds)) { d.fixedA = Array.isArray(o.fixed) ? o.fixed : []; o = o.seeds; } // shootout: { seeds, fixed }
+  if (o && !Array.isArray(o) && Array.isArray(o.seeds)) { d.fixedA = Array.isArray(o.fixed) ? o.fixed : []; d.cellsA = Array.isArray(o.cells) ? o.cells : []; o = o.seeds; } // shootout: { seeds, fixed } · spl: { seeds, cells }
   d.orderA = Array.isArray(o) ? o : []; return d; }); }
-function cleanRow_(r) { delete r.orderA; delete r.fixedA; return r; }
+function cleanRow_(r) { delete r.orderA; delete r.fixedA; delete r.cellsA; return r; }
 // Shoot Out: who is matched (Rule 1 pairs + picks), whose turn it is, and the Week 14 pairs.
 function shootState_(s, fixed) {
   var opp = {}; fixed.forEach(function (p) { opp[p[0]] = p[1]; opp[p[1]] = p[0]; });
@@ -45,6 +45,7 @@ function draftState_(d, sel) {
     picks.forEach(function (p) { if (s.divs[p.choice.into]) { s.divs[p.choice.into].push(p.choice.pick); if (p.choice.into !== p.owner) s.assigned[p.choice.into]++; } }); }
   if (d.kind === "slot") { s.slots = {}; picks.forEach(function (p) { s.slots[p.choice.slot] = p.owner; }); }
   if (d.kind === "shootout") shootState_(s, d.fixedA || []);
+  if (d.kind === "spl") splState_(s, d);
   return s;
 }
 function drafts_(me) {
@@ -54,7 +55,7 @@ function drafts_(me) {
 function findDraft_(id) { var all = draftRows_(), i = -1; all.forEach(function (d, k) { if (d.draft_id === id) i = k; }); return i < 0 ? null : { row: all[i], idx: i }; }
 function draftOpen_(me, b) {
   var kind = String(b.kind || ""), K = DRAFT_KINDS[kind]; if (!K) return { ok: false, error: "Unknown draft" };
-  var mode = b.mode === "live" ? "live" : "test", season = Number(b.season) || (kind === "shootout" ? SEASON : SEASON + 1), order = Array.isArray(b.order) ? b.order.map(String) : [];
+  var mode = b.mode === "live" ? "live" : "test", season = Number(b.season) || (kind === "shootout" ? SEASON : SEASON + 1), cells = null, order = Array.isArray(b.order) ? b.order.map(String) : [];
   if (order.length !== K.n || order.some(function (id, i) { return !oid_(id) || order.indexOf(id) !== i; })) return { ok: false, error: K.name + " needs " + K.n + " different owners in order." };
   var fixed = [];
   if (kind === "shootout") { var seen = {};
@@ -63,23 +64,27 @@ function draftOpen_(me, b) {
       if (order.indexOf(a) < 0 || order.indexOf(c) < 0 || a === c) return { ok: false, error: "Each Rule 1 matchup needs two different owners." };
       if (seen[a] || seen[c]) return { ok: false, error: oName_(seen[a] ? a : c) + " is in two Rule 1 matchups." }; seen[a] = seen[c] = 1; }
     if (order.length - 2 * fixed.length < 2) return { ok: false, error: "Leave at least two teams for the draft." }; }
+  if (kind === "spl") cells = splCells_(season, order);
   if (draftRows_().some(function (d) { return d.kind === kind && d.mode === mode && Number(d.season) === season && (d.status === "open" || (mode === "live" && d.status === "done")); }))
     return { ok: false, error: "There's already " + (mode === "live" ? "a " : "a rehearsal ") + season + " " + K.name + " " + (mode === "live" ? "(cancel it first)" : "open") + "." };
   var id = "D" + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase(), now = new Date();
-  append_("Drafts", [id, now, kind, season, mode, "open", JSON.stringify(kind === "shootout" ? { seeds: order, fixed: fixed } : order), clip_(b.note, 200), me.owner, now]);
+  append_("Drafts", [id, now, kind, season, mode, "open", JSON.stringify(kind === "shootout" ? { seeds: order, fixed: fixed } : kind === "spl" ? { seeds: order, cells: cells } : order), clip_(b.note, 200), me.owner, now]);
   var first = order[0];
+  if (kind === "spl") first = (cells.filter(function (c) { return !c[2]; })[0] || [order[0]])[0];
   if (kind === "shootout") { var mt = {}; fixed.forEach(function (p) { mt[p[0]] = mt[p[1]] = 1; }); first = order.filter(function (x) { return !mt[x]; })[0];
     if (fixed.length) botPost_("league", "🎯 " + (mode === "test" ? "🧪 " : "") + "Rule 1 matchups (they decide playoff spots): " + fixed.map(function (p) { return oName_(p[0]) + " vs " + oName_(p[1]); }).join(" · ") + ".", id); }
-  botPost_("league", "🗓️ " + (mode === "test" ? "🧪 Rehearsal: " : "") + "The " + season + " " + K.name + " is open! First up: " + oName_(first) + ". Draft room: SPL HQ → League → Off-season.", id);
+  botPost_("league", "🗓️ " + (mode === "test" ? "🧪 Rehearsal: " : "") + "The " + season + " " + K.name + " is open! First up: " + oName_(first) + ". Draft room: SPL HQ → League → Drafts." +
+    (kind === "spl" ? " " + cells.filter(function (c) { return c[2] === "keeper"; }).length + " keepers and " + cells.filter(function (c) { return c[2] === "tag"; }).length + " Franchise Tag pick(s) are already on the board." : ""), id);
   onClock_(first, K.name, season, mode, id);
   log_("draftopen", id + " " + kind + " " + mode + " " + season + " by " + me.owner);
   return { ok: true, id: id };
 }
-function onClock_(who, name, season, mode, id) {
-  notify_(who, "draft", "You're on the clock: " + season + " " + name + (mode === "test" ? " (rehearsal)" : ""), "It's your pick in the " + season + " " + name + ".\n\nDraft room: " + APP_URL + "#droom=" + id);
+function onClock_(who, name, season, mode, id, quiet) { // quiet (SPL Draft): at most one email per owner per 30 min
+  notify_(who, "draft", "You're on the clock: " + season + " " + name + (mode === "test" ? " (rehearsal)" : ""), "It's your pick in the " + season + " " + name + ".\n\nDraft room: " + APP_URL + "#droom=" + id, quiet ? "draft:" + id : undefined);
 }
 // Is this choice legal for the turn? Returns an error string or "".
 function draftCheck_(s, who, c) {
+  if (s.kind === "spl") return splCheck_(s, who, c);
   if (s.kind === "shootout") { if (!oid_(c.opp) || s.order.indexOf(c.opp) < 0) return "Pick an opponent."; if (c.opp === who) return "Pick someone else.";
     if (s.opp[c.opp]) return oName_(c.opp) + " already has a Week 14 opponent (" + oName_(s.opp[c.opp]) + ")."; return ""; }
   if (s.kind === "slot") { var k = Number(c.slot); if (!(k >= 1 && k <= 12) || k !== Math.floor(k)) return "Pick a slot from 1 to 12."; if (s.slots[k]) return "Slot " + k + " is taken (" + oName_(s.slots[k]) + ")."; return ""; }
@@ -91,13 +96,13 @@ function draftCheck_(s, who, c) {
   if (s.assigned[c.into] >= 1 && (ownOpen || other)) return oName_(c.into) + " already has an owner assigned to his division (one each).";
   return "";
 }
-function choiceText_(s, who, c) { return s.kind === "shootout" ? "picks " + oName_(c.opp) + " for Week 14" : s.kind === "slot" ? "takes slot " + c.slot : c.into === who ? "takes " + oName_(c.pick) + " into his division" : "assigns " + oName_(c.pick) + " to " + oName_(c.into) + "'s division"; }
+function choiceText_(s, who, c) { return s.kind === "spl" ? "takes " + c.player + (c.pos ? " (" + c.pos + ")" : "") : s.kind === "shootout" ? "picks " + oName_(c.opp) + " for Week 14" : s.kind === "slot" ? "takes slot " + c.slot : c.into === who ? "takes " + oName_(c.pick) + " into his division" : "assigns " + oName_(c.pick) + " to " + oName_(c.into) + "'s division"; }
 function draftPick_(me, b, desk) {
   var f = findDraft_(String(b.id || "")); if (!f) return { ok: false, error: "Draft not found" };
   var s = draftState_(f.row, rows_("DraftPicks")); if (s.status !== "open") return { ok: false, error: "This draft is " + s.status + "." };
   if (b.n != null && Number(b.n) !== s.picks.length + 1) return { ok: false, error: "That pick was already made. Refreshing." , stale: true };
   var who = s.clock; if (who !== me.owner && !desk) return { ok: false, error: oName_(who) + " is on the clock." };
-  var c = s.kind === "slot" ? { slot: Number((b.choice || {}).slot) } : s.kind === "shootout" ? { opp: String((b.choice || {}).opp || "") } : { pick: String((b.choice || {}).pick || ""), into: String((b.choice || {}).into || "") };
+  var c = s.kind === "spl" ? splChoice_(b) : s.kind === "slot" ? { slot: Number((b.choice || {}).slot) } : s.kind === "shootout" ? { opp: String((b.choice || {}).opp || "") } : { pick: String((b.choice || {}).pick || ""), into: String((b.choice || {}).into || "") };
   var err = draftCheck_(s, who, c); if (err) return { ok: false, error: err };
   var n = s.picks.length + 1, now = new Date();
   append_("DraftPicks", [s.id, n, who, JSON.stringify(c), now, me.owner, ""]);
@@ -105,13 +110,14 @@ function draftPick_(me, b, desk) {
   if (s.kind === "shootout") { var left = s.unmatched.filter(function (x) { return x !== who && x !== c.opp; });
     if (left.length === 2) { auto = { owner: left[0], opp: left[1] }; append_("DraftPicks", [s.id, n + 1, left[0], JSON.stringify({ opp: left[1] }), now, "auto", "last two"]); }
     done = left.length <= 2; nxt = done ? null : left[0]; }
-  botPost_("league", "🗓️ " + (s.mode === "test" ? "🧪 " : "") + s.name + " · pick " + n + ": " + oName_(who) + " " + choiceText_(s, who, c) + (me.owner !== who ? " (entered by " + me.name + ")" : "") +
+  if (s.kind !== "spl") botPost_("league", "🗓️ " + (s.mode === "test" ? "🧪 " : "") + s.name + " · pick " + n + ": " + oName_(who) + " " + choiceText_(s, who, c) + (me.owner !== who ? " (entered by " + me.name + ")" : "") +
     (auto ? ". That leaves " + oName_(auto.owner) + " vs " + oName_(auto.opp) + "." : "") + (done ? "" : ". On the clock: " + oName_(nxt) + "."), s.id);
   if (done) { var r = cleanRow_(f.row); r.status = "done"; r.updated_ts = now; setRow_("Drafts", f.idx, r);
+    if (s.kind === "spl") { splAfterPick_(s, n); botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + "The " + s.season + " SPL Draft is in the books. Every board: SPL HQ → League → Drafts.", s.id); } else
     if (s.kind === "shootout") { var fin = draftState_(findDraft_(s.id).row, rows_("DraftPicks"));
       botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + s.season + " Shoot Out, Week 14: " + fin.pairs.map(function (p) { return oName_(p[0]) + " vs " + oName_(p[1]); }).join(" · ") + ". Highest score takes the Shoot Out pot.", s.id); }
     else botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + s.season + " " + s.name + " is done. Results: SPL HQ → League → Off-season.", s.id); }
-  else { var r2 = cleanRow_(f.row); r2.updated_ts = now; setRow_("Drafts", f.idx, r2); onClock_(nxt, s.name, s.season, s.mode, s.id); }
+  else { var r2 = cleanRow_(f.row); r2.updated_ts = now; setRow_("Drafts", f.idx, r2); if (s.kind === "spl") splAfterPick_(s, n); onClock_(nxt, s.name, s.season, s.mode, s.id, s.kind === "spl"); }
   log_("draftpick", s.id + " #" + n + " " + who + " " + JSON.stringify(c) + " by " + me.owner);
   return { ok: true, draft: draftState_(findDraft_(s.id).row, rows_("DraftPicks")) };
 }
@@ -143,5 +149,5 @@ function draftWipe_(me) { // ops: clear every rehearsal (cancelled = hidden; pic
 function draftLedger_() { // finished drafts for the robot (league facts only)
   var sel = rows_("DraftPicks");
   return draftRows_().filter(function (d) { return d.status === "done"; }).map(function (d) { var s = draftState_(d, sel);
-    return { id: s.id, kind: s.kind, season: s.season, mode: s.mode, done: s.updated, order: s.order, picks: s.picks.map(function (p) { return { n: p.n, owner: p.owner, choice: p.choice, by: p.by }; }), divs: s.divs || null, slots: s.slots || null, fixed: s.fixed || null, pairs: s.pairs || null }; });
+    return { id: s.id, kind: s.kind, season: s.season, mode: s.mode, done: s.updated, order: s.order, picks: s.picks.map(function (p) { return { n: p.n, owner: p.owner, choice: p.choice, by: p.by }; }), divs: s.divs || null, slots: s.slots || null, fixed: s.fixed || null, pairs: s.pairs || null, board: s.kind === "spl" ? splLedger_(s) : null }; });
 }

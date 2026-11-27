@@ -13,11 +13,12 @@ function cookies_() {
   if (swid.charAt(0) !== "{") swid = "{" + swid + "}";
   return "espn_s2=" + s2 + "; SWID=" + swid;
 }
-function espn_(lid, query) {
+function espn_(lid, query, hdrs) {
   var url = "https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/" + SEASON + "/segments/0/leagues/" + lid + "?" + query;
   // Reads are safe to retry (writes never are). Google's fetcher sometimes can't reach ESPN for a moment
   // ("Address unavailable", 11/26): try up to 3 times, then a plain message instead of the raw URL.
   var r = null, err = null, opts = { headers: { Cookie: cookies_() }, muteHttpExceptions: true };
+  if (hdrs) Object.keys(hdrs).forEach(function (k) { opts.headers[k] = hdrs[k]; });
   for (var i = 0; i < 3 && !r; i++) {
     try { r = UrlFetchApp.fetch(url, opts); } catch (e) { err = e; if (i < 2) Utilities.sleep(1000 * (i + 1)); }
   }
