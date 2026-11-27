@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.17.5";
+var VERSION = "0.18.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -85,7 +85,7 @@ function doPost(e) {
     if (!READS[b.action]) { lock = LockService.getScriptLock(); try { lock.waitLock(10000); } catch (x) { lock = null; return json({ ok: false, busy: true, error: "The league server is busy. Try again in a few seconds." }); } }
     var desk = isRole_(me, "commish") || isRole_(me, "ops");
     switch (b.action) {
-      case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner), tour: tourStampOf_(me.owner) });
+      case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner), tour: tourStampOf_(me.owner), handles: handles_() });
       case "tour":     return json(isRole_(me, "ops") ? tourReset_(me, b) : { ok: false, error: "Ops only" }); // 👋 replay the welcome tour (mod_ops)
       case "answers":  return json(saveAnswers_(me, b));
       case "feedback": return json(saveFeedback_(me, b));

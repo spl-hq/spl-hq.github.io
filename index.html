@@ -269,6 +269,16 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 .offer .grid{grid-template-columns:1fr 1fr}
 .composer{position:sticky;bottom:-28px;margin:0 -14px;background:var(--night);border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;z-index:9}
 .composer textarea{min-height:40px;max-height:120px;height:40px;flex:1;padding:9px 10px}
+/* 💬 @ mentions (v0.25, MAFFL REEL pattern): @Handle = tap → that owner's team page. Anywhere an owner is named. */
+.at{all:unset;cursor:pointer;color:#1E407C;font-weight:700;white-space:nowrap}
+.at.atme{background:rgba(184,138,46,.16);color:#7A5A16;border-radius:4px;padding:0 3px}
+.msg.me .at{color:#fff;text-decoration:underline} .msg.me .at.atme{background:rgba(255,255,255,.18);color:#fff}
+.msg .who .at{color:inherit} .msg.tagme{border-left:3px solid #B88A2E}
+.lead .at,.card.lead .at{color:#96BEE6}
+.composer{flex-wrap:wrap;align-items:flex-end}
+.atlist{flex:1 0 100%;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.atlist[hidden]{display:none} .atlist::-webkit-scrollbar{display:none} .atlist .chip{flex:none;padding:6px 11px}
+.atbtn{flex:none;width:40px;height:40px;border-radius:99px;border:1px solid #D9DCE0;background:#fff;color:#1E407C;font:800 18px var(--body);cursor:pointer}
 /* ===== "Nittany" theme (Mike 11/25): Penn State blue + white. Replaces Stadium Lights. ===== */
 :root{
   --night:#FFFFFF; --surface:#FFFFFF; --raised:#EEF3FA; --line:#D6DFEC;
@@ -514,7 +524,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.24.2";
+var APP_VERSION = "0.25.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -619,7 +629,7 @@ function authed(action, body) {
   body = body || {}; body.token = store("token");
   return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
 }
-function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; paintMe(); }
+function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; if (r.handles) setHandles(r.handles); paintMe(); }
 function signOut(quiet) { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("spl_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
 function fullOf(id) { var o = (window.LEAGUE_DATA && LEAGUE_DATA.owners || []).filter(function (x) { return x.id === id; })[0]; return o && o.full; } // Owner Registry canonical_name
 function initials() { // Michael Murello → MM
@@ -649,7 +659,8 @@ function needSignIn(what) {
 var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", calendar: "league", droom: "league" };
 // SPL HQ bot posts carry a ref; the button follows what it points at (T… trade offer, D… draft room unless cancelled, K…/keep: Signing Day). Unknown refs get no button.
 function hqLink(ref, text) {
-  ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone var to = /^T[0-9A-Z]+$/.test(ref) ? ["trades", ref, "Open trade"] : /^D[0-9A-Z]+$/.test(ref) ? ["droom", ref, "Open draft room"] : /^(K[0-9A-Z]+|keep:\d{4})$/.test(ref) ? ["keepers", "", "Open keepers"] : null;
+  ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone
+  var to = /^T[0-9A-Z]+$/.test(ref) ? ["trades", ref, "Open trade"] : /^D[0-9A-Z]+$/.test(ref) ? ["droom", ref, "Open draft room"] : /^(K[0-9A-Z]+|keep:\d{4})$/.test(ref) ? ["keepers", "", "Open keepers"] : null;
   return to ? '<div style="margin-top:6px"><button class="back" onclick="go(\'' + to[0] + '\'' + (to[1] ? ',\'' + esc(to[1]) + '\'' : '') + ')">' + to[2] + ' ›</button></div>' : '';
 }
 function go(name, arg) { location.hash = name + (arg ? "=" + arg : ""); }
@@ -716,15 +727,15 @@ function buildFeed(d) {
   var T = d.trades;
   if (ME && T && T.ok && T.offers) {
     T.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }).forEach(function (o) {
-      cards.push({ id: "offer:" + o.id, needs: 1, scope: "me", eb: "🔁 Trade offer · from " + esc(oname(o.from)), title: esc(oname(o.from)) + " wants to deal",
+      cards.push({ id: "offer:" + o.id, needs: 1, scope: "me", eb: "🔁 Trade offer · from " + esc(oname(o.from)), title: atO(o.from) + " wants to deal",
         body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">You get</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">You send</div>' + sideList(o.get, o.to) + '</div></div>' + (o.note ? '<p class="story">“' + esc(o.note) + '”</p>' : ''),
         action: ["Answer it", "go('trades','" + o.id + "')"] }); });
     var rv = T.offers.filter(function (o) { return o.status === "ACCEPTED" && !o.lock; });
     if (isDesk() && rv.length) cards.push({ id: "review:" + rv.map(function (o) { return o.id; }).join(","), needs: 1, scope: "me", eb: "📥 Commish desk", title: rv.length + " trade" + (rv.length > 1 ? "s" : "") + " to approve",
-      body: rv.slice(0, 3).map(function (o) { return '<div class="kv"><span>' + esc(oname(o.from)) + ' ⇄ ' + esc(oname(o.to)) + '</span><span class="gold">agreed</span></div>'; }).join(""), action: ["Open the desk", "go('desk')"] });
+      body: rv.slice(0, 3).map(function (o) { return '<div class="kv"><span>' + atO(o.from) + ' ⇄ ' + atO(o.to) + '</span><span class="gold">agreed</span></div>'; }).join(""), action: ["Open the desk", "go('desk')"] });
     // ⚡ Instant: 📰 trade wire (7 days)
     T.offers.filter(function (o) { return o.status === "APPROVED" && Date.now() - new Date(o.updated).getTime() < 7 * 864e5; }).slice(0, 3).forEach(function (o) {
-      cards.push({ id: "wire:" + o.id, at: o.updated, scope: "league", eb: "📰 Trade wire" + (o.mode === "test" ? " · test" : ""), title: esc(oname(o.from)) + " ⇄ " + esc(oname(o.to)),
+      cards.push({ id: "wire:" + o.id, at: o.updated, scope: "league", eb: "📰 Trade wire" + (o.mode === "test" ? " · test" : ""), title: atO(o.from) + " ⇄ " + atO(o.to),
         body: '<div class="grid" style="gap:12px"><div><div class="byline" style="margin-bottom:6px">' + av(o.to, "sm") + '<b>' + who(o.to) + ' gets</b></div>' + sideList(o.give, o.from) + '</div><div><div class="byline" style="margin-bottom:6px">' + av(o.from, "sm") + '<b>' + who(o.from) + ' gets</b></div>' + sideList(o.get, o.to) + '</div></div>' +
           chips(["✅ Approved " + esc(ago(o.updated)), o.mode === "test" ? ["🧪 Test mode", "hi"] : ""]), action: ["Trade wire", "go('trades')"] }); });
   }
@@ -741,7 +752,7 @@ function buildFeed(d) {
           chips([top ? ["⭐ " + esc(top.n) + " " + fmtPts(top.pts), "hi"] : "", o.owner ? "⚔️ " + seriesTxt(me, o.owner) : ""]), action: ["Lineups", "go('match')"] }); }
     cards.push({ id: "slate:" + W.week, scope: "league", eb: "🏟️ Week " + W.week + " · live",
       body: '<div class="slate2">' + games.map(function (g) { var a = g.away || {}, h = g.home || {}, ld = a.pts === h.pts ? "" : a.pts > h.pts ? "a" : "h";
-        var r = function (x, k) { return '<div class="bl' + (ld === k ? " w" : "") + '">' + av(x.owner) + '<span class="bn"><b>' + esc(oname(x.owner)) + '</b></span><span class="bp">' + fmtPts(x.pts) + '</span></div>'; };
+        var r = function (x, k) { return '<div class="bl' + (ld === k ? " w" : "") + '">' + av(x.owner) + '<span class="bn"><b>' + atO(x.owner) + '</b></span><span class="bp">' + fmtPts(x.pts) + '</span></div>'; };
         return '<div class="bug mini' + (me && (a.owner === me || h.owner === me) ? " mine" : "") + '">' + r(a, "a") + r(h, "h") + '</div>'; }).join("") + '</div>' +
         '<p class="muted" style="font-size:12px;margin-top:8px">Live from ESPN. Leader highlighted.</p>', action: ["Every game", "go('match')"] }); }
   // 🗞️ The week's drops (Edition · Play · Vault · Preview). Off-season: only while the last issue is fresh.
@@ -763,7 +774,7 @@ function buildFeed(d) {
   // 💬 League chat, if something new (instant, yours)
   var lr = (CHAT.rooms || []).filter(function (r) { return r.room === "league"; })[0];
   if (lr && lr.who !== me && new Date(lr.last).getTime() > seen("league")) cards.push({ id: "chat:" + new Date(lr.last).getTime(), at: lr.last, scope: "me", eb: "💬 League chat",
-    body: '<div class="byline">' + av(lr.who, "lg") + '<span><b>' + esc(oname(lr.who)) + '</b><small>' + esc(ago(lr.last)) + ' · league chat</small></span></div><p class="quote">“' + esc(lr.text) + '”</p>', action: ["Open chat", "go('chat','league')"] });
+    body: '<div class="byline">' + av(lr.who, "lg") + '<span><b>' + atO(lr.who) + '</b><small>' + esc(ago(lr.last)) + ' · league chat</small></span></div><p class="quote">“' + fmtText(lr.text) + '”</p>', action: ["Open chat", "go('chat','league')"] });
   // Order + budget: Needs you lead; the rest wait for their drop, keep the group budget, newest drop first, you → league → play → vault.
   var needs = cards.filter(function (c) { return c.needs; }), base = weekTue(season, issue || 1), bud = OFF ? BUDGET_OFF : BUDGET, cnt = {};
   var rest = cards.filter(function (c) { return !c.needs; }).map(function (c, k) { var sr = seriesOf(c); c.group = sr[0]; c.rank = sr[1] * 100 + k; c.tray = sr[3] || "";
@@ -899,7 +910,7 @@ SCREENS.match.after = function (arg) {
     var side = function (t, o) {
       var st = t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }), n = st.length, done = n - (t.left || 0);
       var cls = d.final ? (t.pts > o.pts ? "win" : "") : lead(t, o) ? "lead" : "";
-      return '<div class="' + cls + '"><div class="tn">' + esc(t.team) + '</div><div class="ow">' + esc(oname(t.owner)) + ' · ' + esc(t.rec) + '</div>' +
+      return '<div class="' + cls + '"><div class="tn">' + esc(t.team) + '</div><div class="ow">' + atO(t.owner) + ' · ' + esc(t.rec) + '</div>' +
         '<div class="sc">' + fmtPts(t.pts) + '</div><div class="lab">' + (d.final ? (t.pts > o.pts ? "Final · W" : "Final") : "Points scored") + '</div>' +
         (d.final ? '' : '<div class="mxbar"><i class="pj" style="width:' + Math.min(100, (t.proj || t.pts) / top * 100) + '%"></i><i class="ac" style="width:' + Math.min(100, t.pts / top * 100) + '%"></i></div>' +
           '<div class="pr">Proj <b>' + fmtPts(t.proj) + '</b></div><div class="pr" style="font-weight:400">' + done + ' of ' + n + ' played</div>') + '</div>';
@@ -954,7 +965,7 @@ SCREENS.match.after = function (arg) {
       var a = x.away || {}, h = x.home || {}, go1 = (a.left || 0) + (h.left || 0), st0 = !d.final && go1 === 0 ? false : true;
       var row = function (t, o) {
         var c = d.final ? (t.pts > o.pts ? " w" : "") : (t.pts > o.pts && (a.pts || h.pts) ? " lead" : "");
-        return '<div class="t">' + esc(t.team) + ' <small>' + esc(oname(t.owner)) + '</small></div>' +
+        return '<div class="t">' + esc(t.team) + ' <small>' + atO(t.owner) + '</small></div>' +
           (d.final ? '<div></div><div class="s' + c + '">' + fmtPts(t.pts) + '</div>' : '<div class="s' + c + '">' + fmtPts(t.pts) + '</div><div class="p">' + fmtPts(t.proj) + '</div>');
       };
       return '<div class="mxgm mxg' + (i === mineIdx ? " mine" : "") + '" onclick="go(\'match\',\'' + d.week + ':' + i + '\')">' + row(a, h) + row(h, a) +
@@ -1391,66 +1402,133 @@ SCREENS.rivalry = function (arg) {
     '<p class="muted" style="font-size:12px">' + esc(coverage()) + '.</p>';
 };
 
-// ---- 💬 Chat: league room + DMs
+// ---- 💬 Chat: league room + your division's room + DMs, @mentions (MAFFL REEL pattern, Mike 11/27)
+// @handles: the backend sends every owner's handle with `me` and `chat`; the app keeps the last copy so cards anywhere
+// can name an owner as a tappable @Handle (→ their team page: roster, 💬 Message, ⚔️ Rivalry). Default handle = first name.
+var HANDLES = store("handles") || {};
+function setHandles(h) { if (h && typeof h === "object") { HANDLES = h; store("handles", h); } }
+function handleOf(id) { return HANDLES[id] || String(oname(id)).replace(/[^A-Za-z0-9]/g, "").slice(0, 20) || id; }
+function ownerOfHandle(h) { h = String(h || "").toLowerCase(); return (OWNERS.filter(function (o) { return handleOf(o.id).toLowerCase() === h; })[0] || {}).id || ""; }
+function atO(id) { // tappable @Handle for an owner id; safe inside clickable cards (stops the card's own tap)
+  if (!owner(id)) return esc(oname(id));
+  return '<button class="at' + (ME && id === ME.owner ? " atme" : "") + '" onclick="event.stopPropagation();go(\'team\',\'' + esc(id) + '\')">@' + esc(handleOf(id)) + '</button>';
+}
+function fmtText(t) { // escape, then make @Handle tappable (unknown @words stay plain), keep line breaks
+  return esc(t).replace(/(^|[^A-Za-z0-9_&])@([A-Za-z][A-Za-z0-9_]{0,19})(?![A-Za-z0-9_])/g, function (m, pre, h) { var id = ownerOfHandle(h); return pre + (id ? atO(id) : "@" + h); }).replace(/\n/g, "<br>");
+}
+function tagsMe(text) { return !!ME && new RegExp("(^|[^A-Za-z0-9_])@" + handleOf(ME.owner) + "(?![A-Za-z0-9_])", "i").test(String(text || "")); }
 function dmRoom(other) { var a = [ME.owner, other].sort(); return "dm:" + a[0] + "," + a[1]; }
-function roomName(room) { if (room === "league") return "League chat"; var ids = room.slice(3).split(","); return oname(ids[0] === ME.owner ? ids[1] : ids[0]); }
+function myDiv() { return (CHAT.div && CHAT.div.name) || (owner(ME && ME.owner) || {}).div || ""; }
+function divRoom() { return CHAT.div ? CHAT.div.room : "div:" + myDiv().toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20); }
+function divMembers() { return CHAT.div ? CHAT.div.members : OWNERS.filter(function (o) { return o.div === myDiv(); }).map(function (o) { return o.id; }); }
+function roomName(room) { if (room === "league") return "League chat"; if (/^div:/.test(room)) return myDiv() + " division"; var ids = room.slice(3).split(","); return oname(ids[0] === ME.owner ? ids[1] : ids[0]); }
+function roomIcon(room) { return room === "league" ? "🏟️ " : /^div:/.test(room) ? "🛡️ " : "👤 "; }
+function roomMembers(room) { // who you can @ in this room (not you)
+  var ids = room === "league" ? OWNERS.map(function (o) { return o.id; }) : /^div:/.test(room) ? divMembers() : room.slice(3).split(",");
+  return ids.filter(function (id) { return ME && id !== ME.owner && owner(id); });
+}
 function seen(room, ts) { var s = store("seen") || {}; if (ts === undefined) return s[room] || 0; s[room] = ts; store("seen", s); }
-var CHAT = { rooms: [] };
+var CHAT = store("c_chat") || { rooms: [] }; CHAT.seg = "chats";
+function atUnread() { var s = store("c_atseen") || 0; return (CHAT.mentions || []).filter(function (m) { return new Date(m.ts).getTime() > s; }).length; }
 function unreadCount() { return (CHAT.rooms || []).filter(function (r) { return r.who !== (ME && ME.owner) && new Date(r.last).getTime() > seen(r.room); }).length; }
 function paintBadge() {
   var b = document.querySelector('#tabs button[data-t="chat"]'), n = ME ? unreadCount() : 0, el = b.querySelector(".badge");
   if (n && !el) { el = document.createElement("i"); el.className = "badge"; b.appendChild(el); }
   if (el) { if (n) el.textContent = n; else el.remove(); }
 }
-function pollRooms() { if (!ME || !store("token")) return Promise.resolve(); return authed("chat").then(function (r) { if (r.ok) { CHAT.rooms = r.rooms; paintBadge(); } return r; }); }
+function takeChat(r) { CHAT.rooms = r.rooms || []; CHAT.mentions = r.mentions || []; if (r.div !== undefined) CHAT.div = r.div; setHandles(r.handles); store("c_chat", { rooms: CHAT.rooms, mentions: CHAT.mentions, div: CHAT.div }); paintBadge(); }
+function pollRooms() { if (!ME || !store("token")) return Promise.resolve(); return authed("chat").then(function (r) { if (r.ok) takeChat(r); return r; }); }
 SCREENS.chat = function (room) {
   if (!ME) return '<h2>Chat</h2>' + needSignIn("to chat");
-  if (room) return back("chat", "Chat") + '<h2>' + esc(roomName(room)) + '</h2><div class="msgs" id="msgs"><p class="muted">Loading…</p></div>' +
-    '<div class="composer"><textarea id="cmsg" placeholder="Message" maxlength="500"></textarea><button class="btn" id="csend">Send</button></div>';
-  return '<h2>Chat</h2><div class="card rooms" id="rooms"><p class="muted">Loading…</p></div>' +
-    '<div class="card"><div class="eyebrow">✉️ New message</div><div class="chips">' + OWNERS.filter(function (o) { return o.id !== ME.owner; }).map(function (o) {
-      return '<button class="chip" onclick="go(\'chat\',\'' + dmRoom(o.id) + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div></div>';
+  if (room) return back("chat", "Chat") + '<h2>' + roomIcon(room) + esc(roomName(room)) + '</h2>' +
+    (/^div:/.test(room) ? '<p class="muted" style="font-size:12px;margin:-4px 0 8px">Just your division: ' + divMembers().map(function (id) { return esc(ME && id === ME.owner ? "you" : oname(id)); }).join(", ") + '. Follows ESPN, so it changes with the Divisional Draft.</p>' : '') +
+    '<div class="msgs" id="msgs"><p class="muted">Loading…</p></div>' +
+    '<div class="composer"><div class="atlist" id="atlist" hidden></div><button class="atbtn" id="catb" aria-label="Mention someone">@</button><textarea id="cmsg" placeholder="Message · @ to tag" maxlength="500"></textarea><button class="btn" id="csend">Send</button></div>';
+  return '<h2>Chat</h2><div class="hscroll" id="cseg"></div><div id="cbody"><div class="card rooms"><p class="muted">Loading…</p></div></div>';
 };
 SCREENS.chat.after = function (room) {
   if (!ME) return;
   if (!room) {
-    var drawRooms = function () {
-      var list = CHAT.rooms.slice(); if (!list.some(function (r) { return r.room === "league"; })) list.unshift({ room: "league", n: 0 });
-      list.sort(function (a, b) { return (a.room === "league" ? -1 : 0) - (b.room === "league" ? -1 : 0) || new Date(b.last || 0) - new Date(a.last || 0); });
-      if ($("#rooms")) $("#rooms").innerHTML = '<div class="eyebrow">💬 Rooms</div>' + list.map(function (r) {
+    var drawInbox = function () {
+      var n = CHAT.seg === "at" ? 0 : atUnread();
+      if ($("#cseg")) $("#cseg").innerHTML = '<button class="chip' + (CHAT.seg !== "at" ? " on" : "") + '" onclick="chatSeg(\'chats\')">💬 Chats</button>' +
+        '<button class="chip' + (CHAT.seg === "at" ? " on" : "") + '" onclick="chatSeg(\'at\')">@ Mentions' + (n ? ' <span class="unread">' + n + '</span>' : '') + '</button>';
+      var body = $("#cbody"); if (!body) return;
+      if (CHAT.seg === "at") { // every message that tags your @handle, newest first; tap → that room
+        var ms = CHAT.mentions || [], s = store("c_atseen") || 0;
+        body.innerHTML = '<div class="card rooms"><div class="eyebrow">@ Tagged you · @' + esc(handleOf(ME.owner)) + '</div>' + (ms.length ? ms.map(function (m) {
+          return '<div class="kv" style="align-items:flex-start" onclick="go(\'chat\',\'' + esc(m.room) + '\')"><span style="display:flex;gap:8px;align-items:flex-start;text-align:left;flex:1;min-width:0">' + av(m.who) + '<span style="text-align:left"><b>' + esc(oname(m.who)) + '</b> <small class="muted">in ' + esc(roomName(m.room)) + '</small><br><small>' + fmtText(m.text) + '</small></span></span>' +
+            '<span>' + (new Date(m.ts).getTime() > s ? '<span class="unread">new</span>' : '<small class="muted">' + ago(m.ts) + '</small>') + '</span></div>'; }).join("")
+          : '<p class="muted" style="margin:0">Nobody has tagged you yet. When someone writes @' + esc(handleOf(ME.owner)) + ', it lands here.</p>') + '</div>' +
+          '<p class="muted" style="font-size:12px">Your @handle lives in Settings (tap your initials).</p>';
+        store("c_atseen", Date.now()); return;
+      }
+      var list = CHAT.rooms.slice(), dr = divRoom();
+      if (!list.some(function (r) { return r.room === "league"; })) list.push({ room: "league", n: 0 });
+      if (myDiv() && !list.some(function (r) { return r.room === dr; })) list.push({ room: dr, n: 0 });
+      var rank = function (r) { return r.room === "league" ? 0 : /^div:/.test(r.room) ? 1 : 2; };
+      list.sort(function (a, b) { return rank(a) - rank(b) || new Date(b.last || 0) - new Date(a.last || 0); });
+      var have = {}; list.forEach(function (r) { if (/^dm:/.test(r.room) && r.n) r.room.slice(3).split(",").forEach(function (id) { have[id] = 1; }); });
+      var fresh = OWNERS.filter(function (o) { return o.id !== ME.owner && !have[o.id]; }); // New message: only owners you haven't messaged yet
+      body.innerHTML = '<div class="card rooms"><div class="eyebrow">💬 Rooms</div>' + list.map(function (r) {
         var un = r.who !== ME.owner && r.last && new Date(r.last).getTime() > seen(r.room);
-        return '<div class="kv" onclick="go(\'chat\',\'' + r.room + '\')"><span><b>' + (r.room === "league" ? "🏟️ " : "👤 ") + esc(roomName(r.room)) + '</b><br><small class="muted">' +
-          (r.text ? (r.who === "hq" ? "SPL HQ" : esc(oname(r.who))) + ': ' + esc(r.text) : "No messages yet") + '</small></span><span>' + (un ? '<span class="unread">new</span>' : (r.last ? '<small class="muted">' + ago(r.last) + '</small>' : '')) + '</span></div>';
-      }).join("");
+        return '<div class="kv" onclick="go(\'chat\',\'' + esc(r.room) + '\')"><span><b>' + roomIcon(r.room) + esc(roomName(r.room)) + '</b><br><small class="muted">' +
+          (r.text ? (r.who === "hq" ? "SPL HQ" : esc(oname(r.who))) + ': ' + esc(r.text) : /^div:/.test(r.room) ? "Just your division · no messages yet" : "No messages yet") + '</small></span><span>' + (un ? '<span class="unread">new</span>' : (r.last ? '<small class="muted">' + ago(r.last) + '</small>' : '')) + '</span></div>';
+      }).join("") + '</div>' +
+        (fresh.length ? '<div class="card"><div class="eyebrow">✉️ New message</div><div class="chips">' + fresh.map(function (o) {
+          return '<button class="chip" onclick="go(\'chat\',\'' + dmRoom(o.id) + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div></div>' : '');
     };
-    drawRooms(); pollRooms().then(drawRooms); timers.push(setInterval(function () { if (!document.hidden) pollRooms().then(drawRooms); }, 20000));
+    window.chatSeg = function (s) { CHAT.seg = s; drawInbox(); };
+    drawInbox(); pollRooms().then(drawInbox); timers.push(setInterval(function () { if (!document.hidden && CHAT.seg !== "at") pollRooms().then(drawInbox); }, 20000));
     return;
   }
   var msgs = [], last = null;
+  var stamp = function (ts) { var t = new Date(ts); return t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); };
   var draw = function () {
     var el = $("#msgs"); if (!el) return;
-    var V = $("#view"), atBottom = V.scrollTop + V.clientHeight >= V.scrollHeight - 80;
+    var V = $("#view"), atBottom = V.scrollTop + V.clientHeight >= V.scrollHeight - 80, group = !/^dm:/.test(room);
     el.innerHTML = msgs.length ? msgs.map(function (m) {
-      var mine = m.who === ME.owner, t = new Date(m.ts);
-      if (m.who === "hq") return '<div class="msg hq"><div class="who">SPL HQ</div>' + esc(m.text) + hqLink(m.ref, m.text) + '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
-      return '<div class="msg' + (mine ? " me" : "") + (m.del ? " del" : "") + '" ' + (mine && !m.del ? 'onclick="delMsg(\'' + esc(m.id) + '\')"' : (isRole("commish") && room === "league" && !m.del ? 'onclick="delMsg(\'' + esc(m.id) + '\')"' : '')) + '>' +
-        (!mine && room === "league" ? '<div class="who">' + esc(oname(m.who)) + '</div>' : '') + (m.del ? "Message deleted" : esc(m.text).replace(/\n/g, "<br>")) +
-        '<div class="t">' + t.toLocaleDateString([], { month: "short", day: "numeric" }) + ' ' + t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</div></div>';
+      var mine = m.who === ME.owner;
+      if (m.who === "hq") return '<div class="msg hq"><div class="who">SPL HQ</div>' + fmtText(m.text) + hqLink(m.ref, m.text) + '<div class="t">' + stamp(m.ts) + '</div></div>';
+      var canDel = !m.del && (mine || (isRole("commish") && room === "league"));
+      return '<div class="msg' + (mine ? " me" : "") + (m.del ? " del" : "") + (!mine && !m.del && tagsMe(m.text) ? " tagme" : "") + '"' + (canDel ? ' onclick="delMsg(\'' + esc(m.id) + '\')"' : '') + '>' +
+        (!mine && group ? '<div class="who">' + atO(m.who) + '</div>' : '') + (m.del ? "Message deleted" : fmtText(m.text)) +
+        '<div class="t">' + stamp(m.ts) + '</div></div>';
     }).join("") : '<p class="muted">No messages yet. Say something.</p>';
     el.innerHTML += (store("outbox") || []).filter(function (m) { return m.room === room; }).map(function (m) {
-      return '<div class="msg me" style="opacity:.6">' + esc(m.text).replace(/\n/g, "<br>") + '<div class="t">⏳ Waiting for signal, sends when you\'re back</div></div>'; }).join("");
+      return '<div class="msg me" style="opacity:.6">' + fmtText(m.text) + '<div class="t">⏳ Waiting for signal, sends when you\'re back</div></div>'; }).join("");
     if (atBottom || !last) V.scrollTop = V.scrollHeight;
   };
   var pull = function () {
     return authed("chat", { room: room }).then(function (r) {
       if (!r.ok) throw new Error(r.error);
-      msgs = r.msgs; last = msgs.length ? msgs[msgs.length - 1].ts : last; CHAT.rooms = r.rooms; seen(room, Date.now()); paintBadge(); draw();
+      msgs = r.msgs; last = msgs.length ? msgs[msgs.length - 1].ts : last; takeChat(r); seen(room, Date.now()); paintBadge(); draw();
     }).catch(function (e) { if (!navigator.onLine) return draw(); if ($("#msgs")) $("#msgs").innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
   };
   pull(); timers.push(setInterval(function () { if (!document.hidden) pull(); }, 8000));
   window.delMsg = function (id) { if (!confirm("Delete this message?")) return; authed("chatdel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); pull(); }).catch(function (e) { toast(e.message); }); };
+  // @ picker: tap @ (or type @) → chips of the owners in this room, filtered as you type; tap one → "@Handle ".
+  var ta = $("#cmsg"), list = $("#atlist"), forced = false;
+  var partial = function () { var m = /(^|\s)@([A-Za-z0-9_]*)$/.exec(ta.value.slice(0, ta.selectionStart == null ? ta.value.length : ta.selectionStart)); return m ? m[2] : null; };
+  var drawAt = function () {
+    var p = partial(); if (p === null && !forced) { list.hidden = true; return; }
+    var q = String(p || "").toLowerCase(), who = roomMembers(room).filter(function (id) { return !q || handleOf(id).toLowerCase().indexOf(q) === 0 || oname(id).toLowerCase().indexOf(q) === 0; });
+    list.innerHTML = who.length ? who.map(function (id) { var h = handleOf(id), nm = oname(id);
+      return '<button class="chip" data-at="' + esc(id) + '">@' + esc(h) + (h.toLowerCase() !== nm.toLowerCase() ? ' <small class="muted">' + esc(nm) + '</small>' : '') + '</button>'; }).join("") : '<small class="muted">No owner matches</small>';
+    list.hidden = false;
+  };
+  list.onmousedown = function (e) { e.preventDefault(); }; // keep the keyboard up
+  list.onclick = function (e) {
+    var b = e.target.closest("[data-at]"); if (!b) return;
+    var cur = ta.selectionStart == null ? ta.value.length : ta.selectionStart, before = ta.value.slice(0, cur), p = partial(), ins = "@" + handleOf(b.dataset.at) + " ";
+    before = p !== null ? before.slice(0, before.length - p.length - 1) : before + (before && !/\s$/.test(before) ? " " : "");
+    ta.value = before + ins + ta.value.slice(cur); var at = (before + ins).length; ta.focus(); ta.setSelectionRange(at, at); forced = false; drawAt();
+  };
+  $("#catb").onclick = function () { forced = !forced; ta.focus(); drawAt(); };
+  ta.oninput = function () { if (partial() !== null) forced = false; drawAt(); };
+  ta.onclick = drawAt;
   var send = function () {
-    var ta = $("#cmsg"), text = ta.value.trim(); if (!text) return;
+    var text = ta.value.trim(); if (!text) return; forced = false; list.hidden = true;
     if (!navigator.onLine) { var ob = store("outbox") || []; ob.push({ room: room, text: text, ts: new Date().toISOString() }); store("outbox", ob); ta.value = ""; draw(); toast("Offline: it'll send when you're back"); return; }
     var btn = $("#csend"); btn.disabled = true;
     authed("chatsend", { room: room, text: text }).then(function (r) {
@@ -1458,7 +1536,7 @@ SCREENS.chat.after = function (room) {
     }).catch(function (e) { toast(e.message); }).then(function () { btn.disabled = false; });
   };
   $("#csend").onclick = send;
-  $("#cmsg").onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
+  ta.onkeydown = function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 };
 
 // ---- League screens (WS2): 📖 Rules · 🔒 Keepers · 📝 Draft · 📚 History · 🎓 GM Rankings. All from league-data.js
@@ -2446,7 +2524,7 @@ function draftCards(D, me) {
 // ======== 🎨 Card kit (facelift 11/26, after MAFFL REEL's faces): avatars, score bugs, chips, bars, meters, tiles ========
 function avI(id) { var w = String(fullOf(id) || oname(id) || "?").trim().split(/\s+/); return (w.length > 1 ? w[0][0] + w[w.length - 1][0] : w[0].slice(0, 2)).toUpperCase(); }
 function av(id, cls) { return '<span class="av' + (ME && id === ME.owner ? " avme" : "") + (cls ? " " + cls : "") + '">' + esc(avI(id)) + '</span>'; }
-function who(id) { return ME && id === ME.owner ? "You" : esc(oname(id)); }
+function who(id) { return ME && id === ME.owner ? "You" : atO(id); } // cards name other owners as a tappable @Handle (Mike 11/27)
 // Score bug: [{o, sub, pts}] two rows; the leader/winner is highlighted (gold wash, blue score).
 function bug(a, b, live) { var lead = a.pts === b.pts ? "" : a.pts > b.pts ? "a" : "b";
   var row = function (x, k) { return '<div class="bl' + (lead === k ? " w" : "") + '">' + av(x.o) + '<span class="bn"><b>' + who(x.o) + '</b><small>' + (x.sub || "") + '</small></span><span class="bp">' + fmtPts(x.pts) + '</span></div>'; };
@@ -3163,7 +3241,7 @@ var TOUR_STEPS = [
   ["match", "#tabs [data-t='match']", "⚔️ Match", "Your game, live from ESPN: the score, both lineups and every other game. Standings sit at the bottom. Step back through any week."],
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
-  ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat and a DM with any owner. Trade news and commish alerts land here too. Tag an owner with his @handle."],
+  ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat, your division's room and a DM with any owner. Tap @ to tag someone; anything that tags you lands in @ Mentions. Trade news and commish alerts land here too."],
   ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out), then the off-season calendar, then the SPL Calendar, champions, GM rankings, rivalries and the rules."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish: trades to approve, Mike's questions for you (the number on this button), and opening the off-season drafts and Signing Day.", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];

@@ -250,6 +250,13 @@ ok(e.mails.length === before + 1, "DM email once per 30 min");
 before = e.mails.length;
 e.post({ action: "chatsend", token: joeTok, room: "league", text: "hey @Muffins look" });
 ok(e.mails.length === before + 1 && /Joe mentioned you/.test(e.mails[e.mails.length - 1].s), "@Muffins in league chat emails Glen");
+// division rooms + @ Mentions (v0.18): Glen (North) sees the North room, Joe (East Coast) can't post there; the tag lands in Glen's mentions
+ok(e.post({ action: "chat", token: glen }).div.room === "div:north", "Glen's division room is North");
+ok(!e.post({ action: "chatsend", token: joeTok, room: "div:north", text: "hi" }).ok, "Joe can't post in the North room");
+ok(e.post({ action: "chatsend", token: glen, room: "div:north", text: "North rules" }).ok, "Glen posts in his division room");
+r = e.post({ action: "chat", token: glen });
+ok(r.handles.glen === "Muffins" && r.mentions.some(m => m.who === "reilly" && m.room === "league"), "chat returns handles + Glen's @ mentions");
+ok(!e.post({ action: "chat", token: joeTok }).mentions.some(m => /Muffins/.test(m.text)), "Joe's mentions don't include Glen's tag");
 
 // 14 · ledger feed for the robot + commish pick fixes
 let L = e.get({ action: "ledger" });

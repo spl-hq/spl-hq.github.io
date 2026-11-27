@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, no SPL Draft cards v0.24.2) · was by Claude (chat, Commish desk v0.24 + no test-team renames, backend v0.17.4) · was by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, @mentions + division rooms v0.25, backend v0.18.0) · was by Claude (chat, no SPL Draft cards v0.24.2) · was by Claude (chat, Commish desk v0.24 + no test-team renames, backend v0.17.4) · was by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -23,6 +23,15 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.25.0 (backend v0.18.0) · 💬 **@ mentions everywhere + division rooms** (Mike: "glean the MAFFL @ work"). **Composer:** an
+  @ button and typing "@" both open chips of the owners in that room, filtered as you type; tap → "@Handle ". **Messages:** @Handles are
+  tappable (→ that owner's team page), a message that tags you gets a gold edge, your own tag is gold-washed. **Inbox:** 💬 Chats | @ Mentions
+  (every message that tags you, last 60 days, "new" until you look; backend `chat` now returns `mentions` + `handles`, `me` returns `handles`).
+  **Rooms:** League · 🛡️ your division (new: `div:<slug>` rooms, membership from ESPN standings with a seed fallback, so the Divisional Draft
+  reshuffles them by itself; @ emails only go to owners who can read the room) · DMs. **✉️ New message** pills drop anyone you already have a DM
+  with (card hides when that's everyone). **Around the site:** cards name other owners as tappable @Handles (`who()`/`atO()`: Home trade
+  offer/wire/review, league chat card, score bugs, tiles, pick wire, matchup + every-game rows). **Bug fix:** v0.24.1's `hqLink` had its
+  `var to` swallowed by a comment, so any SPL HQ post broke the chat thread; fixed. Smoke +5 checks. SW `splhq-v63`.
 - 2026-11-27 · v0.24.2 · 🗓️ **No Home cards for the SPL Draft** (Mike: everyone is in the draft room, 2-3 hours). `draftCards` skips
   kind `spl`: no ⏱️ on-the-clock, live or done cards (the done card also wrongly read "Divisions are set"). Divisional, Slot and Shoot Out keep
   their card cycle. Room, chat round posts and the 30-min on-the-clock email unchanged. SW `splhq-v62`.

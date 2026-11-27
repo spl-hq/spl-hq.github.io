@@ -5,18 +5,40 @@
  * change here (parts are cached under VERSION). Keep under ~90 KB. Pattern: MAFFL _ops/apps-script/logic.js parts_ (WS6).
  */
 
-// ---------------------------------------------------------------- 💬 Chat: league room + DMs
-// Rooms: "league" (every owner) or "dm:<a>,<b>" (owner ids sorted). The commish can't read DMs.
+// ---------------------------------------------------------------- 💬 Chat: league room + division rooms + DMs
+// Rooms: "league" (every owner) · "div:<slug>" (your division only, membership from ESPN, so it follows the Divisional
+// Draft by itself; Mike 11/27, MAFFL's tier rooms) · "dm:<a>,<b>" (owner ids sorted). The commish can't read DMs or other
+// divisions. No owner-made groups (Mike asked, Claude's call 11/27: trade league with a veto vote, DMs cover the private side).
+var DIV_SEED = { reilly: "East Coast", murello: "East Coast", farrington: "East Coast", glen: "North", chappie: "North", sikora: "North",
+  hoosier: "Philly", patel: "Philly", salerno: "Philly", moyer: "West Coast", bucher: "West Coast", smith: "West Coast" }; // fallback when ESPN can't answer
+var DIVS_ = null;
+function divs_() { // owner id → division name, ESPN first (standings_ is cached 15 min)
+  if (DIVS_) return DIVS_;
+  var m = {}; try { (standings_().teams || []).forEach(function (t) { if (t.owner && t.div) m[t.owner] = t.div; }); } catch (e) {}
+  Object.keys(DIV_SEED).forEach(function (k) { if (!m[k]) m[k] = DIV_SEED[k]; });
+  return (DIVS_ = m);
+}
+function divSlug_(name) { return String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20); }
+function divRoomOf_(id) { var d = divs_()[id]; return d ? { room: "div:" + divSlug_(d), name: d, members: Object.keys(divs_()).filter(function (k) { return divs_()[k] === d; }) } : null; }
 function roomOk_(me, room) {
+  room = String(room || "");
   if (room === "league") return true;
-  var m = /^dm:([a-z]{2,20}),([a-z]{2,20})$/.exec(String(room || "")); if (!m || m[1] >= m[2]) return false;
+  if (/^div:[a-z0-9]{1,20}$/.test(room)) { var dr = divRoomOf_(me.owner); return !!dr && dr.room === room; }
+  var m = /^dm:([a-z]{2,20}),([a-z]{2,20})$/.exec(room); if (!m || m[1] >= m[2]) return false;
   if (m[1] !== me.owner && m[2] !== me.owner) return false;
   var ids = OWNER_SEED.map(function (r) { return r[0]; }); return ids.indexOf(m[1]) >= 0 && ids.indexOf(m[2]) >= 0;
 }
+function handles_() { var h = {}; owners_().forEach(function (o) { if (o.owner) h[o.owner] = handleOf_(o); }); return h; }
+function tagsMe_(text, handle) { return new RegExp("(^|[^A-Za-z0-9_])@" + handle + "(?![A-Za-z0-9_])", "i").test(String(text || "")); }
 function chat_(me, b) {
   var all = rows_("Chat"), mine = all.filter(function (r) { return roomOk_(me, r.room); }), rooms = {};
   mine.forEach(function (r) { var x = rooms[r.room] = rooms[r.room] || { room: r.room, n: 0 }; x.n++; x.last = r.ts; x.who = r.owner; x.text = r.deleted ? "(deleted)" : String(r.text).slice(0, 80); });
-  var out = { ok: true, rooms: Object.keys(rooms).map(function (k) { return rooms[k]; }), at: new Date().toISOString() };
+  var dr = divRoomOf_(me.owner), my = handleOf_(me), cut = Date.now() - 60 * 864e5;
+  // @ Mentions: every message in your rooms that tags your @handle (last 60 days, newest first, 25 max).
+  var ats = mine.filter(function (r) { return r.owner !== me.owner && !r.deleted && new Date(r.ts).getTime() > cut && tagsMe_(r.text, my); })
+    .slice(-25).reverse().map(function (r) { return { id: r.msg_id, ts: r.ts, who: r.owner, room: r.room, text: String(r.text).slice(0, 200) }; });
+  var out = { ok: true, rooms: Object.keys(rooms).map(function (k) { return rooms[k]; }), at: new Date().toISOString(), handles: handles_(), mentions: ats,
+    div: dr ? { room: dr.room, name: dr.name, members: dr.members } : null };
   if (b.room) {
     if (!roomOk_(me, b.room)) return { ok: false, error: "Not your room" };
     var since = b.since ? new Date(b.since).getTime() : 0;
@@ -31,9 +53,9 @@ function chatSend_(me, b) {
   var text = clip_(b.text, 500).trim(); if (!text) return { ok: false, error: "Type a message first." };
   var id = "M" + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), now = new Date();
   append_("Chat", [id, now, b.room, me.owner, text, "", ""]);
-  var dm = /^dm:(\w+),(\w+)$/.exec(b.room);
+  var dm = /^dm:(\w+),(\w+)$/.exec(b.room), where = b.room === "league" ? "league chat" : (divRoomOf_(me.owner) || {}).name + " division chat";
   if (dm) notify_(dm[1] === me.owner ? dm[2] : dm[1], "chat", "Message from " + me.name, text, b.room);
-  else owners_().forEach(function (o) { if (o.owner !== me.owner && new RegExp("@" + handleOf_(o) + "\\b", "i").test(text)) notify_(o.owner, "chat", me.name + " mentioned you", text, b.room); });
+  else owners_().forEach(function (o) { if (o.owner !== me.owner && roomOk_(o, b.room) && tagsMe_(text, handleOf_(o))) notify_(o.owner, "chat", me.name + " mentioned you in " + where, text, b.room); });
   return { ok: true, msg: { id: id, ts: now, who: me.owner, text: text } };
 }
 // 🔥 Reel reactions (WS4): one tap per owner per emoji per shared card; tap again to take it back. Keys come from the app
