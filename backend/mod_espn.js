@@ -190,22 +190,7 @@ function splRosters_() { // fresh SPL rosters with ESPN ids, by owner
     var pl = (e.playerPoolEntry || {}).player || {}; return { id: e.playerId || pl.id, n: pl.fullName || "?", pos: POS[pl.defaultPositionId] || "" }; }); });
   return out;
 }
-// 🏷️ Test team names = the real SPL team name + " (test)" (Mike 11/26), so ESPN reads like SPL without mixing it up with the real league.
-// Team edit is an LM write (PUT …/teams/<id>, body {name}); not proven on MAFFL, so it's read back and logged. A rename is idempotent, so if
-// ESPN refuses the long name the one fallback is a shorter one ("<first 15> TEST", within ESPN's 20-character names).
-var SHORT_TEAM = { farrington: "FREELANCERS", murello: "Attitude Gang" }; // only if ESPN refuses the full name
-function shortName_(owner) { return (SHORT_TEAM[owner] || oid_(owner)[2].slice(0, 13).trim()) + " (test)"; }
-function testName_(owner) { var r = oid_(owner); return r ? r[2] + " (test)" : ""; }
-function renameTeam_(me, plan) {
-  var want = testName_(plan.owner); if (!want || plan.team === want) return { ok: true, name: plan.team, same: true };
-  var tries = [want, shortName_(plan.owner)], res = null;
-  for (var i = 0; i < tries.length; i++) {
-    res = espnPost_("rename", plan.owner, { name: tries[i] }, me.owner, "/teams/" + plan.teamId, "put");
-    var now = (testLeague_().teams.filter(function (t) { return t.id === plan.teamId; })[0] || {}).team;
-    if (now === tries[i]) return { ok: true, name: now };
-  }
-  return { ok: false, error: "rename (" + (res.msg || res.code) + ")" };
-}
+// 🏷️ Test team names stay whatever they are on ESPN (Mike 11/27: "they're fine"). The mirror never renames (the v0.10.2 rename step is gone).
 // 🪞 Mirror plan, per demo team: drops = players no demo team wants (freed first), moves = wanted players sitting on another test team
 // (moved with the proven LM trade write, so they never pass through waivers), adds = wanted players not on any test team (commish add).
 function mirrorPlan_(tl, spl) {
@@ -214,7 +199,7 @@ function mirrorPlan_(tl, spl) {
   tl.teams.forEach(function (t) { t.players.forEach(function (p) { where[p.id] = t.id; }); });
   return demo.map(function (t) {
     var want = spl[t.owner] || [], here = want.filter(function (p) { return where[p.id] === t.id; });
-    return { teamId: t.id, team: t.team, wantName: testName_(t.owner), rename: t.team !== testName_(t.owner) && t.team !== shortName_(t.owner), owner: t.owner, name: oName_(t.owner), have: t.players.length, want: want.length, match: here.length,
+    return { teamId: t.id, team: t.team, owner: t.owner, name: oName_(t.owner), have: t.players.length, want: want.length, match: here.length,
       drops: t.players.filter(function (p) { return !wanted[p.id]; }),
       moves: want.filter(function (p) { return where[p.id] && where[p.id] !== t.id; }).map(function (p) { return { id: p.id, n: p.n, from: where[p.id] }; }),
       adds: want.filter(function (p) { return !where[p.id]; }) };
@@ -224,17 +209,14 @@ function testDesk_() {
   var tl = testLeague_(), plan = mirrorPlan_(tl, splRosters_());
   var log = []; try { log = rows_("EspnLog").slice(-12).reverse().map(function (r) { return { ts: r.ts, by: r.by, kind: r.kind, ref: r.ref, items: r.items, code: r.code, msg: r.msg }; }); } catch (e) {}
   return { ok: true, league: WRITE_LEAGUE, name: tl.name, week: tl.sp, writes: writesOn_(), tradeType: prop_("ESPN_TRADE_TYPE") || ESPN_TRADE_TYPE, demo: DEMO_OWNERS,
-    teams: plan.map(function (p) { return { teamId: p.teamId, team: p.team, wantName: p.wantName, rename: p.rename, owner: p.owner, have: p.have, want: p.want, match: p.match, drops: p.drops.length, moves: p.moves.length, adds: p.adds.length,
+    teams: plan.map(function (p) { return { teamId: p.teamId, team: p.team, owner: p.owner, have: p.have, want: p.want, match: p.match, drops: p.drops.length, moves: p.moves.length, adds: p.adds.length,
       moveNames: p.moves.slice(0, 30).map(function (x) { return x.n; }),
       dropNames: p.drops.slice(0, 30).map(function (x) { return x.n; }), addNames: p.adds.slice(0, 30).map(function (x) { return x.n; }) }; }), log: log };
 }
 // One step per call so each stays short: "drops" on every team first, then "moves", then "adds". Ops only. One player per add/drop;
 // a team's moves go in one LM trade write. Never retried; each step reads the test league back.
 function mirror_(me, b) {
-  if (b.step === "names") { var pl = mirrorPlan_(testLeague_(), {}).filter(function (p) { return p.owner === b.owner; })[0];
-    if (!pl) return { ok: false, error: "No test team for " + oName_(b.owner) };
-    var rn = renameTeam_(me, pl); log_("mirror", me.owner + " " + b.owner + " names " + (rn.ok ? "ok" : "fail"));
-    return { ok: true, step: "names", owner: b.owner, sent: rn.same ? 0 : 1, fails: rn.ok ? [] : [rn.error], name: rn.name }; }
+  if (b.step === "names") return { ok: true, step: "names", owner: b.owner, sent: 0, fails: [] }; // retired: names stay as ESPN has them (an older app may still ask)
   var step = b.step === "adds" || b.step === "moves" ? b.step : "drops", tl = testLeague_(), plan = mirrorPlan_(tl, splRosters_()).filter(function (p) { return p.owner === b.owner; })[0];
   if (!plan) return { ok: false, error: "No test team for " + oName_(b.owner) };
   var sw = swid_(), done = 0, fails = [];

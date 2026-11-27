@@ -514,7 +514,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.23.8";
+var APP_VERSION = "0.24.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1276,36 +1276,42 @@ SCREENS.trade.after = function (arg) {
     };
   }).catch(function (e) { if ($("#tb")) $("#tb").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });
 };
-// 📥 Commish desk (Joe; Mike too): trades to approve, ESPN steps, recent decisions, questions
+// 📥 Commish desk (Joe; Mike sees it as "Joe's view"). Mike 11/27: same folding sections as the Ops desk, the full 🗓️ Drafts controls, and none of
+// the backend: no rehearsals, robots, watchdog, test switches or tour here (those live on the 🛠️ Ops desk). A section that needs Joe opens itself.
+function cSec(k, title, id, body, badge, cls, force) {
+  return opsSec("c_" + k, title, id, body, badge, cls).replace('data-k="c_' + k + '"' + (opsOpen()["c_" + k] ? " open" : ""), 'data-k="c_' + k + '"' + (force || opsOpen()["c_" + k] ? " open" : ""));
+}
 SCREENS.desk = function () {
   if (!ME) return '<h2>Commish desk</h2>' + needSignIn("to open the desk");
   if (!isDesk()) return back("home", "Home") + '<h2>Commish desk</h2><div class="card"><p style="margin:0">Commish only.</p></div>';
-  return deskTop("desk") + (isOps() ? '<div class="card" style="border-color:var(--pugh,#96BEE6);padding:10px 14px"><small>👀 <b>Joe\'s view.</b> What Joe sees, read-only. You can act on trades Joe is in, and as backup on any trade that has waited 48 h on him.</small></div>' : '') +
+  return deskTop("desk") + (isOps() ? '<div class="card" style="border-color:var(--pugh,#96BEE6);padding:10px 14px"><small>👀 <b>Joe\'s view.</b> Exactly what Joe sees (no rehearsals or backend). You can act on trades Joe is in, and as backup on any trade that has waited 48 h on him. Rehearsals live on your 🛠️ Ops desk.</small></div>' : '') +
     '<div id="dsk"><div class="card"><p class="muted">Loading…</p></div></div>';
 };
 SCREENS.desk.after = function () {
   if (!$("#dsk")) return;
   authed("desk").then(function (d) {
     if (!d.ok) throw new Error(d.error);
-    var mineIn = function (o) { return o.from === ME.owner || o.to === ME.owner; };
-    var html = testBanner(d), wait = d.backupWaitH || 48;
     var joeIds = d.owners.filter(function (o) { return /commish/.test(o.role) && !/ops/.test(o.role); }).map(function (o) { return o.owner; });
     var joeN = {}; d.answers.forEach(function (a) { if (joeIds.indexOf(a.who) >= 0) joeN[a.qid] = 1; });
-    var n = isOps() ? answeredActive(joeN) : answeredActive(MY || {});
-    html += '<div class="card"' + (!isOps() && n < ACTIVE_Q.length ? ' style="border-color:var(--gold)"' : '') + '><div class="eyebrow">📋 Questions' + (!isOps() && n < ACTIVE_Q.length ? ' · <span class="gold">needs you</span>' : '') + '</div><p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
-    html += '<div id="kdk"></div>';
-    if (!isOps()) html += '<div class="card"><div class="eyebrow">🗓️ Drafts</div><div id="ddk"><p class="muted">Loading drafts…</p></div></div>';
-    html += '<div class="eyebrow">⏳ Trades to approve · ' + d.review.length + '</div>' + (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<div class="card"><p class="muted" style="margin:0">Nothing waiting on ' + (isOps() ? "Joe" : "you") + '.</p></div>');
-    if (d.espn.length) html += '<div class="eyebrow">🏈 Do on ESPN · ' + d.espn.length + '</div>' + d.espn.map(offerCard).join("");
-    if (d.recent.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Recent decisions</summary>' + d.recent.map(offerCard).join("") + '</details>';
-    if (isOps()) html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p class="muted" style="margin:0;font-size:13px">Joe\'s tool: he moves a pick traded before the app (or fixes a mistake) with a reason the league sees. Read-only in Joe\'s view.</p></div>';
-    else html += '<div class="card"><div class="eyebrow">🎟️ Pick ledger fix</div><p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason; the ledger robot copies it into the official file.</p>' +
+    var n = isOps() ? answeredActive(joeN) : answeredActive(MY || {}), qOpen = ACTIVE_Q.length - n, who = isOps() ? "Joe" : "you";
+    var html = (d.mode === "test" ? '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small class="gold">🧪 Practice season: trades approved here are practice and never touch the real SPL league.</small></div>' : '') +
+      '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>';
+    html += cSec("review", "⏳ Trades to approve", "cRv", d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<p class="muted" style="margin:0">Nothing waiting on ' + who + '.</p>',
+      d.review.length ? d.review.length + " need" + (d.review.length > 1 ? "" : "s") + " " + who : "none waiting", d.review.length ? "confirm" : "ok", d.review.length > 0);
+    if (d.espn.length) html += cSec("espn", "🏈 Do on ESPN", "cEs", '<p class="muted" style="margin:0 0 6px;font-size:13px">Approved trades the app couldn\'t move on ESPN by itself: make them in ESPN, then tap ✓ Done on ESPN.</p>' + d.espn.map(offerCard).join(""), d.espn.length + " to do", "confirm", true);
+    html += cSec("drafts", "🗓️ Drafts", "cDr", '<p class="muted">Loading drafts…</p>', "…");
+    html += cSec("keep", "🔒 Keeper Signing Day", "cKp", '<p class="muted">Loading…</p>', "…");
+    html += cSec("q", "📋 Questions", "cQ", '<p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + who + '.</p><p style="margin-top:10px"><button class="btn' + (qOpen > 0 && !isOps() ? "" : " ghost") + '" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p>',
+      qOpen > 0 ? qOpen + " open" : "all answered", qOpen > 0 ? "confirm" : "ok", qOpen > 0 && !isOps());
+    html += cSec("pick", "🎟️ Pick ledger fix", "cPk", isOps() ? '<p class="muted" style="margin:0;font-size:13px">Joe\'s tool: he moves a pick traded before the app (or fixes a mistake) with a reason the league sees. Read-only in Joe\'s view.</p>'
+      : '<p style="margin:0 0 8px;font-size:13px">A pick traded before the app (or a mistake)? Move it here. The league sees the reason, and it goes into the official pick ledger.</p>' +
       '<div class="row" style="flex-wrap:wrap"><select id="pfS" style="flex:1"></select><select id="pfR" style="flex:1"></select></div><div class="row" style="margin-top:6px"><select id="pfO" style="flex:1"><option value="">Whose pick (original team)</option>' + OWNERS.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + "'s</option>"; }).join("") + '</select>' +
       '<select id="pfT" style="flex:1"><option value="">Now belongs to</option>' + OWNERS.map(function (o) { return '<option value="' + o.id + '">' + esc(o.name) + '</option>'; }).join("") + '</select></div>' +
-      '<input type="text" id="pfWhy" maxlength="160" placeholder="Reason (e.g. traded in August: Glen got it for Kelce)" style="margin-top:6px"><p style="margin-top:8px"><button class="btn ghost" onclick="pickFix()">Move the pick</button></p></div>';
+      '<input type="text" id="pfWhy" maxlength="160" placeholder="Reason (e.g. traded in August: Glen got it for Kelce)" style="margin-top:6px"><p style="margin-top:8px"><button class="btn ghost" onclick="pickFix()">Move the pick</button></p>', "move a pick", "ok");
+    if (d.recent.length) html += cSec("recent", "📜 Recent decisions", "cRc", d.recent.map(offerCard).join(""), d.recent.length + " recent", "ok");
     $("#dsk").innerHTML = html;
-    loadKeep(true).then(function () { var k = $("#kdk"); if (k) k.innerHTML = kdeskCard(); }).catch(function () {});
-    if (!isOps()) deskDraftsFill("#ddk");
+    loadKeep(true).then(function () { var k = $("#cKp"); if (!k) return; k.innerHTML = kdeskBody(true); var st = kdeskState(true); opsBadge("cKp", st.badge, st.cls); }).catch(function (e) { var k = $("#cKp"); if (k) k.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+    deskDraftsFill("#cDr", true);
     if (!isOps()) loadTrades().then(function (t) { var S = $("#pfS"), R = $("#pfR"); if (!S) return;
       S.innerHTML = t.seasons.map(function (y) { return '<option>' + y + '</option>'; }).join(""); R.innerHTML = Array.apply(null, Array(t.rounds)).map(function (_, i) { return '<option value="' + (i + 1) + '">Round ' + (i + 1) + '</option>'; }).join(""); }).catch(function () {});
   }).catch(function (e) { if ($("#dsk")) $("#dsk").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
@@ -1873,16 +1879,22 @@ function kboardCard(KW) {
       return '<details class="kbd"><summary><span class="byline">' + av(d.owner, "sm") + '<b>' + esc(oname(d.owner)) + '</b></span><span class="muted" style="font-size:12px">' + n + ' kept' + ((it.signs || []).some(function (s) { return s.tag; }) ? " · 🏷️" : "") + ((it.cuts || []).length ? " · ✂️" + it.cuts.length : "") + '</span><b class="mono">' + d.kp + ' KP</b></summary>' + kdeclRows(d) + '</details>'; }).join("") +
     (KW.done ? '' : '<p class="muted" style="font-size:12px;margin:8px 0 0">Waiting on: ' + esc(OWNERS.filter(function (o) { return !inn[o.id]; }).map(function (o) { return o.name; }).join(", ") || "nobody") + '</p>') + '</div>';
 }
-// 📥 Commish desk: open / close Signing Day (rehearsal or live), see who's in. Ops wipes rehearsals.
-function kdeskCard() {
-  var W = KEEP && KEEP.window, y = KP_YRS[0], sd = signingDay(), n = KEEP ? KEEP.decls.length : 0;
-  var st = !W ? "Not open" : W.status === "open" ? (W.mode === "test" ? "🧪 Rehearsal open" : "Open") + " · " + n + " of 12 declared" + (W.closes ? " · closes " + fmtDate(W.closes) : "") : (W.mode === "test" ? "🧪 Rehearsal " : "") + W.season + " done · " + n + " declared";
-  return '<div class="card"><div class="eyebrow">🔒 Keeper Signing Day</div><p style="margin:0 0 8px"><b>' + esc(st) + '</b></p>' +
-    (W && W.status === "open" ? '<p style="margin:0 0 8px;font-size:13px">Closing makes the declarations final, posts the results, and (live) the ledger robot writes the new contracts and terminations. It also closes by itself after the close date.</p><button class="btn ghost" onclick="kWin(\'close\')">Close Signing Day now</button>'
-      : '<p style="margin:0 0 8px;font-size:13px">Owners declare their keepers in the app; each declaration posts to league chat. A <b>rehearsal</b> changes nothing official.</p>' +
+// 🔒 Keeper Signing Day controls: Joe's Commish desk (joe = true: live only, no rehearsals) and Mike's Ops desk (everything + rehearse/wipe).
+function kdeskState(joe) {
+  var W = KEEP && KEEP.window, n = KEEP ? KEEP.decls.length : 0; if (joe && W && W.mode === "test") W = null;
+  if (!W) return { W: W, txt: "Not open", badge: "not open", cls: "ok" };
+  if (W.status === "open") return { W: W, txt: (W.mode === "test" ? "🧪 Rehearsal open" : "Open") + " · " + n + " of 12 declared" + (W.closes ? " · closes " + fmtDate(W.closes) : ""), badge: (W.mode === "test" ? "🧪 " : "🔴 ") + n + " of 12 in", cls: "confirm" };
+  return { W: W, txt: (W.mode === "test" ? "🧪 Rehearsal " : "") + W.season + " done · " + n + " declared", badge: W.season + " done", cls: "ok" };
+}
+function kdeskBody(joe) {
+  var st = kdeskState(joe), W = st.W, y = KP_YRS[0], sd = signingDay(), practice = joe && KEEP && KEEP.window && KEEP.window.mode === "test" && KEEP.window.status === "open";
+  return '<p style="margin:0 0 8px"><b>' + esc(st.txt) + '</b></p>' +
+    (W && W.status === "open" ? '<p style="margin:0 0 8px;font-size:13px">Closing makes the declarations final and posts the results' + (W.mode === "test" ? "" : "; the new contracts and terminations go into the league's records") + '. It also closes by itself on the close date.</p><button class="btn ghost" onclick="kWin(\'close\')">Close Signing Day now</button>'
+      : practice ? '<p class="muted" style="margin:0;font-size:13px">Mike has a practice run going. You can open the real one once he wraps it.</p>'
+      : '<p style="margin:0 0 8px;font-size:13px">Owners declare their keepers in the app; each declaration posts to league chat. It opens by itself when the off-season starts' + (sd.date ? ' and closes ' + esc(fmtDate(sd.date)) : '') + '; open it early here if you want.</p>' +
         '<div class="row" style="flex-wrap:wrap;gap:6px"><label style="font-size:12px;flex:1">Closes<input type="date" id="kwC" value="' + esc(sd.date || "") + '"></label></div>' +
-        '<p style="margin-top:8px"><button class="btn" onclick="kWin(\'open\',\'live\')">Open ' + y + ' Signing Day</button> <button class="btn ghost" onclick="kWin(\'open\',\'test\')">🧪 Rehearse it</button></p>') +
-    (isOps() && W && W.mode === "test" ? '<p style="margin-top:8px"><button class="btn ghost" onclick="kWin(\'wipe\')">Wipe the rehearsal</button></p>' : '') + '</div>';
+        '<p style="margin-top:8px"><button class="btn" onclick="kWin(\'open\',\'live\')">Open ' + y + ' Signing Day</button>' + (joe ? '' : ' <button class="btn ghost" onclick="kWin(\'open\',\'test\')">🧪 Rehearse it</button>') + '</p>') +
+    (!joe && isOps() && W && W.mode === "test" ? '<p style="margin-top:8px"><button class="btn ghost" onclick="kWin(\'wipe\')">Wipe the rehearsal</button></p>' : '');
 }
 window.kWin = function (op, mode) {
   var body = { op: op, mode: mode, season: KP_YRS[0], closes: ($("#kwC") || {}).value || "" };
@@ -2198,8 +2210,9 @@ window.opWipe = function () { if (!confirm("Clear every rehearsal draft?")) retu
 // 🗓️ Commish controls for every draft live on the desks (Mike 11/27: "I'll go to the Ops desk to control anything"): Joe's Commish desk
 // and Mike's Ops desk show the same card. Live drafts first (who's up, for how long, last pick), then open/undo/cancel, rehearsals, and the
 // SPL Draft's load into ESPN (backend draftespnsync: proven LM adds, read ESPN first, 25 per call, never a blind re-add).
-function deskDrafts(D) {
-  var live = D.drafts.filter(function (x) { return x.status === "open"; }), done = D.drafts.filter(function (x) { return x.status === "done"; }).slice(0, 4);
+function deskDrafts(D, joe) { // joe: the Commish desk (real drafts only, no rehearse buttons); the Ops desk gets rehearsals too
+  var all = joe ? D.drafts.filter(function (x) { return x.mode !== "test"; }) : D.drafts;
+  var live = all.filter(function (x) { return x.status === "open"; }), done = all.filter(function (x) { return x.status === "done"; }).slice(0, 4);
   var since = function (x) { var p = x.picks[x.picks.length - 1]; return ago(p ? p.ts : x.ts); };
   var row = function (x) { var t = (x.mode === "test" ? "🧪 " : "") + x.season + " " + esc(x.name), open = x.status === "open";
     return '<div class="card" style="padding:10px 14px;margin:8px 0' + (open ? ";border-color:var(--lime)" : "") + '"><div class="row" style="justify-content:space-between"><b>' + t + '</b><span class="' + (open ? "lime" : "muted") + '" style="font-size:12px">' + (open ? "🔴 LIVE" : "Final") + '</span></div>' +
@@ -2208,7 +2221,16 @@ function deskDrafts(D) {
       (x.kind === "spl" ? '<div id="dke' + x.id + '" style="font-size:12px;margin-top:4px" class="muted">🏈 ESPN: …</div>' : '') +
       (x.kind === "shootout" && !open && x.mode === "live" ? '<div style="font-size:12px;margin-top:4px" class="gold">🏈 Set Week ' + regWks() + ' on ESPN: LM Tools → Edit Schedule.</div>' : '') +
       '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px"><button class="chip" onclick="go(\'droom\',\'' + x.id + '\')">Room ›</button>' + (x.picks.length ? '<button class="chip" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') +
-      (open ? '<button class="chip" onclick="drCancel(\'' + x.id + '\')">✕ Cancel</button>' : '') + (x.kind === "spl" && isOps() ? '<button class="chip"' + (open ? '' : ' style="border-color:var(--gold);background:rgba(184,138,46,.12)"') + ' onclick="dkEspn(\'' + x.id + '\',this)">🏈 Load into ESPN' + (open ? ' (after the draft)' : '') + '</button>' : '') + '</div></div>'; };
+      (open ? '<button class="chip" onclick="drCancel(\'' + x.id + '\')">✕ Cancel</button>' : '') + (x.kind === "spl" ? '<button class="chip"' + (open ? '' : ' style="border-color:var(--gold);background:rgba(184,138,46,.12)"') + ' onclick="dkEspn(\'' + x.id + '\',this)">🏈 Load into ESPN' + (open ? ' (after the draft)' : '') + '</button>' : '') + '</div></div>'; };
+  if (joe) { // Joe: one Open button per draft; nothing to rehearse
+    var y0 = (LD("seasons").slice(-1)[0] || 2026), inS = lastFinal(curSeason()) && !offSeason();
+    var ks = [["spl", "📝 SPL Draft", y0 + 1], ["div", "🧭 Divisional", y0 + 1], ["slot", "🎰 Slot", y0 + 1]].concat(inS && seasonPhase() === "shootout" ? [["shootout", "🎯 Shoot Out", curSeason()]] : []);
+    return (live.length ? live.map(row).join("") : '<p class="muted" style="margin:4px 0 8px;font-size:13px">No draft is live.</p>') +
+      '<div class="eyebrow" style="margin-top:10px">Open a draft</div>' + ks.map(function (k) { var on = live.some(function (x) { return x.kind === k[0]; });
+        return '<div class="kv"><span style="text-align:left;flex:1">' + k[1] + ' <small class="muted">' + k[2] + '</small></span><span style="white-space:nowrap">' + (on ? '<small class="lime">🔴 live</small>' : '<button class="chip" onclick="opOpen(\'' + k[0] + '\',\'live\')">Open ›</button>') + '</span></div>'; }).join("") +
+      '<p class="muted" style="font-size:12px;margin:6px 0 0">You check the order first; then it tells the league and starts the clock. Keepers and traded picks are already on the board.</p>' +
+      (done.length ? '<div class="eyebrow" style="margin-top:12px">Finished</div>' + done.map(row).join("") : '');
+  }
   var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, inSeason = lastFinal(curSeason()) && !offSeason();
   var kinds = [["spl", "📝 SPL Draft", next], ["div", "🧭 Divisional", next], ["slot", "🎰 Slot", next]].concat(inSeason ? [["shootout", "🎯 Shoot Out", curSeason()]] : []);
   return (live.length ? live.map(row).join("") : '<p class="muted" style="margin:4px 0 8px;font-size:13px">No draft is live.</p>') +
@@ -2219,10 +2241,12 @@ function deskDrafts(D) {
     (done.length ? '<div class="eyebrow" style="margin-top:12px">Finished</div>' + done.map(row).join("") : '') +
     (isOps() ? '<p style="margin:10px 0 0;font-size:13px"><a href="javascript:void 0" onclick="opWipe()">Clear all rehearsals</a></p>' : '');
 }
-function deskDraftsFill(sel) {
-  loadDrafts(true).then(function (D) { var el = $(sel); if (!el) return; el.innerHTML = deskDrafts(D);
-    var live = D.drafts.filter(function (x) { return x.status === "open"; }).length; opsBadge("opsDr", live ? "🔴 " + live + " live" : "none live", live ? "confirm" : "ok");
-    D.drafts.filter(function (x) { return x.kind === "spl" && x.status !== "cancelled"; }).forEach(function (x) { authed("draftespn", { id: x.id }).then(function (r) { var b = $("#dke" + x.id); if (b && r.ok) b.innerHTML = espnLine(r.status); }).catch(function () {}); });
+function deskDraftsFill(sel, joe) {
+  loadDrafts(true).then(function (D) { var el = $(sel); if (!el) return; el.innerHTML = deskDrafts(D, joe);
+    var ds = joe ? D.drafts.filter(function (x) { return x.mode !== "test"; }) : D.drafts, live = ds.filter(function (x) { return x.status === "open"; }).length;
+    opsBadge(sel.slice(1), live ? "🔴 " + live + " live" : "none live", live ? "confirm" : "ok");
+    var dt = el.closest("details"); if (joe && live && dt && !dt.open) { dt.dataset.auto = 1; dt.open = true; }
+    ds.filter(function (x) { return x.kind === "spl" && x.status !== "cancelled"; }).forEach(function (x) { authed("draftespn", { id: x.id }).then(function (r) { var b = $("#dke" + x.id); if (b && r.ok) b.innerHTML = espnLine(r.status); }).catch(function () {}); });
   }).catch(function (e) { var el = $(sel); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
 }
 function espnLine(st) {
@@ -2958,6 +2982,7 @@ SCREENS.ops = function () {
     '<div id="issued"></div>' +
     '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
     opsSec("drafts", "🗓️ Drafts", "opsDr", '<p class="muted">Loading drafts…</p>', "…") +
+    opsSec("keep", "🔒 Keeper Signing Day", "opsKp", '<p class="muted">Loading…</p>', "…") +
     opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
     opsSec("robots", "🤖 Robots &amp; watchdog", "opsRob", '<p class="muted">Asking GitHub…</p>', "…") +
     opsSec("owners", "🔑 Passphrases", "opsOwners", load, "…") +
@@ -3006,17 +3031,17 @@ function loadTL() {
   var el = $("#opsTL"); if (!el) return;
   authed("testleague").then(function (d) {
     if (!d.ok) throw new Error(d.error); var el = $("#opsTL"); if (!el) return;
-    var off = d.teams.filter(function (t) { return t.rename || t.drops || t.moves || t.adds; }).length;
+    var off = d.teams.filter(function (t) { return t.drops || t.moves || t.adds; }).length;
     var fix = d.teams.filter(function (t) { return t.drops || t.moves || t.adds; }).length;
     opsBadge("opsTL", (d.writes ? "writes on" : "writes off") + " · " + (fix ? fix + " to mirror" : "mirrored"), fix ? "confirm" : "ok");
     el.innerHTML = '<div class="muted" style="font-size:12px">' + esc(d.name) + ' · week ' + d.week + '</div>' +
       '<div class="kv" style="align-items:center"><span>ESPN writes<br><small class="muted">test league ' + d.league + ' only</small></span><span><button class="btn ' + (d.writes ? "" : "ghost") + '" style="padding:7px 10px;font-size:13px" onclick="tlSwitch(' + !d.writes + ')">' + (d.writes ? "ON · turn off" : "Off · turn on") + '</button></span></div>' +
       d.teams.map(function (t) { var good = !t.drops && !t.moves && !t.adds;
-        return '<div class="kv" style="display:block"><b>' + esc(oname(t.owner)) + '</b> <small class="muted">= ESPN “' + esc(t.team) + '”</small>' + (t.rename ? '<br><small class="gold">🏷️ to rename “' + esc(t.wantName) + '”</small>' : '') + '<br>' +
+        return '<div class="kv" style="display:block"><b>' + esc(oname(t.owner)) + '</b> <small class="muted">= ESPN “' + esc(t.team) + '”</small>' + '<br>' +
           (good ? '<span class="lime">✅ ' + t.want + ' of ' + t.want + ' players match SPL</span>' : '<span class="gold">' + t.match + ' of ' + t.want + ' match · ' + [t.drops ? t.drops + ' to drop' : '', t.moves ? t.moves + ' to move over' : '', t.adds ? t.adds + ' to add' : ''].filter(Boolean).join(' · ') + '</span>' +
             '<br><small class="muted">' + [t.addNames.length ? "Add: " + esc(t.addNames.join(", ")) : "", (t.moveNames || []).length ? "Move over: " + esc(t.moveNames.join(", ")) : "", t.dropNames.length ? "Drop: " + esc(t.dropNames.join(", ")) : ""].filter(Boolean).join(" · ") + '</small>') + '</div>'; }).join("") +
       '<p style="margin-top:10px"><button class="btn' + (off ? "" : " ghost") + '" id="tlMirror"' + (d.writes ? "" : " disabled") + '>🪞 Mirror SPL rosters</button></p>' +
-      '<p class="muted" style="font-size:12px;margin:6px 0 0">' + (d.writes ? "Names each team after its SPL team + (test), drops players no SPL team has, moves SPL players sitting on the wrong test team over (commish trade, no waivers), then adds the rest. Run it again any time to reset after demo trades." : "Turn writes on to mirror.") + ' Approved trades between these 4 move on ESPN by themselves.</p>' +
+      '<p class="muted" style="font-size:12px;margin:6px 0 0">' + (d.writes ? "Keeps ESPN's team names, drops players no SPL team has, moves SPL players sitting on the wrong test team over (commish trade, no waivers), then adds the rest. Run it again any time to reset after demo trades." : "Turn writes on to mirror.") + ' Approved trades between these 4 move on ESPN by themselves.</p>' +
       '<div id="tlProg"></div>' +
       (d.log.length ? '<details style="margin-top:10px"><summary class="eyebrow" style="cursor:pointer">ESPN write log · last ' + d.log.length + '</summary>' + d.log.map(function (l) {
         return '<div class="kv" style="display:block;font-size:12px"><span class="' + (l.code >= 200 && l.code < 300 ? "lime" : "coral") + '">' + esc(l.code) + '</span> ' + esc(l.kind) + ' · ' + esc(l.ref) + ' <span class="muted">' + ago(l.ts) + (l.msg ? ' · ' + esc(l.msg) : '') + '</span></div>'; }).join("") + '</details>' : '');
@@ -3029,15 +3054,14 @@ window.tlSwitch = function (on) {
 };
 function tlMirror(d) {
   var sum = function (k) { return d.teams.reduce(function (a, t) { return a + (t[k] || 0); }, 0); }, drops = sum("drops"), moves = sum("moves"), adds = sum("adds");
-  var names = d.teams.filter(function (t) { return t.rename; }).length;
-  if (!names && !drops && !moves && !adds) { toast("Already a mirror"); return; }
-  if (!confirm("Mirror the 4 SPL rosters into the test league?\n\n" + (names ? names + " team names, " : "") + drops + " drops, " + moves + " moved between test teams, then " + adds + " adds. Takes a minute or two; keep the app open.")) return;
-  var steps = []; ["names", "drops", "moves", "adds"].forEach(function (st) { d.teams.forEach(function (t) { if (st === "names" ? t.rename : t[st]) steps.push({ owner: t.owner, step: st }); }); });
+  if (!drops && !moves && !adds) { toast("Already a mirror"); return; }
+  if (!confirm("Mirror the 4 SPL rosters into the test league?\n\n" + drops + " drops, " + moves + " moved between test teams, then " + adds + " adds. Takes a minute or two; keep the app open.")) return;
+  var steps = []; ["drops", "moves", "adds"].forEach(function (st) { d.teams.forEach(function (t) { if (t[st]) steps.push({ owner: t.owner, step: st }); }); });
   var fails = [], b = $("#tlMirror"); if (b) b.disabled = true;
   var prog = function (txt) { var el = $("#tlProg"); if (el) el.innerHTML = '<p style="font-size:13px;margin:8px 0 0">' + txt + '</p>'; };
   (function next(i) {
     if (i >= steps.length) { prog(fails.length ? '<span class="coral">Done with ' + fails.length + ' misses:</span> ' + esc(fails.join("; ")) : '<span class="lime">✅ Mirrored.</span>'); setTimeout(loadTL, fails.length ? 4000 : 1200); return; }
-    var s = steps[i]; prog("⏳ " + ({ names: "Renaming ", drops: "Dropping extras from ", moves: "Moving players over to ", adds: "Adding SPL roster to " })[s.step] + esc(oname(s.owner)) + "'s team · step " + (i + 1) + " of " + steps.length);
+    var s = steps[i]; prog("⏳ " + ({ drops: "Dropping extras from ", moves: "Moving players over to ", adds: "Adding SPL roster to " })[s.step] + esc(oname(s.owner)) + "'s team · step " + (i + 1) + " of " + steps.length);
     authed("mirror", s).then(function (r) { if (!r.ok) throw new Error(r.error); fails = fails.concat(r.fails.map(function (f) { return oname(s.owner) + ": " + f; })); next(i + 1); })
       .catch(function (e) { prog('<span class="coral">Stopped: ' + esc(e.message) + '</span>'); if (b) b.disabled = false; });
   })(0);
@@ -3098,6 +3122,7 @@ window.loadRobots = loadRobots;
 SCREENS.ops.after = function () {
   if (!$("#opsHealth")) return;
   loadDesk(); loadTL(); loadRobots(); deskDraftsFill("#opsDr");
+  loadKeep(true).then(function () { var k = $("#opsKp"); if (!k) return; k.innerHTML = kdeskBody(false); var st = kdeskState(false); opsBadge("opsKp", st.badge, st.cls); }).catch(function () {});
   var bad = 0, ok = function (b, t) { if (!b) bad++; return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };

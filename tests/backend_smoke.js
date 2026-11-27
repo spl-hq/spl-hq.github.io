@@ -465,9 +465,7 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
   ok(w.post({ action: "espnwrites", token: wj, on: true }).ok === false, "only ops flips the ESPN switch");
   ok(w.post({ action: "espnwrites", token: wm, on: true }).writes === true, "Mike turns ESPN writes on");
   ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: "names" }));
-  ok(NAMES_T[3] === "Bad Attitude Gang (test)" && NAMES_T[1] === "Reeling RaMPaGe (test)" && NAMES_T[4] === "Fluff Muffins (test)", "test teams renamed to the real SPL names + (test)");
-  ok(NAMES_T[2] === "FREELANCERS (test)" && posts.filter(b => b.name).length === 5, "too long for ESPN → one shorter try");
-  ok(w.post({ action: "testleague", token: wm }).teams.every(t => !t.rename), "names read back: nothing left to rename");
+  ok(!Object.keys(NAMES_T).length && !posts.some(b => b.name) && w.post({ action: "testleague", token: wm }).teams.every(t => !("rename" in t)), "test team names stay as ESPN has them: no rename write, nothing flagged");
   posts.length = 0;
   ["drops", "moves"].forEach(st => ["murello", "reilly", "farrington", "glen"].forEach(o => w.post({ action: "mirror", token: wm, owner: o, step: st })));
   ok(T[1].includes(3) && posts.some(b => b.type === "TRADE_PROPOSAL" && b.items[0].playerId === 3 && b.items[0].fromTeamId === 3 && b.items[0].toTeamId === 1), "Olave moved Mike's test team → Joe's by LM trade (no waivers)");
@@ -476,7 +474,7 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
   d = w.post({ action: "testleague", token: wm });
   ok(d.teams.every(x => x.match === x.want && x.drops === 0 && x.adds === 0), "after the mirror every test team matches its SPL roster");
   ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.memberId === "{XYZ}") && posts.filter(b => b.type === "FREEAGENT").every(b => b.items.length === 1), "commish moves, one player per add/drop, no retries");
-  ok(w.sheets.EspnLog.rows.length === posts.length + 6, "every write logged");
+  ok(w.sheets.EspnLog.rows.length === posts.length + 1, "every write logged");
   // Demo trade: Mike's Allen for Joe's Olave → Joe accepts → Joe approves (commish-to-commish) → ESPN moves it, read back
   let o = w.post({ action: "offer", token: wm, to: "reilly", give: { players: [{ n: "Josh Allen", id: 1 }] }, get: { players: [{ n: "Chris Olave" }] } });
   ok(o.ok && o.offer.give.players[0].id === 1, "offers keep the ESPN player id");

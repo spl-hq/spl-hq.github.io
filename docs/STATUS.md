@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Commish desk v0.24 + no test-team renames, backend v0.17.4) · was by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -23,6 +23,14 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.24.0 (backend v0.17.4) · 📥 **Commish desk gets the Ops desk treatment, minus the backend** (Mike). Joe's desk now folds like
+  the Ops desk (Open all / Close all; a section that needs Joe opens itself: trades waiting, ESPN to-dos, open questions, a live draft):
+  ⏳ Trades to approve · 🏈 Do on ESPN · 🗓️ **Drafts with full controls** (live drafts with Room / ↩ Undo / ✕ Cancel / 🏈 **Load into ESPN**
+  (was ops-only), one **Open ›** per draft) · 🔒 Keeper Signing Day · 📋 Questions · 🎟️ Pick ledger fix · 📜 Recent decisions. **Shielded from Joe:**
+  rehearsals (no 🧪 Rehearse buttons, rehearsal drafts and Signing Day rehearsals hidden), robots, watchdog, test switches, the tour, "Mike can wipe"
+  and robot wording; the test-mode banner is one line. Mike's "Joe's view" shows exactly that. **Ops desk** keeps every rehearsal control and gains
+  its own 🔒 Keeper Signing Day section (rehearse / wipe moved there). **Test league: no more renames** (Mike: ESPN's names are fine): the mirror's
+  names step is gone (backend answers a stale app's "names" call with nothing sent), the Ops card no longer flags teams to rename. Smoke updated. SW `splhq-v60`.
 - 2026-11-27 · v0.23.8 · ⚖️ **Plans side by side, tighter** (Mike): last names only ("St. Brown", no Jr./III), one name per line, narrower columns
   so three plans fit at 390 px, "lost '27–'29" and "over by 8 KP" short forms. SW `splhq-v59`.
 - 2026-11-27 · v0.23.7 · 🔒 **Keepers: big blue cap box → a slim strip** (Mike: clogging real estate). One line "2027: 8 / 10 KP · 2 of 3 kept",
