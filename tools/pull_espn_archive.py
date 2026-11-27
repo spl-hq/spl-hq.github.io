@@ -19,6 +19,7 @@ PRO = {0: "FA", 1: "ATL", 2: "BUF", 3: "CHI", 4: "CIN", 5: "CLE", 6: "DAL", 7: "
        15: "MIA", 16: "MIN", 17: "NE", 18: "NO", 19: "NYG", 20: "NYJ", 21: "PHI", 22: "ARI", 23: "PIT", 24: "LAC", 25: "SF", 26: "SEA", 27: "TB", 28: "WSH",
        29: "CAR", 30: "JAX", 33: "BAL", 34: "HOU"}
 LOG = []
+DBG = []
 
 def get(url, filt=None):
     h = {"Cookie": f"espn_s2={S2}; SWID={SWID}", "User-Agent": "Mozilla/5.0 SPL-HQ archive pull", "Accept": "application/json"}
@@ -116,6 +117,7 @@ for y in range(this_year, 2003, -1):
     seen, nt, ntr = set(), 0, 0
     for sp in range(0, 19):
         tx, _ = season(y, ["mTransactions2"], f"&scoringPeriodId={sp}")
+        if sp == 1: DBG.append(f"{y}: mTransactions2 sp1 → {len((tx or {}).get('transactions') or [])} rows, keys {sorted((tx or {}).keys())[:8]}")
         for x in ((tx or {}).get("transactions") or []):
             if x.get("status") != "EXECUTED" or x.get("id") in seen: continue
             seen.add(x.get("id"))
@@ -139,6 +141,7 @@ for y in range(this_year, 2003, -1):
                                "sortMessageDate": {"order": "DESC"}, "sortFor": {"order": "DESC"}, "filterIncludeMessageTypeIds": {"value": [178, 179, 180, 181, 239, 244]}}}
             st, cm = get(f"{BASE}/seasons/{y}/segments/0/leagues/{LID}/communication/?view=kona_league_communication", filt)
             topics = (cm or {}).get("topics") or []
+            if off == 0: DBG.append(f"{y}: activity HTTP {st}, {len(topics)} topics, keys {sorted((cm or {}).keys())[:6] if isinstance(cm, dict) else type(cm).__name__}")
             for tp in topics:
                 when = tp.get("date")
                 kinds = {ACT.get(m.get("messageTypeId")) for m in tp.get("messages") or []}
@@ -175,5 +178,6 @@ with open(os.path.join(ROOT, "docs", "ESPN_ARCHIVE_REPORT.md"), "w", encoding="u
     f.write(f"# ESPN archive pull report\n\n_Robot: tools/pull_espn_archive.py · {datetime.datetime.utcnow().isoformat(timespec='minutes')}Z · league {LID}._\n\n")
     f.write("| Season | Source | Teams | Draft | Final rosters | Transactions |\n|---|---|---|---|---|---|\n" + "\n".join(report) + "\n\n")
     f.write(f"Totals: {len(drafts)} picks · {len(teams_rows)} team-seasons · {len(rosters)} roster rows · {len(moves)} moves.\n\n")
+    f.write("## Transaction probe\n\n" + "\n".join("- " + d for d in DBG[:12]) + "\n\n")
     f.write("## Unresolved owners (add an alias to data/SPL_Owner_Registry.csv, then re-run)\n\n" + ("\n".join(f"- {k}: {sorted(set(v))}" for k, v in sorted(unresolved.items())) or "None.") + "\n")
 print("\n".join(report)); print(len(drafts), "picks", len(teams_rows), "team-seasons", len(rosters), "roster rows", len(moves), "moves")
