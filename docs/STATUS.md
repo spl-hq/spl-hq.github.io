@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔️ Match follow-up v0.19.3, backend v0.14.0)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔️ Match follow-up v0.19.4, backend v0.14.0)
 
 
 ## Now
@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.4 · ⚔️ Match (Mike's live screenshot): **grey now only ever means projected**. The trailing team's big score and
+  the trailing score in Every game were grey (read like projections): all scored numbers are navy now (winner still blue in final weeks).
+  Dropped the "won this slot" tint behind lineup points (looked like the old in-progress chip, bumped the slot pill). SW `splhq-v41`.
 - 2026-11-27 · v0.19.4 (backend v0.14.1) · 📚 **History round 1: ESPN archive + SPL Packet** (Mike: "as much as possible from ESPN", + the Packet).
   New robot `espn-archive.yml` (weekly + on script/registry change; in the watchdog's ROBOTS): 2006–2026 draft boards, team-seasons, final rosters,
   transactions → `data/ESPN_*.csv` + `docs/ESPN_ARCHIVE_REPORT.md`. Packet transcribed by Claude: SPL boards 2019 + 2021–25 into `Draft_Picks.csv`,
