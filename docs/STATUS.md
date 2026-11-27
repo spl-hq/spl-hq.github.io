@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔️ Match follow-up v0.19.4, backend v0.14.0)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.5 · 🩹 **Injury tags short everywhere** (Mike: "we're good with O, Q, IR"). One app helper `injAb` turns ESPN's
+  status into O / Q / D / P / IR / SSPD / DTD on Match (lineup row tag + tap-open line), Team roster, player file and the trade grid.
+  Fixes the Match row tag too, which showed "I" for Injured Reserve (first letter). App-side only, no backend change. SW `splhq-v42`.
 - 2026-11-27 · v0.19.4 · ⚔️ Match (Mike's live screenshot): **grey now only ever means projected**. The trailing team's big score and
   the trailing score in Every game were grey (read like projections): all scored numbers are navy now (winner still blue in final weeks).
   Dropped the "won this slot" tint behind lineup points (looked like the old in-progress chip, bumped the slot pill). SW `splhq-v41`.

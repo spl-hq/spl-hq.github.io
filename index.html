@@ -459,7 +459,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.19.4";
+var APP_VERSION = "0.19.5";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -518,6 +518,8 @@ function answeredActive(ans) { return ACTIVE_Q.filter(function (q) { return ans[
 
 // ---- tiny helpers
 function $(s) { return document.querySelector(s); }
+// ESPN injury status → the short tag owners know (O, Q, IR…); unknown values pass through.
+function injAb(s) { var k = String(s || "").toUpperCase().replace(/[\s-]+/g, "_"); return { OUT: "O", QUESTIONABLE: "Q", DOUBTFUL: "D", PROBABLE: "P", INJURY_RESERVE: "IR", INJURED_RESERVE: "IR", SUSPENSION: "SSPD", SUSPENDED: "SSPD", DAY_TO_DAY: "DTD", PUP: "PUP" }[k] || String(s || ""); }
 function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 function toast(t) { var el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove("show"); }, 2600); }
 function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem("spl_" + k) || "null"); localStorage.setItem("spl_" + k, JSON.stringify(v)); } catch (e) { return null; } }
@@ -849,13 +851,13 @@ SCREENS.match.after = function (arg) {
     var nameCell = function (p, right) {
       if (!p) return '<td></td>';
       var sb = p.opp === "BYE" ? "Bye" : esc(p.opp || "") + (isLive(p) ? ' · <span class="lvt">Live</span>' : d.final ? '' : p.played ? ' · <span class="dn">Done</span>' : p.kick ? " · " + esc(kShort(p.kick)) : "");
-      var iq = p.inj ? '<span class="iq">' + esc(p.inj.charAt(0)) + '</span>' : "";
+      var iq = p.inj ? '<span class="iq">' + esc(injAb(p.inj)) + '</span>' : "";
       return '<td' + (right ? ' class="r"' : '') + '><div class="nm">' + esc(shortN(p)) + iq + '</div><div class="sb">' + (/^(FLEX|OP|BE|IR)$/.test(p.slot) && p.pos !== "D/ST" ? esc(p.pos) + ' · ' : '') + sb + '</div></td>';
     };
     var detail = function (p) {
       if (!p) return "";
       var line = p.played || d.final ? '<b>' + fmtPts(p.pts) + '</b> pts' + (p.proj != null ? ' <small>(proj ' + fmtPts(p.proj) + (p.played ? ', ' + (p.pts >= p.proj ? "+" : "") + fmtPts(p.pts - p.proj) : '') + ')</small>' : '') : 'Projected <b><i>' + fmtPts(p.proj) + '</i></b> · ' + esc(kickTime(p.kick) || "");
-      return '<div><b class="pclk" style="font-family:var(--body);text-decoration:underline;text-decoration-color:#96BEE6;cursor:pointer" data-p="' + esc(p.n) + '" onclick="event.stopPropagation();pcard(this.dataset.p)">' + esc(p.n) + ' 📇</b> <small>' + esc(p.pos + (p.tm ? " · " + p.tm : "") + (p.opp ? " " + p.opp : "")) + '</small>' + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '') + '<br>' + line + (p.st ? '<br><small>' + esc(p.st) + '</small>' : '') + '</div>';
+      return '<div><b class="pclk" style="font-family:var(--body);text-decoration:underline;text-decoration-color:#96BEE6;cursor:pointer" data-p="' + esc(p.n) + '" onclick="event.stopPropagation();pcard(this.dataset.p)">' + esc(p.n) + ' 📇</b> <small>' + esc(p.pos + (p.tm ? " · " + p.tm : "") + (p.opp ? " " + p.opp : "")) + '</small>' + (p.inj ? ' <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '<br>' + line + (p.st ? '<br><small>' + esc(p.st) + '</small>' : '') + '</div>';
     };
     var table = function (a, b, tot) {
       var n = Math.max(a.length, b.length), rows = "";
@@ -967,7 +969,7 @@ SCREENS.team.after = function (arg) {
         list.map(function (p) {
           var k = kept[p.n.toLowerCase()];
           return '<tr class="pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? '' : ' ' + kpBadge(p.n)) +
-            '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + (p.acq ? ' · ' + esc(p.acq) : '') + '</small>' + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '') + '</td>' +
+            '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + (p.acq ? ' · ' + esc(p.acq) : '') + '</small>' + (p.inj ? ' <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</td>' +
             '<td class="n">' + fmtPts(p.sp) + '</td><td class="n">' + fmtPts(p.avg) + '</td></tr>';
         }).join("") + '</table></div>';
     };
@@ -997,7 +999,7 @@ function pcard(name) {
   var cons = LD("contracts").filter(function (c) { return pnorm(c.player) === n; }).sort(function (a, b) { return b.signed - a.signed; });
   var why = kblocked(name, ""), c = contractOf(name), r = draftedRound(name, y0 - 1);
   var h = '<div class="sbody pfile"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><div class="eyebrow">' + esc([p.pos, p.tm].filter(Boolean).join(" · ") || "Player") + '</div><h2 style="margin:2px 0 0">' + esc(name) + '</h2>' +
-    (p.inj ? '<span class="inj">' + esc(p.inj) + '</span>' : '') + '</div><button class="btn ghost" onclick="pclose()">Close</button></div>';
+    (p.inj ? '<span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</div><button class="btn ghost" onclick="pclose()">Close</button></div>';
   // now
   h += '<div class="card"><div class="eyebrow">📍 Now</div>' + (cur ? '<div class="byline" style="margin-bottom:8px">' + av(cur.o, "sm") + '<span><b>' + esc((owner(cur.o) || {}).team || oname(cur.o)) + '</b><br><small class="muted">' + esc(oname(cur.o)) + (p.slot ? ' · ' + (p.slot === "BE" ? "bench" : p.slot === "IR" ? "IR" : "starting " + esc(p.slot)) : '') + (p.acq ? ' · ' + esc(p.acq) : '') + '</small></span></div>' +
       '<div class="pft">' + [[fmtPts(p.sp), "season pts"], [fmtPts(p.avg), "per game"], [posRank ? esc(p.pos) + " #" + posRank : "·", "on SPL rosters"]].map(function (x) { return '<div><b>' + x[0] + '</b><small>' + x[1] + '</small></div>'; }).join("") + '</div>'
@@ -1154,7 +1156,7 @@ SCREENS.trade.after = function (arg) {
         var head = mine ? '<div class="ghead me"><b>You</b><small>' + esc(tm.rec) + ' · 🎟️ ' + np + ' picks</small></div>'
           : '<button class="ghead" onclick="go(\'trade\',\'' + id + '\')"><b>' + esc(tm.team) + '</b><small>' + esc(oname(id)) + ' · ' + esc(tm.rec) + ' · 🎟️ ' + np + '</small><span class="gtrade">Trade ›</span></button>';
         return '<div class="gcol' + (mine ? " mine" : "") + '">' + head + grouped(tm.players.filter(function (p) { return p.slot !== "IR"; }), function (p) {
-          return '<div class="gp pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(p.inj) + '</span>' : '') + '</small></div>'; }) + '</div>';
+          return '<div class="gp pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</small></div>'; }) + '</div>';
       }).join("") + '</div>';
       if ($("#tg")) $("#tg").innerHTML = html;
     }).catch(function (e) { if ($("#tg")) $("#tg").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });
