@@ -1,5 +1,5 @@
 # ESPN_Season_Teams.csv  --  GOLD (robot-written by tools/pull_espn_archive.py from ESPN league 19583; never hand-edit, re-run to refresh).
-# Pulled 2026-11-27T12:12Z. One row per team per season (final_rank = ESPN's final standing).
+# Pulled 2026-11-27T12:21Z. One row per team per season (final_rank = ESPN's final standing).
 season,team_id,owner_id,team_name,abbrev,division,wins,losses,ties,points_for,points_against,playoff_seed,final_rank,espn_member
 2026,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,5,6,0,1177.5,1319.9,8,,Joseph Reilly
 2026,2,farrington,Farrington's FREELANCERS,FF,West Coast,8,3,0,1440.0,1336.1,2,,James Farrington

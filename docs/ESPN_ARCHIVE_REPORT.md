@@ -1,6 +1,6 @@
 # ESPN archive pull report
 
-_Robot: tools/pull_espn_archive.py · 2026-11-27T12:12Z · league 19583._
+_Robot: tools/pull_espn_archive.py · 2026-11-27T12:21Z · league 19583._
 
 | Season | Source | Teams | Draft | Final rosters | Transactions |
 |---|---|---|---|---|---|
@@ -29,6 +29,21 @@ _Robot: tools/pull_espn_archive.py · 2026-11-27T12:12Z · league 19583._
 | 2004 | — | ESPN has no league (HTTP 404/404) | | | |
 
 Totals: 4283 picks · 252 team-seasons · 3702 roster rows · 0 moves.
+
+## Transaction probe
+
+- 2026: mTransactions2 sp1 → 0 rows, keys []
+- 2026: activity HTTP 400, 0 topics, keys NoneType
+- 2025: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
+- 2025: activity HTTP 400, 0 topics, keys NoneType
+- 2024: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
+- 2024: activity HTTP 400, 0 topics, keys NoneType
+- 2023: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
+- 2023: activity HTTP 400, 0 topics, keys NoneType
+- 2022: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
+- 2022: activity HTTP 400, 0 topics, keys NoneType
+- 2021: mTransactions2 sp1 → 0 rows, keys ['draftDetail', 'gameId', 'id', 'scoringPeriodId', 'seasonId', 'segmentId', 'status']
+- 2021: activity HTTP 400, 0 topics, keys NoneType
 
 ## Unresolved owners (add an alias to data/SPL_Owner_Registry.csv, then re-run)
 
