@@ -371,7 +371,9 @@ a.btn.ghost{text-decoration:none}
 .kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .gmhd{margin:0 0 10px} .gmteam{margin:2px 0 4px;font-size:24px;line-height:1.05}
 .gmline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)} .gmline b{font:800 15px var(--mono);color:#041E42;margin-right:2px}
 .gmline span{background:#fff;border:1px solid #D9DCE0;border-radius:99px;padding:2px 8px;white-space:nowrap} .gmline span.w{color:var(--lime);border-color:#C9D6EA} .gmline span.l{color:var(--coral);border-color:#F0C9CF}
-.gmbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
+.gmbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0} .gmbar button{position:relative}
+.gmbar button.on::after{content:"";position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);border:8px solid transparent;border-top-color:#041E42;border-bottom:0}
+.gmrule{height:3px;background:#041E42;border-radius:2px;margin:9px 0 14px}
 .gmbar button{background:#fff;border:1px solid #D9DCE0;border-radius:12px;padding:8px 8px 7px;text-align:left;cursor:pointer;min-width:0;box-shadow:0 1px 2px rgba(30,35,40,.06)}
 .gmbar b{display:block;font:800 13px var(--head);text-transform:uppercase;letter-spacing:.03em;color:#041E42;white-space:nowrap}
 .gmbar small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px} .gmbar small.l1{color:#0B1F3A;font-weight:600}
@@ -474,7 +476,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.21.1";
+var APP_VERSION = "0.21.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -956,7 +958,7 @@ function gmBar(on) {
     (sd ? '<div class="gmline"><b>' + sd.rec + '</b><span>' + ordn(sd.rank) + ' of ' + sd.n + '</span><span>' + ordn(sd.drank) + ' ' + esc(sd.div || "") + '</span>' + (sd.streak ? '<span class="' + (sd.streak[0] === "W" ? "w" : "l") + '">' + sd.streak + '</span>' : '') +
       (nx ? '<span>Wk ' + nx.wk + ' vs ' + esc(oname(nx.opp)) + '</span>' : '') + '</div>' : '') + '</div>' +
     '<div class="gmbar">' + it.map(function (x) {
-      return '<button id="' + x[5] + '" class="' + (x[0] === on ? "on" : "") + (x[5] === "gmK" && k.needs ? " needsb" : "") + '" onclick="go(\'' + x[0] + '\')"><b>' + x[1] + ' ' + x[2] + '</b><small class="l1">' + esc(x[3]) + '</small><small class="l2">' + esc(x[4]) + '</small></button>'; }).join("") + '</div>';
+      return '<button id="' + x[5] + '" class="' + (x[0] === on ? "on" : "") + (x[5] === "gmK" && k.needs ? " needsb" : "") + '" onclick="go(\'' + x[0] + '\')"><b>' + x[1] + ' ' + x[2] + '</b><small class="l1">' + esc(x[3]) + '</small><small class="l2">' + esc(x[4]) + '</small></button>'; }).join("") + '</div><div class="gmrule"></div>';
 }
 function gmFill() {
   if (!ME || !$("#gmK")) return;

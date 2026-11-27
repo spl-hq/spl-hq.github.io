@@ -23,6 +23,8 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.21.2 · 🧭 GM desk: the selected button now points down (navy notch) onto a navy rule across the page, so Roster / Trades /
+  Keepers reads as "you're in this section" (Mike). Same on the trade grid + builder. SW `splhq-v48`.
 - 2026-11-27 · v0.21.1 · 📋 New question for Joe `history_gaps` (Mike: NFL.com's old leagues are gone, ask Joe): 2020 draft picks, 2021 playoff-team
   records, a few PF, 2003–05 records + runner-ups. Sits before "first wish"; header reads 📥 Desk · 8. SW `splhq-v47`.
 - 2026-11-27 · v0.21.0 (backend v0.15.0) · 🎯 **Shoot Out Draft room + off-season mode** (Mike). New `shootout` kind on the one draft engine
