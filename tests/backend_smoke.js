@@ -504,6 +504,20 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
   w.post({ action: "respond", token: wj, id: o.offer.id, decision: "accept" }); const b3 = posts.length;
   ok(w.post({ action: "tradeact", token: wm, id: o.offer.id, decision: "approve" }).ok && posts.length === b3, "Matt isn't a test team: approved, nothing sent to ESPN");
   ok(w.post({ action: "trades", token: wm }).offers.find(x => x.id === o.offer.id).espn === "test", "…and nothing owed (test mode)");
+  // 📝 SPL Draft board → ESPN (test league): proven LM adds, read ESPN first, never re-add, no team = skipped
+  Object.assign(NAMES, { 21: "Rookie A", 22: "Rookie B", 23: "Rookie C" });
+  const ord = ["reilly", "murello", "smith", "farrington", "glen", "chappie", "sikora", "hoosier", "patel", "salerno", "moyer", "bucher"];
+  const dr = w.post({ action: "draftopen", token: wm, kind: "spl", mode: "test", season: 2027, order: ord }).id;
+  const dp = (pl, pid) => w.post({ action: "draftpick", token: wm, id: dr, choice: { player: pl, pos: "RB", tm: "BUF", pid } });
+  const p0 = posts.length; dp("Rookie A", 21); dp("Rookie B", 22); dp("Rookie C", 23);
+  ok(posts.length === p0, "rehearsal picks don't write to ESPN by themselves");
+  ok(w.post({ action: "draftespnsync", token: ws, id: dr }).ok === false, "only the desk loads the board");
+  let es = w.post({ action: "draftespnsync", token: wm, id: dr });
+  ok(es.ok && es.sent === 2 && T[1].includes(21) && T[3].includes(22) && es.status.noTeam >= 1, "Joe's + Mike's picks added to their test teams; Matt has no test team");
+  ok(es.fails.some(f => /no ESPN id/.test(f)), "keepers ESPN can't find are flagged, not guessed");
+  const p1 = posts.length; es = w.post({ action: "draftespnsync", token: wm, id: dr });
+  ok(es.ok && posts.length === p1 && es.status.on === 2, "second load re-reads ESPN: nothing re-added");
+  ok(w.post({ action: "draftespn", token: wj, id: dr }).status.on === 2, "desk sees the ESPN status");
 }
 // 6 · ESPN 401 surfaces as an error, not a crash
 e = makeEnv({ ESPN_S2: "abc", SWID: "{XYZ}" }, () => ({ getResponseCode: () => 401, getContentText: () => "" }));

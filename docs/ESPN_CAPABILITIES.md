@@ -15,6 +15,7 @@ Today: reads come from the real league (19583); writes go only to the test leagu
 | Read everything | league, rosters, scores, schedule, settings, history | standings, Match, reel cards, history robot |
 | Trades | one LM trade call, several players both ways, executes at once | approved app trades → ESPN |
 | Add / drop any player on any team | LM free-agent call | the roster mirror |
+| Draft board → rosters | the same LM add, one player per call, ESPN read first (built 11/27; to prove after ESPN's 2027 rollover) | SPL Draft room: each pick + keeper onto the owner's ESPN team |
 
 ## ESPN's LM Tools can do it, call not captured yet (to prove on the test league)
 | What | Why we'd want it | Notes |

@@ -70,3 +70,53 @@ function splPool_() {
 }
 // Ledger: the finished board, one row per cell (picks + keepers + tags), for tools/ledger_sync.py → Draft_Picks.csv.
 function splLedger_(s) { return s.cells.map(function (c) { return { r: c.r, p: c.p, n: c.n, owner: c.owner, orig: c.orig, skip: c.skip, player: c.player || "", pos: c.pos || "", tm: c.tm || "", by: c.by || "" }; }); }
+
+// 🏈 Board → ESPN (Mike 11/27: "if we use the app to draft, it gets loaded into ESPN"). The proven LM add (the roster mirror's call):
+// each drafted player and each keeper goes onto his owner's ESPN team. Writes only reach WRITE_LEAGUE (test league until Joe signs off;
+// there only the 4 demo owners have a team). Never a blind retry: every sync reads ESPN first and only adds players who aren't already on
+// that team; one POST per player; every attempt is logged in DraftEspn (and EspnLog). A live SPL Draft tries each pick's add right after
+// the pick (one POST); the desk's "Load into ESPN" works through whatever is left, 25 players per call. Rehearsals load only from the desk.
+// ESPN's own "offline draft results" call isn't captured yet; if ESPN refuses adds before its draft is marked done, the desk shows ESPN's reason.
+function splEspnTargets_(s) {
+  return s.cells.filter(function (c) { return c.player && c.skip !== "tag"; }).map(function (c) { return { n: c.n, owner: c.owner, player: c.player, keeper: c.skip === "keeper", pid: null }; });
+}
+function splPid_(t, s) {
+  if (!t.keeper) { var p = s.picks.filter(function (x) { return pn_(x.choice.player) === pn_(t.player); })[0]; if (p && p.choice.pid) return Number(p.choice.pid); }
+  var P = splPool_(); if (!P.ok) return null; var hit = P.players.filter(function (x) { return pn_(x[1]) === pn_(t.player); })[0]; return hit ? Number(hit[0]) : null;
+}
+function splEspnLog_(id, t, status, teamId, msg, by) { append_("DraftEspn", [id, t.n, t.owner, t.player, t.pid || "", teamId || "", status, clip_(msg, 200), new Date(), by || ""]); }
+function splEspnStatus_(id, total) {
+  var last = {}; rows_("DraftEspn").forEach(function (r) { if (r.draft_id === id) last[r.n] = r; });
+  var ks = Object.keys(last).map(function (k) { return last[k]; });
+  return { total: total, on: ks.filter(function (r) { return r.status === "on"; }).length, failed: ks.filter(function (r) { return r.status === "fail"; }).map(function (r) { return { n: Number(r.n), player: r.player, owner: r.owner, msg: r.msg }; }),
+    noTeam: ks.filter(function (r) { return r.status === "noteam"; }).length, last: ks.length ? ks.map(function (r) { return r.ts; }).sort().slice(-1)[0] : null, writes: writesOn_(), league: WRITE_LEAGUE, real: WRITE_LEAGUE === READ_LEAGUE };
+}
+function splEspnSync_(me, b, one) {
+  var f = findDraft_(String(b.id || "")); if (!f) return { ok: false, error: "Draft not found" };
+  var s = draftState_(f.row, rows_("DraftPicks")); if (s.kind !== "spl") return { ok: false, error: "Only the SPL Draft loads into ESPN." };
+  if (!writesOn_()) return { ok: false, error: "ESPN writes are off (Ops desk → 🏈 Test league)." };
+  var all = splEspnTargets_(s), todo = one ? all.filter(function (t) { return t.n === one; }) : all;
+  var tl = testLeague_(), team = {}, where = {}; tl.teams.forEach(function (t) { if (t.owner) team[t.owner] = t; t.players.forEach(function (p) { where[p.id] = t; }); });
+  var sw = swid_(), sent = 0, ok = 0, left = 0, fails = [];
+  todo.forEach(function (t) {
+    var tm = team[t.owner]; if (!tm) { if (!one) splEspnLog_(s.id, t, "noteam", "", "No ESPN team for " + oName_(t.owner) + " in league " + WRITE_LEAGUE, me.owner); return; }
+    t.pid = splPid_(t, s); if (!t.pid) { splEspnLog_(s.id, t, "fail", tm.id, "No ESPN player id (typed-in name not found in ESPN's pool)", me.owner); fails.push(t.player + ": no ESPN id"); return; }
+    if (where[t.pid] && where[t.pid].id === tm.id) { splEspnLog_(s.id, t, "on", tm.id, "already on " + tm.team, me.owner); ok++; return; }
+    if (where[t.pid]) { splEspnLog_(s.id, t, "fail", tm.id, "On " + where[t.pid].team + " in ESPN: move him first", me.owner); fails.push(t.player + ": on " + where[t.pid].team); return; }
+    if (sent >= 25) { left++; return; }
+    var r = espnPost_("draft-add", s.id + "#" + t.n, { isLeagueManager: true, teamId: tm.id, type: "FREEAGENT", memberId: sw, scoringPeriodId: tl.sp, executionType: "EXECUTE", items: [{ playerId: t.pid, type: "ADD", toTeamId: tm.id }] }, me.owner);
+    sent++; splEspnLog_(s.id, t, r.ok ? "sent" : "fail", tm.id, r.ok ? "added (reading back)" : "ESPN said " + r.code + (r.msg ? ": " + r.msg : ""), me.owner); if (!r.ok) fails.push(t.player + ": " + (r.msg || r.code));
+  });
+  if (sent) { var back = testLeague_(), on = {}; back.teams.forEach(function (t) { t.players.forEach(function (p) { on[p.id] = t.id; }); });
+    todo.forEach(function (t) { var tm = team[t.owner]; if (tm && t.pid && on[t.pid] === tm.id && !(where[t.pid] && where[t.pid].id === tm.id)) { splEspnLog_(s.id, t, "on", tm.id, "on " + tm.team + " (read back)", me.owner); ok++; } }); }
+  log_("draftespn", s.id + " sent " + sent + " on " + ok + " fail " + fails.length + " left " + left + " by " + me.owner);
+  return { ok: true, sent: sent, on: ok, left: left, fails: fails.slice(0, 10), status: splEspnStatus_(s.id, all.length) };
+}
+function splEspnAfterPick_(me, s, n) { // live draft: try this pick's add right away (one POST); quiet on failure, the desk shows it
+  if (s.mode !== "live" || !writesOn_()) return;
+  try { var st = draftState_(findDraft_(s.id).row, rows_("DraftPicks")), c = st.cells[st.turnAt[n - 1]]; if (c) splEspnSync_(me, { id: s.id }, c.n); } catch (e) { log_("draftespn", s.id + " #" + n + " " + String(e.message || e).slice(0, 120)); }
+}
+function draftEspn_(me, b) { // desk read: the ESPN load status of an SPL Draft
+  var f = findDraft_(String(b.id || "")); if (!f) return { ok: false, error: "Draft not found" };
+  var s = draftState_(f.row, rows_("DraftPicks")); return { ok: true, status: splEspnStatus_(s.id, splEspnTargets_(s).length) };
+}

@@ -439,6 +439,25 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 .tag{background:#F1F2F4} .fin{background:#ECEEF0} .rnote{background:#F3F4F6}
 .grade{background:#E1E4E8} .meter{background:#E8EAED}
 .gcol.mine{background:#E8EAED} .composer{background:#F7F8F9}
+/* ▦ SPL Draft grid (Mike 11/27): spreadsheet board, sticky owner row + round column, cells colored by position */
+.dgridw{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:12px;background:#fff;-webkit-overflow-scrolling:touch}
+.dgrid{border-collapse:separate;border-spacing:0;font-size:11px;line-height:1.2}
+.dgrid th{position:sticky;top:0;z-index:2;background:#041E42;color:#fff;font:700 11px var(--body);padding:7px 4px 5px;min-width:76px;text-align:center;border-right:1px solid #1E407C}
+.dgrid th small{color:#96BEE6;font-weight:600}
+.dgrid th.gme{background:#1E407C}
+.dgrid th.rc{position:sticky;left:0;z-index:3;min-width:34px;width:34px}
+.dgrid tr td:first-child,.dgrid tbody th.rc,.dgrid tr th.rc{left:0}
+.dgrid tr:not(:first-child) th.rc{z-index:1;background:#F7F8F9;color:#0B1F3A;top:auto;border-bottom:1px solid #D9DCE0}
+.dgrid tr:not(:first-child) th.rc small{display:block;color:#7A8288}
+.dgrid td{min-width:76px;max-width:76px;height:42px;padding:3px 4px;border-right:1px solid #E3E7EC;border-bottom:1px solid #E3E7EC;vertical-align:top;overflow:hidden}
+.dgrid td b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0B1F3A}
+.dgrid td small{display:block;color:#5F666D;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dgrid td small.pk{font:600 9px var(--mono);color:#7A8288}
+.dgrid td.gqb,.chips span.gqb{background:#FBE3E6} .dgrid td.grb,.chips span.grb{background:#E1ECF9} .dgrid td.gwr,.chips span.gwr{background:#E2F3E8}
+.dgrid td.gte,.chips span.gte{background:#EEE6F7} .dgrid td.gdst,.chips span.gdst{background:#ECEEF0} .dgrid td.gx{background:#F7F8F9}
+.dgrid td.gkp,.chips span.gkp{background:#F6EEDC} .dgrid td.gtg{background:#F6EEDC;outline:1px dashed #B88A2E;outline-offset:-3px}
+.dgrid td.now{box-shadow:inset 0 0 0 2px #B88A2E;background:#FFF8E6}
+.dgrid td.mine small.pk{color:#1E407C;font-weight:800}
 </style>
 </head>
 <body>
@@ -481,7 +500,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.22.1";
+var APP_VERSION = "0.23.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1249,6 +1268,7 @@ SCREENS.desk.after = function () {
     var n = isOps() ? answeredActive(joeN) : answeredActive(MY || {});
     html += '<div class="card"' + (!isOps() && n < ACTIVE_Q.length ? ' style="border-color:var(--gold)"' : '') + '><div class="eyebrow">📋 Questions' + (!isOps() && n < ACTIVE_Q.length ? ' · <span class="gold">needs you</span>' : '') + '</div><p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + (isOps() ? "Joe" : "you") + '.</p><p style="margin-top:10px"><button class="btn ghost" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p></div>';
     html += '<div id="kdk"></div>';
+    if (!isOps()) html += '<div class="card"><div class="eyebrow">🗓️ Drafts</div><div id="ddk"><p class="muted">Loading drafts…</p></div></div>';
     html += '<div class="eyebrow">⏳ Trades to approve · ' + d.review.length + '</div>' + (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<div class="card"><p class="muted" style="margin:0">Nothing waiting on ' + (isOps() ? "Joe" : "you") + '.</p></div>');
     if (d.espn.length) html += '<div class="eyebrow">🏈 Do on ESPN · ' + d.espn.length + '</div>' + d.espn.map(offerCard).join("");
     if (d.recent.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer">Recent decisions</summary>' + d.recent.map(offerCard).join("") + '</details>';
@@ -1259,6 +1279,7 @@ SCREENS.desk.after = function () {
       '<input type="text" id="pfWhy" maxlength="160" placeholder="Reason (e.g. traded in August: Glen got it for Kelce)" style="margin-top:6px"><p style="margin-top:8px"><button class="btn ghost" onclick="pickFix()">Move the pick</button></p></div>';
     $("#dsk").innerHTML = html;
     loadKeep(true).then(function () { var k = $("#kdk"); if (k) k.innerHTML = kdeskCard(); }).catch(function () {});
+    if (!isOps()) deskDraftsFill("#ddk");
     if (!isOps()) loadTrades().then(function (t) { var S = $("#pfS"), R = $("#pfR"); if (!S) return;
       S.innerHTML = t.seasons.map(function (y) { return '<option>' + y + '</option>'; }).join(""); R.innerHTML = Array.apply(null, Array(t.rounds)).map(function (_, i) { return '<option value="' + (i + 1) + '">Round ' + (i + 1) + '</option>'; }).join(""); }).catch(function () {});
   }).catch(function (e) { if ($("#dsk")) $("#dsk").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
@@ -2034,10 +2055,7 @@ SCREENS.offseason = function () {
       (ev[4] === "shootout" && lastFinal(curSeason()) && !offSeason() ? '<details style="margin-top:8px"' + (seasonPhase() === "shootout" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">' + curSeason() + ' Shoot Out, as it stands</summary>' + shootPreview(curSeason()) + '</details>' : '') + '</div>';
   });
   html += '<div id="offpast"></div>';
-  if (isDesk()) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · run a draft</div><p style="margin:0 0 10px">Open a draft and the league gets pinged; whoever\'s on the clock gets an email. You can enter a pick for an owner who isn\'t signed up yet, and undo the last pick.</p>' +
-    '<div class="row" style="flex-wrap:wrap"><button class="btn" onclick="opOpen(\'div\',\'test\')">🧪 Rehearse Divisional</button><button class="btn" onclick="opOpen(\'slot\',\'test\')">🧪 Rehearse Slot</button><button class="btn" onclick="opOpen(\'spl\',\'test\')">🧪 Rehearse SPL Draft</button>' + (lastFinal(curSeason()) && !offSeason() ? '<button class="btn" onclick="opOpen(\'shootout\',\'test\')">🧪 Rehearse Shoot Out</button>' : '') + '</div>' +
-    '<div class="row" style="flex-wrap:wrap;margin-top:8px"><button class="btn ghost" onclick="opOpen(\'div\',\'live\')">Open the real ' + next + ' Divisional</button><button class="btn ghost" onclick="opOpen(\'slot\',\'live\')">Open the real ' + next + ' Slot</button><button class="btn ghost" onclick="opOpen(\'spl\',\'live\')">Open the real ' + next + ' SPL Draft</button>' + (seasonPhase() === "shootout" ? '<button class="btn ghost" onclick="opOpen(\'shootout\',\'live\')">Open the real ' + curSeason() + ' Shoot Out</button>' : '') + '</div>' +
-    (isOps() ? '<p style="margin:10px 0 0;font-size:13px"><a href="javascript:void 0" onclick="opWipe()">Clear all rehearsals</a> (ops)</p>' : '') + '</div>';
+  if (isDesk()) html += '<div class="card" style="border-color:var(--gold);cursor:pointer" onclick="go(\'' + (isOps() ? "ops" : "desk") + '\')"><div class="eyebrow">📥 Commish</div><p style="margin:0">Open, undo, cancel and load drafts into ESPN from your ' + (isOps() ? "🛠️ Ops desk" : "📥 Commish desk") + ' → 🗓️ Drafts. ›</p></div>';
   return html + '<p class="muted" style="font-size:12px">Rules: constitution §B, §E, §F. Orders computed from ESPN history; the commish confirms the order when he opens a draft. Results are copied to the repo by the ledger robot.</p>';
 };
 SCREENS.offseason.after = function () {
@@ -2112,6 +2130,49 @@ window.opGo = function (btn) {
 };
 window.opWipe = function () { if (!confirm("Clear every rehearsal draft?")) return; authed("draftwipe").then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; toast("Cleared " + r.cleared); render(); }).catch(function (e) { toast(e.message); }); };
 
+// 🗓️ Commish controls for every draft live on the desks (Mike 11/27: "I'll go to the Ops desk to control anything"): Joe's Commish desk
+// and Mike's Ops desk show the same card. Live drafts first (who's up, for how long, last pick), then open/undo/cancel, rehearsals, and the
+// SPL Draft's load into ESPN (backend draftespnsync: proven LM adds, read ESPN first, 25 per call, never a blind re-add).
+function deskDrafts(D) {
+  var live = D.drafts.filter(function (x) { return x.status === "open"; }), done = D.drafts.filter(function (x) { return x.status === "done"; }).slice(0, 4);
+  var since = function (x) { var p = x.picks[x.picks.length - 1]; return ago(p ? p.ts : x.ts); };
+  var row = function (x) { var t = (x.mode === "test" ? "🧪 " : "") + x.season + " " + esc(x.name), open = x.status === "open";
+    return '<div class="card" style="padding:10px 14px;margin:8px 0' + (open ? ";border-color:var(--lime)" : "") + '"><div class="row" style="justify-content:space-between"><b>' + t + '</b><span class="' + (open ? "lime" : "muted") + '" style="font-size:12px">' + (open ? "🔴 LIVE" : "Final") + '</span></div>' +
+      (open ? '<small class="muted">Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + ' · <b>' + esc(oname(x.clock)) + '</b> up' + (/never/.test(since(x)) ? '' : ' for ' + esc(since(x)).replace(/ ago$/, "")) + (x.picks.length ? ' · last: ' + esc(oname(x.picks[x.picks.length - 1].owner)) + ' ' + esc(pickTxt(x, x.picks[x.picks.length - 1])) : '') + '</small>'
+        : '<small class="muted">' + esc(resultLine(x)) + '</small>') +
+      (x.kind === "spl" ? '<div id="dke' + x.id + '" style="font-size:12px;margin-top:4px" class="muted">🏈 ESPN: …</div>' : '') +
+      (x.kind === "shootout" && !open && x.mode === "live" ? '<div style="font-size:12px;margin-top:4px" class="gold">🏈 Set Week ' + regWks() + ' on ESPN: LM Tools → Edit Schedule.</div>' : '') +
+      '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px"><button class="chip" onclick="go(\'droom\',\'' + x.id + '\')">Room ›</button>' + (x.picks.length ? '<button class="chip" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') +
+      (open ? '<button class="chip" onclick="drCancel(\'' + x.id + '\')">✕ Cancel</button>' : '') + (x.kind === "spl" && isOps() ? '<button class="chip" onclick="dkEspn(\'' + x.id + '\',this)">🏈 Load into ESPN</button>' : '') + '</div></div>'; };
+  var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, inSeason = lastFinal(curSeason()) && !offSeason();
+  var kinds = [["spl", "📝 SPL Draft", next], ["div", "🧭 Divisional", next], ["slot", "🎰 Slot", next]].concat(inSeason ? [["shootout", "🎯 Shoot Out", curSeason()]] : []);
+  return (live.length ? live.map(row).join("") : '<p class="muted" style="margin:4px 0 8px;font-size:13px">No draft is live.</p>') +
+    '<div class="eyebrow" style="margin-top:10px">Open a draft</div>' + kinds.map(function (k) {
+      var real = k[0] !== "shootout" || seasonPhase() === "shootout";
+      return '<div class="kv"><span style="text-align:left;flex:1">' + k[1] + ' <small class="muted">' + k[2] + '</small></span><span style="white-space:nowrap"><button class="chip" onclick="opOpen(\'' + k[0] + '\',\'test\')">🧪 Rehearse</button>' +
+        (real ? '<button class="chip" onclick="opOpen(\'' + k[0] + '\',\'live\')">Open real</button>' : '') + '</span></div>'; }).join("") +
+    (done.length ? '<div class="eyebrow" style="margin-top:12px">Finished</div>' + done.map(row).join("") : '') +
+    (isOps() ? '<p style="margin:10px 0 0;font-size:13px"><a href="javascript:void 0" onclick="opWipe()">Clear all rehearsals</a></p>' : '');
+}
+function deskDraftsFill(sel) {
+  loadDrafts(true).then(function (D) { var el = $(sel); if (!el) return; el.innerHTML = deskDrafts(D);
+    var live = D.drafts.filter(function (x) { return x.status === "open"; }).length; opsBadge("opsDr", live ? "🔴 " + live + " live" : "none live", live ? "confirm" : "ok");
+    D.drafts.filter(function (x) { return x.kind === "spl" && x.status !== "cancelled"; }).forEach(function (x) { authed("draftespn", { id: x.id }).then(function (r) { var b = $("#dke" + x.id); if (b && r.ok) b.innerHTML = espnLine(r.status); }).catch(function () {}); });
+  }).catch(function (e) { var el = $(sel); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+}
+function espnLine(st) {
+  return '🏈 ESPN ' + (st.real ? "(the real league)" : "(test league)") + ': <b>' + st.on + ' of ' + st.total + '</b> on' + (st.noTeam ? ' · ' + st.noTeam + ' with no ESPN team' : '') + (st.failed.length ? ' · <span class="coral">' + st.failed.length + ' failed</span>' : '') + (st.writes ? '' : ' · <span class="gold">writes off</span>') +
+    (st.failed.length ? '<details><summary style="cursor:pointer">Why</summary>' + st.failed.slice(0, 12).map(function (f) { return '<div>' + esc(f.player) + ' (' + esc(oname(f.owner)) + '): ' + esc(f.msg) + '</div>'; }).join("") + '</details>' : '');
+}
+window.dkEspn = function (id, btn) {
+  if (!confirm("Load this board into ESPN? Players already on the right ESPN team are skipped; the rest are added by the league manager.")) return;
+  btn.disabled = true; var total = 0;
+  var step = function () { btn.textContent = "Loading… " + total; authed("draftespnsync", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); total += r.sent;
+    var b = $("#dke" + id); if (b) b.innerHTML = espnLine(r.status);
+    if (r.left > 0 && r.sent) return step(); btn.disabled = false; btn.textContent = "🏈 Load into ESPN"; toast("ESPN: " + r.status.on + " of " + r.status.total + " on" + (r.fails.length ? " · " + r.fails.length + " failed" : "")); })
+    .catch(function (e) { btn.disabled = false; btn.textContent = "🏈 Load into ESPN"; toast(e.message); }); };
+  step();
+};
 // The draft room. Polls every 4 s while open.
 var DSEL = null;
 SCREENS.droom = function (id) {
@@ -2136,8 +2197,7 @@ function drawRoom(x) {
   html += x.kind === "slot" ? slotBoard(x, canPick) : x.kind === "shootout" ? shootBoard(x, canPick) : divBoard(x, canPick);
   html += '<div class="card"><div class="eyebrow">📜 Picks</div>' + x.turns.map(function (t, i) { var p = x.picks[i];
     return '<div class="pk"><span class="no">' + (i + 1) + '</span><span>' + (t ? '<b>' + esc(oname(t)) + '</b>' : '<span class="muted">Next best seed left</span>') + (p ? ' <small class="muted">' + esc(pickTxt(x, p)) + (p.by !== p.owner && p.by !== "auto" ? " · entered by " + esc(oname(p.by)) : "") + '</small>' : i === n && x.status === "open" ? ' <span class="via">ON THE CLOCK</span>' : '') + '</span></div>'; }).join("") + '</div>';
-  if (x.kind === "shootout" && x.status === "done" && isDesk() && x.mode === "live") html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · do on ESPN</div><p style="margin:0">Set these as Week ' + regWks() + ' on ESPN: LM Tools → Edit Schedule (Edit H2H). The app picks them up from ESPN on the next daily pull.</p></div>';
-  if (isDesk()) html += '<div class="row" style="flex-wrap:wrap;margin-bottom:12px">' + (n ? '<button class="btn ghost" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') + (x.status === "open" ? '<button class="btn ghost" onclick="drCancel(\'' + x.id + '\')">Cancel draft</button>' : '') + '</div>';
+  if (isDesk()) html += '<p class="muted" style="font-size:12px;margin:12px 0">Commish controls (undo, cancel' + (x.kind === "shootout" ? ", Week " + regWks() + " on ESPN" : "") + '): your ' + (isOps() ? '<a href="javascript:void 0" onclick="go(\'ops\')">🛠️ Ops desk</a>' : '<a href="javascript:void 0" onclick="go(\'desk\')">📥 Commish desk</a>') + ' → 🗓️ Drafts.</p>';
   box.innerHTML = html; DR = x;
 }
 var DR = null;
@@ -2180,15 +2240,31 @@ function splRoom(x) {
   var last = x.picks.slice(-3).reverse();
   if (last.length) html += '<div class="card" style="padding:10px 14px">' + last.map(function (p, i) { var c = x.cells[x.turnAt[x.picks.length - 1 - i]] || {};
     return '<div class="kv"><span style="text-align:left;flex:1"><small class="muted mono">' + rp(c) + '</small> <b>' + esc(p.choice.player) + '</b> <small class="muted">' + esc((p.choice.pos || "") + " " + (p.choice.tm || "")) + '</small></span><span class="muted">' + esc(oname(p.owner)) + '</span></div>'; }).join("") + '</div>';
-  html += '<div class="hscroll" style="margin-bottom:10px">' + [["pick", "🎯 " + (canPick ? "Pick" : "Best available")], ["board", "📋 Board"], ["teams", "🧢 Teams"]].map(function (t) {
+  html += '<div class="hscroll" style="margin-bottom:10px">' + [["pick", "🎯 " + (canPick ? "Pick" : "Best available")], ["grid", "▦ Grid"], ["board", "📋 Rounds"], ["teams", "🧢 Teams"]].map(function (t) {
     return '<button class="chip' + (SPLV === t[0] ? " on" : "") + '" onclick="splView(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join("") + '</div><div id="splv"></div>';
-  if (x.status === "done" && isDesk()) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · do on ESPN</div><p style="margin:0">Key the board into ESPN\'s offline draft (keepers included). The app copies its board into the draft history by itself.</p></div>';
-  if (isDesk()) html += '<div class="row" style="flex-wrap:wrap;margin:12px 0">' + (n ? '<button class="btn ghost" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') + (x.status === "open" ? '<button class="btn ghost" onclick="drCancel(\'' + x.id + '\')">Cancel draft</button>' : '') + '</div>';
+  if (isDesk()) html += '<p class="muted" style="font-size:12px;margin:12px 0">Commish controls (undo, cancel, load into ESPN): your ' + (isOps() ? '<a href="javascript:void 0" onclick="go(\'ops\')">🛠️ Ops desk</a>' : '<a href="javascript:void 0" onclick="go(\'desk\')">📥 Commish desk</a>') + ' → 🗓️ Drafts.</p>';
   box.innerHTML = html; splDraw();
 }
 window.splView = function (v) { SPLV = v; splRoom(DR); };
+// ▦ Grid (Mike 11/27): the draft board the way the league's Google Sheet shows it. Columns = the 12 slots (owner on top), rows = rounds,
+// cells colored by position; 🔒 keepers and 🏷️ tags in gold; a traded pick says who has it now. Scrolls both ways; the owner row
+// and the round column stay put.
+function shortPl(n) { var w = String(n || "").replace(/\s+(Jr\.?|Sr\.?|II|III|IV)$/i, "").split(/\s+/); return w.length > 1 ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : w[0]; }
+function splGrid(x) {
+  var by = {}, rs = []; x.cells.forEach(function (c) { by[c.r + ":" + c.orig] = c; });
+  var my = ME.owner, now = x.at ? x.at.n : 0;
+  for (var r = 1; r <= x.rounds; r++) rs.push(r);
+  var th = '<tr><th class="rc">Rd</th>' + x.order.map(function (o, i) { return '<th' + (o === my ? ' class="gme"' : '') + '><small>' + (i + 1) + '</small><br>' + esc(oname(o)) + '</th>'; }).join("") + '</tr>';
+  var body = rs.map(function (r) { return '<tr><th class="rc">' + r + '<small>' + (r % 2 ? "→" : "←") + '</small></th>' + x.order.map(function (o) { var c = by[r + ":" + o] || {};
+    var cls = c.skip === "keeper" ? "gkp" : c.skip === "tag" ? "gtg" : c.player ? "g" + String(c.pos || "x").replace("/", "").toLowerCase() : "";
+    return '<td class="' + cls + (c.n === now ? " now" : "") + (c.owner === my ? " mine" : "") + '">' + '<small class="pk">' + rp(c) + (c.owner !== c.orig ? ' → ' + esc(oname(c.owner)) : '') + '</small>' +
+      (c.skip === "keeper" ? '<b>🔒 ' + esc(shortPl(c.player)) + '</b><small>keeper</small>' : c.skip === "tag" ? '<b>🏷️ TAG</b><small>' + esc(shortPl(c.player)) + '</small>' :
+        c.player ? '<b>' + esc(shortPl(c.player)) + '</b><small>' + esc((c.pos || "") + " " + (c.tm || "")) + '</small>' : c.n === now ? '<b class="gold">⏱️ up</b>' : '') + '</td>'; }).join("") + '</tr>'; }).join("");
+  return '<div class="dgridw"><table class="dgrid">' + th + body + '</table></div><div class="chips" style="margin-top:8px"><span class="gqb">QB</span><span class="grb">RB</span><span class="gwr">WR</span><span class="gte">TE</span><span class="gdst">D/ST</span><span class="gkp">🔒 keeper · 🏷️ tag</span></div>';
+}
 function splDraw() {
   var x = DR, el = $("#splv"); if (!x || !el) return;
+  if (SPLV === "grid") { el.innerHTML = splGrid(x); var cur = el.querySelector("td.now"), w = el.querySelector(".dgridw"); if (cur && w) setTimeout(function () { w.scrollLeft = Math.max(0, cur.offsetLeft - 120); w.scrollTop = Math.max(0, cur.offsetTop - 120); }, 30); return; }
   if (SPLV === "board") { var rs = []; for (var r = 1; r <= x.rounds; r++) rs.push(r);
     el.innerHTML = rs.map(function (r) { var cs = x.cells.filter(function (c) { return c.r === r; });
       return '<div class="card" style="padding:10px 14px"><div class="eyebrow">Round ' + r + (r % 2 ? "" : " · snake back") + '</div>' + cs.map(function (c) { var now = x.at && x.at.n === c.n;
@@ -2252,7 +2328,7 @@ window.drSlot = function (k) { var x = DR; if (!confirm(oname(x.clock) + " takes
 function drSend(choice) { var x = DR;
   authed("draftpick", { id: x.id, n: x.picks.length + 1, choice: choice }).then(function (r) { if (!r.ok) { if (r.stale) { DRAFTS = null; render(); } throw new Error(r.error); } DSEL = null; DRAFTS = null; SPLQ = ""; toast("✓ Pick in"); drawRoom(r.draft); }).catch(function (e) { toast(e.message); }); }
 window.drUndo = function (id) { if (!confirm("Take back the last pick?")) return; authed("draftundo", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; render(); }).catch(function (e) { toast(e.message); }); };
-window.drCancel = function (id) { if (!confirm("Cancel this draft? The league is told.")) return; authed("draftcancel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; go("offseason"); }).catch(function (e) { toast(e.message); }); };
+window.drCancel = function (id) { if (!confirm("Cancel this draft? The league is told.")) return; authed("draftcancel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; toast("Cancelled"); render(); }).catch(function (e) { toast(e.message); }); };
 // Reel cards: you're on the clock (needs you), a draft is live, results (7 days)
 function draftCards(D, me) {
   var out = []; if (!D || !D.ok) return out;
@@ -2811,6 +2887,7 @@ SCREENS.ops = function () {
   return deskTop("ops") +
     '<div id="issued"></div>' +
     '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
+    opsSec("drafts", "🗓️ Drafts", "opsDr", '<p class="muted">Loading drafts…</p>', "…") +
     opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
     opsSec("robots", "🤖 Robots &amp; watchdog", "opsRob", '<p class="muted">Asking GitHub…</p>', "…") +
     opsSec("owners", "🔑 Passphrases", "opsOwners", load, "…") +
@@ -2950,7 +3027,7 @@ function loadRobots(run) {
 window.loadRobots = loadRobots;
 SCREENS.ops.after = function () {
   if (!$("#opsHealth")) return;
-  loadDesk(); loadTL(); loadRobots();
+  loadDesk(); loadTL(); loadRobots(); deskDraftsFill("#opsDr");
   var bad = 0, ok = function (b, t) { if (!b) bad++; return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };

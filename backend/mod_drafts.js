@@ -113,11 +113,11 @@ function draftPick_(me, b, desk) {
   if (s.kind !== "spl") botPost_("league", "🗓️ " + (s.mode === "test" ? "🧪 " : "") + s.name + " · pick " + n + ": " + oName_(who) + " " + choiceText_(s, who, c) + (me.owner !== who ? " (entered by " + me.name + ")" : "") +
     (auto ? ". That leaves " + oName_(auto.owner) + " vs " + oName_(auto.opp) + "." : "") + (done ? "" : ". On the clock: " + oName_(nxt) + "."), s.id);
   if (done) { var r = cleanRow_(f.row); r.status = "done"; r.updated_ts = now; setRow_("Drafts", f.idx, r);
-    if (s.kind === "spl") { splAfterPick_(s, n); botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + "The " + s.season + " SPL Draft is in the books. Every board: SPL HQ → League → Drafts.", s.id); } else
+    if (s.kind === "spl") { splAfterPick_(s, n); splEspnAfterPick_(me, s, n); botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + "The " + s.season + " SPL Draft is in the books. Every board: SPL HQ → League → Drafts.", s.id); } else
     if (s.kind === "shootout") { var fin = draftState_(findDraft_(s.id).row, rows_("DraftPicks"));
       botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + s.season + " Shoot Out, Week 14: " + fin.pairs.map(function (p) { return oName_(p[0]) + " vs " + oName_(p[1]); }).join(" · ") + ". Highest score takes the Shoot Out pot.", s.id); }
     else botPost_("league", "🏁 " + (s.mode === "test" ? "🧪 Rehearsal " : "") + s.season + " " + s.name + " is done. Results: SPL HQ → League → Off-season.", s.id); }
-  else { var r2 = cleanRow_(f.row); r2.updated_ts = now; setRow_("Drafts", f.idx, r2); if (s.kind === "spl") splAfterPick_(s, n); onClock_(nxt, s.name, s.season, s.mode, s.id, s.kind === "spl"); }
+  else { var r2 = cleanRow_(f.row); r2.updated_ts = now; setRow_("Drafts", f.idx, r2); if (s.kind === "spl") { splAfterPick_(s, n); splEspnAfterPick_(me, s, n); } onClock_(nxt, s.name, s.season, s.mode, s.id, s.kind === "spl"); }
   log_("draftpick", s.id + " #" + n + " " + who + " " + JSON.stringify(c) + " by " + me.owner);
   return { ok: true, draft: draftState_(findDraft_(s.id).row, rows_("DraftPicks")) };
 }

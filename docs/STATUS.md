@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -23,6 +23,18 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.0 (backend v0.17.0) · 🗓️ **Draft controls on the desks, ▦ grid board, board → ESPN** (Mike). **Desks:** a 🗓️ Drafts card
+  on Joe's 📥 Commish desk and Mike's 🛠️ Ops desk (first section, badge "🔴 N live"): every live draft (pick n of N, who's up and for how long,
+  last pick) with Room · ↩ Undo · ✕ Cancel; Open a draft (🧪 Rehearse / Open real per kind; Shoot Out only in season, "real" only in its window);
+  the last 4 finished; Clear all rehearsals (ops). Draft rooms and the Off-season hub no longer carry commish buttons (a line points to the
+  desk; the commish can still enter a pick for an owner in the room). **▦ Grid** in the SPL Draft room: the Google-Sheet board, 12 slot
+  columns × 17 rounds, owner row + round column stay put, cells colored by position (QB/RB/WR/TE/DST), 🔒 keepers + 🏷️ tag in gold,
+  "→ Joe" on traded picks, the clock cell outlined and scrolled into view. **Board → ESPN** (`mod_spldraft.js`, new Sheet tab `DraftEspn`):
+  every drafted player and keeper goes onto his owner's ESPN team with the proven LM add (roster mirror's call). Only `WRITE_LEAGUE` (test
+  league: only Mike, Joe, Al, Glen have teams there) until Joe signs off. Reads ESPN first and only adds who isn't there (never a blind
+  re-add), one POST per player, 25 per call, read back, every attempt logged. A **live** SPL Draft adds each pick right after it's made;
+  the desk's 🏈 Load into ESPN works through the rest and shows "N of M on ESPN · why it failed". Players typed in by hand need an ESPN
+  match (else flagged). Smoke +8. SW `splhq-v51`.
 - 2026-11-27 · v0.22.1 (backend v0.16.1) · 🔒 **Keepers v2.1** (Mike's notes on the new screen). The first switch button is your **team name**
   (Bad Attitude Gang), not "Mine". **Plans are visible**: plan chips right on your keepers card + "＋ New plan" + ⚖️ Compare (⋯ with one plan),
   with a one-line nudge while you only have one. **📈 3-year outlook** is back: every keeper by '27/'28/'29, terminated ones as penalties,

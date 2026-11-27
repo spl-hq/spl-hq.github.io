@@ -7,6 +7,14 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **Drafting in the app means the app loads ESPN** (Mike). Each pick (and each keeper) goes onto the owner's ESPN team with the LM add
+  as it happens (live drafts), plus a desk "Load into ESPN" to finish/repair. Test league until Joe signs off; then `WRITE_LEAGUE` = 19583.
+  Open question to prove on the test league after ESPN's 2027 rollover: whether ESPN accepts LM adds before its own draft is marked done; if
+  not, capture ESPN's offline-draft-results call and switch the loader to it (same desk button).
+- 2026-11-27 · **Commish controls live on the desks, not in the rooms** (Mike). Open / undo / cancel / ESPN load for every draft = the 🗓️ Drafts
+  card on the Commish desk (Joe) and Ops desk (Mike). Rooms are for drafting (the commish may still enter a pick for an owner there).
+- 2026-11-27 · **▦ Grid board** (Mike): the SPL Draft room shows the board like the league's Google Sheet (slots × rounds, colored by position).
+
 - 2026-11-27 · **Keeper declaring opens when the off-season starts** (Mike), by itself from the calendar, and stays open until Signing Day
   closes it. No commish step needed; rehearsals and a commish close still work. Plans + the 3-year outlook are always on the keepers card.
 
