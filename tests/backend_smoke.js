@@ -363,8 +363,8 @@ ok(e.post({ action: "draftundo", token: joeTok, id: sp }).ok && e.post({ action:
 e.post({ action: "draftwipe", token: mike });
 
 // 15b · 🔒 Keeper Signing Day: scenarios + declarations (mod_keepers)
-r = e.post({ action: "kplans", token: mike, season: 2027, plans: [{ name: "Keep both", signs: [{ player: "Bench Guy", term: 2 }] }, { name: "=Cut Bowers", cuts: ["C2025-murello-bowers"] }, {}, {}] });
-ok(r.ok && r.plans.length === 3 && r.plans[2].name === "Plan C", "scenarios saved (max 3, named)");
+r = e.post({ action: "kplans", token: mike, season: 2027, plans: [{ name: "Keep both", signs: [{ player: "Bench Guy", term: 2 }] }, { name: "=Cut Bowers", cuts: ["C2025-murello-bowers"] }, {}, {}, {}, {}] });
+ok(r.ok && r.plans.length === 5 && r.plans[2].name === "Plan C" && r.plans[4].name === "Plan E", "scenarios saved (max 5, named)");
 r = e.post({ action: "keepers", token: mike, season: 2027 }); ok(r.ok && r.plans[1].name === "=Cut Bowers" && e.sheets.KeeperPlans.rows[1][2].indexOf("=Cut") > 0, "scenarios follow the sign-in (formula-guarded in the Sheet)");
 ok(e.post({ action: "kdeclare", token: mike, signs: [] }).error === "Signing Day isn't open.", "no declaring before Signing Day opens");
 ok(e.post({ action: "kwindow", token: glen, op: "open", mode: "test" }).ok === false, "owners can't open Signing Day");

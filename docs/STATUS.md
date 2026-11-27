@@ -23,6 +23,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.2 (backend v0.17.1) · 🔒 **Keepers v2.2** (Mike: lost rename/delete, compare unclear, wants year columns). Under the plan chips:
+  **"Plan name: ✏️ Rename · ⧉ Copy · 🗑 Delete"** always visible (no more hidden ⋯). **⚖️ Compare your plans** is now a grid on the page (rows =
+  plans, columns = 2027 / 2028 / 2029 KP left, keepers count, ⚠ over-cap reason, "no 1st"; tap a row to open that plan). Outlook columns read
+  full years. **5 plans** (was 3; backend KEEP_SCEN 5). SW `splhq-v53`.
 - 2026-11-27 · v0.23.1 · 🔎 **Search shows who's gone + ✕ on every search box** (Mike). SPL Draft room: searching a kept, tagged or drafted
   player shows him greyed with why ("🔒 Mike's keeper", "🏷️ Hoos's Franchise Tag", "Drafted 3.05 · Joe") instead of "no matches". Every
   input whose placeholder starts with "Search" (rules, keeper add, keeper market, draft room, any new one) gets a ✕ clear button by

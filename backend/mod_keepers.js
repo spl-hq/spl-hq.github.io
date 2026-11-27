@@ -19,7 +19,7 @@
  */
 HEADS.KeeperPlans = ["owner", "season", "plans", "updated_ts"];
 HEADS.KeeperDecl = ["decl_id", "ts", "season", "mode", "owner", "items", "kp", "by", "status", "note"];
-var KEEP_MAX = 3, KEEP_CAP = 10, KEEP_SCEN = 3;
+var KEEP_MAX = 3, KEEP_CAP = 10, KEEP_SCEN = 5;
 function kpRound_(r) { r = Number(r) || 0; return !r ? 2 : r === 1 ? 10 : r === 2 ? 8 : r === 3 ? 6 : r <= 5 ? 4 : r <= 8 ? 3 : 2; }
 function pn_(s) { return String(s || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv)\b/g, "").replace(/[^a-z0-9]/g, ""); }
 
@@ -179,7 +179,7 @@ function keepers_(me, b) { // read: window, my scenarios, every live-or-final de
 }
 function kplans_(me, b) {
   var season = Number(b.season) || SEASON + 1, plans = Array.isArray(b.plans) ? b.plans.slice(0, KEEP_SCEN) : [];
-  plans = plans.map(function (p, i) { return { name: clip_(p && p.name, 24) || "Plan " + "ABC"[i], cuts: (Array.isArray(p && p.cuts) ? p.cuts : []).slice(0, 6).map(function (x) { return clip_(x, 60); }),
+  plans = plans.map(function (p, i) { return { name: clip_(p && p.name, 24) || "Plan " + "ABCDE"[i], cuts: (Array.isArray(p && p.cuts) ? p.cuts : []).slice(0, 6).map(function (x) { return clip_(x, 60); }),
     signs: (Array.isArray(p && p.signs) ? p.signs : []).slice(0, 6).map(function (s) { return { player: clip_(s && s.player, 60), pos: clip_(s && s.pos, 6), round: Number(s && s.round) || 0, term: Math.min(3, Math.max(1, Number(s && s.term) || 1)), tag: !!(s && s.tag) }; }) }; });
   var str = JSON.stringify(plans), list = rows_("KeeperPlans"), idx = -1;
   list.forEach(function (r, i) { if (r.owner === me.owner && Number(r.season) === season) idx = i; });
