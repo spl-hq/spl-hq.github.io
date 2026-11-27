@@ -310,6 +310,27 @@ ok(e.post({ action: "draftwipe", token: joeTok }).error === "Ops only", "only op
 L = e.get({ action: "ledger" });
 ok(L.drafts.length === 1 && L.drafts[0].kind === "div" && L.drafts[0].mode === "test" && L.drafts[0].divs.salerno.join() === "salerno,glen,bucher,sikora".split(",").filter(x=>x!=="glen").join(), "ledger feed carries finished drafts");
 r = e.post({ action: "draftwipe", token: mike }); ok(r.ok && r.cleared === 2 && e.post({ action: "drafts", token: mike }).drafts.length === 0, "ops clears rehearsals");
+// 15a · 🎯 Shoot Out Draft (Appendix Three): Rule 1 pairs fixed, best seed left picks, last two auto-paired
+ok(/two Rule 1/.test(e.post({ action: "draftopen", token: joeTok, kind: "shootout", mode: "test", season: 2026, order: order12, fixed: [["murello", "salerno"], ["salerno", "moyer"]] }).error), "an owner can't be in two Rule 1 matchups");
+r = e.post({ action: "draftopen", token: joeTok, kind: "shootout", mode: "test", season: 2026, order: order12, fixed: [["salerno", "moyer", "East within 1 game + 50"]] });
+ok(r.ok, "commish opens a rehearsal Shoot Out Draft with one Rule 1 matchup");
+const so = r.id;
+D = e.post({ action: "drafts", token: glen }).drafts.find(x => x.id === so);
+ok(D.season === 2026 && D.clock === "murello" && D.turns.length === 5 && D.pairs.length === 1 && D.fixed[0].why, "Mike (seed 1) is up; 5 picks for the 10 unmatched");
+ok(e.sheets.Chat.rows.some(x => x[6] === so && /Rule 1 matchups.*Owen vs/.test(x[4])), "league hears the Rule 1 matchups");
+ok(/already has a Week 14 opponent/.test(e.post({ action: "draftpick", token: mike, id: so, choice: { opp: "moyer" } }).error), "Rule 1 teams can't be picked");
+r = e.post({ action: "draftpick", token: mike, id: so, choice: { opp: "sikora" } }); ok(r.ok && r.draft.clock === "glen", "Mike picks Pete; Glen (next unmatched seed) is up");
+ok(/Glen is on the clock/.test(e.post({ action: "draftpick", token: owen, id: so, choice: { opp: "patel" } }).error), "Rule 1 teams don't choose");
+e.post({ action: "draftpick", token: glen, id: so, choice: { opp: "smith" } });
+e.post({ action: "draftpick", token: joeTok, id: so, choice: { opp: "reilly" } }); // patel picks Joe (entered by Joe)
+r = e.post({ action: "draftpick", token: joeTok, id: so, choice: { opp: "bucher" } }); // chappie picks bucher → hoosier vs farrington auto
+ok(r.ok && r.draft.status === "done" && r.draft.pairs.length === 6 && r.draft.pairs[5].join() === "hoosier,farrington,last two", "last two are paired automatically and the draft closes");
+ok(e.sheets.Chat.rows.some(x => x[6] === so && /Shoot Out, Week 14: .*Hoos vs Al/.test(x[4])), "league gets the Week 14 card");
+ok(e.post({ action: "draftundo", token: joeTok, id: so }).ok && e.post({ action: "drafts", token: mike }).drafts.find(x => x.id === so).clock === "chappie", "undo takes back the auto pair with the pick before it");
+L = e.get({ action: "ledger" }); ok(L.drafts.length === 0, "an open shoot out isn't in the ledger");
+e.post({ action: "draftpick", token: joeTok, id: so, choice: { opp: "hoosier" } });
+L = e.get({ action: "ledger" }); ok(L.drafts.length === 1 && L.drafts[0].kind === "shootout" && L.drafts[0].pairs.length === 6 && L.drafts[0].fixed.length === 1, "ledger feed carries the Shoot Out pairs");
+e.post({ action: "draftwipe", token: mike });
 r = e.post({ action: "settings", token: glen }); ok(r.notify.draft === false || r.notify.draft === true, "draft notify key exists");
 ok(e.post({ action: "settings", token: owen }).notify.draft === true, "on-the-clock emails on by default");
 

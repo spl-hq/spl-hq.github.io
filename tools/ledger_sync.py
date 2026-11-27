@@ -67,6 +67,7 @@ drafts = L.get("drafts", [])
 def dchoice(d, p):
     c = p["choice"]
     if d["kind"] == "slot": return f"slot {c['slot']}", "", str(c["slot"])
+    if d["kind"] == "shootout": return ("paired (last two) with " if p["by"] == "auto" else "picks ") + c["opp"], "", c["opp"]
     return ("takes " if c["into"] == p["owner"] else "assigns ") + c["pick"], c["into"], c["pick"]
 ch3 = False
 for m, folder in (("live", os.path.join(ROOT, "data")), ("test", os.path.join(ROOT, "data", "test"))):
@@ -75,14 +76,18 @@ for m, folder in (("live", os.path.join(ROOT, "data")), ("test", os.path.join(RO
     os.makedirs(folder, exist_ok=True)
     rows_ = []
     for d in ds:
+        for i, fx in enumerate(d.get("fixed") or []):  # Shoot Out Rule 1 matchups (set when the draft opened)
+            rows_.append({"season": d["season"], "draft": d["kind"], "draft_id": d["id"], "pick": f"R1-{i + 1}", "owner_id": fx["a"], "choice": "Rule 1 vs " + fx["b"] + (f" ({fx['why']})" if fx.get("why") else ""),
+                          "division_of": "", "value": fx["b"], "entered_by": "", "finished": str(d["done"])[:10]})
         for p in d["picks"]:
             what, into, val = dchoice(d, p)
             rows_.append({"season": d["season"], "draft": d["kind"], "draft_id": d["id"], "pick": p["n"], "owner_id": p["owner"], "choice": what,
-                          "division_of": into, "value": val, "entered_by": p["by"] if p["by"] != p["owner"] else "", "finished": str(d["done"])[:10]})
+                          "division_of": into, "value": val, "entered_by": p["by"] if p["by"] not in (p["owner"], "auto") else "", "finished": str(d["done"])[:10]})
     ch3 = write(os.path.join(folder, "Offseason_Drafts.csv"),
         [("TEST MODE (rehearsals) -- " if m == "test" else "") + "Offseason_Drafts.csv -- GOLD, robot-written by tools/ledger_sync.py from the app's draft rooms",
          "(League -> Off-season). Do not hand-edit: undo/redo picks in the app and the robot copies them here.",
-         "draft: div = Divisional Draft (division_of = the founder whose division the owner joins; value = that owner) | slot = Slot Draft (value = SPL Draft slot).",
+         "draft: div = Divisional Draft (division_of = the founder whose division the owner joins; value = that owner) | slot = Slot Draft (value = SPL Draft slot)"
+         " | shootout = Shoot Out Draft (value = Week 14 opponent; pick R1-n = Rule 1 matchup).",
          f"Synced {stamp}."],
         ["season", "draft", "draft_id", "pick", "owner_id", "choice", "division_of", "value", "entered_by", "finished"], rows_) or ch3
 # 🔒 Keeper Signing Day: final declarations (the backend finalizes when the window closes). Rehearsals never touch contracts.

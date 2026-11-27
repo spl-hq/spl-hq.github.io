@@ -474,7 +474,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.20.2";
+var APP_VERSION = "0.21.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -650,6 +650,7 @@ function buildFeed(d) {
   // ⚡ Needs you
   if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and Home becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
   if (ME) draftCards(d.drafts, me).forEach(function (c) { cards.push(c); });
+  var pc = phaseCard(d.drafts, me); if (pc) cards.push(pc);
   var kd = keeperDeadlineCard(me); if (kd) cards.push(kd);
   var kb = keeperBoardCard(me); if (kb) cards.push(kb);
   var T = d.trades;
@@ -1935,13 +1936,62 @@ function orderList(list, offer) {
     '<br><small class="muted">' + esc(x[1]) + '</small></span>' + (offer ? '<span><button class="chip" onclick="opMove(' + i + ')">↑</button></span>' : '') + '</div>'; }).join("");
 }
 function calDate(key) { var c = LD("calendar").filter(function (x) { return x.key === key; })[0]; return c && c.date ? c.date : ""; }
+// ---- 🎯 SPL Shoot Out (§K, Appendix Three). Seeds after Week 13 (§G: 4 division winners = seeds 1–4, best other record = 5, most points of
+// the rest = 6, then the table), and the Rule 1 matchups that decide a playoff spot. Head-to-head + coin-flip tiebreaks aren't modeled:
+// the commish confirms both (reorder, drop or add a matchup) when he opens the draft.
+function regWks() { return ((window.LEAGUE_DATA || {}).schedule || {}).regWeeks || 14; }
+function shootThru(y) { return Math.min(lastFinal(y), regWks() - 1); }
+function shootSeeds(y, thru) {
+  var T = tableThru(y, thru), tab = Object.keys(T).map(function (k) { var t = T[k]; t.div = (owner(k) || {}).div || ""; return t; }).sort(function (a, b) { return a.rank - b.rank; });
+  if (!tab.length) return [];
+  var won = {}, dw = tab.filter(function (t) { if (won[t.div]) return false; won[t.div] = 1; return true; }), rest = tab.filter(function (t) { return dw.indexOf(t) < 0; });
+  var five = rest[0], six = rest.slice(1).sort(function (a, b) { return b.pf - a.pf; })[0], out = [];
+  dw.forEach(function (t, i) { out.push([t, "Seed " + (i + 1) + " · " + t.div + " leader"]); });
+  if (five) out.push([five, "Seed 5 · best other record"]); if (six) out.push([six, "Seed 6 · most points of the rest"]);
+  rest.filter(function (t) { return t !== five && t !== six; }).forEach(function (t, i) { out.push([t, ordn(7 + i) + " · out of the playoffs"]); });
+  return out.map(function (x, i) { var t = x[0]; return { owner: t.owner, seed: i + 1, rec: t.rec, w: t.w + t.t / 2, l: t.l + t.t / 2, pf: t.pf, div: t.div, label: x[1] + " · " + t.rec + " · " + fmtPts(t.pf) + " pts" }; });
+}
+function shootRule1(seeds) {
+  var gb = function (a, b) { return ((a.w - b.w) + (b.l - a.l)) / 2; }, close = function (a, b) { return Math.abs(gb(a, b)) <= 1; }, pts = function (a, b) { return Math.abs(a.pf - b.pf) <= 50; };
+  var out = [], used = {}, pair = function (a, b, why) { out.push([a.owner, b.owner, why]); used[a.owner] = used[b.owner] = 1; };
+  var worstIn = function (not) { return seeds.filter(function (t) { return t.seed <= 6 && !used[t.owner] && t !== not; }).slice(-1)[0]; };
+  var divs = []; seeds.forEach(function (t) { if (divs.indexOf(t.div) < 0) divs.push(t.div); });
+  divs.forEach(function (dv) { var D = seeds.filter(function (t) { return t.div === dv && !used[t.owner]; }).sort(function (a, b) { return gb(b, a) || b.pf - a.pf; });
+    if (D.length >= 3 && close(D[0], D[2])) { pair(D[0], D[1], dv + ": all three within a game"); var w = worstIn(D[2]); if (w) pair(D[2], w, dv + " 3rd vs the worst unmatched playoff team"); }
+    else if (D.length >= 2 && close(D[0], D[1]) && pts(D[0], D[1])) pair(D[0], D[1], dv + " title: within a game + 50 pts"); });
+  var winners = {}; seeds.slice(0, 4).forEach(function (t) { winners[t.owner] = 1; });
+  var pool = seeds.filter(function (t) { return !winners[t.owner] && !used[t.owner]; }).sort(function (a, b) { return gb(b, a) || b.pf - a.pf; });
+  var G = pool.length ? pool.filter(function (t) { return close(pool[0], t); }) : [];
+  if (G.length === 2 && pts(G[0], G[1])) pair(G[0], G[1], "Wildcard: within a game + 50 pts");
+  else if (G.length === 3) { pair(G[0], G[1], "Wildcard: three within a game"); var w2 = worstIn(G[2]); if (w2) pair(G[2], w2, "Wildcard 3rd vs the worst unmatched playoff team"); }
+  else if (G.length >= 4) { pair(G[0], G[3], "Wildcard: four within a game (1 vs 4)"); pair(G[1], G[2], "Wildcard: four within a game (2 vs 3)"); }
+  return out;
+}
+function shootPreview(y) {
+  var thru = shootThru(y), S = shootSeeds(y, thru); if (!S.length) return '';
+  var R = shootRule1(S), fx = {}; R.forEach(function (p) { fx[p[0]] = fx[p[1]] = 1; });
+  return '<p class="muted" style="font-size:12px;margin:6px 0">' + (thru >= regWks() - 1 ? "After Week " + thru + " (final)." : "If Week " + (regWks() - 1) + " ended after Week " + thru + ".") + ' Top seed picks first.</p>' +
+    (R.length ? '<div class="eyebrow" style="margin-top:6px">Rule 1 · set for them</div>' + R.map(function (p) { return '<div class="kv"><span style="text-align:left;flex:1"><b>' + esc(oname(p[0])) + '</b> vs <b>' + esc(oname(p[1])) + '</b><br><small class="muted">' + esc(p[2]) + '</small></span></div>'; }).join("") : '<p class="muted" style="font-size:12px">No Rule 1 matchups right now: everyone drafts.</p>') +
+    '<div class="eyebrow" style="margin-top:8px">Pick order</div>' + S.filter(function (t) { return !fx[t.owner]; }).map(function (t, i) { return '<div class="kv"><span style="text-align:left;flex:1"><span class="muted" style="font:600 12px var(--mono)">' + (i + 1) + '</span> <b>' + esc(oname(t.owner)) + '</b><br><small class="muted">' + esc(t.label) + '</small></span></div>'; }).join("");
+}
+// Season phase for off-season mode: "season" · "shootout" (Week 13 final, Week 14 not) · "offseason" (SPL Bowl final: no games left on ESPN).
+var LIVE_SEASON = 2027; // SPL HQ goes live for the league after the 2026 season (Mike 11/27): in-season prompts to owners start then; desks see them now
+function seasonPhase() { if (offSeason()) return "offseason"; var y = curSeason(), f = lastFinal(y), r = regWks(); return f >= r - 1 && f < r ? "shootout" : "season"; }
+// The next off-season events with their dates (calendar), in order; past dates drop off.
+function offNext() {
+  var ns = nextSeason(), seen = {}, out = [];
+  OFF_EVENTS.forEach(function (ev) { if (ev[0] === "shootout_draft" || seen[ev[0] + (ev[4] || "")]) return; seen[ev[0] + (ev[4] || "")] = 1; var c = calOf(ns, ev[0]) || {};
+    if (c.date && dayDiff(c.date) < 0) return; out.push({ icon: ev[1], name: ev[2], date: c.date || "", note: c.note || ev[3] }); });
+  var off = calOf(ns, "offseason"); if (off && off.date && dayDiff(off.date) > 0) out.unshift({ icon: "🏈", name: "Off-season starts", date: off.date, note: off.note || "" });
+  return out;
+}
 var OFF_EVENTS = [
   ["winter_meeting", "🗳️", "Winter Meeting", "Rule votes. The SPL Draft date gets picked."],
   ["div_slot_drafts", "🧭", "Divisional Draft", "April. Four owners build the four divisions, snake style.", "div"],
   ["div_slot_drafts", "🎰", "Slot Draft", "April. Everyone claims an SPL Draft slot 1–12.", "slot"],
   ["signing_day", "🔒", "Keeper Signing Day", "10 days before the SPL Draft. 10 KP, three keepers max."],
   ["spl_draft", "📝", "SPL Draft", "17 rounds, snake. The live draft room is next on the build list."],
-  ["shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week 14: top seeds pick their Week 14 opponents."]];
+  ["shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week 14: Rule 1 sets the matchups that decide a playoff spot, then the top seeds pick their Week 14 opponents.", "shootout"]];
 SCREENS.offseason = function () {
   var y = (LD("seasons").slice(-1)[0] || 2026), next = y + 1, o = offOrder(y), start = calDate("offseason");
   var html = back("league", "League") + '<h2>Off-season</h2>' +
@@ -1949,16 +1999,17 @@ SCREENS.offseason = function () {
       : '<p style="margin:0">It\'s on. Every off-season event runs here, live, on your phone.</p>') + '</div>' +
     '<div id="offlive"></div>';
   OFF_EVENTS.forEach(function (ev) {
-    var d = calDate(ev[0]), list = ev[4] && o ? o[ev[4]] : null;
+    var d = calDate(ev[0]), list = ev[4] && ev[4] !== "shootout" && o ? o[ev[4]] : null;
     html += '<div class="card"><div class="eyebrow">' + ev[1] + ' ' + esc(ev[2]) + (d ? ' · ' + esc(fmtDate(d)) : '') + '</div><p style="margin:0">' + esc(ev[3]) + '</p>' +
       (list ? '<details style="margin-top:8px"' + (ev[4] === "div" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">' + next + ' order, from ' + y + (o.done ? "" : " · if the season ended today") + '</summary>' + orderList(list) +
         (o.done ? '' : '<p class="muted" style="font-size:12px">Locks when the ' + y + ' SPL Bowl is final. The playoff spots fill in as the bracket plays out.</p>') + (o.sideNote ? '<p class="gold" style="font-size:12px">' + esc(o.sideNote) + '</p>' : '') + '</details>' : '') +
-      (ev[0] === "signing_day" ? '<button class="btn ghost" style="margin-top:10px" onclick="go(\'keepers\')">Your keepers + cap ›</button>' : '') + '</div>';
+      (ev[0] === "signing_day" ? '<button class="btn ghost" style="margin-top:10px" onclick="go(\'keepers\')">Your keepers + cap ›</button>' : '') +
+      (ev[4] === "shootout" && lastFinal(curSeason()) && !offSeason() ? '<details style="margin-top:8px"' + (seasonPhase() === "shootout" ? " open" : "") + '><summary class="muted" style="cursor:pointer;font-size:13px">' + curSeason() + ' Shoot Out, as it stands</summary>' + shootPreview(curSeason()) + '</details>' : '') + '</div>';
   });
   html += '<div id="offpast"></div>';
   if (isDesk()) html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · run a draft</div><p style="margin:0 0 10px">Open a draft and the league gets pinged; whoever\'s on the clock gets an email. You can enter a pick for an owner who isn\'t signed up yet, and undo the last pick.</p>' +
-    '<div class="row" style="flex-wrap:wrap"><button class="btn" onclick="opOpen(\'div\',\'test\')">🧪 Rehearse Divisional</button><button class="btn" onclick="opOpen(\'slot\',\'test\')">🧪 Rehearse Slot</button></div>' +
-    '<div class="row" style="flex-wrap:wrap;margin-top:8px"><button class="btn ghost" onclick="opOpen(\'div\',\'live\')">Open the real ' + next + ' Divisional</button><button class="btn ghost" onclick="opOpen(\'slot\',\'live\')">Open the real ' + next + ' Slot</button></div>' +
+    '<div class="row" style="flex-wrap:wrap"><button class="btn" onclick="opOpen(\'div\',\'test\')">🧪 Rehearse Divisional</button><button class="btn" onclick="opOpen(\'slot\',\'test\')">🧪 Rehearse Slot</button>' + (lastFinal(curSeason()) && !offSeason() ? '<button class="btn" onclick="opOpen(\'shootout\',\'test\')">🧪 Rehearse Shoot Out</button>' : '') + '</div>' +
+    '<div class="row" style="flex-wrap:wrap;margin-top:8px"><button class="btn ghost" onclick="opOpen(\'div\',\'live\')">Open the real ' + next + ' Divisional</button><button class="btn ghost" onclick="opOpen(\'slot\',\'live\')">Open the real ' + next + ' Slot</button>' + (seasonPhase() === "shootout" ? '<button class="btn ghost" onclick="opOpen(\'shootout\',\'live\')">Open the real ' + curSeason() + ' Shoot Out</button>' : '') + '</div>' +
     (isOps() ? '<p style="margin:10px 0 0;font-size:13px"><a href="javascript:void 0" onclick="opWipe()">Clear all rehearsals</a> (ops)</p>' : '') + '</div>';
   return html + '<p class="muted" style="font-size:12px">Rules: constitution §B, §E, §F. Orders computed from ESPN history; the commish confirms the order when he opens a draft. Results are copied to the repo by the ledger robot.</p>';
 };
@@ -1976,12 +2027,15 @@ function draftTile(x) {
     (x.status === "open" ? '<b>' + (mine ? "You're on the clock" : "Live · pick " + (x.picks.length + 1) + " of " + x.turns.length + " · " + esc(oname(x.clock)) + " is up") + '</b>' : '<b>Done</b> <small class="muted">' + esc(resultLine(x)) + '</small>') + ' ›</div>';
 }
 function resultLine(x) {
+  if (x.kind === "shootout") return (x.pairs || []).slice(0, 3).map(function (p) { return oname(p[0]) + " v " + oname(p[1]); }).join(" · ") + " …";
   if (x.kind === "slot") return [1, 2, 3].map(function (k) { return k + ". " + oname(x.slots[k]); }).join(" · ") + " …";
   return Object.keys(x.divs || {}).map(function (f) { return x.divs[f].map(oname).join("/"); }).join(" · ");
 }
 // Commish: open a draft (order prefilled; ↑ to adjust)
 var OP = null;
 window.opOpen = function (kind, mode) {
+  if (kind === "shootout") { var cy = curSeason(), th = shootThru(cy), SS = shootSeeds(cy, th);
+    OP = { kind: kind, mode: mode, season: cy, src: cy, thru: th, done: th >= regWks() - 1, list: SS.map(function (t) { return [t.owner, t.label]; }), fixed: shootRule1(SS) }; opPaint(); return; }
   var y = (LD("seasons").slice(-1)[0] || 2026), src = mode === "live" ? y : lastDoneSeason(), o = offOrder(src) || { div: [], slot: [] };
   OP = { kind: kind, mode: mode, season: y + 1, src: src, done: o.done, note: o.sideNote, list: (kind === "div" ? o.div : o.slot).map(function (x) { return x.slice(); }) };
   if (kind === "slot") { var have = OP.list.map(function (x) { return x[0]; }); OWNERS.forEach(function (w) { if (have.indexOf(w.id) < 0) { var gap = OP.list.filter(function (x) { return !x[0]; })[0]; if (gap) gap[0] = w.id; } }); }
@@ -1989,6 +2043,7 @@ window.opOpen = function (kind, mode) {
 };
 function opPaint() {
   var sh = $("#sheet"); if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
+  if (OP.kind === "shootout") return soPaint(sh);
   var K = OP.kind === "div" ? "Divisional Draft" : "Slot Draft", miss = OP.list.some(function (x) { return !x[0]; });
   sh.innerHTML = '<div class="sbody"><div class="row" style="justify-content:space-between"><h2 style="margin:0">' + (OP.mode === "test" ? "🧪 " : "") + esc(K) + '</h2><button class="btn ghost" onclick="opClose()">Close</button></div>' +
     '<p class="muted" style="margin:6px 0 10px">' + (OP.mode === "test" ? "Rehearsal using " + OP.src + "'s real order. Practice only: anyone can watch, Mike can clear it." : "The real " + OP.season + " draft. The league is pinged when you open it.") + '</p>' +
@@ -1998,11 +2053,24 @@ function opPaint() {
     (OP.kind === "slot" ? '' : '<p class="muted" style="font-size:12px">Snake: 1-2-3-4-4-3-2-1. Each pick takes an owner into your division or assigns him to another (one assigned-in per division).</p>') +
     '<button class="btn" style="width:100%" ' + (miss ? "disabled" : "") + ' onclick="opGo(this)">Open the draft</button></div>';
 }
+function soPaint(sh) {
+  var fx = {}; OP.fixed.forEach(function (p) { fx[p[0]] = fx[p[1]] = 1; });
+  var sel = function (id) { return '<select id="' + id + '" style="flex:1"><option value="">Team…</option>' + OP.list.filter(function (x) { return !fx[x[0]]; }).map(function (x) { return '<option value="' + x[0] + '">' + esc(oname(x[0])) + '</option>'; }).join("") + '</select>'; };
+  sh.innerHTML = '<div class="sbody"><div class="row" style="justify-content:space-between"><h2 style="margin:0">' + (OP.mode === "test" ? "🧪 " : "") + 'Shoot Out Draft</h2><button class="btn ghost" onclick="opClose()">Close</button></div>' +
+    '<p class="muted" style="margin:6px 0 10px">' + (OP.mode === "test" ? "Rehearsal on " + OP.season + "'s real table (after Week " + OP.thru + "). Practice only: Mike can clear it." : "The real " + OP.season + " Shoot Out. The league is pinged when you open it.") + '</p>' +
+    (OP.mode === "live" && !OP.done ? '<div class="card" style="border-color:var(--coral);padding:10px 14px"><small class="coral">Week ' + (regWks() - 1) + ' isn\'t final yet: this is the table after Week ' + OP.thru + '.</small></div>' : '') +
+    '<div class="card"><div class="eyebrow">⚖️ Rule 1 · matchups that decide a playoff spot</div>' + (OP.fixed.length ? OP.fixed.map(function (p, i) { return '<div class="kv"><span><b>' + esc(oname(p[0])) + '</b> vs <b>' + esc(oname(p[1])) + '</b><br><small class="muted">' + esc(p[2] || "Set by the commish") + '</small></span><span><button class="chip" onclick="soDrop(' + i + ')">✕</button></span></div>'; }).join("") : '<p class="muted" style="font-size:13px;margin:4px 0">None: everyone drafts.</p>') +
+    '<div class="row" style="margin-top:8px;gap:6px">' + sel("soA") + sel("soB") + '<button class="chip" onclick="soAdd()">＋</button></div><p class="muted" style="font-size:12px;margin:6px 0 0">Head-to-head and coin-flip tiebreaks aren\'t modeled: check these against the rule, drop or add as needed.</p></div>' +
+    '<div class="card"><div class="eyebrow">🎯 Seeds · the best unmatched seed picks first</div>' + orderList(OP.list.map(function (x) { return [x[0], (fx[x[0]] ? "Rule 1 · " : "") + x[1]]; }), true) + '</div>' +
+    '<button class="btn" style="width:100%" onclick="opGo(this)">Open the draft</button></div>';
+}
+window.soDrop = function (i) { OP.fixed.splice(i, 1); opPaint(); };
+window.soAdd = function () { var a = ($("#soA") || {}).value, b = ($("#soB") || {}).value; if (!a || !b || a === b) return toast("Pick two different teams"); OP.fixed.push([a, b, "Set by the commish"]); opPaint(); };
 window.opMove = function (i) { if (!OP || i < 1) return; var t = OP.list[i - 1]; OP.list[i - 1] = OP.list[i]; OP.list[i] = t; opPaint(); };
 window.opClose = function () { var sh = $("#sheet"); if (sh) sh.remove(); OP = null; };
 window.opGo = function (btn) {
   btn.disabled = true; btn.textContent = "Opening…";
-  authed("draftopen", { kind: OP.kind, mode: OP.mode, season: OP.season, order: OP.list.map(function (x) { return x[0]; }) }).then(function (r) {
+  authed("draftopen", { kind: OP.kind, mode: OP.mode, season: OP.season, order: OP.list.map(function (x) { return x[0]; }), fixed: OP.fixed || [] }).then(function (r) {
     if (!r.ok) throw new Error(r.error); opClose(); DRAFTS = null; go("droom", r.id);
   }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = "Open the draft"; });
 };
@@ -2027,20 +2095,34 @@ function drawRoom(x) {
   var html = '<h2 style="margin-bottom:4px">' + (x.mode === "test" ? "🧪 " : "") + x.season + ' ' + esc(x.name) + '</h2>' + (x.mode === "test" ? '<p class="muted" style="margin:0 0 10px;font-size:13px">Rehearsal: practice only.</p>' : '');
   if (x.status === "open") html += '<div class="card' + (mine ? " lead" : "") + '"' + (mine ? "" : ' style="border-color:var(--gold)"') + '><div class="eyebrow">⏱️ Pick ' + (n + 1) + ' of ' + x.turns.length + '</div><div style="font:800 26px var(--head);text-transform:uppercase">' + (mine ? "You're on the clock" : esc(oname(x.clock)) + " is up") + '</div>' +
     (!mine && isDesk() ? '<p style="font-size:13px">Commish: you can enter ' + esc(oname(x.clock)) + '\'s pick below (the league sees it was you).</p>' : '') + '</div>';
-  else html += '<div class="card lead"><div class="eyebrow">🏁 Final</div><div style="font:800 22px var(--head);text-transform:uppercase">' + (x.kind === "slot" ? "The " + x.season + " SPL Draft order" : "The " + x.season + " divisions") + '</div></div>';
-  html += x.kind === "slot" ? slotBoard(x, canPick) : divBoard(x, canPick);
+  else html += '<div class="card lead"><div class="eyebrow">🏁 Final</div><div style="font:800 22px var(--head);text-transform:uppercase">' + (x.kind === "slot" ? "The " + x.season + " SPL Draft order" : x.kind === "shootout" ? "Week " + regWks() + " · the Shoot Out" : "The " + x.season + " divisions") + '</div></div>';
+  html += x.kind === "slot" ? slotBoard(x, canPick) : x.kind === "shootout" ? shootBoard(x, canPick) : divBoard(x, canPick);
   html += '<div class="card"><div class="eyebrow">📜 Picks</div>' + x.turns.map(function (t, i) { var p = x.picks[i];
-    return '<div class="pk"><span class="no">' + (i + 1) + '</span><span><b>' + esc(oname(t)) + '</b>' + (p ? ' <small class="muted">' + esc(pickTxt(x, p)) + (p.by !== p.owner ? " · entered by " + esc(oname(p.by)) : "") + '</small>' : i === n && x.status === "open" ? ' <span class="via">ON THE CLOCK</span>' : '') + '</span></div>'; }).join("") + '</div>';
+    return '<div class="pk"><span class="no">' + (i + 1) + '</span><span>' + (t ? '<b>' + esc(oname(t)) + '</b>' : '<span class="muted">Next best seed left</span>') + (p ? ' <small class="muted">' + esc(pickTxt(x, p)) + (p.by !== p.owner && p.by !== "auto" ? " · entered by " + esc(oname(p.by)) : "") + '</small>' : i === n && x.status === "open" ? ' <span class="via">ON THE CLOCK</span>' : '') + '</span></div>'; }).join("") + '</div>';
+  if (x.kind === "shootout" && x.status === "done" && isDesk() && x.mode === "live") html += '<div class="card" style="border-color:var(--gold)"><div class="eyebrow">📥 Commish · do on ESPN</div><p style="margin:0">Set these as Week ' + regWks() + ' on ESPN: LM Tools → Edit Schedule (Edit H2H). The app picks them up from ESPN on the next daily pull.</p></div>';
   if (isDesk()) html += '<div class="row" style="flex-wrap:wrap;margin-bottom:12px">' + (n ? '<button class="btn ghost" onclick="drUndo(\'' + x.id + '\')">↩ Undo last pick</button>' : '') + (x.status === "open" ? '<button class="btn ghost" onclick="drCancel(\'' + x.id + '\')">Cancel draft</button>' : '') + '</div>';
   box.innerHTML = html; DR = x;
 }
 var DR = null;
-function pickTxt(x, p) { return x.kind === "slot" ? "slot " + p.choice.slot : p.choice.into === p.owner ? "took " + oname(p.choice.pick) : "sent " + oname(p.choice.pick) + " to " + oname(p.choice.into) + "'s division"; }
+function pickTxt(x, p) { return x.kind === "shootout" ? (p.by === "auto" ? "vs " + oname(p.choice.opp) + " (the last two)" : "picked " + oname(p.choice.opp)) : x.kind === "slot" ? "slot " + p.choice.slot : p.choice.into === p.owner ? "took " + oname(p.choice.pick) : "sent " + oname(p.choice.pick) + " to " + oname(p.choice.into) + "'s division"; }
 function snakePicks(slot) { return [1, 2, 3].map(function (r) { return (r - 1) * 12 + (r % 2 ? slot : 13 - slot); }); }
 function slotBoard(x, canPick) {
   return '<div class="card"><div class="eyebrow">🎰 SPL Draft slots · snake</div><div class="grid">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { var o = x.slots[k];
     return '<button class="tile" style="min-height:64px;' + (o ? "" : canPick ? "border-color:var(--lime)" : "") + '"' + (!o && canPick ? ' onclick="drSlot(' + k + ')"' : ' disabled') + '><b>Slot ' + k + '</b><small>' + (o ? esc(oname(o)) : "picks " + snakePicks(k).join(", ") + "…") + '</small></button>'; }).join("") + '</div></div>';
 }
+function shootBoard(x, canPick) {
+  var seedOf = {}; x.order.forEach(function (id, i) { seedOf[id] = i + 1; });
+  var tag = function (id) { return '<small class="muted" style="font:600 11px var(--mono)">#' + seedOf[id] + '</small> '; };
+  var html = '<div class="card"><div class="eyebrow">⚔️ Week ' + regWks() + ' matchups · ' + x.pairs.length + ' of ' + (x.order.length / 2) + '</div>' + (x.pairs.length ? x.pairs.map(function (p) {
+    var why = p[2] === "rule1" ? "Rule 1" + ((x.fixed.filter(function (f) { return f.a === p[0] || f.b === p[0]; })[0] || {}).why ? " · " + x.fixed.filter(function (f) { return f.a === p[0] || f.b === p[0]; })[0].why : "") : p[2] === "last two" ? "The last two" : oname(p[0]) + "'s pick";
+    return '<div class="kv' + (ME && (p[0] === ME.owner || p[1] === ME.owner) ? " mine" : "") + '"><span style="text-align:left;flex:1">' + tag(p[0]) + '<b>' + esc(oname(p[0])) + '</b> vs ' + tag(p[1]) + '<b>' + esc(oname(p[1])) + '</b><br><small class="muted">' + esc(why) + '</small></span></div>'; }).join("") : '<p class="muted" style="margin:4px 0">None yet.</p>') + '</div>';
+  if (x.status === "open") { var pool = x.unmatched.filter(function (id) { return id !== x.clock; });
+    html += '<div class="card"><div class="eyebrow">🎯 Still open · ' + pool.length + '</div><div class="chips">' + pool.map(function (id) {
+      return '<button class="chip"' + (canPick ? ' onclick="drShoot(\'' + id + '\')"' : ' disabled') + '>#' + seedOf[id] + ' ' + esc(oname(id)) + '</button>'; }).join("") + '</div>' +
+      (canPick ? '<p class="muted" style="font-size:12px;margin:0">Tap the team ' + esc(oname(x.clock)) + ' wants in Week ' + regWks() + '.' + (pool.length === 3 ? ' The other two play each other.' : '') + '</p>' : '') + '</div>'; }
+  return html;
+}
+window.drShoot = function (id) { var x = DR; if (!confirm(oname(x.clock) + " picks " + oname(id) + " for Week " + regWks() + "?")) return; drSend({ opp: id }); };
 function divBoard(x, canPick) {
   var placed = {}; Object.keys(x.divs).forEach(function (f) { x.divs[f].forEach(function (id) { placed[id] = 1; }); });
   var who = x.clock, pool = OWNERS.filter(function (o) { return !placed[o.id]; });
@@ -2070,8 +2152,9 @@ function draftCards(D, me) {
   D.drafts.forEach(function (x) { var t = (x.mode === "test" ? "🧪 " : "") + x.season + " " + x.name;
     if (x.status === "open" && x.clock === me) out.push({ id: "dclock:" + x.id + ":" + x.picks.length, needs: 1, scope: "me", eb: "⏱️ " + esc(t), title: "You're on the clock", body: '<p>Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + '. The league is waiting on you.</p>', action: ["Make your pick", "go('droom','" + x.id + "')"] });
     else if (x.status === "open") out.push({ id: "dlive:" + x.id + ":" + x.picks.length, scope: "league", eb: "🗓️ " + esc(t) + " · live", title: esc(oname(x.clock)) + " is up", body: '<p>Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + '.' + (x.picks.length ? ' Last: ' + esc(oname(x.picks[x.picks.length - 1].owner)) + ' ' + esc(pickTxt(x, x.picks[x.picks.length - 1])) + '.' : '') + '</p>', action: ["Watch the room", "go('droom','" + x.id + "')"] });
-    else if (x.status === "done" && Date.now() - new Date(x.updated).getTime() < 7 * 864e5) out.push({ id: "ddone:" + x.id, scope: "league", eb: "🏁 " + esc(t), title: x.kind === "slot" ? "Draft order is set" : "Divisions are set",
-      body: x.kind === "slot" ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { return '<div class="kv' + (x.slots[k] === me ? " mine" : "") + '"><span>Slot ' + k + '</span><span>' + esc(oname(x.slots[k])) + '</span></div>'; }).join("")
+    else if (x.status === "done" && Date.now() - new Date(x.updated).getTime() < 7 * 864e5) out.push({ id: "ddone:" + x.id, scope: "league", eb: "🏁 " + esc(t), title: x.kind === "slot" ? "Draft order is set" : x.kind === "shootout" ? "Week " + regWks() + " is set" : "Divisions are set",
+      body: x.kind === "shootout" ? x.pairs.map(function (p) { return '<div class="kv' + (p[0] === me || p[1] === me ? " mine" : "") + '"><span>' + esc(oname(p[0])) + '</span><span>' + esc(oname(p[1])) + '</span></div>'; }).join("") + '<p class="story">Highest score in Week ' + regWks() + ' takes the Shoot Out pot.</p>'
+      : x.kind === "slot" ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (k) { return '<div class="kv' + (x.slots[k] === me ? " mine" : "") + '"><span>Slot ' + k + '</span><span>' + esc(oname(x.slots[k])) + '</span></div>'; }).join("")
         : x.order.map(function (f) { return '<div class="kv"><span>' + esc(oname(f)) + "'s</span><span>" + x.divs[f].slice(1).map(oname).map(esc).join(", ") + '</span></div>'; }).join(""), action: ["See the room", "go('droom','" + x.id + "')"] });
   });
   return out;
@@ -2371,6 +2454,23 @@ function keeperDeadlineCard(me) {
       meter(kp, 10, kp > 10) + chips([[kp + " / 10 KP committed", "bl"], mc.length + " of 3 keepers"]), action: ["Plan your keepers", "go('keepers')"] };
 }
 
+// 🗓️ Off-season mode on Home: what's next (league card, refreshes as events pass). 🎯 The Shoot Out window: the preview, and for the
+// commish a needs-you to open the draft (until it's open; then draftCards take over).
+function phaseCard(D, me) {
+  var ph = seasonPhase();
+  if (ph === "offseason") { var nx = offNext(); if (!nx.length) return null;
+    return { id: "offnext:" + nextSeason() + ":" + nx[0].name + ":" + (nx[0].date || ""), scope: "league", eb: "🗓️ The " + nextSeason() + " off-season", title: nx[0].icon + " " + esc(nx[0].name) + (nx[0].date ? " · " + esc(untilTxt(nx[0].date)) : ""),
+      body: nx.slice(0, 5).map(function (e) { return '<div class="kv"><span>' + e.icon + ' ' + esc(e.name) + '</span><span class="muted">' + (e.date ? esc(fmtDate(e.date)) : "TBD") + '</span></div>'; }).join("") +
+        '<p class="story">Every off-season draft runs live in the app: you get pinged when you\'re on the clock.</p>', action: ["The off-season", "go('offseason')"] }; }
+  if (ph !== "shootout") return null;
+  var y = curSeason(), opened = D && D.ok && D.drafts.some(function (x) { return x.kind === "shootout" && x.mode === "live" && x.season === y; });
+  if (opened || !(y >= LIVE_SEASON || isDesk())) return null;
+  var S = shootSeeds(y, shootThru(y)), R = shootRule1(S), mine = me && R.filter(function (p) { return p[0] === me || p[1] === me; })[0];
+  return { id: "shootprev:" + y, needs: isDesk() ? 1 : 0, scope: isDesk() ? "me" : "league", eb: "🎯 Shoot Out Draft · Week " + regWks(), title: isDesk() ? "Open the Shoot Out Draft" : mine ? "You're set: vs " + esc(oname(mine[0] === me ? mine[1] : mine[0])) : "Pick your Week " + regWks() + " opponent",
+    body: (R.length ? R.map(function (p) { return '<div class="kv"><span>' + esc(oname(p[0])) + ' vs ' + esc(oname(p[1])) + '</span><span class="muted">Rule 1</span></div>'; }).join("") : '') +
+      '<p class="story">Week ' + (regWks() - 1) + ' is final. ' + (R.length ? "Those decide playoff spots, so they're made. Then the" : "The") + ' top seed picks his opponent, then the next, until everyone has one.</p>',
+    action: [isDesk() ? "Open it" : "See the order", "go('offseason')"] };
+}
 function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 results (14 days after close)
   var KW = KEEP && KEEP.window; if (!me || !KW || +KW.season !== KP_YRS[0] || !KEEP.decls.length) return null;
   if (!(KW.status === "open" || (KW.done && Date.now() - new Date(KW.closedAt || KW.ts).getTime() < 14 * 864e5))) return null;
@@ -2393,8 +2493,20 @@ var LEAGUE_TILES = [
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
   ["feedback", "💡", "Ideas", "Feedback to the site"]
 ];
+// Off-season mode (Mike 11/27): the day ESPN has no games left (SPL Bowl final), League leads with the off-season and Off-season is the first tile.
+// The Shoot Out window (Week 13 final, Week 14 not) gets its own banner. Both come from gold history (daily robot), so nobody flips a switch.
+function phaseHero() {
+  var ph = seasonPhase();
+  if (ph === "offseason") { var nx = offNext(), a = nx[0];
+    return '<div class="card lead" style="cursor:pointer" onclick="go(\'offseason\')"><div class="eyebrow">🗓️ The ' + nextSeason() + ' off-season</div>' +
+      (a ? '<div style="font:800 22px var(--head);text-transform:uppercase">' + a.icon + ' ' + esc(a.name) + '</div><p style="margin:4px 0 0">' + (a.date ? esc(fmtDate(a.date)) + ' · ' + esc(untilTxt(a.date)) : 'Date to be set') + '</p>' : '<p style="margin:0">Every off-season event runs here.</p>') +
+      (nx.length > 1 ? '<small class="muted">Then: ' + nx.slice(1, 4).map(function (e) { return esc(e.name); }).join(" · ") + '</small>' : '') + ' ›</div>'; }
+  if (ph === "shootout" && (curSeason() >= LIVE_SEASON || isDesk())) return '<div class="card lead" style="cursor:pointer" onclick="go(\'offseason\')"><div class="eyebrow">🎯 Shoot Out Draft · eve of Week ' + regWks() + '</div><p style="margin:0">Week ' + (regWks() - 1) + ' is final. Rule 1 matchups, then the top seeds pick their Week ' + regWks() + ' opponents. ›</p></div>';
+  return '';
+}
 SCREENS.league = function () {
-  return '<h2>League</h2><div class="grid">' + LEAGUE_TILES.map(function (t) {
+  var tiles = LEAGUE_TILES.slice(); if (seasonPhase() === "offseason") tiles.sort(function (a, b) { return (b[0] === "offseason") - (a[0] === "offseason"); });
+  return '<h2>League</h2>' + phaseHero() + '<div class="grid">' + tiles.map(function (t) {
     return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span style="font-size:22px">' + t[1] + '</span><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></button>';
   }).join("") + '</div>';
 };

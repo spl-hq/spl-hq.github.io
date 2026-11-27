@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -8,7 +8,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Keepe
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
 - **🔒 Keeper Signing Day live (v0.17):** try it: 📥 Desk → Commish · Joe's view → 🔒 Keeper Signing Day → 🧪 Rehearse it, then League → Keepers → build a plan → Declare. Wipe from the same card when done.
-- **WS3 part 1 live (v0.11):** 🗓️ Off-season hub + Divisional + Slot draft rooms. Try it: League → Off-season → 🧪 Rehearse Divisional (2025's real order). Next WS3 parts: SPL Draft room (biggest), Shoot Out Draft (Keeper declarations ✅ v0.17) + Seed 3 picks (ESPN `/schedule` write).
+- **WS3 live (v0.11 → v0.21):** 🗓️ Off-season hub + Divisional + Slot + 🎯 **Shoot Out** draft rooms; the app flips into **off-season mode** by itself when the SPL Bowl is final. Try it: League → Off-season → 🧪 Rehearse Shoot Out (2026's real table). **Launch plan (Mike 11/27):** show Joe, then the league goes live after the 2026 season (`LIVE_SEASON` = 2027 in the app; desks see in-season prompts now). Next WS3 parts: **SPL Draft room** (the big one: 17 rounds, keepers, picks ledger) + Seed 3 / Shoot Out ESPN `/schedule` write (capture the LM Tools call; until then the commish sets Week 14 by hand).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
@@ -23,6 +23,16 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.21.0 (backend v0.15.0) · 🎯 **Shoot Out Draft room + off-season mode** (Mike). New `shootout` kind on the one draft engine
+  (`mod_drafts.js`): order = all 12 by seed after Week 13 (§G: 4 division leaders, best other record, most points of the rest, then the table);
+  **Rule 1 matchups** (division-title + wildcard races within a game and 50 pts, the 3- and 4-team cases) computed in the app and confirmed by
+  the commish (✕ drop, ＋ add, ↑ reorder; H2H/coin-flip tiebreaks not modeled); the best unmatched seed picks any unmatched team; the last two
+  are paired automatically; undo takes the auto pair back with the pick before it. League chat gets the Rule 1 line, every pick and the final
+  Week 14 card; Home gets the result card. Commish "do on ESPN" step: LM Tools → Edit Schedule (no `/schedule` write yet). Off-season hub shows
+  "the Shoot Out as it stands" all season. 🤖 ledger-sync copies finished Shoot Outs into `Offseason_Drafts.csv` (pairs + `R1-n` rows).
+  **Off-season mode** from gold (no switch, no new robot): when ESPN has no games left, League leads with a "🗓️ The 2027 off-season" hero (next event +
+  countdown, then the next three) and Off-season is the first tile; Home gets the same "what's next" card. Shoot Out window (Week 13 final, 14 not):
+  League banner + a needs-you "Open the Shoot Out Draft" for the commish. In-season owner prompts wait for `LIVE_SEASON` 2027. Smoke +13. SW `splhq-v46`.
 - 2026-11-27 · v0.20.2 · 🏆 **2003–2005 + 2020–2021 in History.** 2020 + 2021 were on NFL.com: champions, runner-ups, playoff seeds and most
   records from the league emails (2021 Binder, Playoff Primer, payouts / FA report). New gold `GM_Report_2025.csv` from Glen's 2025 GM Report
   (EST. 2003): titles, playoff years, division titles per owner; adds 2003–05 champions + playoff teams. History tables with missing records

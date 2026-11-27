@@ -7,6 +7,14 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **Launch after the 2026 season; off-season mode is automatic** (Mike). Show Joe now; the league starts using SPL HQ once the 2026
+  SPL Bowl is final, running the whole 2027 off-season (Divisional, Slot, Signing Day, then the SPL Draft) and the 2027 season. Nothing new
+  is introduced to owners mid-season (`LIVE_SEASON` = 2027 gates in-season owner prompts; desks see them now for rehearsals). The app reads
+  its phase from gold (season · Shoot Out window · off-season = no games left on ESPN) and re-arranges League/Home itself.
+- 2026-11-27 · **Shoot Out Draft on the draft engine** (Appendix Three). Rule 1 pairs computed by the app and confirmed by the commish (the
+  tiebreaks the app can't see stay his call), then best-seed-first picks, last two auto-paired. Week 14 on ESPN is set by the commish until
+  the `/schedule` write is captured (same call as Seed 3).
+
 - 2026-11-27 · **Keepers v2** (Mike). Your keepers = three slots under one cap summary; details live in sheets, not stacked cards.
   Mine · Market · League switch inside the GM desk's Keepers. Other teams' keepers are read-only (no planning for them). Declaring
   shows a confirm that it goes to the league + the commish and can change until close. New: the **keeper market** (every keepable
@@ -149,7 +157,7 @@ SPL-only: pick-your-opponent playoff pick → ESPN `/schedule` write; keeper dea
 6. Joe signs off → `WRITE_LEAGUE` = 19583.
 7. Reel robots + playoff-pick write (2027 season).
 8. ✅ WS4 Reel cards (v0.12–0.13): series catalog + drops + budget, Edition/Play/Vault/Preview cards, votes, reactions, card-lines robot, Up next + rivalry grade, pick wire, cap impact, Signing Day.
-9. WS3 off-season in the app: ✅ Divisional + Slot draft rooms (v0.11) · ⬜ SPL Draft room · ✅ Keeper declarations (v0.17) · ⬜ Shoot Out Draft + Seed 3 pick (ESPN `/schedule` write).
+9. WS3 off-season in the app: ✅ Divisional + Slot draft rooms (v0.11) · ⬜ SPL Draft room · ✅ Keeper declarations (v0.17) · ✅ Shoot Out Draft (v0.21) · ✅ off-season mode (v0.21) · ⬜ ESPN `/schedule` write (Shoot Out + Seed 3).
 
 ## 8. Open (asked in the app: League → 📋 Questions)
 ESPN co-commish · test-league demo · traded keeper contracts · pick seasons · trade approval + review window · key dates · chat · Al vs James Farrington · Divisional Draft rules · Joe's #1 wish.
