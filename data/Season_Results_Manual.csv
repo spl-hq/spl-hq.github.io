@@ -2,4 +2,41 @@
 # One row per owner-season, from Joe / Glen (GM Report) / the old sheets. Leave a number blank if unknown.
 # finish: champion | runner_up | semifinal | wildcard | playoffs | missed. tools/build_data.py merges these into 📚 History + 🎓 GM Rankings.
 # A season here is only used if SPL_Matchups.csv has no games for it (ESPN wins when it has the season).
+# 2026-11-27: 2020 + 2021 (both played on NFL.com, league 8606320) from the league emails in Mike's Gmail. Playoff seeds + finishes are solid;
+#   2003-2005: champion + playoff teams only, from Glen's 2025 GM Report (no records). 2021 W-L for the six playoff teams and some PF are not in any email yet (Glen's power rankings / NFL.com history can fill them).
 season,owner_id,team_name,wins,losses,ties,points_for,points_against,finish,source,note
+2020,chappie,BlaKK BoCCes,11,2,0,1759,,runner_up,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email","Points champ (1,759). #1 seed"
+2020,smith,Tijuana Trojans,9,4,0,1713,,semifinal,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",#2 seed
+2020,reilly,Reilly's RaMPaGe,9,4,0,1470,,wildcard,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",#3 seed
+2020,bucher,Los Beasters Big Sky,8,5,0,1743,,champion,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email","""Boogie... the true king"" (Joe). #4 seed"
+2020,glen,Fluff Muffins,8,5,0,1686,,wildcard,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",#5 seed
+2020,salerno,Ween's Machine,4,9,0,1578,,semifinal,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email","#6 seed, most-points wildcard"
+2020,moyer,Kimble's Finast,7,6,0,1574,,missed,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",
+2020,murello,Bad Attitude Gang,6,7,0,,,missed,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",PF not in the binder
+2020,farrington,Farrington's FREELANCERS,4,9,0,1441,,missed,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",
+2020,hoosier,Hoosier's Dynamos,4,9,0,1385,,missed,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",
+2020,sikora,The Gunz,4,9,0,1371,,missed,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",
+2020,patel,Cheater's Streakers,4,9,0,1354,,missed,"2021 SPL Binder (Joe, email 1/13/2021) + ""2020 SPL Payouts"" email",
+2021,reilly,Reilly's RaMPaGe,,,,,,runner_up,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",#1 seed (bye). Record not in the emails
+2021,chappie,BlaKK BoCCes,,,,1913,,semifinal,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)","#2 seed (bye). Points champ (1,913)"
+2021,hoosier,Hoosier's Dynamos,,,,,,wildcard,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",#3 seed; lost to Muffins
+2021,glen,Fluff Muffins,,,,,,semifinal,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",#4 seed
+2021,murello,Bad Attitude Gang,,,,,,wildcard,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",#5 seed (best-record wildcard); lost to Trojans
+2021,smith,Tijuana Trojans,,,,,,champion,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",#6 seed (most-points wildcard). Champion
+2021,farrington,Farrington's FREELANCERS,7,7,0,,,missed,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",
+2021,salerno,Ween's Machine,6,8,0,1560,,missed,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",
+2021,bucher,Los Beasters Big Sky,6,8,0,1396,,missed,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",
+2021,sikora,The Gunz,5,9,0,1723,,missed,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",
+2021,patel,Cheater's Streakers,5,9,0,1576,,missed,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",
+2021,moyer,Kimble's Finast,2,12,0,,,missed,"""SPL Playoff Primer"" (Joe, email 12/14/2021) + 2022 Binder slot order + FA report (Owen, 1/4/2022)",
+2003,glen,Fluff Muffins,,,,,,champion,Glen's 2025 GM Report (championship + playoff years by owner),League est. 2003 (GM Report). Only the champion is known
+2004,smith,Tijuana Trojans,,,,,,champion,Glen's 2025 GM Report (championship + playoff years by owner),4-team playoffs per the GM Report
+2004,glen,Fluff Muffins,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2004,moyer,Kimble's Finast,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2004,hoosier,Hoosier's Dynamos,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2005,bucher,Los Beasters Big Sky,,,,,,champion,Glen's 2025 GM Report (championship + playoff years by owner),6 playoff teams per the GM Report
+2005,chappie,BlaKK BoCCes,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2005,smith,Tijuana Trojans,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2005,patel,Cheater's Streakers,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2005,reilly,Reilly's RaMPaGe,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),
+2005,salerno,Ween's Machine,,,,,,playoffs,Glen's 2025 GM Report (championship + playoff years by owner),

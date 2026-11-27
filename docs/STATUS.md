@@ -23,6 +23,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.20.2 · 🏆 **2003–2005 + 2020–2021 in History.** 2020 + 2021 were on NFL.com: champions, runner-ups, playoff seeds and most
+  records from the league emails (2021 Binder, Playoff Primer, payouts / FA report). New gold `GM_Report_2025.csv` from Glen's 2025 GM Report
+  (EST. 2003): titles, playoff years, division titles per owner; adds 2003–05 champions + playoff teams. History tables with missing records
+  order by how far each team went; no "runner-up ?" when unknown. Founded = 2003 in `Season_Calendar.csv`. Pryor + Chase Brown named (Mike). SW `splhq-v45`.
 - 2026-11-27 · v0.20.0 · 👋 Tour: **2nd welcome card "It all lands on Home"** (Mike): ⚡ your move up top (your pick in the Shoot Out, Slot
   or Divisional draft, a trade offer, keepers to declare; gold stays first), 🗞️ every week of the season (Tue result/awards/Power 5/table,
   live game Sunday, who's next by Thursday, trades as they happen), 🎯 polls + trivia, 🗓️ off-season too. Cards 1/2 → 2/2 with Back;

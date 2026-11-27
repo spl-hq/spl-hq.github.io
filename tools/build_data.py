@@ -78,7 +78,9 @@ num = lambda v, f=int: f(v) if str(v).strip() else None
 for y, rs in manual.items():
     if y in seasons: continue
     ts = [[r["owner_id"], r["team_name"], num(r["wins"]), num(r["losses"]), num(r["ties"]) or 0, num(r["points_for"], float), num(r["points_against"], float), None, None, r["finish"] or "missed"] for r in rs]
-    ts.sort(key=lambda x: (-(x[2] or 0), -(x[5] or 0)))
+    FIN = {"champion": 0, "runner_up": 1, "semifinal": 2, "wildcard": 3, "playoffs": 3, "missed": 4}
+    if any(x[2] is None for x in ts): ts.sort(key=lambda x: (FIN.get(x[9], 5), -(x[2] or 0), -(x[5] or 0)))  # records missing: order by how far they went
+    else: ts.sort(key=lambda x: (-(x[2] or 0), -(x[5] or 0)))
     c = [x[0] for x in ts if x[9] == "champion"]; ru = [x[0] for x in ts if x[9] == "runner_up"]
     history.append({"y": y, "src": "manual", "done": bool(c), "champ": c[0] if c else None, "runner": ru[0] if ru else None, "teams": ts})
 history.sort(key=lambda h: -h["y"])

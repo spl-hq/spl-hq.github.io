@@ -474,7 +474,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.20.1";
+var APP_VERSION = "0.20.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1853,7 +1853,7 @@ function seasonPage(y) {
   var ys = LD("history").map(function (x) { return x.y; });
   var po = LD("games").filter(function (g) { return g[0] === y && g[2] === "P"; }).sort(function (a, b) { return b[1] - a[1]; });
   var html = back("history", "History") + '<div class="hscroll">' + ys.map(function (x) { return '<button class="chip' + (x === y ? " on" : "") + '" onclick="go(\'history\',\'' + x + '\')">' + x + '</button>'; }).join("") + '</div>' +
-    '<h2>' + y + ' season</h2>' + (h.champ ? '<div class="card lead"><div class="eyebrow">🏆 SPL Champion</div><h2 style="margin:0;color:#fff">' + esc(teamIn(h, h.champ)) + '</h2><p>' + esc(oname(h.champ)) + ' · runner-up ' + esc(teamIn(h, h.runner)) + ' (' + esc(oname(h.runner)) + ')</p></div>' : '');
+    '<h2>' + y + ' season</h2>' + (h.champ ? '<div class="card lead"><div class="eyebrow">🏆 SPL Champion</div><h2 style="margin:0;color:#fff">' + esc(teamIn(h, h.champ)) + '</h2><p>' + esc(oname(h.champ)) + (h.runner ? ' · runner-up ' + esc(teamIn(h, h.runner)) + ' (' + esc(oname(h.runner)) + ')' : '') + '</p></div>' : '');
   if (po.length) {
     var wks = []; po.forEach(function (g) { if (wks.indexOf(g[1]) < 0) wks.push(g[1]); });
     html += '<div class="card"><div class="eyebrow">Playoffs</div>' + wks.map(function (w, i) {

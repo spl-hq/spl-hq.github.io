@@ -73,7 +73,7 @@ tests/                backend_smoke.js (mocked Apps Script, loads the parts from
 docs/MAFFL_PARITY.md  WS6: what to port MAFFL → SPL and hand back SPL → MAFFL
 data/                 gold: Keeper_Contracts, Owner Registry, SPL_Matchups (robot), Draft_Picks, SPL_Rulebook.md,
                       Rules_Conflicts, Season_Calendar, Season_Results_Manual, Offseason_Drafts (robot), Keeper_Declarations (robot), SPL_Schedule (robot), Card_Lines.json (robot),
-                      Keeper_Matrix_History + Packet_Trade_Notes (Packet transcriptions), ESPN_*.csv (archive robot) (any change → build-data.yml rebuilds league-data.js + player-history.js)
+                      Keeper_Matrix_History + Packet_Trade_Notes (Packet transcriptions), GM_Report_2025 (Glen's report), ESPN_*.csv (archive robot) (any change → build-data.yml rebuilds league-data.js + player-history.js)
 league-data.js        DERIVED from data/ by tools/build_data.py (never hand-edit)
 player-history.js     DERIVED too (drafts 2006+, keeper matrices, final rosters); loaded only when a player file opens
 docs/                 plan, runbook, status

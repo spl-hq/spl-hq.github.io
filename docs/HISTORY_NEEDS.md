@@ -12,10 +12,19 @@ _2026-11-27 · Mike asked "what historic info do you need from me?" This is the 
 - ESPN rounds ≠ SPL rounds from 2019 on (the commish keys keepers in as ESPN picks first), so keeper prices use the Packet boards.
 - Player files now show all of it (drafts 2006–2026, every keeper matrix, final rosters) via `player-history.js` (loaded only when a file opens).
 
+## ✅ Done 11/27 (round 2: Gmail + Glen's GM Report)
+- **2020 + 2021 were both on NFL.com** (league 8606320; NFL.com draft emails both years). From the league emails: 2020 = 2021 Binder (final standings,
+  W-L + most PF, slot order) + "2020 SPL Payouts" → **Beasters (Seth) champion, Bocces runner-up + points champ**; 2021 = "SPL Playoff Primer" (seeds,
+  non-playoff records) + 2022 Binder slot order + Owen's FA report → **Trojans (Matt) champion, Rampage (Joe) runner-up**, Bocces points champ.
+  → `Season_Results_Manual.csv`.
+- **Glen's 2025 GM Report** (league EST. **2003**) → `GM_Report_2025.csv`: every owner's titles, playoff years, division titles. Fills 2003 (Muffins champ),
+  2004 (Trojans) and 2005 (Beasters) + their playoff teams; matches ESPN on every champion 2006–24 and the emails on 2020–21's playoff six.
+- Mike: Al's 2019 "Prior" = Terrelle Pryor; Glen's 2024 "73 Brown" = Chase Brown.
+
 ## Still open (from the Packet + Mike)
-- **2020**: the Packet has the draft order + Divisional/Slot order only, no picks, no results. Mike: the league ran on NFL.com that year.
-  **2021** is also empty on ESPN, though the Packet has a real 2021 board + a (May, partial) 2021 keeper matrix. Was 2021 on NFL.com too?
-  Standings/champion for both → `Season_Results_Manual.csv` (Glen's power rankings are the likely source).
+- **2021 W-L for the six playoff teams** and a few PF (BAG 2020, Al + Rich 2021) — not in any email; NFL.com league 8606320's history page or Glen.
+- **2020 draft picks** — only on NFL.com (fantasy.nfl.com/league/8606320, Draft Recap); the Packet has the order only. A screenshot would do.
+- 2003–05 records + runner-ups (the GM Report gives titles + playoff teams only).
 - Not yet structured from the Packet: 2024 prize/payout sheet (winners by owner), prize structures 2024 + 2025, 2020 Divisional/Slot order,
   the 2020 keeper hot sheet, the "ineligible keepers" lists, draft calculator. Easy to add when wanted.
 - Packet trade notes are text; turning them into `Trade_Log`-style rows (owners + players + picks each way) needs a pass with Mike for the vague ones.
