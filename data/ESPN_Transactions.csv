@@ -1,0 +1,3 @@
+# ESPN_Transactions.csv  --  GOLD (robot-written by tools/pull_espn_archive.py from ESPN league 19583; never hand-edit, re-run to refresh).
+# Pulled 2026-11-27T11:58Z. Executed moves ESPN still has, one row per player moved (TRADE_* = trades).
+season,date,scoring_period,transaction_id,type,move,player_id,player,position,from_owner,to_owner

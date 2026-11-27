@@ -1,0 +1,255 @@
+# ESPN_Season_Teams.csv  --  GOLD (robot-written by tools/pull_espn_archive.py from ESPN league 19583; never hand-edit, re-run to refresh).
+# Pulled 2026-11-27T11:58Z. One row per team per season (final_rank = ESPN's final standing).
+season,team_id,owner_id,team_name,abbrev,division,wins,losses,ties,points_for,points_against,playoff_seed,final_rank,espn_member
+2026,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,5,6,0,1177.5,1319.9,8,,Joseph Reilly
+2026,2,farrington,Farrington's FREELANCERS,FF,West Coast,8,3,0,1440.0,1336.1,2,,James Farrington
+2026,3,murello,Bad Attitude Gang,BAG,North,5,6,0,1356.9,1293.5,7,,Michael Murello
+2026,4,glen,Fluff Muffins,MUFF,North,8,3,0,1505.5,1234.2,1,,Glen Herold
+2026,5,hoosier,Hoosier's Dynamos,MOS,West Coast,8,3,0,1373.8,1206.6,5,,Craig Hoosier
+2026,6,patel,Cheater's Streakers,Nude,North,7,4,0,1514.2,1302.8,6,,Amit Patel
+2026,7,chappie,BlaKK BoCCes,CHAP,East Coast,3,8,0,1016.0,1426.6,11,,Drew Chappie
+2026,8,moyer,Kimble's Finast,DR K,West Coast,4,7,0,1271.5,1291.3,9,,Rich Moyer
+2026,9,sikora,The Gunz,Gunz,East Coast,6,5,0,1452.5,1375.9,3,,Pete Sikora
+2026,10,bucher,Los Beasters Big Sky,BSTR,Philly,4,7,0,1182.9,1239.7,10,,Seth Bucher
+2026,11,smith,Tijuana Trojans,TROJ,Philly,6,5,0,1413.1,1457.4,4,,Matthew Smith
+2026,12,salerno,Ween's Machine,MACH,Philly,2,9,0,1112.9,1332.8,12,,owen salerno
+2025,9,sikora,The Gunz,Gunz,North,10,4,0,1858.9,1586.0,2,1,Pete Sikora
+2025,11,smith,Tijuana Trojans,TROJ,West Coast,11,3,0,1782.5,1653.8,1,2,Matthew Smith
+2025,2,farrington,Farrington's FREELANCERS,FF,East Coast,9,5,0,1940.3,1690.6,3,3,James Farrington
+2025,10,bucher,Los Beasters Big Sky,BSTR,West Coast,7,7,0,1860.2,1912.7,5,4,Seth Bucher
+2025,7,chappie,BlaKK BoCCes,CHAP,North,7,7,0,1760.2,1794.2,6,5,Drew Chappie
+2025,5,hoosier,Hoosier's Dynamos,MOS,Philly,8,6,0,1578.9,1617.0,4,6,Craig Hoosier
+2025,12,salerno,Ween's Machine,MACH,Philly,6,8,0,1684.4,1664.9,8,7,owen salerno
+2025,3,murello,Bad Attitude Gang,BAG,East Coast,7,7,0,1704.8,1617.8,7,8,Michael Murello
+2025,8,moyer,Kimble's Finast,DR K,West Coast,5,9,0,1715.5,1856.9,9,9,Rich Moyer
+2025,4,glen,Fluff Muffins,MUFF,North,5,9,0,1527.2,1657.9,10,10,Glen Herold
+2025,6,patel,Cheater's Streakers,Nude,Philly,5,9,0,1407.6,1574.9,11,11,Amit Patel
+2025,1,reilly,Reeling RaMPaGe,pAGe,East Coast,4,10,0,1612.7,1806.5,12,12,Joseph Reilly
+2024,8,moyer,Kimble's Finast,DR K,West Coast,8,6,0,1747.5,1600.0,6,1,Rich Moyer
+2024,3,murello,Bad Attitude Gang,BAG,West Coast,11,3,0,1961.0,1553.6,1,2,Michael Murello
+2024,7,chappie,BlaKK BoCCes,CHAP,Philly,7,7,0,1719.6,1580.5,4,3,Drew Chappie
+2024,5,hoosier,Hoosier's Dynamos,MOS,North,10,4,0,1747.8,1533.6,2,4,Craig Hoosier
+2024,11,smith,Tijuana Trojans,TROJ,East Coast,8,6,0,1836.4,1833.3,3,5,Matthew Smith
+2024,4,glen,Fluff Muffins,MUFF,North,9,5,0,1868.7,1647.9,5,6,Glen Herold
+2024,9,sikora,The Gunz,Gunz,West Coast,4,10,0,1651.2,1805.5,10,7,Pete Sikora
+2024,6,patel,Cheater's Streakers,Nude,Philly,7,7,0,1562.1,1604.2,8,8,Amit Patel
+2024,2,farrington,Farrington's FREELANCERS,FF,East Coast,8,6,0,1706.7,1652.9,7,9,James Farrington
+2024,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,4,10,0,1555.7,1858.2,11,10,Joseph Reilly
+2024,12,salerno,Ween's Machine,MACH,Philly,6,8,0,1597.1,1710.3,9,11,owen salerno
+2024,10,bucher,Los Beasters Big Sky,BSTR,North,2,12,0,1291.7,1865.5,12,12,Seth Bucher
+2023,5,hoosier,Hoosier's Dynamos,MOS,East Coast,10,4,0,1915.3,1626.5,1,1,Craig Hoosier
+2023,3,murello,Bad Attitude Gang,BAG,West Coast,5,9,0,1714.2,1787.7,10,2,Michael Murello
+2023,7,chappie,BlaKK BoCCes,CHAP,North,10,4,0,1767.4,1538.4,2,3,Drew Chappie
+2023,10,bucher,Los Beasters Big Sky,BSTR,West Coast,9,5,0,1639.4,1725.3,3,4,Seth Bucher
+2023,8,moyer,Kimble's Finast,DR K,Philly,7,7,0,1718.7,1745.7,4,5,Rich Moyer
+2023,2,farrington,Farrington's FREELANCERS,FF,North,8,6,0,1678.1,1568.6,5,6,James Farrington
+2023,12,salerno,Ween's Machine,MACH,Philly,7,7,0,1680.8,1603.6,7,7,owen salerno
+2023,6,patel,Cheater's Streakers,Nude,Philly,6,8,0,1708.2,1677.2,8,8,Amit Patel
+2023,9,sikora,The Gunz,Gunz,West Coast,6,8,0,1545.2,1720.6,9,9,Pete Sikora
+2023,4,glen,Fluff Muffins,MUFF,North,7,7,0,1704.1,1691.7,6,10,Glen Herold
+2023,11,smith,Tijuana Trojans,TROJ,East Coast,4,10,0,1572.2,1804.6,12,11,Matthew Smith
+2023,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,5,9,0,1565.1,1718.8,11,12,Joseph Reilly
+2022,3,murello,Bad Attitude Gang,BAG,North,9,5,0,1677.5,1501.9,2,1,Michael Murello
+2022,4,glen,Fluff Muffins,MUFF,East Coast,10,4,0,1715.4,1618.7,1,2,Glen Herold
+2022,9,sikora,The Gunz,Gunz,Philly,8,6,0,1523.0,1520.5,3,3,Pete Sikora
+2022,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,9,5,0,1694.7,1561.3,5,4,Joseph Reilly
+2022,12,salerno,Ween's Machine,MACH,West Coast,7,7,0,1728.2,1546.2,6,5,owen salerno
+2022,10,bucher,Los Beasters Big Sky,BSTR,West Coast,8,6,0,1395.9,1489.2,4,6,Seth Bucher
+2022,11,smith,Tijuana Trojans,TROJ,West Coast,7,7,0,1547.9,1533.4,8,7,Matthew Smith
+2022,7,chappie,BlaKK BoCCes,CHAP,North,7,7,0,1686.6,1550.0,7,8,Drew Chappie
+2022,6,patel,Cheater's Streakers,Nude,North,6,8,0,1586.0,1685.2,10,9,Amit Patel
+2022,5,hoosier,Hoosier's Dynamos,MOS,Philly,6,8,0,1603.8,1581.3,9,10,Craig Hoosier
+2022,8,moyer,Kimble's Finast,DR K,Philly,3,11,0,1375.6,1712.5,12,11,Rich Moyer
+2022,2,farrington,Farrington's FREELANCERS,FF,East Coast,4,10,0,1460.5,1694.9,11,12,James Farrington
+2021,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,0,0,0,0,0,0,,Joseph Reilly
+2021,2,farrington,Farrington's FREELANCERS,FF,East Coast,0,0,0,0,0,0,,James Farrington
+2021,3,murello,Bad Attitude Gang,BAG,East Coast,0,0,0,0,0,0,,Michael Murello
+2021,4,glen,Fluff Muffins,MUFF,North,0,0,0,0,0,0,,Glen Herold
+2021,5,hoosier,Hoosier's Dynamos,MOS,North,0,0,0,0,0,0,,Craig Hoosier
+2021,6,patel,Cheater's Streakers,Nude,North,0,0,0,0,0,0,,Amit Patel
+2021,7,chappie,BlaKK BoCCes,CHAP,Philly,0,0,0,0,0,0,,Drew Chappie
+2021,8,moyer,Kimble's Finast,DR K,Philly,0,0,0,0,0,0,,Rich Moyer
+2021,9,sikora,Manayunk Gunz,Gunz,Philly,0,0,0,0,0,0,,Pete Sikora
+2021,10,bucher,Los Beasters Big Sky,BSTR,West Coast,0,0,0,0,0,0,,Seth Bucher
+2021,11,smith,Tijuana Trojans,TROJ,West Coast,0,0,0,0,0,0,,Matthew Smith
+2021,12,salerno,Ween's Machine,MACH,West Coast,0,0,0,0,0,0,,owen salerno
+2020,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,0,0,0,0,0,0,,Joseph Reilly
+2020,2,farrington,Farrington's FREELANCERS,FF,East Coast,0,0,0,0,0,0,,Alan Farrington
+2020,3,murello,Bad Attitude Gang,BAG,East Coast,0,0,0,0,0,0,,Michael Murello
+2020,4,glen,Fluff Muffins,MUFF,North,0,0,0,0,0,0,,Glen Herold
+2020,5,hoosier,Hoosier's Dynamos,MOS,North,0,0,0,0,0,0,,Craig Hoosier
+2020,6,patel,Cheater's Streakers,Nude,North,0,0,0,0,0,0,,Amit Patel
+2020,7,chappie,BlaKK BoCCes,CHAP,Philly,0,0,0,0,0,0,,Drew Chappie
+2020,8,moyer,Kimble's Finast,DR K,Philly,0,0,0,0,0,0,,Rich Moyer
+2020,9,sikora,Manayunk Gunz,Gunz,Philly,0,0,0,0,0,0,,Pete Sikora
+2020,10,bucher,Los Beasters Big Sky,BSTR,West Coast,0,0,0,0,0,0,,Seth Bucher
+2020,11,smith,Tijuana Trojans,TROJ,West Coast,0,0,0,0,0,0,,Matthew Smith
+2020,12,salerno,Ween's Machine,MACH,West Coast,0,0,0,0,0,0,,owen salerno
+2019,3,murello,Bad Attitude Gang,BAG,East Coast,6,7,0,1437.4,1367.5,7,1,Michael Murello
+2019,6,patel,Cheater's Streakers,Nude,North,7,6,0,1305.2,1373.0,4,2,Amit Patel
+2019,10,bucher,Los Beasters Big Sky,BSTR,West Coast,9,4,0,1352.3,1321.3,2,3,Seth Bucher
+2019,2,farrington,Farrington's FREELANCERS,FF,East Coast,9,4,0,1494.0,1223.9,1,4,Alan Farrington
+2019,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,8,5,0,1308.6,1261.2,5,5,Joseph Reilly
+2019,7,chappie,BlaKK BoCCes,CHAP,Philly,8,5,0,1380.2,1359.7,3,6,Drew Chappie
+2019,11,smith,Tijuana Trojans,TROJ,West Coast,5,8,0,1435.5,1397.3,8,7,Matthew Smith
+2019,4,glen,Fluff Muffins,MUFF,North,5,8,0,1267.0,1368.3,9,8,Glen Herold
+2019,12,salerno,Ween's Machine,MACH,West Coast,8,5,0,1283.3,1322.4,6,9,owen salerno
+2019,9,sikora,Manayunk Gunz,Gunz,Philly,4,9,0,1296.8,1376.0,11,10,Pete Sikora
+2019,5,hoosier,Hoosier's Dynamos,MOS,North,4,9,0,1130.8,1257.0,12,11,Craig Hoosier
+2019,8,moyer,Kimble's Finast,DR K,Philly,5,8,0,1161.5,1225.0,10,12,Rich Moyer
+2018,7,chappie,BlaKK BoCCes,CHAP,Philly,11,2,0,1693.9,1343.6,1,1,Drew Chappie
+2018,10,bucher,Los Beasters,BSTR,West Coast,10,3,0,1497.4,1324.3,2,2,Seth Bucher
+2018,9,sikora,Manayunk Gunz,Gunz,Philly,6,7,0,1405.1,1441.5,6,3,Pete Sikora
+2018,8,moyer,Kimble's Finast,DR K,Philly,7,6,0,1385.4,1376.4,5,4,Rich Moyer
+2018,4,glen,Fluff Muffins,MUFF,North,7,6,0,1395.5,1407.1,4,5,Glen Herold
+2018,2,farrington,Farrington's FREELANCERS,FF,East Coast,7,6,0,1483.9,1436.3,3,6,Alan Farrington
+2018,11,smith,Tijuana Trojans,TROJ,West Coast,4,9,0,1336.2,1370.5,11,7,Matthew Smith
+2018,3,murello,Bad Attitude Gang,BAG,East Coast,6,7,0,1353.2,1441.8,7,8,Michael Murello
+2018,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,4,9,0,1268.0,1405.9,12,9,Joseph Reilly
+2018,6,patel,Cheater's Streakers,Nude,North,5,8,0,1274.9,1425.3,9,10,Amit Patel
+2018,12,salerno,Ween's Machine,MACH,West Coast,5,8,0,1252.2,1379.0,10,11,owen salerno
+2018,5,hoosier,Hoosier's Dynamos,MOS,North,6,7,0,1256.8,1250.8,8,12,Craig Hoosier
+2017,6,patel,Cheater's Streakers,Nude,North,10,3,0,1231.9,1141.6,2,1,Amit Patel
+2017,9,sikora,Manayunk Gunz,Gunz,Philly,10,3,0,1264.6,1114.6,1,2,Pete Sikora
+2017,3,murello,Bad Attitude Gang,BAG,East Coast,7,6,0,1274.5,1246.8,4,3,Michael Murello
+2017,11,smith,Tijuana Trojans,TROJ,West Coast,8,5,0,1354.2,1222.9,3,4,Matthew Smith
+2017,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,6,7,0,1264.1,1109.6,6,5,Joseph Reilly
+2017,10,bucher,Los Beasters,BSTR,West Coast,7,6,0,1323.4,1236.2,5,6,Seth Bucher
+2017,7,chappie,BlaKK BoCCes,CHAP,Philly,6,7,0,1259.7,1374.2,7,7,Drew Chappie
+2017,5,hoosier,Hoosier's Dynamos,MOS,North,5,8,0,1220.1,1334.4,9,8,Craig Hoosier
+2017,12,salerno,Ween's Machine,MACH,West Coast,4,9,0,1125.4,1191.5,12,9,owen salerno
+2017,4,glen,Fluff Muffins,MUFF,North,6,7,0,1181.9,1192.1,8,10,Glen Herold
+2017,2,farrington,Farrington's FREELANCERS,FF,East Coast,5,8,0,1184.1,1411.5,10,11,Alan Farrington
+2017,8,moyer,Kimble's Finast,DR K,Philly,4,9,0,1200.6,1309.1,11,12,Rich Moyer
+2016,8,moyer,Kimble's Finast,DR K,Philly,8,5,0,1354.4,1189.8,5,1,Rich Moyer
+2016,7,chappie,BlaKK BoCCes,CHAP,Philly,10,3,0,1433.8,1262.6,2,2,Drew Chappie
+2016,6,patel,Cheater's Streakers,Nude,North,10,3,0,1532.9,1186.3,1,3,Amit Patel
+2016,12,salerno,Ween's Machine,MACH,West Coast,9,4,0,1427.8,1281.6,3,4,owen salerno
+2016,3,murello,Bad Attitude Gang,BAG,East Coast,6,7,0,1453.0,1365.6,7,5,Michael Murello
+2016,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,8,5,0,1381.9,1302.4,4,6,Joseph Reilly
+2016,11,smith,Tijuana Trojans,TROJ,West Coast,5,8,0,1261.4,1359.3,8,7,Matthew Smith
+2016,9,sikora,Manayunk Gunz,Gunz,Philly,4,9,0,1203.9,1367.1,9,8,Pete Sikora
+2016,5,hoosier,Hoosier's Dynamos,MOS,North,4,9,0,1196.6,1371.9,10,9,Craig Hoosier
+2016,2,farrington,Farrington's FREELANCERS,FF,East Coast,7,6,0,1363.5,1383.2,6,10,Alan Farrington
+2016,10,bucher,Los Beasters,BSTR,West Coast,3,10,0,1023.5,1310.5,12,11,Seth Bucher
+2016,4,glen,Fluff Muffins,MUFF,North,4,9,0,1109.0,1361.4,11,12,Glen Herold
+2015,11,smith,Tijuana Trojans,TROJ,West Coast,10,3,0,1469.5,1325.2,1,1,Matthew Smith
+2015,2,farrington,Farrington's FREELANCERS,FF,East Coast,7,6,0,1422.2,1293.9,3,2,Alan Farrington
+2015,7,chappie,BlaKK BoCCes,CHAP,Philly,10,3,0,1443.8,1259.5,2,3,Drew Chappie
+2015,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,5,8,0,1338.3,1435.9,8,4,Joseph Reilly
+2015,12,salerno,Ween's Machine,MACH,West Coast,10,3,0,1413.0,1269.2,5,5,owen salerno
+2015,4,glen,Fluff Muffins,MUFF,North,6,7,0,1322.9,1326.1,4,6,Glen Herold
+2015,6,patel,Cheater's Streakers,Nude,North,5,8,0,1219.7,1248.6,10,7,Amit Patel
+2015,3,murello,Bad Attitude Gang,BAG,East Coast,3,10,0,1260.3,1508.2,11,8,Michael Murello
+2015,5,hoosier,Hoosier's Dynamos,MOS,North,2,11,0,985.5,1384.6,12,9,Craig Hoosier
+2015,8,moyer,Kimble's Finast,DR K,Philly,6,7,0,1354.8,1282.2,7,10,Rich Moyer
+2015,9,sikora,Manayunk Gunz,Gunz,Philly,9,4,0,1302.7,1218.3,6,11,Pete Sikora
+2015,10,bucher,Los Beasters,BSTR,West Coast,5,8,0,1239.2,1220.2,9,12,Seth Bucher
+2014,4,glen,Fluff Muffins,MUFF,North,7,6,0,1456.8,1342.1,4,1,Glen Herold
+2014,10,bucher,Los Beasters,BSTR,West Coast,11,2,0,1530.3,1222.0,1,2,Seth Bucher
+2014,11,smith,Tijuana Trojans,TROJ,West Coast,10,3,0,1433.7,1228.2,5,3,Matthew Smith
+2014,3,murello,Bad Attitude Gang,BAG,East Coast,8,5,0,1454.4,1366.1,3,4,Michael Murello
+2014,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,7,6,0,1335.4,1265.2,7,5,Joseph Reilly
+2014,7,chappie,BlaKK BoCCes,CHAP,Philly,9,4,0,1496.2,1291.0,2,6,Drew Chappie
+2014,8,moyer,Kimble's Finast,DR K,Philly,8,5,0,1361.9,1287.0,6,7,Rich Moyer
+2014,2,farrington,Farrington's FREELANCERS,FF,East Coast,5,8,0,1277.8,1383.6,8,8,Alan Farrington
+2014,6,patel,Cheater's Streakers,Nude,North,5,8,0,1196.4,1391.2,9,9,Amit Patel
+2014,12,salerno,Ween's Machine,MACH,West Coast,3,10,0,1291.4,1527.2,10,10,owen salerno
+2014,5,hoosier,Hoosier's Dynamos,MOS,North,3,10,0,1124.6,1377.5,11,11,Craig Hoosier
+2014,9,sikora,Manayunk Gunz,Gunz,Philly,2,11,0,1101.5,1379.3,12,12,Pete Sikora
+2013,10,bucher,Los Beasters,BSTR,West Coast,8,5,0,1469.7,1312.2,4,1,Seth Bucher
+2013,2,farrington,RockyTop RHINOS,CFW,East Coast,7,6,0,1363.6,1260.1,5,2,Alan Farrington
+2013,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,12,1,0,1593.5,1114.5,1,3,Joseph Reilly
+2013,7,chappie,BlaKK BoCCes,CHAP,Philly,11,2,0,1468.6,1284.6,2,4,Drew Chappie
+2013,6,patel,Cheater's Streakers,Nude,North,10,3,0,1413.8,1264.0,3,5,Amit Patel
+2013,11,smith,Tijuana Trojans,TROJ,West Coast,6,7,0,1270.6,1281.4,6,6,Matthew Smith
+2013,9,sikora,Manayunk Gunz,Gunz,Philly,5,8,0,1279.7,1428.0,8,7,Pete Sikora
+2013,12,salerno,Ween's Machine,MACH,West Coast,5,8,0,1325.5,1376.2,7,8,owen salerno
+2013,4,glen,Fluff Muffins,MUFF,North,4,9,0,1257.2,1390.0,10,9,Glen Herold
+2013,5,hoosier,Hoosier's Dynamos,MOS,North,4,9,0,1290.3,1458.9,9,10,Craig Hoosier
+2013,3,murello,Bad Attitude Gang,BAG,East Coast,2,11,0,988.5,1490.8,12,11,Michael Murello
+2013,8,moyer,Kimble's Finast,DR K,Philly,4,9,0,1187.2,1247.5,11,12,Rich Moyer
+2012,4,glen,Fluff Muffins,MUFF,North,7,6,0,1358.8,1278.6,3,1,Glen Herold
+2012,11,smith,Tijuana Trojans,TROJ,West Coast,9,4,0,1496.2,1299.4,1,2,Matthew Smith
+2012,5,hoosier,Hoosier's Dynamos,MOS,North,6,7,0,1383.4,1346.3,7,3,Craig Hoosier
+2012,9,sikora,Manayunk Gunz,Gunz,Philly,8,5,0,1242.5,1210.4,5,4,Pete Sikora
+2012,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,6,7,0,1432.8,1429.4,4,5,Joseph Reilly
+2012,8,moyer,Kimble's Finast,DR K,Philly,8,5,0,1352.3,1272.3,2,6,Rich Moyer
+2012,2,farrington,FREE Lancers,AL,East Coast,6,7,0,1320.2,1313.6,8,7,Alan Farrington
+2012,6,patel,Cheater's Streakers,Nude,North,6,7,0,1309.6,1284.6,9,8,Amit Patel
+2012,10,bucher,Los Beasters,BSTR,West Coast,7,6,0,1373.3,1370.1,6,9,Seth Bucher
+2012,12,salerno,Ween's Machine,MACH,West Coast,5,8,0,1184.2,1421.7,12,10,owen salerno
+2012,7,chappie,Scrappy Chappies,CHAP,Philly,5,8,0,1236.0,1329.4,11,11,Drew Chappie
+2012,3,murello,Bad Attitude Gang,BAG,East Coast,5,8,0,1240.3,1373.8,10,12,Michael Murello
+2011,5,hoosier,Hoosier's Dynamos,MOS,North,7,6,0,1421.9,1337.3,4,1,Craig Hoosier
+2011,11,smith,Tijuana Trojans,TROJ,West Coast,11,2,0,1589.0,1263.4,1,2,Matthew Smith
+2011,12,salerno,Ween's Machine,MACH,West Coast,8,5,0,1348.7,1412.4,5,3,owen salerno
+2011,3,murello,Bad Attitude Gang,BAG,East Coast,8,5,0,1467.3,1278.7,2,4,Michael Murello
+2011,9,sikora,Manayunk Gunz,Gunz,Philly,8,5,0,1261.3,1179.4,3,5,Pete Sikora
+2011,6,patel,Cheater's Streakers,Nude,North,7,6,0,1386.5,1346.7,6,6,Amit Patel
+2011,2,farrington,FREE Lancers,AL,East Coast,6,7,0,1346.9,1360.4,8,7,Alan Farrington
+2011,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,7,6,0,1308.7,1277.2,7,8,Joseph Reilly
+2011,7,chappie,Scrappy Chappies,CHAP,Philly,4,9,0,1280.3,1417.0,10,9,Drew Chappie
+2011,10,bucher,S.D. Beasters,BSTR,West Coast,3,10,0,1210.1,1443.0,12,10,Seth Bucher
+2011,4,glen,Fluff Muffins,MUFF,North,6,7,0,1184.3,1312.1,9,11,Glen Herold
+2011,8,moyer,Kimble's Finast,DR K,Philly,3,10,0,1241.0,1418.4,11,12,Rich Moyer
+2010,4,glen,Fluff Muffins,MUFF,North,8,5,0,1362.5,1275.7,2,1,Glen Herold
+2010,10,bucher,S.D. Beasters,BSTR,West Coast,11,2,0,1542.6,1208.2,1,2,Seth Bucher
+2010,2,farrington,FREE Lancers,AL,East Coast,7,6,0,1294.4,1263.5,4,3,Alan Farrington
+2010,8,moyer,Kimble's Finast,DR K,Philly,8,5,0,1249.0,1269.9,3,4,Rich Moyer
+2010,7,chappie,Scrappy Chappies,CHAP,Philly,7,6,0,1400.2,1251.1,5,5,Drew Chappie
+2010,5,hoosier,Hoosier's Dynamos,MOS,North,6,7,0,1290.9,1229.4,9,6,Craig Hoosier
+2010,11,smith,Tijuana Trojans,TROJ,West Coast,6,7,0,1342.0,1359.6,8,7,Matthew Smith
+2010,9,sikora,Manayunk Gunz,Gunz,Philly,6,7,0,1351.1,1309.0,7,8,Pete Sikora
+2010,6,patel,Cheater's Streakers,Nude,North,4,9,0,1171.4,1409.0,11,9,Amit Patel
+2010,12,salerno,Ween's Machine,MACH,West Coast,7,6,0,1279.5,1315.8,6,10,owen salerno
+2010,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,2,11,0,1104.6,1414.6,12,11,Joseph Reilly
+2010,3,murello,Bad Attitude Gang,BAG,East Coast,6,7,0,1177.8,1260.2,10,12,Michael Murello
+2009,3,murello,Bad Attitude Gang,BAG,East Coast,7,6,0,1332.7,1291.6,5,1,Michael Murello
+2009,11,smith,Tijuana Trojans,TROJ,West Coast,7,6,0,1349.5,1344.4,3,2,Matthew Smith
+2009,4,glen,Fluff Muffins,MUFF,North,11,2,0,1353.6,1099.3,1,3,Glen Herold
+2009,8,moyer,Kimble's Finast,DR K,Philly,7,6,0,1289.1,1199.6,4,4,Rich Moyer
+2009,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,8,5,0,1404.0,1194.9,2,5,Joseph Reilly
+2009,10,bucher,S.D. Beasters,BSTR,West Coast,7,6,0,1228.6,1255.9,7,6,Seth Bucher
+2009,7,chappie,Scrappy Chappies,CHAP,Philly,6,7,0,1181.2,1173.2,10,7,Drew Chappie
+2009,2,farrington,Domz Dynasty,DD,East Coast,3,10,0,1230.2,1369.9,11,8,Alan Farrington
+2009,12,salerno,Ween's Machine,MACH,West Coast,7,6,0,1198.9,1284.0,9,9,owen salerno
+2009,6,patel,Cheater's Streakers,Nude,North,7,6,0,1277.7,1346.7,6,10,Amit Patel
+2009,9,sikora,Manayunk Gunz,Gunz,Philly,7,6,0,1219.2,1245.0,8,11,Pete Sikora
+2009,5,hoosier,Hoosier's Dynamos,MOS,North,1,12,0,1055.7,1315.9,12,12,Craig Hoosier
+2008,8,moyer,Kimble's Finast,DR K,Philly,8,5,0,1227.6,1208.8,1,1,Rich Moyer
+2008,3,murello,Bad Attitude Gang,BAG,East Coast,7,6,0,1068.1,1151.9,4,2,Michael Murello
+2008,10,bucher,S.D. Beasters,BSTR,West Coast,8,5,0,1156.2,1176.9,2,3,Seth Bucher
+2008,4,glen,Fluff Muffins,MUFF,North,7,6,0,1245.8,1090.1,3,4,Glen Herold
+2008,12,salerno,Ween's Machine,MACH,West Coast,8,5,0,1138.2,1147.4,5,5,owen salerno
+2008,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,6,7,0,1181.5,1203.2,8,6,Joseph Reilly
+2008,9,sikora,Manayunk Gunz,Gunz,Philly,7,6,0,1213.8,1117.8,7,7,Pete Sikora
+2008,6,patel,Cheater's Streakers,Nude,North,6,7,0,1135.4,1118.0,9,8,Amit Patel
+2008,2,farrington,Farrington's Freelancers,FF,East Coast,5,8,0,1153.2,1125.5,10,9,Alan Farrington
+2008,11,smith,Tijuana Trojans,TROJ,West Coast,7,6,0,1380.1,1193.2,6,10,Matthew Smith
+2008,5,hoosier,Hoosier's Dynamos,MOS,North,5,8,0,991.1,1247.1,11,11,Craig Hoosier
+2008,7,chappie,Happiest Slappies,SLAP,Philly,4,9,0,1208.0,1319.1,12,12,Drew Chappie
+2007,9,sikora,Manayunk Gunz,Gunz,Philly,9,4,0,1337.9,1253.2,2,1,Pete Sikora
+2007,6,patel,Cheater's Streakers,Nude,North,10,3,0,1384.9,1250.6,1,2,Amit Patel
+2007,5,hoosier,Hoosier's Dynamos,MOS,North,8,5,0,1167.0,1112.9,5,3,Craig Hoosier
+2007,12,salerno,Ween's Machine,MACH,West Coast,8,5,0,1286.3,1195.9,3,4,owen salerno
+2007,10,bucher,S.D. Beasters,BSTR,West Coast,6,7,0,1162.9,1187.0,7,5,Seth Bucher
+2007,3,murello,Bad Attitude Gang,BAG,East Coast,7,6,0,1227.3,1306.5,4,6,Michael Murello
+2007,4,glen,Fluff Muffins,MUFF,North,7,6,0,1337.6,1158.9,6,7,Glen Herold
+2007,11,smith,Tijuana Trojans,TROJ,West Coast,6,7,0,1157.1,1134.3,8,8,Matthew Smith
+2007,7,chappie,Happiest Slappies,SLAP,Philly,5,8,0,1183.4,1278.4,9,9,Drew Chappie
+2007,8,moyer,Kimble's Finast,DR K,Philly,4,9,0,1075.4,1328.1,12,10,Rich Moyer
+2007,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,4,9,0,1136.8,1242.7,11,11,Joseph Reilly
+2007,2,farrington,Farrington's Freelancers,FF,East Coast,4,9,0,1383.0,1391.1,10,12,Alan Farrington
+2006,10,bucher,S.D. Beasters,BSTR,West Coast,9,4,0,1352.0,1158.4,2,1,Seth Bucher
+2006,6,patel,Cheater's Streakers,Nude,North,10,3,0,1401.6,1118.8,1,2,Amit Patel
+2006,8,moyer,Kimble's Finast,DR K,Philly,9,4,0,1218.9,1140.1,4,3,Rich Moyer
+2006,5,hoosier,Hoosier's Dynamos,MOS,North,7,6,0,1333.5,1237.5,5,4,Craig Hoosier
+2006,9,sikora,Manayunk Gunz,Gunz,Philly,7,6,0,1184.5,1314.3,6,5,Pete Sikora
+2006,2,farrington,Farrington's Freelancers,FF,East Coast,9,4,0,1333.7,1187.5,3,6,Alan Farrington
+2006,1,reilly,Reilly's RaMPaGe,pAGe,East Coast,5,8,0,1259.1,1218.0,8,7,Joseph Reilly
+2006,4,glen,Fluff Muffins,MUFF,North,4,9,0,1064.7,1163.1,11,8,Glen Herold
+2006,12,salerno,Ween's Machine,MACH,West Coast,5,8,0,1121.5,1204.2,9,9,owen salerno
+2006,11,smith,Tijuana Trojans,TROJ,West Coast,4,9,0,1095.3,1205.6,10,10,Matthew Smith
+2006,7,chappie,Happiest Slappies,SLAP,Philly,3,10,0,1074.0,1305.8,12,11,Drew Chappie
+2006,3,murello,Bad Attitude Gang,BAG,East Coast,6,7,0,961.5,1147.0,7,12,Michael Murello
