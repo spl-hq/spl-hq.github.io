@@ -1,5 +1,5 @@
 # Offseason_Drafts.csv -- GOLD, robot-written by tools/ledger_sync.py from the app's draft rooms
 # (League -> Off-season). Do not hand-edit: undo/redo picks in the app and the robot copies them here.
-# draft: div = Divisional Draft (division_of = the founder whose division the owner joins; value = that owner) | slot = Slot Draft (value = SPL Draft slot).
-# Synced 2026-11-26T11:50+00:00.
+# draft: div = Divisional Draft (division_of = the founder whose division the owner joins; value = that owner) | slot = Slot Draft (value = SPL Draft slot) | shootout = Shoot Out Draft (value = Week 14 opponent; pick R1-n = Rule 1 matchup).
+# Synced 2026-11-27T12:50+00:00.
 season,draft,draft_id,pick,owner_id,choice,division_of,value,entered_by,finished
