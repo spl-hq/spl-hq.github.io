@@ -17,12 +17,14 @@ _Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Shoot
 `docs/HISTORY_NEEDS.md`: what's on file, what robots will pull from ESPN (drafts 2006–25, transactions, team names, final rosters, retry 2020–21), and Mike's ranked list (keeper history 2019–23 first; then 2020–21 + 2004–05 if ESPN can't; pre-app trades; off-season drafts before 2024; ownership changes; payouts; rule changes; lore). Mike: drop the raw SPL Packet(s) as-is.
 
 ## Open questions (in the app: 📥 Commish desk → 📋 Questions, rebaselined 11/26)
-Joe sees 7: ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
+Joe sees 8 (history_gaps added 11/27): ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
 **Mike's calls** (traded contracts travel, next-season picks only, Divisional Draft rules) · 2027 dates · move league talk to app chat · Joe's #1 wish.
 Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_years, div_draft, al_name, trade_review, commish_trades; review_window + chat superseded.
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.21.1 · 📋 New question for Joe `history_gaps` (Mike: NFL.com's old leagues are gone, ask Joe): 2020 draft picks, 2021 playoff-team
+  records, a few PF, 2003–05 records + runner-ups. Sits before "first wish"; header reads 📥 Desk · 8. SW `splhq-v47`.
 - 2026-11-27 · v0.21.0 (backend v0.15.0) · 🎯 **Shoot Out Draft room + off-season mode** (Mike). New `shootout` kind on the one draft engine
   (`mod_drafts.js`): order = all 12 by seed after Week 13 (§G: 4 division leaders, best other record, most points of the rest, then the table);
   **Rule 1 matchups** (division-title + wildcard races within a game and 50 pts, the 3- and 4-team cases) computed in the app and confirmed by

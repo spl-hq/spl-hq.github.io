@@ -22,6 +22,7 @@ _2026-11-27 · Mike asked "what historic info do you need from me?" This is the 
 - Mike: Al's 2019 "Prior" = Terrelle Pryor; Glen's 2024 "73 Brown" = Chase Brown.
 
 ## Still open (from the Packet + Mike)
+NFL.com's old leagues no longer exist (Mike 11/27): these now sit with Joe as the app question `history_gaps`.
 - **2021 W-L for the six playoff teams** and a few PF (BAG 2020, Al + Rich 2021) — not in any email; NFL.com league 8606320's history page or Glen.
 - **2020 draft picks** — only on NFL.com (fantasy.nfl.com/league/8606320, Draft Recap); the Packet has the order only. A screenshot would do.
 - 2003–05 records + runner-ups (the GM Report gives titles + playoff teams only).

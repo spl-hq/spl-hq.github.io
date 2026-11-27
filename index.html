@@ -474,7 +474,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.21.0";
+var APP_VERSION = "0.21.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -523,11 +523,14 @@ var QUESTIONS = [
   { qid: "mike_calls", q: "Mike made these calls for the app. Good with all three?",
     why: "1) A traded keeper keeps his contract as-is (KP, years left). 2) Only next season's picks can be traded (2027, 17 rounds). 3) Divisional Draft: the 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1; a pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division); if your division is full, you must assign.",
     choices: ["All good", "Change one (explain below)"] },
+  { qid: "history_gaps", q: "Can you fill the league history gaps NFL.com took with it?",
+    why: "2020-21 were on NFL.com and its old leagues are gone. Still missing: the 2020 draft picks, 2021 records for the 6 playoff teams, a few points totals (Mike 2020, Al + Rich 2021), and 2003-05 records + runner-ups. Champions and playoff seeds are already in (league emails, the Packet, Glen's GM Report). Old binders, spreadsheets, screenshots or memory all help: send them to Mike or type below.",
+    choices: ["I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
   { qid: "chat_move", q: "League chat is live in the app (plus trade DMs). Move the league's talk here?",
     why: "Everyone gets it once they sign in. The group text can stay for whatever you like.",
     choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] }
 ];
-var Q_ORDER = ["espn_lm", "test_league", "veto_vote", "mike_calls", "deadlines", "chat_move", "first_wish"]; // the order Joe sees
+var Q_ORDER = ["espn_lm", "test_league", "veto_vote", "mike_calls", "deadlines", "chat_move", "history_gaps", "first_wish"]; // the order Joe sees
 var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
 function answeredActive(ans) { return ACTIVE_Q.filter(function (q) { return ans[q.qid]; }).length; }
 
