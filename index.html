@@ -228,8 +228,8 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 .mxfoot .mxp{color:#5F666D;font:600 12px var(--mono)}
 .mxkey{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 10.5px var(--mono);color:var(--muted);margin:0 0 8px}
 .mxkey span{display:inline-flex;align-items:center;gap:6px}
-.pa{display:inline-block;min-width:40px;text-align:center;font:800 14px/1 var(--mono);color:#041E42;padding:5px 3px;border-radius:7px;border:1.5px solid transparent}
-.pa.lv{background:rgba(30,64,124,.10);color:#1E407C}
+.pa{display:inline-block;min-width:40px;text-align:center;font:800 15px/1 var(--mono);color:#041E42;padding:5px 3px;border-radius:7px;border:1.5px solid transparent}
+.pa{position:relative} .pa.lv{background:none;color:#041E42} .pa.lv:after{content:"";position:absolute;top:1px;right:-1px;width:6px;height:6px;border-radius:50%;background:#1E407C;animation:mxp 1.6s infinite}
 .pa.pj{font-weight:600;font-style:italic;color:#7A8288;border:1.5px dashed #C2C8CE;background:#fff}
 .pa.up{background:rgba(30,64,124,.08)}
 .mxl{width:100%;border-collapse:collapse;table-layout:fixed}
@@ -459,7 +459,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.19.2";
+var APP_VERSION = "0.19.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -838,7 +838,8 @@ SCREENS.match.after = function (arg) {
     var bench = function (t) { return t.players.filter(function (p) { return p.slot === "BE" || p.slot === "IR"; }); };
     var shortN = function (p) { if (p.pos === "D/ST") return (p.tm || p.n.replace(/ D\/ST$/, "")) + " D/ST"; var w = String(p.n).split(" "); return w.length > 1 ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : p.n; };
     var kShort = function (ms) { if (!ms) return ""; var x = new Date(ms), h = x.getHours(), m = x.getMinutes(); return x.toLocaleDateString([], { weekday: "short" }) + " " + ((h % 12) || 12) + (m ? ":" + String(m).padStart(2, "0") : "") + (h < 12 ? "a" : "p"); };
-    var isLive = function (p) { return p.played && !d.final && p.kick && NOW - p.kick < 4 * 36e5; };
+    // In progress = has stats AND kicked off within the last 4 h. Stats with no kickoff, or a kickoff time that isn't in that window, = done.
+    var isLive = function (p) { return p.played && !d.final && !!p.kick && p.kick <= NOW && NOW - p.kick < 4 * 36e5; };
     var ptsCell = function (p, other) {
       if (!p) return '<td class="pc"></td>';
       if (!p.played && !d.final) return '<td class="pc"><span class="pa pj">' + (p.proj != null ? fmtPts(p.proj) : "–") + '</span></td>';

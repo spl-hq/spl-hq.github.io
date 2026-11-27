@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔️ Match tab redesign v0.19.2, backend v0.14.0)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔️ Match follow-up v0.19.3, backend v0.14.0)
 
 
 ## Now
@@ -23,6 +23,11 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.3 · ⚔️ Match follow-up (Mike): **scored points are what pop** (bold navy, a size up); in-progress no longer gets a blue
+  chip, just the same navy number with a small pulsing dot. **Finished players showing "Live" fixed** (Dak, Goff on Thanksgiving): "in
+  progress" now needs stats AND a kickoff that already happened within the last 4 h; stats with a missing or future kickoff = Done. If
+  Thursday players were getting a future kickoff, the backend's pro-schedule lookup (`proGames_`, keyed by matchup period) may be handing
+  back the wrong week: check `kick` on a played player when signed in. SW `splhq-v40`.
 - 2026-11-27 · v0.19.2 · ⚔️ **Match tab redesign** (Mike: "no idea what numbers are actual and which are projected… a blob of text").
   Actual vs projected now look different everywhere: **scored = solid navy number**, **in progress = blue chip**, **projected = grey
   italic in a dashed box** (key above the lineups). Scoreboard: status pill (LIVE / FINAL / NOT STARTED / UPCOMING), big "points scored"
