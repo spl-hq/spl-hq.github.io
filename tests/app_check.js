@@ -9,5 +9,5 @@ while ((m = re.exec(html))) { i++; const line = html.slice(0, m.index).split("\n
   try { new Function(m[1]); ok(true, "index.html inline script #" + i + " (line " + line + ")"); }
   catch (e) { ok(false, "index.html inline script #" + i + " (line " + line + "): " + e.message); } }
 ok(i > 0, "found inline scripts (" + i + ")");
-["sw.js", "league-data.js"].forEach(f => { try { new Function(fs.readFileSync(path.join(root, f), "utf8")); ok(true, f); } catch (e) { ok(false, f + ": " + e.message); } });
+["sw.js", "league-data.js", "player-history.js"].forEach(f => { try { new Function(fs.readFileSync(path.join(root, f), "utf8")); ok(true, f); } catch (e) { ok(false, f + ": " + e.message); } });
 console.log(fails ? "\n" + fails + " FAILED" : "\nall passed"); process.exit(fails ? 1 : 0);

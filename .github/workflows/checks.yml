@@ -8,9 +8,9 @@ name: Checks
 on:
   push:
     branches: [main]
-    paths: ["backend/**", "tests/**", "index.html", "sw.js", "league-data.js", ".github/workflows/checks.yml"]
+    paths: ["backend/**", "tests/**", "index.html", "sw.js", "league-data.js", "player-history.js", ".github/workflows/checks.yml"]
   pull_request:
-    paths: ["backend/**", "tests/**", "index.html", "sw.js", "league-data.js", ".github/workflows/checks.yml"]
+    paths: ["backend/**", "tests/**", "index.html", "sw.js", "league-data.js", "player-history.js", ".github/workflows/checks.yml"]
   workflow_dispatch:
 permissions:
   contents: read

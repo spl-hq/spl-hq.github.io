@@ -20,5 +20,5 @@ jobs:
       - name: Commit if changed
         run: |
           git config user.name "spl-hq-robot"; git config user.email "spl-hq-robot@users.noreply.github.com"
-          git add league-data.js
+          git add league-data.js player-history.js
           git diff --cached --quiet || (git commit -m "Build league data: league-data.js from data/" && bash tools/robot_push.sh)

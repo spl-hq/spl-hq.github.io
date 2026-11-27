@@ -131,6 +131,29 @@ for y in range(this_year, 2003, -1):
                 nt += 1
             if ty.startswith("TRADE"): ntr += 1
         time.sleep(0.2)
+    # mTransactions2 is usually empty for past seasons: fall back to the league's activity feed (what ESPN's "Recent Activity" shows)
+    if not nt:
+        ACT = {178: "ADD", 180: "WAIVER_ADD", 179: "DROP", 181: "DROP", 239: "DROP", 244: "TRADE"}
+        for off in range(0, 10000, 1000):
+            filt = {"topics": {"filterType": {"value": ["ACTIVITY_TRANSACTIONS"]}, "limit": 1000, "limitPerMessageSet": {"value": 50}, "offset": off,
+                               "sortMessageDate": {"order": "DESC"}, "sortFor": {"order": "DESC"}, "filterIncludeMessageTypeIds": {"value": [178, 179, 180, 181, 239, 244]}}}
+            st, cm = get(f"{BASE}/seasons/{y}/segments/0/leagues/{LID}/communication/?view=kona_league_communication", filt)
+            topics = (cm or {}).get("topics") or []
+            for tp in topics:
+                when = tp.get("date")
+                kinds = {ACT.get(m.get("messageTypeId")) for m in tp.get("messages") or []}
+                if "TRADE" in kinds: ntr += 1
+                for m in tp.get("messages") or []:
+                    k = ACT.get(m.get("messageTypeId"))
+                    if not k: continue
+                    n, pos, pro = pname(names, m.get("targetId"))
+                    own = lambda t: tm.get(t, {}).get("owner", "") if isinstance(t, int) and t > 0 else ""
+                    moves.append({"season": y, "date": datetime.datetime.utcfromtimestamp(when / 1000).isoformat(timespec="minutes") if when else "", "scoring_period": "",
+                                  "transaction_id": tp.get("id"), "type": "ACTIVITY_" + k, "move": k, "player_id": m.get("targetId"), "player": n, "position": pos,
+                                  "from_owner": own(m.get("from")) if k in ("TRADE", "DROP") else "", "to_owner": own(m.get("to")) if k == "TRADE" else own(m.get("for") or m.get("to"))})
+                    nt += 1
+            if len(topics) < 1000: break
+            time.sleep(0.3)
     report.append(f"| {y} | {src} | {len(tm)} teams | {len(picks)} picks (pool {pool}) | {nr} roster rows | {ntr} trades / {nt} moves |")
     time.sleep(0.5)
 

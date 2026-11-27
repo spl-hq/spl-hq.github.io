@@ -2,6 +2,25 @@
 
 _2026-11-27 · Mike asked "what historic info do you need from me?" This is the checklist. Newest decisions in STATUS.md._
 
+## ✅ Done 11/27 (round 1)
+- **ESPN archive robot** (`espn-archive.yml` → `tools/pull_espn_archive.py`): 2006–2026 draft boards (4,283 picks), 252 team-seasons
+  (names, divisions, records, final rank), 3,702 final-roster rows → `data/ESPN_*.csv`, report `docs/ESPN_ARCHIVE_REPORT.md`. ESPN has no 2004–05.
+  **2020 and 2021 exist on ESPN as empty shells** (12 teams, no draft, no games). Transactions came back empty from ESPN's transaction view;
+  the robot now also tries ESPN's activity feed (results in the report after its next run).
+- **SPL Packet 2026.xlsx transcribed** (every tab read): SPL Draft boards **2019, 2021–2025** → `Draft_Picks.csv` (1,043 picks, names matched to
+  ESPN; 2 left flagged), **Keeper Matrix 2019–2026** → new `Keeper_Matrix_History.csv` (254 rows; 1 flagged: Al's 2019 QB "Prior"), the trade notes
+  under each board → new `Packet_Trade_Notes.csv` (64 notes, word for word). Board tags solved from ESPN: **MOS = Craig, NUD/NUDE = Amit**.
+- ESPN rounds ≠ SPL rounds from 2019 on (the commish keys keepers in as ESPN picks first), so keeper prices use the Packet boards.
+- Player files now show all of it (drafts 2006–2026, every keeper matrix, final rosters) via `player-history.js` (loaded only when a file opens).
+
+## Still open (from the Packet + Mike)
+- **2020**: the Packet has the draft order + Divisional/Slot order only, no picks, no results. Mike: the league ran on NFL.com that year.
+  **2021** is also empty on ESPN, though the Packet has a real 2021 board + a (May, partial) 2021 keeper matrix. Was 2021 on NFL.com too?
+  Standings/champion for both → `Season_Results_Manual.csv` (Glen's power rankings are the likely source).
+- Not yet structured from the Packet: 2024 prize/payout sheet (winners by owner), prize structures 2024 + 2025, 2020 Divisional/Slot order,
+  the 2020 keeper hot sheet, the "ineligible keepers" lists, draft calculator. Easy to add when wanted.
+- Packet trade notes are text; turning them into `Trade_Log`-style rows (owners + players + picks each way) needs a pass with Mike for the vague ones.
+
 Rule of thumb: **anything ESPN still has, a robot pulls** (Mike does nothing). **Anything that only lived in the
 SPL Packet, Joe's head or old emails, Mike brings** into `data/` as gold CSV. Every item below names its target file.
 

@@ -23,6 +23,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.4 (backend v0.14.1) · 📚 **History round 1: ESPN archive + SPL Packet** (Mike: "as much as possible from ESPN", + the Packet).
+  New robot `espn-archive.yml` (weekly + on script/registry change; in the watchdog's ROBOTS): 2006–2026 draft boards, team-seasons, final rosters,
+  transactions → `data/ESPN_*.csv` + `docs/ESPN_ARCHIVE_REPORT.md`. Packet transcribed by Claude: SPL boards 2019 + 2021–25 into `Draft_Picks.csv`,
+  every Keeper Matrix 2019–26 → `Keeper_Matrix_History.csv`, board trade notes → `Packet_Trade_Notes.csv`; registry aliases MOS = hoosier,
+  NUD/NUDE = patel (ESPN-proven). New derived `player-history.js` (build_data.py; robots commit it) loaded by player files on demand: every draft
+  2006–26, every keeper matrix line, final-roster stints. League → Draft gets 2019 + 2021–25 boards. Findings + what's left: `docs/HISTORY_NEEDS.md`.
+  SW `splhq-v41`.
 - 2026-11-27 · v0.19.3 · ⚔️ Match follow-up (Mike): **scored points are what pop** (bold navy, a size up); in-progress no longer gets a blue
   chip, just the same navy number with a small pulsing dot. **Finished players showing "Live" fixed** (Dak, Goff on Thanksgiving): "in
   progress" now needs stats AND a kickoff that already happened within the last 4 h; stats with a missing or future kickoff = Done. If

@@ -1010,20 +1010,35 @@ function pcard(name) {
       : '<p style="margin:0">' + kpBadge(name) + ' Keeping him costs <b>' + KP_ROUND(r) + ' KP</b> in ' + y0 + ' (' + (r ? "R" + r + " in the " + (y0 - 1) + " SPL Draft" : "undrafted in " + (y0 - 1)) + '), then ' + (KP_ROUND(r) + 1) + ' → ' + (KP_ROUND(r) + 2) + ' on a longer deal.' + (/Free agent|Waiver/.test(p.acq || "") ? ' <span class="gold">Picked up in season: OK only if by Week 14.</span>' : '') + '</p>') + '</div>';
   // SPL history timeline
   var ev = [];
-  drafts.forEach(function (d) { ev.push({ y: d[0], o: 1, ic: "📝", t: "Drafted by <b>" + esc(oname(d[4])) + "</b>, round " + d[1] + ", pick " + d[2] + " (" + d[3] + " overall)" + (d[5] && d[5] !== d[4] ? ' <small class="muted">· ' + esc(oname(d[5])) + "'s slot</small>" : "") }); });
-  cons.forEach(function (k) { var yrs = Object.keys(k.kp).sort(); ev.push({ y: k.signed, o: 2, ic: k.tag ? "🏷️" : "🔒", t: (k.tag ? "Franchise-tagged" : "Kept") + " by <b>" + esc(oname(k.owner)) + "</b>: " + k.term + "-yr, " + yrs.map(function (yy) { return "'" + yy.slice(2) + " " + k.kp[yy]; }).join(" → ") + " KP" });
-    if (k.status !== "active") { var py = Object.keys(k.pen || {}).sort()[0]; ev.push({ y: py ? +py : k.signed, o: 3, ic: "✂️", t: "Contract terminated by <b>" + esc(oname(k.owner)) + "</b>" + (py ? ": cap penalty " + Object.keys(k.pen).sort().map(function (yy) { return "'" + yy.slice(2) + " " + k.pen[yy]; }).join(", ") + " KP" : "") }); } });
+  drafts.forEach(function (d) { ev.push({ y: d[0], o: 2, ic: "📝", t: "Drafted by <b>" + esc(oname(d[4])) + "</b>, round " + d[1] + (d[2] ? ", pick " + d[2] : "") + (d[3] ? " (" + d[3] + " overall)" : "") + (d[7].indexOf("F") >= 0 ? " 🏷️ franchise" : "") + (d[7].indexOf("?") >= 0 ? ' <small class="muted">(name from board shorthand)</small>' : "") + (d[5] && d[5] !== d[4] ? ' <small class="muted">· ' + esc(oname(d[5])) + "'s slot</small>" : "") }); });
+  cons.forEach(function (k) { var yrs = Object.keys(k.kp).sort(); ev.push({ y: k.signed, o: 1, ic: k.tag ? "🏷️" : "🔒", t: (k.tag ? "Franchise-tagged" : "Kept") + " by <b>" + esc(oname(k.owner)) + "</b>: " + k.term + "-yr, " + yrs.map(function (yy) { return "'" + yy.slice(2) + " " + k.kp[yy]; }).join(" → ") + " KP" });
+    if (k.status !== "active") { var py = Object.keys(k.pen || {}).sort()[0]; ev.push({ y: py ? +py : k.signed, o: 1.5, ic: "✂️", t: "Contract terminated by <b>" + esc(oname(k.owner)) + "</b>" + (py ? ": cap penalty " + Object.keys(k.pen).sort().map(function (yy) { return "'" + yy.slice(2) + " " + k.pen[yy]; }).join(", ") + " KP" : "") }); } });
   ((TRADES && TRADES.offers) || []).filter(function (o) { return o.status === "APPROVED" && [].concat((o.give || {}).players || [], (o.get || {}).players || []).some(function (x) { return pnorm(x.n) === n; }); }).forEach(function (o) {
     var fromGive = ((o.give || {}).players || []).some(function (x) { return pnorm(x.n) === n; }), a = fromGive ? o.from : o.to, b = fromGive ? o.to : o.from, ts = o.ts || o.at || o.created;
-    ev.push({ y: ts ? new Date(ts).getFullYear() : y0 - 1, o: 4, ic: "🔁", t: "Traded <b>" + esc(oname(a)) + "</b> → <b>" + esc(oname(b)) + "</b>" + (o.mode === "test" ? ' <small class="muted">(test)</small>' : '') }); });
+    ev.push({ y: ts ? new Date(ts).getFullYear() : y0 - 1, o: 2.5, ic: "🔁", t: "Traded <b>" + esc(oname(a)) + "</b> → <b>" + esc(oname(b)) + "</b>" + (o.mode === "test" ? ' <small class="muted">(test)</small>' : '') }); });
+  var PH = window.PLAYER_HISTORY;
+  if (PH) {
+    var gotD = {}; drafts.forEach(function (d) { gotD[d[0]] = 1; });
+    PH.d.forEach(function (d) { if (d[6] !== "e" || gotD[d[0]] || pnorm(d[5]) !== n) return; ev.push({ y: d[0], o: 2, ic: "📝", t: "Drafted by <b>" + esc(oname(d[3])) + "</b>, " + (d[7].indexOf("K") >= 0 ? "keeper slot" : "pick " + d[2] + " overall") + ' <small class="muted">· ESPN draft</small>' }); });
+    var seenK = {}; cons.forEach(function (k) { seenK[k.signed + k.owner] = 1; });
+    PH.k.filter(function (k) { return pnorm(k[2]) === n; }).forEach(function (k) {
+      var kp = String(k[5] || "").split("|").filter(Boolean).map(function (x) { var p = x.split(":"); return "'" + p[0].slice(2) + " " + p[1]; }).join(" → ");
+      ev.push({ y: k[0], o: 1, ic: k[6] ? "✂️" : k[7] ? "🏷️" : "🔒", t: (k[6] ? "Cut, cap penalty on " : k[7] ? "Franchise-tagged on " : "Kept on ") + "<b>" + esc(oname(k[1])) + "</b>'s " + k[0] + " Keeper Matrix" + (/^\d/.test(k[4] || "") ? " (" + String(k[4]).match(/^\d+/)[0] + "-yr)" : "") + (kp ? ": " + esc(kp) + " KP" : "") }); });
+    var rs = PH.r.filter(function (r) { return pnorm(r[2]) === n; }).sort(function (a, b) { return a[0] - b[0]; }), runs = [];
+    rs.forEach(function (r) { var l = runs[runs.length - 1]; if (l && l.o === r[1] && l.b === r[0] - 1) l.b = r[0]; else runs.push({ o: r[1], a: r[0], b: r[0], how: r[3] }); });
+    runs.forEach(function (x) { ev.push({ y: x.b, o: 3, ic: "🏁", t: "Finished " + (x.a === x.b ? x.a : x.a + "–" + x.b) + " on <b>" + esc(oname(x.o)) + "</b>'s roster" + (x.how && x.how !== "draft" ? ' <small class="muted">· ' + esc(x.how === "add" ? "picked up" : x.how) + '</small>' : '') }); });
+  }
   ev.sort(function (a, b) { return b.y - a.y || b.o - a.o; });
   h += '<div class="card"><div class="eyebrow">📜 In the SPL</div>' + (ev.length ? '<div class="ptl">' + ev.map(function (e) { return '<div><span class="py">' + e.y + '</span><span>' + e.ic + '</span><span>' + e.t + '</span></div>'; }).join("") + '</div>'
       : '<p class="muted" style="margin:0">No SPL draft, keeper or trade on file for him yet.</p>') +
-    '<p class="muted" style="font-size:11px;margin:10px 0 0">Draft boards on file: ' + (function () { var ys = {}; LD("draft").forEach(function (d) { ys[d[0]] = 1; }); return Object.keys(ys).join(", ") || "none"; })() + '. Keeper contracts: 2024 on. Trades: in the app.</p></div>';
+    '<p class="muted" style="font-size:11px;margin:10px 0 0">' + (PH ? 'SPL Drafts 2006–2026 (2020 off ESPN, not on file) · Keeper Matrix 2019–2026 · final rosters ESPN kept · trades in the app.' : 'Loading the full history…') + '</p></div>';
   if (cur && ME && cur.o !== ME.owner) h += '<div class="row" style="gap:8px"><button class="btn" onclick="pclose();go(\'trade\',\'' + cur.o + '\')">🔁 Trade for him</button><button class="btn ghost" onclick="pclose();go(\'team\',\'' + cur.o + '\')">' + esc(oname(cur.o)) + '\'s roster</button></div>';
   sh.innerHTML = h + '</div>'; sh.style.display = ""; sh.scrollTop = 0;
   if (ME && !TRADES) loadTrades().then(function () { if ($("#sheet") && $(".pfile")) pcard(name); }).catch(function () {});
+  if (!window.PLAYER_HISTORY && !PH_LOADING) { PH_LOADING = 1; var sc = document.createElement("script"); sc.src = "player-history.js"; // derived, same origin, ~350 KB: only when a file opens
+    sc.onload = function () { if ($("#sheet") && $(".pfile")) pcard(name); }; sc.onerror = function () { PH_LOADING = 0; }; document.head.appendChild(sc); }
 }
+var PH_LOADING = 0;
 function pclose() { var sh = $("#sheet"); if (sh) sh.remove(); }
 // ---- 🔁 Trade center: players + draft picks + keeper contracts in one offer
 var TRADES = null;
@@ -1646,18 +1661,18 @@ SCREENS.draft = function (arg) {
       return '<div class="kv" style="cursor:pointer" onclick="go(\'draft\',\'' + y + ',' + o.id + '\')"><span><b>' + esc(o.name) + '</b></span><span><small class="muted">got</small> ' + net[o.id].got + ' · <small class="muted">gave</small> ' + net[o.id].gave + ' ›</span></div>'; }).join("") + '</div>';
     var rounds = {}; ps.forEach(function (d) { (rounds[d[1]] = rounds[d[1]] || []).push(d); });
     html += Object.keys(rounds).sort(function (a, b) { return a - b; }).map(function (r) {
-      return '<details class="card"' + (+r <= 2 ? " open" : "") + '><summary class="eyebrow" style="cursor:pointer">Round ' + r + '</summary>' + rounds[r].sort(function (a, b) { return a[3] - b[3]; }).map(pickRow).join("") + '</details>';
+      return '<details class="card"' + (+r <= 2 ? " open" : "") + '><summary class="eyebrow" style="cursor:pointer">Round ' + r + '</summary>' + rounds[r].sort(function (a, b) { return (a[3] || 999) - (b[3] || 999); }).map(pickRow).join("") + '</details>';
     }).join("");
   } else {
     var mine = ps.filter(function (d) { return d[4] === who; }).sort(function (a, b) { return a[3] - b[3]; }), gone = ps.filter(function (d) { return d[5] === who && d[4] !== who; });
     html += '<div class="card"><div class="eyebrow">📝 ' + esc(oname(who)) + "'s " + y + ' draft · ' + mine.length + ' picks</div>' + mine.map(pickRow).join("") + '</div>' +
       (gone.length ? '<div class="card"><div class="eyebrow">➡️ ' + esc(oname(who)) + "'s picks someone else made</div>" + gone.map(pickRow).join("") + '</div>' : '');
   }
-  return html + '<p class="muted" style="font-size:12px">' + y + ' board from Mike\'s screenshot. Keepers aren\'t on the board (they fill each team\'s open late-round slots). ? = board shorthand, name not confirmed. Earlier drafts (2019–2025) are in the league packet and get added here.</p>';
+  return html + '<p class="muted" style="font-size:12px">' + (y === 2026 ? "2026 board from Mike\'s screenshot" : "Board from the SPL Packet, names matched to ESPN") + '. Keepers aren\'t on the board (they fill each team\'s open late-round slots). ? = board shorthand, name not confirmed. 2020 was played off ESPN and the Packet has no picks for it; 2006–2018 drafts show in player files from ESPN.</p>';
 };
 function pickRow(d) {
-  return '<div class="pk"><span class="no">' + d[1] + '.' + String(d[2]).padStart(2, "0") + '</span><span><b>' + esc(d[6] || "—") + '</b>' + (d[7].indexOf("?") >= 0 ? ' <small class="muted">?</small>' : '') + (d[7].indexOf("F") >= 0 ? ' <span class="tag">🏷️ FRANCHISE TAG</span>' : '') +
-    '<br><small class="muted">#' + d[3] + ' · ' + esc(oname(d[4])) + '</small></span>' + (d[4] !== d[5] ? '<span class="via">via ' + esc(oname(d[5])) + '</span>' : '') + '</div>';
+  return '<div class="pk"><span class="no">' + d[1] + (d[2] ? '.' + String(d[2]).padStart(2, "0") : '') + '</span><span><b>' + esc(d[6] || "—") + '</b>' + (d[7].indexOf("?") >= 0 ? ' <small class="muted">?</small>' : '') + (d[7].indexOf("F") >= 0 ? ' <span class="tag">🏷️ FRANCHISE TAG</span>' : '') +
+    '<br><small class="muted">' + (d[3] ? '#' + d[3] + ' · ' : '') + esc(oname(d[4])) + '</small></span>' + (d[4] !== d[5] ? '<span class="via">via ' + esc(oname(d[5])) + '</span>' : '') + '</div>';
 }
 
 // 📚 History: champions roll + every season's table (ESPN 2006–) + gaps to backfill.

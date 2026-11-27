@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **History sources** (Mike). ESPN is pulled by a robot for everything it kept (2006–2026, except empty 2020–21). The SPL Packet is
+  transcribed once into gold (`Draft_Picks.csv` for SPL rounds 2019+, `Keeper_Matrix_History.csv`, `Packet_Trade_Notes.csv`). SPL rounds come from
+  the Packet boards, not ESPN (keepers were keyed in as ESPN picks). 2020 (NFL.com) gaps get filled from Glen's power rankings.
 - 2026-11-27 · **📇 Player files** (Mike). Any player is tappable (Team roster, trade grid) → a sheet: who has him now + this season,
   keeper status for next season, and his SPL paper trail from gold (drafts, keeper contracts, terminations, trades in the app).
   Grows with the data: older draft boards (2019–2025, SPL Packet) go into `data/Draft_Picks.csv` and show up with no app change.
