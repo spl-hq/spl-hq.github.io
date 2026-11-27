@@ -432,6 +432,9 @@ tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:point
 .kcwrap{overflow-x:auto;margin:0 -4px} .kcmp2 table{border-collapse:collapse;min-width:100%;font-size:13px} .kcmp2 th,.kcmp2 td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top;text-align:left;min-width:92px}
 .kcmp2 td.lab{min-width:70px;color:var(--muted);font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em} .kcmp2 th{border-top:0;font:800 14px var(--head,inherit);color:#1E407C;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .kcmp2 .on{background:#EEF3FA} .kcmp2 th.on{color:#041E42;text-decoration:none} .kcmp2 td.names{line-height:1.45} .kcmp2 b{font-family:var(--mono);font-size:15px} .kok{color:#1E407C;font-weight:700}
+.kstrip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-left:4px solid #1E407C;border-radius:0 10px 10px 0;padding:8px 12px;margin:0 0 10px;font-size:14px}
+.kstrip b{font-family:var(--mono)} .kstrip small{display:block;color:var(--muted);font-size:12px;margin-top:2px} .kstrip a{color:#1E407C;font-weight:700;font-size:13px;white-space:nowrap} .kstrip.bad{border-left-color:var(--coral)}
+.kstripw{color:var(--coral);font-weight:700;font-size:13px;margin:-4px 0 10px}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -510,7 +513,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.23.6";
+var APP_VERSION = "0.23.7";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1596,7 +1599,7 @@ function kyrsTxt(sch, y0) { // "4 KP in '28 · 5 in '29" from a season → KP sc
 function kstatusLine(W, KW, dec, sd) {
   if (W) return (dec ? "✅ Declared " + ago(dec.ts) + " · " : "⏳ Signing Day open · ") + (W.closes ? "closes " + fmtDate(W.closes) : "until the commish closes it") + (W.mode === "test" ? " · 🧪" : "");
   if (KW && KW.done) return "🏁 Signing Day " + KW.season + " is done" + (KW.mode === "test" ? " (rehearsal)" : "");
-  return sd.date ? "⏳ Signing Day " + fmtDate(sd.date) + " · " + untilTxt(sd.date) : "⏳ Signing Day: 10 days before the SPL Draft (date TBD)";
+  return sd.date ? "⏳ Signing Day " + fmtDate(sd.date) + " · " + untilTxt(sd.date) : "⏳ Signing Day: date TBD (10 days before the draft)";
 }
 SCREENS.keepers = function (arg) {
   arg = String(arg || "");
@@ -1618,13 +1621,11 @@ function kMineView(id, edit) {
       (W ? '<p style="margin:12px 0 0"><button class="btn ghost kwbtn" onclick="KCHANGE[\'' + id + '\']=1;render()">Change ' + (edit ? "them" : "my keepers") + '</button></p><p class="kfine">You can change them until Signing Day closes. The league sees the change.</p>' : '') + '</div>' +
       '<p class="kfine" style="text-align:center"><a href="javascript:void 0" onclick="kRules()">How keepers work</a></p>';
   }
-  // ① cap summary
-  var dots = [0, 1, 2].map(function (i) { return '<i class="' + (i < C.count ? "on" : "") + (i >= 3 ? "" : "") + '"></i>'; }).join("");
-  html += '<div class="card lead ksum"><div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">' + y0 + ' cap · <a href="javascript:void 0" onclick="kRules()" style="color:#96BEE6">rules</a></div><div class="big">' + t0.room + '<small> KP left</small></div></div>' +
-    '<div style="text-align:right"><div class="kdots">' + dots + '</div><small class="kmut">' + C.count + ' of 3 keepers</small></div></div>' +
-    '<div class="meter"><i class="k" style="width:' + Math.min(100, t0.k * 10) + '%"></i><i class="p" style="width:' + Math.min(100, t0.p * 10) + '%"></i><i class="h" style="width:' + Math.min(100, t0.h * 10) + '%"></i></div>' +
-    '<div class="kstat">' + esc(kstatusLine(W, KW, dec, sd)) + '</div>' +
-    (C.errors.length ? '<div class="kwarn">⚠ ' + esc(C.errors.join(" · ")) + '</div>' : '') + '</div>';
+  // ① slim status strip (Mike 11/27: the big blue box clogged the screen; the grid already shows KP by year)
+  var used = Math.round((10 - t0.room) * 10) / 10;
+  html += '<div class="kstrip' + (C.errors.length ? " bad" : "") + '"><div><b>' + y0 + ':</b> ' + used + ' / 10 KP · ' + C.count + ' of 3 kept' +
+    '<small>' + esc(kstatusLine(W, KW, dec, sd)) + '</small></div><a href="javascript:void 0" onclick="kRules()">Rules</a></div>' +
+    (C.errors.length ? '<div class="kstripw">⚠ ' + esc(C.errors.join(" · ")) + '</div>' : '');
   // ② your keepers = one grid (Mike 11/27: the 3-year outlook and the keepers are the same thing). One row per keeper with his KP for
   // each of the next three seasons; tap a row for its menu (terminate / term / tag / remove); empty slots add; Total + KP left at the bottom.
   var cell = function (v, cls) { return '<td class="n' + (cls || "") + '">' + (v == null ? '<span class="muted">·</span>' : v) + '</td>'; };

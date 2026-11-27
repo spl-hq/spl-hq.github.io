@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.7 · 🔒 **Keepers: big blue cap box → a slim strip** (Mike: clogging real estate). One line "2027: 8 / 10 KP · 2 of 3 kept",
+  the Signing Day status under it, Rules on the right; red edge + one warning line when a plan is over the cap or the max. The grid already
+  shows KP by year, so your keepers now start on the first screen. SW `splhq-v58`.
 - 2026-11-27 · v0.23.6 · ⚖️ **Plans side by side** (Mike: compare was just KP by year, "I don't get it"). Now one column per plan (tap a plan's
   name to open it), rows: Keeping (names, 🆕, 🏷️) · Cutting (✂️) · 2027 KP used of 10 · 2028 / 2029 KP left · Your 1st (kept / lost '27…) ·
   Works? (✓ fits or ⚠ why not). Scrolls sideways past 3 plans. SW `splhq-v57`.
