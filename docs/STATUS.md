@@ -1,9 +1,14 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, @mentions + division rooms v0.25, backend v0.18.0) · was by Claude (chat, no SPL Draft cards v0.24.2) · was by Claude (chat, Commish desk v0.24 + no test-team renames, backend v0.17.4) · was by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.1: tour + Joe's questions caught up, Joe launch checklist)
 
 
 ## Now
+- **🚀 Getting Joe in (Mike 11/27, ready):** backend healthy (Sheet ✅, SPL 19583 ✅, test league ✅, ESPN writes off, 1 of 12 signed up).
+  ① Preview first: 🛠️ Desk → 📥 Commish · Joe's view (exactly his desk, no test/robot tools). ② 🛠️ Ops desk → 🔑 Passphrases → Joe → Make one →
+  Text it (the message has the link, the Add to Home Screen tip and "a one-minute tour shows you around"). ③ Joe signs in → the welcome tour
+  runs once (2 cards + 8 stops, his 📥 Commish desk included). ④ His Desk shows **8 questions** (refreshed 11/27). ⑤ Watch 🛠️ Ops desk →
+  📋 Joe's answers + 💡 Feedback. If he needs it again: Ops desk → 👋 Welcome tour → Replay for them → Joe.
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
@@ -20,9 +25,14 @@ _Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, @ment
 Joe sees 8 (history_gaps added 11/27): ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
 **Mike's calls** (traded contracts travel, next-season picks only, Divisional Draft rules) · 2027 dates · move league talk to app chat · Joe's #1 wish.
 Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_years, div_draft, al_name, trade_review, commish_trades; review_window + chat superseded.
-One more question cleanup before the list goes to Joe.
+Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.1 · 👋 **Tour + Joe's questions caught up with today's ships** (Mike: getting Joe in). Tour: GM desk stop covers keeper
+  plans (up to 5, side by side, declare when the off-season opens); League stop = Drafts row (red live / gold on the clock), SPL Calendar, draft
+  boards, champions, GM rankings, rivalries, rules, 💡 Ideas (fixed a doubled calendar line); Joe's 📥 Commish desk stop = folding sections that
+  open when they need him (trades, Do on ESPN, drafts incl. load into ESPN, Signing Day, questions). Questions: `espn_lm` why adds the SPL Draft
+  load; `chat_move` covers division rooms, DMs, @ tags. Passphrase text mentions the tour. League → History tile: "Champions since 2003". SW `splhq-v64`.
 - 2026-11-27 · v0.25.0 (backend v0.18.0) · 💬 **@ mentions everywhere + division rooms** (Mike: "glean the MAFFL @ work"). **Composer:** an
   @ button and typing "@" both open chips of the owners in that room, filtered as you type; tap → "@Handle ". **Messages:** @Handles are
   tappable (→ that owner's team page), a message that tags you gets a gold edge, your own tag is gold-washed. **Inbox:** 💬 Chats | @ Mentions

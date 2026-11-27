@@ -524,7 +524,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.0";
+var APP_VERSION = "0.25.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -541,7 +541,7 @@ var OWNERS = [
 // Joe only sees ACTIVE ones. Mike's answers already drive the rules (backend joeAnswer_ = latest answer from either commish).
 var QUESTIONS = [
   { qid: "espn_lm", q: "Will you make Mike's team a league manager (co-commish) in SPL on ESPN?",
-    why: "The app executes approved trades on ESPN by itself. ESPN only allows that from a league manager's login.",
+    why: "The app moves approved trades on ESPN by itself and loads the SPL Draft board onto everyone's ESPN team after the draft. ESPN only allows that from a league manager's login.",
     choices: ["Yes, now", "Yes, after the demo", "Let's talk"] },
   { qid: "test_league", q: "Will you join the test league as co-commish for the demo?",
     why: "We prove trades end to end in a throwaway 4-team ESPN league (your, Mike's, Al's and Glen's real rosters) first. Nothing touches the real SPL league until you sign off.",
@@ -576,8 +576,8 @@ var QUESTIONS = [
   { qid: "history_gaps", q: "Can you fill the league history gaps NFL.com took with it?",
     why: "2020-21 were on NFL.com and its old leagues are gone. Still missing: the 2020 draft picks, 2021 records for the 6 playoff teams, a few points totals (Mike 2020, Al + Rich 2021), and 2003-05 records + runner-ups. Champions and playoff seeds are already in (league emails, the Packet, Glen's GM Report). Old binders, spreadsheets, screenshots or memory all help: send them to Mike or type below.",
     choices: ["I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
-  { qid: "chat_move", q: "League chat is live in the app (plus trade DMs). Move the league's talk here?",
-    why: "Everyone gets it once they sign in. The group text can stay for whatever you like.",
+  { qid: "chat_move", q: "League chat is live in the app. Move the league's talk here?",
+    why: "League chat, a room for each division (it follows the Divisional Draft by itself), DMs with any owner, and @ tags (an owner can choose to get an email when he's tagged). Everyone gets it once they sign in. The group text can stay for whatever you like.",
     choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] }
 ];
 var Q_ORDER = ["espn_lm", "test_league", "veto_vote", "mike_calls", "deadlines", "chat_move", "history_gaps", "first_wish"]; // the order Joe sees
@@ -2849,7 +2849,7 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
 // Mike 11/27: Standings → bottom of Match; Trades + Keepers live on the Team tab (GM desk). Drafts get their own row of buttons up top.
 var LEAGUE_TILES = [
   ["offseason", "📅", "SPL Calendar", "Every date, with links"], ["draft", "📝", "Draft boards", "Every pick since 2006"],
-  ["history", "📚", "History", "Champions since 2006"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
+  ["history", "📚", "History", "Champions since 2003"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
   ["feedback", "💡", "Ideas", "Feedback to the site"]
 ];
@@ -3100,7 +3100,7 @@ function issuePass(id, name, had) {
   if (!confirm(had ? "Give " + name + " a NEW passphrase? It signs out every phone they're signed in on." : "Make a passphrase for " + name + "?")) return;
   authed("issue", { owner: id }).then(function (r) {
     if (!r.ok) throw new Error(r.error);
-    var msg = name + ", you're in for SPL HQ. Open " + location.origin + location.pathname + " on your phone (iPhone: Share → Add to Home Screen first), tap Sign in, and use your passphrase: " + r.phrase;
+    var msg = name + ", you're in for SPL HQ. Open " + location.origin + location.pathname + " on your phone (iPhone: Share → Add to Home Screen first), tap Sign in, and use your passphrase: " + r.phrase + ". A one-minute tour shows you around.";
     $("#issued").innerHTML = '<div class="card" style="border-color:var(--lime)"><div class="eyebrow">🔑 New passphrase · shown once</div><h3>' + esc(name) + '</h3>' +
       '<div class="phrase">' + esc(r.phrase) + '</div><p style="font-size:13px">Send it now. It isn\'t stored anywhere readable: if it\'s lost, make a new one.</p>' +
       '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" id="shareP">Text it</button><button class="btn ghost" id="copyP">Copy message</button></div></div>';
@@ -3240,10 +3240,10 @@ var TOUR_STEPS = [
   ["home", "#tabs [data-t='home']", "Home", "One card a screen: scroll up for the next. Swipe ← when you're done with a card, → to save it; ⭐ Saved and ✓ Done wait at the top. The crest up top brings you here too."],
   ["match", "#tabs [data-t='match']", "⚔️ Match", "Your game, live from ESPN: the score, both lineups and every other game. Standings sit at the bottom. Step back through any week."],
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
-  ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
+  ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here; gold means it needs you (an offer waiting, keepers to declare). Every roster row shows what keeping that player costs, and Keepers lets you build up to 5 plans, compare them side by side and declare when the off-season opens."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat, your division's room and a DM with any owner. Tap @ to tag someone; anything that tags you lands in @ Mentions. Trade news and commish alerts land here too."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out), then the off-season calendar, then the SPL Calendar, champions, GM rankings, rivalries and the rules."],
-  ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish: trades to approve, Mike's questions for you (the number on this button), and opening the off-season drafts and Signing Day.", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
+  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the SPL Calendar (every date, with links), every draft board since 2006, champions, GM rankings, rivalries, the rules, and 💡 Ideas for anything you want the site to do."],
+  ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish, in folding sections; one that needs you opens by itself: trades to approve, what to do on ESPN, the drafts (open, undo, cancel, load into ESPN), Signing Day, and Mike's questions for you (the number on this button).", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
 var TR = null;
 function tourKey() { return "tour_seen_" + (ME ? ME.owner : ""); }
