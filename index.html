@@ -209,6 +209,51 @@ nav.tabs .badge{position:absolute;top:2px;left:55%;background:var(--coral);color
 .game:last-child{border:0}
 .game .s{font:700 14px var(--mono);text-align:right}
 .game .w{color:var(--lime)} .game.mine{background:linear-gradient(90deg,rgba(184,224,74,.08),transparent)}
+/* ⚔️ Match v2 (Mike 11/27: "no idea what's actual vs projected, a blob of text"). Actual = solid navy number. Projected = grey italic in a dashed box. */
+.mxst{display:inline-flex;align-items:center;gap:5px;font:700 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:#E3E8EF;color:#5F666D}
+.mxst.live{background:#1E407C;color:#fff} .mxst.live:before{content:"";width:6px;height:6px;border-radius:50%;background:#96BEE6;animation:mxp 1.6s infinite}
+.mxst.fin{background:#041E42;color:#fff}
+@keyframes mxp{50%{opacity:.25}}
+.mxsb{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:4px -4px 0}
+.mxsb>div{padding:6px 8px 4px;min-width:0} .mxsb>div+div{border-left:1px solid var(--line);text-align:right}
+.mxsb .tn{font:800 15px/1.1 var(--head);text-transform:uppercase;letter-spacing:.03em;min-height:2.2em;overflow-wrap:anywhere}
+.mxsb .ow{font:11px var(--mono);color:var(--muted);margin-top:2px}
+.mxsb .sc{font:800 40px/1 var(--mono);color:#5F666D;letter-spacing:-.03em;margin:10px 0 2px} .mxsb .lead .sc{color:#041E42}
+.mxsb .win .sc{color:#1E407C} .mxsb .lab{font:700 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.mxbar{position:relative;height:8px;border-radius:4px;background:#EEF1F5;margin:10px 0 5px;overflow:hidden}
+.mxbar i{position:absolute;top:0;bottom:0;left:0;border-radius:4px} .mxbar .pj{background:repeating-linear-gradient(135deg,#C9D3E0 0 4px,#E3E8EF 4px 8px)} .mxbar .ac{background:#041E42}
+.mxsb>div+div .mxbar i{left:auto;right:0}
+.mxsb .pr{font:600 11.5px var(--mono);color:#5F666D} .mxsb .pr b{font-style:italic}
+.mxfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13px}
+.mxfoot .mxp{color:#5F666D;font:600 12px var(--mono)}
+.mxkey{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font:600 10.5px var(--mono);color:var(--muted);margin:0 0 8px}
+.mxkey span{display:inline-flex;align-items:center;gap:6px}
+.pa{display:inline-block;min-width:40px;text-align:center;font:800 14px/1 var(--mono);color:#041E42;padding:5px 3px;border-radius:7px;border:1.5px solid transparent}
+.pa.lv{background:rgba(30,64,124,.10);color:#1E407C}
+.pa.pj{font-weight:600;font-style:italic;color:#7A8288;border:1.5px dashed #C2C8CE;background:#fff}
+.pa.up{background:rgba(30,64,124,.08)}
+.mxl{width:100%;border-collapse:collapse;table-layout:fixed}
+.mxl td{padding:8px 2px;border-bottom:1px solid var(--line);vertical-align:middle}
+.mxl tr.rw{cursor:pointer} .mxl tr:last-child td{border:0}
+.mxl td.sl{width:36px;text-align:center;font:700 9.5px var(--mono);color:#5F666D;letter-spacing:.04em}
+.mxl td.sl span{display:inline-block;background:#EEF1F5;border-radius:5px;padding:3px 0;width:32px}
+.mxl td.pc{width:46px;text-align:center}
+.mxl .nm{font:600 13.5px/1.2 var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mxl .sb{font:10.5px/1.3 var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.mxl .sb .lvt{color:#1E407C;font-weight:700} .mxl .sb .dn{color:#5F666D;margin:0}
+.mxl .r{text-align:right}
+.mxl .iq{display:inline-block;font:800 9px/1 var(--mono);color:#fff;background:#C8102E;border-radius:4px;padding:2px 3px;margin-left:3px;vertical-align:1px}
+.mxl tr.mxdt td{background:#F7F8F9;font-size:12px;line-height:1.45;padding:8px 10px;color:#0B1F3A}
+.mxl tr.mxdt b{font-family:var(--mono)} .mxl tr.mxdt small{color:var(--muted)}
+.mxl tr.tot td{border-top:2px solid #041E42;border-bottom:0;padding-top:10px;font:600 10px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.mxg{display:grid;grid-template-columns:1fr 52px 52px;align-items:center;column-gap:6px}
+.mxgh{font:700 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 0 4px}
+.mxgh span{text-align:right}
+.mxgm{padding:9px 8px;margin:0 -8px;border-top:1px solid var(--line);cursor:pointer;border-radius:10px} .mxgm.mine{background:rgba(30,64,124,.07);border-top-color:transparent}
+.mxgm .t{font:600 14px/1.25 var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mxgm .t small{color:var(--muted);font-weight:400;font-size:12px}
+.mxgm .s{font:800 15px var(--mono);text-align:right;color:#5F666D} .mxgm .s.lead{color:#041E42} .mxgm .s.w{color:#1E407C}
+.mxgm .p{font:italic 600 12.5px var(--mono);text-align:right;color:#7A8288}
+.mxgm .st{grid-column:1/-1;font:600 10px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .ro td{padding:8px 4px}
 .tag{display:inline-block;font:700 9.5px var(--mono);padding:2px 5px;border-radius:5px;background:var(--raised);color:var(--gold);border:1px solid var(--line);vertical-align:1px}
 .inj{color:var(--coral);font:700 10px var(--mono)}
@@ -414,7 +459,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.19.1";
+var APP_VERSION = "0.19.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -761,37 +806,79 @@ SCREENS.match.after = function (arg) {
     var mineIdx = -1; d.games.forEach(function (g, i) { if ((g.home && g.home.owner === ME.owner) || (g.away && g.away.owner === ME.owner)) mineIdx = i; });
     var show = gi != null ? gi : mineIdx >= 0 ? mineIdx : 0, g = d.games[show];
     var html = '<div class="stepper"><button ' + (d.week <= 1 ? "disabled" : "") + ' onclick="go(\'match\',' + (d.week - 1) + ')">‹</button>' +
-      '<div style="text-align:center"><b style="font:800 18px var(--head);text-transform:uppercase">Week ' + d.week + '</b><br><small class="muted">' + (d.final ? "Final" : d.week === d.current ? "Live · updates every minute" : "Upcoming") + '</small></div>' +
+      '<div style="text-align:center"><b style="font:800 18px var(--head);text-transform:uppercase">Week ' + d.week + '</b><br><small class="muted">' + (d.final ? "Final scores" : d.week === d.current ? "Updates every minute" : "Upcoming") + '</small></div>' +
       '<button ' + (d.week >= 17 ? "disabled" : "") + ' onclick="go(\'match\',' + (d.week + 1) + ')">›</button></div>';
     if (!g) { $("#mt").innerHTML = html + '<div class="card"><p class="muted">No games this week.</p></div>'; return; }
     var me = g.away && g.away.owner === ME.owner ? "away" : "home", L = g[me], R = g[me === "home" ? "away" : "home"];
     if (show !== mineIdx) { L = g.home; R = g.away; }
-    var lead = function (a, b) { return a && b && a.pts > b.pts; };
-    var hdr = function (t, w) { return '<div class="' + (w ? "win" : "") + '"><div class="sc">' + fmtPts(t.pts) + '</div><div class="tn" style="margin-top:6px">' + esc(t.team) + '</div><div class="meta">' + esc(oname(t.owner)) + ' · ' + esc(t.rec) + (t.proj != null && !d.final ? '<br>proj ' + fmtPts(t.proj) : '') + (!d.final && t.left ? ' · ' + t.left + ' to play' : '') + '</div></div>'; };
-    html += '<div class="card"><div class="eyebrow">' + (show === mineIdx ? "⚔️ Your game" : "⚔️ Game") + (g.playoff ? " · Playoffs" : "") + '</div>' +
-      '<div class="vs">' + hdr(L, lead(L, R)) + '<div class="muted" style="font:800 14px var(--head)">VS</div>' + hdr(R, lead(R, L)) + '</div>' +
-      (L.owner && R.owner ? (function () { var hh = h2h(L.owner, R.owner); return '<div class="kv" style="margin-top:12px;cursor:pointer" onclick="go(\'rivalry\',\'' + L.owner + ',' + R.owner + '\')"><span>⚔️ All-time series</span><span><b>' + esc(oname(L.owner)) + ' ' + recTxt(hh.all) + '</b> ›</span></div>'; })() : '') + '</div>';
+    var live = !d.final && d.week === d.current, isMine = show === mineIdx, NOW = Date.now();
+    var started = function (t) { return t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }).some(function (p) { return p.played; }); };
+    var anyStart = started(L) || started(R), lead = function (a, b) { return a.pts > b.pts && (d.final || anyStart); };
+    var status = d.final ? '<span class="mxst fin">Final</span>' : live ? (anyStart ? '<span class="mxst live">Live</span>' : '<span class="mxst">Not started</span>') : '<span class="mxst">Upcoming</span>';
+    // Scoreboard: big number = points actually scored; bar = scored (navy) inside projected finish (striped).
+    var top = Math.max(L.pts, R.pts, L.proj || 0, R.proj || 0, 1);
+    var side = function (t, o) {
+      var st = t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }), n = st.length, done = n - (t.left || 0);
+      var cls = d.final ? (t.pts > o.pts ? "win" : "") : lead(t, o) ? "lead" : "";
+      return '<div class="' + cls + '"><div class="tn">' + esc(t.team) + '</div><div class="ow">' + esc(oname(t.owner)) + ' · ' + esc(t.rec) + '</div>' +
+        '<div class="sc">' + fmtPts(t.pts) + '</div><div class="lab">' + (d.final ? (t.pts > o.pts ? "Final · W" : "Final") : "Points scored") + '</div>' +
+        (d.final ? '' : '<div class="mxbar"><i class="pj" style="width:' + Math.min(100, (t.proj || t.pts) / top * 100) + '%"></i><i class="ac" style="width:' + Math.min(100, t.pts / top * 100) + '%"></i></div>' +
+          '<div class="pr">Proj <b>' + fmtPts(t.proj) + '</b></div><div class="pr" style="font-weight:400">' + done + ' of ' + n + ' played</div>') + '</div>';
+    };
+    var foot = "";
+    if (!d.final && L.proj != null && R.proj != null) {
+      var dm = Math.abs(L.proj - R.proj), fav = L.proj >= R.proj ? L : R;
+      foot = '<div class="mxfoot"><span>📈 Projected finish</span><span class="mxp">' + (dm < 0.05 ? "Dead even" : esc(oname(fav.owner)) + " by " + fmtPts(dm)) + '</span></div>';
+    }
+    html += '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div class="eyebrow" style="margin:0">' + (isMine ? "⚔️ Your game" : "⚔️ Game") + (g.playoff ? " · Playoffs" : "") + '</div>' + status + '</div>' +
+      '<div class="mxsb">' + side(L, R) + side(R, L) + '</div>' + foot +
+      (L.owner && R.owner ? (function () { var hh = h2h(L.owner, R.owner); return '<div class="mxfoot" style="cursor:pointer" onclick="go(\'rivalry\',\'' + L.owner + ',' + R.owner + '\')"><span>⚔️ All-time series</span><span><b>' + esc(oname(L.owner)) + ' ' + recTxt(hh.all) + '</b> ›</span></div>'; })() : '') + '</div>';
+    // Lineups: one row per slot, points next to the slot so the two sides line up. Tap a row for the full line.
     var starters = function (t) { return t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }); };
     var bench = function (t) { return t.players.filter(function (p) { return p.slot === "BE" || p.slot === "IR"; }); };
-    var cell = function (p, right) {
+    var shortN = function (p) { if (p.pos === "D/ST") return (p.tm || p.n.replace(/ D\/ST$/, "")) + " D/ST"; var w = String(p.n).split(" "); return w.length > 1 ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : p.n; };
+    var kShort = function (ms) { if (!ms) return ""; var x = new Date(ms), h = x.getHours(), m = x.getMinutes(); return x.toLocaleDateString([], { weekday: "short" }) + " " + ((h % 12) || 12) + (m ? ":" + String(m).padStart(2, "0") : "") + (h < 12 ? "a" : "p"); };
+    var isLive = function (p) { return p.played && !d.final && p.kick && NOW - p.kick < 4 * 36e5; };
+    var ptsCell = function (p, other) {
+      if (!p) return '<td class="pc"></td>';
+      if (!p.played && !d.final) return '<td class="pc"><span class="pa pj">' + (p.proj != null ? fmtPts(p.proj) : "–") + '</span></td>';
+      var up = other && (other.played || d.final) && p.pts > other.pts;
+      return '<td class="pc"><span class="pa' + (isLive(p) ? " lv" : "") + (up ? " up" : "") + '">' + fmtPts(p.pts) + '</span></td>';
+    };
+    var nameCell = function (p, right) {
       if (!p) return '<td></td>';
-      var sub = esc(p.pos + (p.tm ? " · " + p.tm : "")) + (p.opp ? " " + esc(p.opp) : "") + (p.st ? " · " + esc(p.st) : (!p.played && p.kick ? " · " + kickTime(p.kick) : "")) + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '');
-      var pts = '<span class="pt' + (p.played ? "" : " muted") + '">' + (p.played ? fmtPts(p.pts) : (p.proj != null ? fmtPts(p.proj) : "–")) + '</span>';
-      return right ? '<td class="r"><div class="nm">' + pts + ' ' + esc(p.n) + '</div><div class="sub">' + sub + '</div></td>'
-                   : '<td><div class="nm">' + esc(p.n) + ' ' + pts + '</div><div class="sub">' + sub + '</div></td>';
+      var sb = p.opp === "BYE" ? "Bye" : esc(p.opp || "") + (isLive(p) ? ' · <span class="lvt">Live</span>' : d.final ? '' : p.played ? ' · <span class="dn">Done</span>' : p.kick ? " · " + esc(kShort(p.kick)) : "");
+      var iq = p.inj ? '<span class="iq">' + esc(p.inj.charAt(0)) + '</span>' : "";
+      return '<td' + (right ? ' class="r"' : '') + '><div class="nm">' + esc(shortN(p)) + iq + '</div><div class="sb">' + (/^(FLEX|OP|BE|IR)$/.test(p.slot) && p.pos !== "D/ST" ? esc(p.pos) + ' · ' : '') + sb + '</div></td>';
     };
-    var table = function (a, b, label) {
+    var detail = function (p) {
+      if (!p) return "";
+      var line = p.played || d.final ? '<b>' + fmtPts(p.pts) + '</b> pts' + (p.proj != null ? ' <small>(proj ' + fmtPts(p.proj) + (p.played ? ', ' + (p.pts >= p.proj ? "+" : "") + fmtPts(p.pts - p.proj) : '') + ')</small>' : '') : 'Projected <b><i>' + fmtPts(p.proj) + '</i></b> · ' + esc(kickTime(p.kick) || "");
+      return '<div><b class="pclk" style="font-family:var(--body);text-decoration:underline;text-decoration-color:#96BEE6;cursor:pointer" data-p="' + esc(p.n) + '" onclick="event.stopPropagation();pcard(this.dataset.p)">' + esc(p.n) + ' 📇</b> <small>' + esc(p.pos + (p.tm ? " · " + p.tm : "") + (p.opp ? " " + p.opp : "")) + '</small>' + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '') + '<br>' + line + (p.st ? '<br><small>' + esc(p.st) + '</small>' : '') + '</div>';
+    };
+    var table = function (a, b, tot) {
       var n = Math.max(a.length, b.length), rows = "";
-      for (var i = 0; i < n; i++) rows += '<tr>' + cell(a[i], false) + '<td class="sl">' + esc((a[i] || b[i]).slot) + '</td>' + cell(b[i], true) + '</tr>';
-      return '<div class="card" style="padding:12px"><div class="eyebrow">' + label + '</div><table class="lu">' + rows + '</table></div>';
+      for (var i = 0; i < n; i++) {
+        var x = a[i], y = b[i];
+        rows += '<tr class="rw" onclick="var n=this.nextElementSibling;n.style.display=n.style.display===\'none\'?\'\':\'none\'">' + nameCell(x, false) + ptsCell(x, y) + '<td class="sl"><span>' + esc((x || y).slot) + '</span></td>' + ptsCell(y, x) + nameCell(y, true) + '</tr>' +
+          '<tr class="mxdt" style="display:none"><td colspan="5"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' + detail(x) + '<div style="text-align:right">' + detail(y) + '</div></div></td></tr>';
+      }
+      if (tot) rows += '<tr class="tot"><td>Scored<br><span class="pa" style="padding:4px 0 0">' + fmtPts(L.pts) + '</span>' + (d.final ? '' : '<br><i>proj ' + fmtPts(L.proj) + '</i>') + '</td><td colspan="3"></td><td class="r">Scored<br><span class="pa" style="padding:4px 0 0">' + fmtPts(R.pts) + '</span>' + (d.final ? '' : '<br><i>proj ' + fmtPts(R.proj) + '</i>') + '</td></tr>';
+      return '<table class="mxl">' + rows + '</table>';
     };
-    html += table(starters(L), starters(R), "Lineups · grey = projected, not played yet");
-    html += '<details class="card" style="padding:12px"><summary class="eyebrow" style="cursor:pointer">Bench</summary>' + table(bench(L), bench(R), "").replace('<div class="card" style="padding:12px">', '<div>') + '</details>';
-    html += '<div class="card"><div class="eyebrow">🏟️ Every game · Week ' + d.week + '</div>' + d.games.map(function (x, i) {
-      var a = x.away || {}, h = x.home || {}, aw = a.pts > h.pts, hw = h.pts > a.pts;
-      return '<div class="game' + (i === mineIdx ? " mine" : "") + '" onclick="go(\'match\',\'' + d.week + ':' + i + '\')">' +
-        '<div class="' + (aw ? "w" : "") + '">' + esc(a.team) + ' <small class="muted">' + esc(oname(a.owner)) + '</small></div><div class="s ' + (aw ? "w" : "") + '">' + fmtPts(a.pts) + '</div>' +
-        '<div class="' + (hw ? "w" : "") + '">' + esc(h.team) + ' <small class="muted">' + esc(oname(h.owner)) + '</small></div><div class="s ' + (hw ? "w" : "") + '">' + fmtPts(h.pts) + '</div></div>';
+    var key = d.final ? "" : '<div class="mxkey"><span><span class="pa" style="min-width:0;padding:2px 4px;font-size:12px">9.0</span>scored</span><span><span class="pa lv" style="min-width:0;padding:2px 4px;font-size:12px">9.0</span>in progress</span><span><span class="pa pj" style="min-width:0;padding:2px 4px;font-size:12px">9.0</span>projected</span></div>';
+    html += '<div class="card" style="padding:12px"><div class="eyebrow">Lineups · tap a player for the full line</div>' + key + table(starters(L), starters(R), true) + '</div>';
+    html += '<details class="card" style="padding:12px"><summary class="eyebrow" style="cursor:pointer;margin:0">Bench</summary><div style="margin-top:8px">' + table(bench(L), bench(R), false) + '</div></details>';
+    // Every game: scored and projected in their own labeled columns.
+    html += '<div class="card"><div class="eyebrow">🏟️ Every game · Week ' + d.week + '</div><div class="mxg mxgh"><span style="text-align:left">Team</span><span>' + (d.final ? "" : "Pts") + '</span><span>' + (d.final ? "Final" : "Proj") + '</span></div>' + d.games.map(function (x, i) {
+      var a = x.away || {}, h = x.home || {}, go1 = (a.left || 0) + (h.left || 0), st0 = !d.final && go1 === 0 ? false : true;
+      var row = function (t, o) {
+        var c = d.final ? (t.pts > o.pts ? " w" : "") : (t.pts > o.pts && (a.pts || h.pts) ? " lead" : "");
+        return '<div class="t">' + esc(t.team) + ' <small>' + esc(oname(t.owner)) + '</small></div>' +
+          (d.final ? '<div></div><div class="s' + c + '">' + fmtPts(t.pts) + '</div>' : '<div class="s' + c + '">' + fmtPts(t.pts) + '</div><div class="p">' + fmtPts(t.proj) + '</div>');
+      };
+      return '<div class="mxgm mxg' + (i === mineIdx ? " mine" : "") + '" onclick="go(\'match\',\'' + d.week + ':' + i + '\')">' + row(a, h) + row(h, a) +
+        (d.final ? '' : '<div class="st">' + (go1 ? go1 + " players to go" : "All played") + (i === mineIdx ? " · your game" : "") + '</div>') + '</div>';
     }).join("") + '</div><p class="muted" style="font-size:12px">From ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + '</p>';
     $("#mt").innerHTML = html;
   };

@@ -1,6 +1,7 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, 👋 welcome tour v0.19.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔️ Match tab redesign v0.19.2, backend v0.14.0)
+
 
 ## Now
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
@@ -19,6 +20,14 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.2 · ⚔️ **Match tab redesign** (Mike: "no idea what numbers are actual and which are projected… a blob of text").
+  Actual vs projected now look different everywhere: **scored = solid navy number**, **in progress = blue chip**, **projected = grey
+  italic in a dashed box** (key above the lineups). Scoreboard: status pill (LIVE / FINAL / NOT STARTED / UPCOMING), big "points scored"
+  number per side, a bar showing scored inside the projected finish, "Proj 130.9 · 5 of 9 played", 📈 Projected finish line ("Mike by 0.1").
+  Lineups: one row per slot with both sides' points next to the slot so they line up; short names (J. Allen), opponent + kickoff / Live /
+  Done; red injury letter; the side winning the slot gets a light tint; tap a row for the full line (full name, stat line, pts vs proj
+  +/−; the name opens the 📇 player file); Scored + proj totals at the bottom. Every game: labeled PTS / PROJ columns, "N players to go", your game shaded. Final weeks drop
+  all projections. Data unchanged (no backend change). SW `splhq-v39`.
 - 2026-11-27 · v0.19.1 · 👋 Tour (Mike): **‹ Back** on every stop (stop 1 → back to the welcome card; ✕ still ends it). The Desk stop is now Joe's: "📥 Your Commish desk" (trades to approve, the questions waiting on him, opening the drafts + Signing Day), shown to commish only; ops (Mike) gets no desk stop. SW `splhq-v38`.
 - 2026-11-27 · v0.19.1 · 📇 **Player files + desk header** (Mike: header wasted space, button info weak, players should be clickable).
   **Header:** big blue team card gone; "GM desk · Mike" + team name + a chip line (record · rank of 12 · division rank · streak · next game), from gold
