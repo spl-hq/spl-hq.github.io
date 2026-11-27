@@ -323,12 +323,19 @@ a.btn.ghost{text-decoration:none}
 .kseg button.on{background:#1E407C;color:#fff;border-color:#1E407C} tr.kx .kpl{text-decoration:line-through;color:var(--muted)} tr.kon td{background:#EEF3FA}
 .kdec{margin-top:10px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#FAFBFD} .kerr{margin-top:10px;color:#C8102E;font-weight:700;font-size:13px} .kerr p{margin:4px 0}
 .kbd{border-bottom:1px solid var(--line)} .kbd:last-of-type{border:0} .kbd summary{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;list-style:none} .kbd summary::-webkit-details-marker{display:none}
-.kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .gmhd{margin:0 0 6px} .gmbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
+.kbd summary .byline{flex:1} .kbd summary .byline b{font-size:14px} .kbd .krow{font-size:13px;padding:6px 0} .gmhd{margin:0 0 10px} .gmteam{margin:2px 0 4px;font-size:24px;line-height:1.05}
+.gmline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)} .gmline b{font:800 15px var(--mono);color:#041E42;margin-right:2px}
+.gmline span{background:#fff;border:1px solid #D9DCE0;border-radius:99px;padding:2px 8px;white-space:nowrap} .gmline span.w{color:var(--lime);border-color:#C9D6EA} .gmline span.l{color:var(--coral);border-color:#F0C9CF}
+.gmbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
 .gmbar button{background:#fff;border:1px solid #D9DCE0;border-radius:12px;padding:8px 8px 7px;text-align:left;cursor:pointer;min-width:0;box-shadow:0 1px 2px rgba(30,35,40,.06)}
 .gmbar b{display:block;font:800 13px var(--head);text-transform:uppercase;letter-spacing:.03em;color:#041E42;white-space:nowrap}
-.gmbar small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.gmbar button.on{background:#041E42;border-color:#041E42} .gmbar button.on b{color:#fff} .gmbar button.on small{color:#96BEE6}
-.gmbar button.needsb{border-color:var(--gold)} .gmbar button.needsb small{color:var(--gold);font-weight:700} .gmbar button.on.needsb small{color:#E8C77A}
+.gmbar small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px} .gmbar small.l1{color:#0B1F3A;font-weight:600}
+.gmbar button.on{background:#041E42;border-color:#041E42} .gmbar button.on b,.gmbar button.on small.l1{color:#fff} .gmbar button.on small{color:#96BEE6}
+.gmbar button.needsb{border-color:var(--gold)} .gmbar button.needsb small.l1{color:var(--gold);font-weight:700} .gmbar button.on.needsb small.l1{color:#E8C77A}
+tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:pointer}
+.pfile .card{margin:10px 0 0} .pft{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .pft div{background:#F3F5F8;border-radius:10px;padding:8px} .pft b{display:block;font:800 18px var(--mono);color:#041E42} .pft small{font-size:11px;color:var(--muted)}
+.pkp{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap} .pkp span{font:600 12px var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--muted)} .pkp span.on{border-color:#E3CD9A;background:#F7EED9;color:#7A5A14}
+.ptl div{display:grid;grid-template-columns:40px 22px 1fr;gap:4px;padding:7px 0;border-bottom:1px solid #EEF0F2;font-size:13px;align-items:baseline} .ptl div:last-child{border:0} .ptl .py{font:700 12px var(--mono);color:var(--muted)}
 .gmtop{flex:none;padding:12px 14px 0}
 .tiles2.tq{margin:0 0 12px} .tq2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px} .tq2 .btn{width:100%;margin:0} .card.needsb,.tile.needsb{border-color:var(--gold)} .tile.needsb small{color:var(--gold);font-weight:700} .mono{font-family:var(--mono)}
 /* 👋 Welcome tour (Mike 11/27, after MAFFL REEL): first visit = a welcome card over the app, then one stop per tab (the app switches
@@ -407,7 +414,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.19.0";
+var APP_VERSION = "0.19.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -801,7 +808,7 @@ SCREENS.team = function (arg) {
   var id = arg || ME.owner, mine = id === ME.owner, o = owner(id) || {};
   // Your team: Trades + Keepers one tap away. Someone else's: back to yours + what you'd do with them.
   var top = mine ? gmBar("team")
-    : '<div class="gtop">' + back("team", "Your team") + '</div><div class="tq2"><button class="btn" onclick="go(\'trade\',\'' + id + '\')">🔁 Propose a trade</button>' +
+    : '<div class="gtop">' + back("team", "Your team") + '</div>' + (function () { var sd = gmStand(id); return '<div class="gmhd"><div class="eyebrow">' + esc(o.name) + "'s team</div><h2 class=\"gmteam\">" + esc(o.team || "") + '</h2>' + (sd ? '<div class="gmline"><b>' + sd.rec + '</b><span>' + ordn(sd.rank) + ' of ' + sd.n + '</span><span>' + ordn(sd.drank) + ' ' + esc(sd.div || "") + '</span>' + (sd.streak ? '<span class="' + (sd.streak[0] === "W" ? "w" : "l") + '">' + sd.streak + '</span>' : '') + '</div>' : '') + '</div>'; })() + '<div class="tq2"><button class="btn" onclick="go(\'trade\',\'' + id + '\')">🔁 Propose a trade</button>' +
       '<button class="btn ghost" onclick="go(\'chat\',\'' + dmRoom(id) + '\')">💬 Message</button><button class="btn ghost" onclick="go(\'rivalry\',\'' + ME.owner + ',' + id + '\')">⚔️ Rivalry</button>' +
       '<button class="btn ghost" onclick="go(\'keepers\',\'' + id + '\')">🔒 Keepers</button></div><div id="ct"></div>';
   var others = '<div class="card"><div class="eyebrow">👀 Other teams</div><select style="width:100%" onchange="if(this.value)go(\'team\',this.value)"><option value="">Look at another roster…</option>' +
@@ -818,21 +825,42 @@ function teamKeepTxt() {
 }
 // 🧢 GM desk (Mike 11/26): your team, your trades and your keepers are one desk. The same 3-way bar sits on top of each
 // (#team, #trades, #trade, your #keepers), so you always know you're at your desk and one tap gets you back to the roster.
+function gmStand(id) { // live season table from gold history (robot-pulled): record, overall rank, division rank, PF/wk, streak
+  var h = LD("history").slice().sort(function (a, b) { return b.y - a.y; })[0]; if (!h) return null;
+  var ts = h.teams, i = -1; ts.forEach(function (t, j) { if (t[0] === id) i = j; }); if (i < 0) return null;
+  var t = ts[i], o = owner(id) || {}, div = ts.filter(function (x) { return (owner(x[0]) || {}).div === o.div; }), di = 0; div.forEach(function (x, j) { if (x[0] === id) di = j; });
+  var g = t[2] + t[3] + t[4], gs = LD("games").filter(function (x) { return x[0] === h.y && x[2] === "R" && (x[3] === id || x[5] === id); }).sort(function (a, b) { return a[1] - b[1]; }), st = "", n = 0;
+  for (var k = gs.length - 1; k >= 0; k--) { var x = gs[k], mine = x[3] === id ? x[4] : x[6], th = x[3] === id ? x[6] : x[4], r = mine > th ? "W" : mine < th ? "L" : "T"; if (!st) st = r; if (r !== st) break; n++; }
+  return { y: h.y, rec: t[2] + "–" + t[3] + (t[4] ? "–" + t[4] : ""), rank: i + 1, n: ts.length, div: o.div, drank: di + 1, ppg: g ? t[5] / g : 0, streak: st ? st + n : "" };
+}
+function ordn(n) { return n + (["th", "st", "nd", "rd"][(n % 100 > 10 && n % 100 < 14) ? 0 : n % 10] || "th"); }
+function gmNext(id) { var S = LD("schedule") || {}, g = (S.games || []).filter(function (x) { return x[0] >= (S.current || 0) && (x[2] === id || x[3] === id); }).sort(function (a, b) { return a[0] - b[0]; })[0]; return g ? { wk: g[0], opp: g[2] === id ? g[3] : g[2] } : null; }
+// Desk header: team name + the table line, then the 3-way bar (each button: what's there + what needs you).
 function gmBar(on) {
-  var k = teamKeepTxt(), it = [["team", "🏈", "Roster", "", "gmR"], ["trades", "🔁", "Trades", "Offers · picks", "gmT"], ["keepers", "🔒", "Keepers", k.t, "gmK"]];
-  return '<div class="gmhd"><span class="eyebrow">🧢 GM desk · ' + esc((owner(ME.owner) || {}).team || "") + '</span></div><div class="gmbar">' + it.map(function (x) {
-    return '<button id="' + x[4] + '" class="' + (x[0] === on ? "on" : "") + (x[4] === "gmK" && k.needs ? " needsb" : "") + '" onclick="go(\'' + x[0] + '\')"><b>' + x[1] + ' ' + x[2] + '</b><small>' + esc(x[3]) + '</small></button>'; }).join("") + '</div>';
+  var me = ME.owner, o = owner(me) || {}, sd = gmStand(me), nx = gmNext(me), k = teamKeepTxt(), y0 = KP_YRS[0];
+  var dl = calOf(sd ? sd.y : y0 - 1, "trade_deadline"), dlt = dl && dl.date ? (dayDiff(dl.date) < 0 ? "Deadline passed" : "Deadline " + untilTxt(dl.date)) : "Picks + players";
+  var sg = signingDay(), sdt = sg.date ? "Signing Day " + untilTxt(sg.date) : "Signing Day TBD";
+  var it = [["team", "🏈", "Roster", sd ? sd.ppg.toFixed(1) + " pts/wk" : "Your roster", "Injury report…", "gmR"],
+    ["trades", "🔁", "Trades", "Offers…", dlt, "gmT"],
+    ["keepers", "🔒", "Keepers", k.t, k.needs ? "Signing Day is open" : sdt, "gmK"]];
+  return '<div class="gmhd"><div class="eyebrow">GM desk · ' + esc(o.name || "") + '</div><h2 class="gmteam">' + esc(o.team || "") + '</h2>' +
+    (sd ? '<div class="gmline"><b>' + sd.rec + '</b><span>' + ordn(sd.rank) + ' of ' + sd.n + '</span><span>' + ordn(sd.drank) + ' ' + esc(sd.div || "") + '</span>' + (sd.streak ? '<span class="' + (sd.streak[0] === "W" ? "w" : "l") + '">' + sd.streak + '</span>' : '') +
+      (nx ? '<span>Wk ' + nx.wk + ' vs ' + esc(oname(nx.opp)) + '</span>' : '') + '</div>' : '') + '</div>' +
+    '<div class="gmbar">' + it.map(function (x) {
+      return '<button id="' + x[5] + '" class="' + (x[0] === on ? "on" : "") + (x[5] === "gmK" && k.needs ? " needsb" : "") + '" onclick="go(\'' + x[0] + '\')"><b>' + x[1] + ' ' + x[2] + '</b><small class="l1">' + esc(x[3]) + '</small><small class="l2">' + esc(x[4]) + '</small></button>'; }).join("") + '</div>';
 }
 function gmFill() {
   if (!ME || !$("#gmK")) return;
-  var R = $("#gmR"); if (R) { var st = ((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).filter(function (x) { return x.owner === ME.owner; })[0]; R.querySelector("small").textContent = st ? st.w + "–" + st.l + (st.t ? "–" + st.t : "") : "Your roster"; }
-  loadKeep().then(function () { var k = $("#gmK"); if (!k) return; var x = teamKeepTxt(); k.querySelector("small").textContent = x.t; k.classList.toggle("needsb", !!x.needs); }).catch(function () {});
-  loadTrades().then(function (t) { var b = $("#gmT"); if (!b) return; var me = ME.owner,
+  var set = function (id, l1, l2, needs) { var b = $("#" + id); if (!b) return; if (l1 != null) b.querySelector(".l1").textContent = l1; if (l2 != null) b.querySelector(".l2").textContent = l2; if (needs != null) b.classList.toggle("needsb", !!needs); };
+  loadRosters().then(function (d) { var t = teamRoster(d, ME.owner); if (!t) return; var hurt = t.players.filter(function (p) { return p.inj && p.slot !== "IR"; }).length, ir = t.players.filter(function (p) { return p.slot === "IR"; }).length;
+    var bad = t.players.filter(function (p) { return p.inj && p.slot !== "BE" && p.slot !== "IR"; }).length;
+    set("gmR", null, bad ? bad + " hurt starter" + (bad > 1 ? "s" : "") : hurt ? hurt + " on injury report" : "All healthy" + (ir ? " · " + ir + " IR" : ""), bad > 0); }).catch(function () { set("gmR", null, ""); });
+  loadKeep().then(function () { var x = teamKeepTxt(); set("gmK", x.t, x.needs ? "Signing Day is open" : null, x.needs); }).catch(function () {});
+  loadTrades().then(function (t) { var me = ME.owner,
       inb = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }).length,
       out = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.from === me; }).length,
       pk = t.picks.filter(function (p) { return p.owner === me; }).length;
-    b.querySelector("small").textContent = inb ? inb + " need" + (inb > 1 ? "" : "s") + " you" : out ? out + " open · " + pk + " picks" : pk + " picks";
-    b.classList.toggle("needsb", inb > 0); }).catch(function () {});
+    set("gmT", inb ? inb + " need" + (inb > 1 ? "" : "s") + " you" : out ? out + " open · " + pk + " picks" : pk + " picks · no offers", null, inb > 0); }).catch(function () { set("gmT", "Offers + picks"); });
 }
 SCREENS.team.after = function (arg) {
   if (!$("#tm")) return;
@@ -843,15 +871,14 @@ SCREENS.team.after = function (arg) {
     ROSTERS = d;
     var t = d.teams.filter(function (x) { return x.owner === id; })[0];
     var cs = contractsOf(id), kept = {}; cs.forEach(function (c) { if (c.status === "active") kept[c.player.toLowerCase()] = c; });
-    var html = '<div class="card' + (id === ME.owner ? " lead" : "") + '"><div class="eyebrow">' + (id === ME.owner ? "🏈 Your team" : "🏈 " + esc(o.name) + "'s team") + ' · ' + esc((t && t.div) || "") + '</div>' +
-      '<h2 style="margin:0">' + esc(t ? t.team : o.team) + '</h2><p>' + esc(o.full || o.name || "") + (t ? ' · ' + esc(t.rec) : '') + '</p></div>';
+    var html = '';
     if (!t) { $("#tm").innerHTML = html + '<div class="card"><p class="muted">Couldn\'t match this team on ESPN.</p></div>'; return; }
     var group = function (label, list) {
       if (!list.length) return "";
       return '<div class="card" style="padding:12px 14px"><div class="eyebrow">' + label + '</div><table class="ro"><tr><th></th><th>Player</th><th class="n">Pts</th><th class="n">Avg</th></tr>' +
         list.map(function (p) {
           var k = kept[p.n.toLowerCase()];
-          return '<tr><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? '' : ' ' + kpBadge(p.n)) +
+          return '<tr class="pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? '' : ' ' + kpBadge(p.n)) +
             '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + (p.acq ? ' · ' + esc(p.acq) : '') + '</small>' + (p.inj ? ' <span class="inj">' + esc(p.inj) + '</span>' : '') + '</td>' +
             '<td class="n">' + fmtPts(p.sp) + '</td><td class="n">' + fmtPts(p.avg) + '</td></tr>';
         }).join("") + '</table></div>';
@@ -860,7 +887,7 @@ SCREENS.team.after = function (arg) {
     html += group("Bench", t.players.filter(function (p) { return p.slot === "BE"; }));
     html += group("IR", t.players.filter(function (p) { return p.slot === "IR"; }));
     html +=
-      '<p class="muted" style="font-size:12px">Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
+      '<p class="muted" style="font-size:12px">Tap a player for his SPL file. Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
     $("#tm").innerHTML = html;
     if (id !== ME.owner) loadContacts().then(function () { var c = $("#ct"); if (c) c.innerHTML = contactRow(id); }).catch(function () {});
   };
@@ -868,6 +895,48 @@ SCREENS.team.after = function (arg) {
     .catch(function (e) { if ($("#tm")) $("#tm").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
 
+// 📇 Player file (Mike 11/27): tap any player → this season (ESPN roster) + his whole SPL paper trail from gold:
+// every SPL Draft pick (who, when, whose slot), every keeper contract (who kept him, term, KP, tag, terminated), trades in the app,
+// and what keeping him costs now. Draft history in gold starts 2026 (older boards: SPL Packet → data/Draft_Picks.csv).
+function pcard(name) {
+  var sh = $("#sheet"); if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
+  sh.onclick = function (e) { if (e.target === sh) pclose(); };
+  var n = pnorm(name), cur = null, all = [];
+  ((ROSTERS && ROSTERS.teams) || []).forEach(function (t) { t.players.forEach(function (p) { all.push({ p: p, o: t.owner }); if (pnorm(p.n) === n) cur = { p: p, o: t.owner }; }); });
+  var p = cur ? cur.p : { n: name }, y0 = KP_YRS[0];
+  var posRank = cur && p.sp != null ? all.filter(function (x) { return x.p.pos === p.pos && (x.p.sp || 0) > (p.sp || 0); }).length + 1 : 0;
+  var drafts = LD("draft").filter(function (d) { return pnorm(d[6]) === n; }).sort(function (a, b) { return b[0] - a[0]; });
+  var cons = LD("contracts").filter(function (c) { return pnorm(c.player) === n; }).sort(function (a, b) { return b.signed - a.signed; });
+  var why = kblocked(name, ""), c = contractOf(name), r = draftedRound(name, y0 - 1);
+  var h = '<div class="sbody pfile"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><div class="eyebrow">' + esc([p.pos, p.tm].filter(Boolean).join(" · ") || "Player") + '</div><h2 style="margin:2px 0 0">' + esc(name) + '</h2>' +
+    (p.inj ? '<span class="inj">' + esc(p.inj) + '</span>' : '') + '</div><button class="btn ghost" onclick="pclose()">Close</button></div>';
+  // now
+  h += '<div class="card"><div class="eyebrow">📍 Now</div>' + (cur ? '<div class="byline" style="margin-bottom:8px">' + av(cur.o, "sm") + '<span><b>' + esc((owner(cur.o) || {}).team || oname(cur.o)) + '</b><br><small class="muted">' + esc(oname(cur.o)) + (p.slot ? ' · ' + (p.slot === "BE" ? "bench" : p.slot === "IR" ? "IR" : "starting " + esc(p.slot)) : '') + (p.acq ? ' · ' + esc(p.acq) : '') + '</small></span></div>' +
+      '<div class="pft">' + [[fmtPts(p.sp), "season pts"], [fmtPts(p.avg), "per game"], [posRank ? esc(p.pos) + " #" + posRank : "·", "on SPL rosters"]].map(function (x) { return '<div><b>' + x[0] + '</b><small>' + x[1] + '</small></div>'; }).join("") + '</div>'
+    : '<p class="muted" style="margin:0">' + (ROSTERS ? "Not on an SPL roster right now (free agent)." : "Open a roster first to see who has him now.") + '</p>') + '</div>';
+  // keeper status
+  h += '<div class="card"><div class="eyebrow">🔒 Keeper status · ' + y0 + '</div>' +
+    (c ? '<p style="margin:0">' + kpBadge(name) + ' Under contract with <b>' + esc(oname(c.owner)) + '</b>: ' + c.term + '-yr, signed ' + c.signed + (c.tag ? ', franchise tag' : '') + '. It travels with him in a trade.</p>' +
+        '<div class="pkp">' + Object.keys(c.kp).sort().map(function (yy) { return '<span' + (+yy === y0 ? ' class="on"' : '') + '>\'' + yy.slice(2) + ' <b>' + (c.kp[yy] === "F" ? "F" : c.kp[yy]) + '</b></span>'; }).join("") + '</div>'
+      : why && !/under contract/.test(why) ? '<p style="margin:0">' + kpBadge(name) + ' Can\'t be kept in ' + y0 + ': ' + esc(why) + '.</p>'
+      : '<p style="margin:0">' + kpBadge(name) + ' Keeping him costs <b>' + KP_ROUND(r) + ' KP</b> in ' + y0 + ' (' + (r ? "R" + r + " in the " + (y0 - 1) + " SPL Draft" : "undrafted in " + (y0 - 1)) + '), then ' + (KP_ROUND(r) + 1) + ' → ' + (KP_ROUND(r) + 2) + ' on a longer deal.' + (/Free agent|Waiver/.test(p.acq || "") ? ' <span class="gold">Picked up in season: OK only if by Week 14.</span>' : '') + '</p>') + '</div>';
+  // SPL history timeline
+  var ev = [];
+  drafts.forEach(function (d) { ev.push({ y: d[0], o: 1, ic: "📝", t: "Drafted by <b>" + esc(oname(d[4])) + "</b>, round " + d[1] + ", pick " + d[2] + " (" + d[3] + " overall)" + (d[5] && d[5] !== d[4] ? ' <small class="muted">· ' + esc(oname(d[5])) + "'s slot</small>" : "") }); });
+  cons.forEach(function (k) { var yrs = Object.keys(k.kp).sort(); ev.push({ y: k.signed, o: 2, ic: k.tag ? "🏷️" : "🔒", t: (k.tag ? "Franchise-tagged" : "Kept") + " by <b>" + esc(oname(k.owner)) + "</b>: " + k.term + "-yr, " + yrs.map(function (yy) { return "'" + yy.slice(2) + " " + k.kp[yy]; }).join(" → ") + " KP" });
+    if (k.status !== "active") { var py = Object.keys(k.pen || {}).sort()[0]; ev.push({ y: py ? +py : k.signed, o: 3, ic: "✂️", t: "Contract terminated by <b>" + esc(oname(k.owner)) + "</b>" + (py ? ": cap penalty " + Object.keys(k.pen).sort().map(function (yy) { return "'" + yy.slice(2) + " " + k.pen[yy]; }).join(", ") + " KP" : "") }); } });
+  ((TRADES && TRADES.offers) || []).filter(function (o) { return o.status === "APPROVED" && [].concat((o.give || {}).players || [], (o.get || {}).players || []).some(function (x) { return pnorm(x.n) === n; }); }).forEach(function (o) {
+    var fromGive = ((o.give || {}).players || []).some(function (x) { return pnorm(x.n) === n; }), a = fromGive ? o.from : o.to, b = fromGive ? o.to : o.from, ts = o.ts || o.at || o.created;
+    ev.push({ y: ts ? new Date(ts).getFullYear() : y0 - 1, o: 4, ic: "🔁", t: "Traded <b>" + esc(oname(a)) + "</b> → <b>" + esc(oname(b)) + "</b>" + (o.mode === "test" ? ' <small class="muted">(test)</small>' : '') }); });
+  ev.sort(function (a, b) { return b.y - a.y || b.o - a.o; });
+  h += '<div class="card"><div class="eyebrow">📜 In the SPL</div>' + (ev.length ? '<div class="ptl">' + ev.map(function (e) { return '<div><span class="py">' + e.y + '</span><span>' + e.ic + '</span><span>' + e.t + '</span></div>'; }).join("") + '</div>'
+      : '<p class="muted" style="margin:0">No SPL draft, keeper or trade on file for him yet.</p>') +
+    '<p class="muted" style="font-size:11px;margin:10px 0 0">Draft boards on file: ' + (function () { var ys = {}; LD("draft").forEach(function (d) { ys[d[0]] = 1; }); return Object.keys(ys).join(", ") || "none"; })() + '. Keeper contracts: 2024 on. Trades: in the app.</p></div>';
+  if (cur && ME && cur.o !== ME.owner) h += '<div class="row" style="gap:8px"><button class="btn" onclick="pclose();go(\'trade\',\'' + cur.o + '\')">🔁 Trade for him</button><button class="btn ghost" onclick="pclose();go(\'team\',\'' + cur.o + '\')">' + esc(oname(cur.o)) + '\'s roster</button></div>';
+  sh.innerHTML = h + '</div>'; sh.style.display = ""; sh.scrollTop = 0;
+  if (ME && !TRADES) loadTrades().then(function () { if ($("#sheet") && $(".pfile")) pcard(name); }).catch(function () {});
+}
+function pclose() { var sh = $("#sheet"); if (sh) sh.remove(); }
 // ---- 🔁 Trade center: players + draft picks + keeper contracts in one offer
 var TRADES = null;
 function loadTrades(fresh) {
@@ -977,12 +1046,12 @@ SCREENS.trade.after = function (arg) {
     Promise.all([loadRosters(), loadTrades()]).then(function (res) {
       var ro = res[0], t = res[1], st = sortTeams((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).map(function (x) { return x.owner; });
       var ids = [me].concat(OWNERS.map(function (o) { return o.id; }).filter(function (id) { return id !== me; }).sort(function (a, b) { var ia = st.indexOf(a), ib = st.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }));
-      var html = '<div class="gtop"><span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted).</span></div><div class="tgrid2">' + ids.map(function (id) {
+      var html = '<div class="gtop"><span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade, a player for his SPL file. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted).</span></div><div class="tgrid2">' + ids.map(function (id) {
         var tm = teamRoster(ro, id); if (!tm) return ""; var mine = id === me, np = t.picks.filter(function (p) { return p.owner === id; }).length;
         var head = mine ? '<div class="ghead me"><b>You</b><small>' + esc(tm.rec) + ' · 🎟️ ' + np + ' picks</small></div>'
           : '<button class="ghead" onclick="go(\'trade\',\'' + id + '\')"><b>' + esc(tm.team) + '</b><small>' + esc(oname(id)) + ' · ' + esc(tm.rec) + ' · 🎟️ ' + np + '</small><span class="gtrade">Trade ›</span></button>';
         return '<div class="gcol' + (mine ? " mine" : "") + '">' + head + grouped(tm.players.filter(function (p) { return p.slot !== "IR"; }), function (p) {
-          return '<div class="gp"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(p.inj) + '</span>' : '') + '</small></div>'; }) + '</div>';
+          return '<div class="gp pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(p.inj) + '</span>' : '') + '</small></div>'; }) + '</div>';
       }).join("") + '</div>';
       if ($("#tg")) $("#tg").innerHTML = html;
     }).catch(function (e) { if ($("#tg")) $("#tg").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });

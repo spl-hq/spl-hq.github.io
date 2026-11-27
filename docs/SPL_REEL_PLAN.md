@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **📇 Player files** (Mike). Any player is tappable (Team roster, trade grid) → a sheet: who has him now + this season,
+  keeper status for next season, and his SPL paper trail from gold (drafts, keeper contracts, terminations, trades in the app).
+  Grows with the data: older draft boards (2019–2025, SPL Packet) go into `data/Draft_Picks.csv` and show up with no app change.
+  Team tab header is now a compact desk header (team, record, rank, division, streak, next game); no big blue team card.
 - 2026-11-27 · **👋 Welcome tour, first visit only** (Mike, after MAFFL REEL's one-tour version). Once per owner (per phone), the first
   time they land on a tab's front screen signed in: a welcome card, then 8 stops across the tabs (Desk stop only for desk owners). Replay
   from You → Show me around again; Ops desk → 👋 Welcome tour: for me now, or for one owner / everyone on their next open (backend stamp

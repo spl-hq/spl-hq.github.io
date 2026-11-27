@@ -19,6 +19,15 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.1 · 📇 **Player files + desk header** (Mike: header wasted space, button info weak, players should be clickable).
+  **Header:** big blue team card gone; "GM desk · Mike" + team name + a chip line (record · rank of 12 · division rank · streak · next game), from gold
+  history/schedule so it draws instantly. 🧢 dropped. **Buttons now say something:** Roster = PF per week + injury line (gold "1 hurt starter");
+  Trades = needs-you/open offers/picks + trade deadline status; Keepers = KP left · keepers of 3 + Signing Day countdown (or "Declare now").
+  Someone else's team gets the same compact header. **📇 Player file:** tap any player on the Team roster or the trade grid → sheet with
+  📍 Now (owner, slot, how acquired, season pts, per game, rank at his position on SPL rosters), 🔒 Keeper status next season (contract KP by
+  year, or the price + why/why not), 📜 In the SPL (every draft pick: who, round, pick, whose slot · every keeper contract + tag · terminations +
+  penalties · approved trades in the app), and Trade for him / their roster. **Gap:** gold draft boards = 2026 only; 2019–2025 live in the SPL
+  Packet and need adding to `data/Draft_Picks.csv`. Fixed `gmStand` picking the oldest season (history isn't sorted). SW `splhq-v38`.
 - 2026-11-27 · v0.19.0 (backend v0.14.0) · 👋 **Welcome tour** (Mike, after MAFFL REEL). An owner's first signed-in visit: a "This is SPL HQ"
   card (it's yours · live from ESPN · everything but your lineup), then Show me around walks Home → Match → Team (+ the GM desk bar) →
   Chat → League → Desk (commish/ops only) → You, switching tabs, ringing tab buttons gold and cutting out anything else; tab bar stays
