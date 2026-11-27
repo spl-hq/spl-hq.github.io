@@ -13,6 +13,9 @@ _Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, ⚔�
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
 
+## History: what's missing
+`docs/HISTORY_NEEDS.md`: what's on file, what robots will pull from ESPN (drafts 2006–25, transactions, team names, final rosters, retry 2020–21), and Mike's ranked list (keeper history 2019–23 first; then 2020–21 + 2004–05 if ESPN can't; pre-app trades; off-season drafts before 2024; ownership changes; payouts; rule changes; lore). Mike: drop the raw SPL Packet(s) as-is.
+
 ## Open questions (in the app: 📥 Commish desk → 📋 Questions, rebaselined 11/26)
 Joe sees 7: ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
 **Mike's calls** (traded contracts travel, next-season picks only, Divisional Draft rules) · 2027 dates · move league talk to app chat · Joe's #1 wish.
