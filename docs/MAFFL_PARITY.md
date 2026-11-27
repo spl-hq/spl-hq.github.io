@@ -28,7 +28,7 @@ one locked vote, results after you vote) · ✅ 📅 This week in SPL history ·
 | 6 | **More Vault cards**: 🗄️ Throwback, 👋 Meet the owner, 🏷️ Name that team | REEL_SERIES "Vault", `gen_vault.py` → `vault-data.js` (weekly robot) | 20 seasons of games + team names already in gold; off-season reel filler (off-season vault budget is 6). | ⬜ |
 | 7 | **📈 Records watch** (league records within reach this week) | `records` series, `daily.js` | Same gold; tension card for the season. | ⬜ |
 | 8 | **Coach of the Week from the bench** (fewest points left on the bench; "could have won") | `maffl_espn_pull.py` v0.5.1 | Needs ESPN box scores in `espn-history.yml`. | ⬜ |
-| 9 | First-run tour · tap log (which cards get used) · beta crew | `tour`, `taplog`, beta in desk | Nice once all 12 owners are signed up. | ⬜ |
+| 9 | First-run tour · tap log (which cards get used) · beta crew | `tour`, `taplog`, beta in desk | Tour ✅ v0.19 (11/27: first visit + You replay + Ops desk replay for me/one/everyone). Tap log + beta crew still open. | 🟡 |
 | 10 | Claude in chat (`@claude`) · chat moderation | `botpost`, `claude-mention.yml`, `chatmod` | Later. | ⬜ |
 | 11 | Rehearsal workflow (full robot chain dry run) · pause / desk-only kill switch | `rehearsal.yml`, `REEL_MODE` | SPL's `APP_MODE` kill switch (plan §3) can copy `REEL_MODE`. | ⬜ |
 

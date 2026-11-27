@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-26 by Claude (chat, Team tab → 🧢 GM desk v0.17.2–0.18.0)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, 👋 welcome tour v0.19.0, backend v0.14.0)
 
 ## Now
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
@@ -19,6 +19,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.0 (backend v0.14.0) · 👋 **Welcome tour** (Mike, after MAFFL REEL). An owner's first signed-in visit: a "This is SPL HQ"
+  card (it's yours · live from ESPN · everything but your lineup), then Show me around walks Home → Match → Team (+ the GM desk bar) →
+  Chat → League → Desk (commish/ops only) → You, switching tabs, ringing tab buttons gold and cutting out anything else; tab bar stays
+  visible; ✕/Skip end it; missing targets skipped; never starts over a deep link or an open sheet. Replay: You → 👋 Show me around again;
+  🛠️ Ops desk → 👋 Welcome tour → Replay for me (now) · Replay for them (pick an owner) · Everyone (next open, any phone). Backend: ops
+  action `tour` stamps Script property `TOUR_STAMPS`; `me` returns the owner's newest stamp; the app replays once per unseen stamp.
+  Smoke test +5. Existing owners (Mike, Joe) see it once on their next open. SW `splhq-v37`.
 - 2026-11-26 · v0.18.0 · 🧢 **GM desk** (Mike: one owner desk instead of separate trade + keeper portals, and an obvious way back to your team).
   The Team tab is now your GM desk: a 3-way bar **🏈 Roster · 🔁 Trades · 🔒 Keepers** sits on top of your team, the Trades page, the trade
   grid + builder, and your Keepers page; the one you're on is navy, each shows a live line (record · "1 needs you" in gold / open offers /

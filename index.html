@@ -331,6 +331,27 @@ a.btn.ghost{text-decoration:none}
 .gmbar button.needsb{border-color:var(--gold)} .gmbar button.needsb small{color:var(--gold);font-weight:700} .gmbar button.on.needsb small{color:#E8C77A}
 .gmtop{flex:none;padding:12px 14px 0}
 .tiles2.tq{margin:0 0 12px} .tq2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px} .tq2 .btn{width:100%;margin:0} .card.needsb,.tile.needsb{border-color:var(--gold)} .tile.needsb small{color:var(--gold);font-weight:700} .mono{font-family:var(--mono)}
+/* 👋 Welcome tour (Mike 11/27, after MAFFL REEL): first visit = a welcome card over the app, then one stop per tab (the app switches
+   tabs; tab buttons get a gold ring, anything else a cut-out). The tab bar stays visible: the scrim stops above it. Hidden = display:none. */
+.tour{position:fixed;inset:0;z-index:90;display:none;pointer-events:none}.tour.on{display:block}
+.tscrim{position:absolute;left:0;right:0;top:0;height:var(--navtop,100%);background:rgba(4,30,66,.62);overflow:hidden;pointer-events:auto}.tour.hole .tscrim{background:none}
+.tnav{position:absolute;left:0;right:0;top:var(--navtop,100%);bottom:0;pointer-events:auto}
+.thole{position:absolute;border-radius:14px;box-shadow:0 0 0 2400px rgba(4,30,66,.62);outline:2px solid var(--gold);transition:all .2s}
+.tring{position:absolute;border:3px solid var(--gold);border-radius:14px;box-shadow:0 0 0 5px rgba(184,138,46,.3);transition:all .2s}
+.twel{position:absolute;left:50%;top:calc(var(--navtop,100%) / 2);transform:translate(-50%,-50%);width:min(calc(100vw - 28px),420px);max-height:calc(var(--navtop,100%) - 24px);overflow:auto;pointer-events:auto;background:#fff;border-radius:20px;padding:22px 20px 14px;box-shadow:0 14px 40px rgba(0,0,0,.35);border-top:5px solid var(--gold);text-align:center}
+.twel img{width:64px;height:64px;border-radius:14px;background:#041E42}.twel .tkick{margin-top:6px;font:800 13px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.twel h2{margin:4px 0 12px;font:800 28px/1.05 var(--head);text-transform:uppercase;color:#041E42}
+.twel ul{list-style:none;margin:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:10px}
+.twel li{display:flex;gap:12px;align-items:flex-start;background:#F1F2F4;border-radius:12px;padding:10px 12px}.twel li span{font-size:22px;line-height:1.2}
+.twel li p{margin:0;font-size:14px;line-height:1.4;color:#3C4248}.twel li b{display:block;font:800 16px/1.25 var(--head);text-transform:uppercase;letter-spacing:.02em;color:#041E42}
+.tbub{position:absolute;pointer-events:auto;left:50%;transform:translateX(-50%);width:min(calc(100vw - 24px),420px);background:#fff;border-radius:16px;padding:16px 16px 12px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.tbub h3{margin:0 0 4px;font:800 20px/1.1 var(--head);text-transform:uppercase;color:#041E42;padding-right:28px}
+.tbub p{margin:0;font:500 15px/1.45 var(--body);color:#0B1F3A;padding-right:6px}
+.tarr{position:absolute;width:16px;height:16px;background:#fff;transform:rotate(45deg);margin-left:-8px}.tbub.dn .tarr{top:-7px}.tbub.up .tarr{bottom:-7px}
+.tbtn{display:flex;align-items:center;gap:10px;margin-top:12px}.tbtn small{flex:1;text-align:center;color:var(--muted);font-size:12px;font-family:var(--mono)}
+.tbtn button{background:none;border:0;font:800 13px var(--head);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 4px;min-width:70px;text-align:left;cursor:pointer}
+.tbtn .go{background:#1E407C;color:#fff;border-radius:999px;padding:10px 18px;text-align:center}
+.tbub .tx{position:absolute;top:8px;right:8px;width:32px;height:32px;font-size:16px;color:var(--muted);background:none;border:0;cursor:pointer}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -362,6 +383,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
   <button data-t="chat"><span>💬</span>Chat</button>
   <button data-t="league"><span>🏆</span>League</button>
 </nav>
+<div class="tour" id="tour" role="dialog" aria-live="polite"></div>
 <div class="toast" id="toast"></div>
 <button class="upd" id="upd" type="button">✨ Update ready · <b>Tap to refresh</b></button>
 <script>
@@ -385,7 +407,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.18.0";
+var APP_VERSION = "0.19.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -524,6 +546,7 @@ function render() {
   $("#view").innerHTML = SCREENS[name](arg); $("#view").scrollTop = 0;
   if (SCREENS[name].after) SCREENS[name].after(arg);
   if ($("#gmK")) gmFill();
+  if (typeof tourMaybe === "function") tourMaybe(); // 👋 first visit
 }
 window.addEventListener("hashchange", render);
 document.querySelectorAll("#tabs button").forEach(function (b) { b.onclick = function () { go(b.dataset.t); }; });
@@ -2140,6 +2163,7 @@ SCREENS.you = function () { // the avatar opens this: your settings (Mike 11/26:
   if (!ME) return SCREENS.signin();
   return back("home", "Home") + '<h2>' + esc(fullName()) + '</h2><p class="muted" style="margin:-6px 0 12px">' + esc(ME.team) + '</p>' +
     '<div id="set"><div class="card"><p class="muted">Loading your settings…</p></div></div>' +
+    '<div class="card"><div class="eyebrow">👋 Welcome tour</div><p style="margin:0 0 10px;font-size:13px">A one-minute walk through every tab.</p><button class="btn ghost" onclick="tourReplay()">👋 Show me around again</button></div>' +
     '<div class="card"><p style="margin:0">Signed in on this phone. A new passphrase from the commish signs every phone out.</p><p style="margin-top:12px"><button class="btn ghost" onclick="signOut()">Sign out</button></p></div>' +
     '<p class="muted" style="font-size:12px;text-align:center">SPL HQ app v' + APP_VERSION + '</p>';
 };
@@ -2229,6 +2253,7 @@ SCREENS.ops = function () {
     opsSec("feedback", "💡 Feedback", "opsFb", load, "…") +
     opsSec("tl", "🏈 Test league", "opsTL", load, "…") +
     opsSec("trades", "🧪 Test trades", "opsTT", '<p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p>', "test only", "ok") +
+    opsSec("tour", "👋 Welcome tour", "opsTour", tourDeskHTML(), "replay", "ok") +
     opsSec("app", "📱 App", "opsApp", '<div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
       '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
       '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div>', "v" + APP_VERSION, API_URL ? "ok" : "stale");
@@ -2385,6 +2410,93 @@ SCREENS.ops.after = function () {
   }).catch(function (e) { $("#opsHealth").innerHTML = ok(false, e.message); opsBadge("opsHealth", "unreachable", "stale"); });
 };
 
+// ---- 👋 Welcome tour (Mike 11/27, ported from MAFFL REEL's one-tour version). An owner's first visit (once signed in): a welcome
+// card over the app, then one stop per tab: the app switches tabs and rings the button or cuts out the thing it's talking about.
+// The tab bar stays visible (the scrim stops above it). ✕ / Skip end it. Replay: You → 👋 Show me around again, or the Ops desk
+// (for me now; for one owner or everyone on their next open, via a backend stamp that "me" hands back). Seen = per owner, per phone.
+// A missing or off-screen target (not a desk owner, still loading) is skipped. Step: [screen to show ("" = stay), target, title, text, only-if].
+var TOUR_STEPS = [
+  ["home", "#tabs [data-t='home']", "🏠 Home = your reel", "One card a screen: scroll up for the next. Swipe ← when you're done with a card, → to save it. Gold Needs you cards stay on top until you handle them."],
+  ["match", "#tabs [data-t='match']", "⚔️ Match", "Your game, live from ESPN: the score, both lineups and every other game. Step back through any week."],
+  ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
+  ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
+  ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat and a DM with any owner. Trade news and commish alerts land here too. Tag an owner with his @handle."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Standings, the trade wire, off-season drafts, keepers, every SPL Draft, champions since 2006, GM rankings, rivalries and the rules."],
+  ["", "#deskBtn", "", "", function () { return isDesk(); }],
+  ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
+var TR = null;
+function tourKey() { return "tour_seen_" + (ME ? ME.owner : ""); }
+function tourScreen() { var n = (location.hash || "#home").slice(1).split("=")[0] || "home"; return SCREENS[n] ? n : "home"; }
+function tourNavTop() { var n = $("#tabs"); return n ? n.getBoundingClientRect().top : window.innerHeight; }
+// First visit: only on a tab's front screen (never hijack a link into a draft room or a trade), nothing open on top.
+function tourMaybe() {
+  if (!ME || TR || store(tourKey()) || tourMaybe.h) return;
+  tourMaybe.h = setTimeout(function () { tourMaybe.h = null;
+    if (!ME || TR || store(tourKey()) || $("#sheet") || ["home", "match", "team", "chat", "league"].indexOf(tourScreen()) < 0 || (tourScreen() === "chat" && location.hash.indexOf("=") > 0)) return;
+    tourStart(); }, 900);
+}
+function tourStart() { if (!ME) return; store(tourKey(), 1); var sh = $("#sheet"); if (sh) sh.remove();
+  TR = { i: null, steps: TOUR_STEPS.filter(function (s) { return !s[4] || s[4](); }) }; if (tourScreen() !== "home") go("home"); setTimeout(tourDraw, 250); }
+function tourReplay() { if (!ME) return go("signin"); store(tourKey(), null); tourStart(); }
+// Ops desk replay for someone else: "me" carries the newest stamp for this owner; a stamp this phone hasn't seen = show it once more.
+function tourStampCheck(st) { if (!st || !ME) return; var k = "tour_stamp_" + ME.owner; if (store(k) === st) return; store(k, st); store(tourKey(), null); tourMaybe(); }
+function tourText(s) {
+  if (s[1] !== "#deskBtn") return [s[2], s[3]];
+  return isOps() ? ["🛠️ Desk", "Your Ops desk: robots, backups, passphrases, the test league and this tour's replay buttons. Joe's view of the Commish desk is one tap away."]
+    : ["📥 Desk", "Your Commish desk: trades to approve, Mike's questions for you (the number on the button), drafts and Signing Day."];
+}
+function tourCard() {
+  var first = (ME && ME.name) || "";
+  tourPaint("", '<div class="twel"><img src="icons/crest.png?v=3" alt=""><div class="tkick">' + (first ? "Welcome, " + esc(first) : "Welcome") + '</div>' +
+    '<h2>This is SPL HQ</h2>' +
+    '<ul><li><span>👤</span><p><b>It\'s yours.</b>You\'re signed in: your reel, your team, your trades, your keepers, your chats.</p></li>' +
+    '<li><span>📡</span><p><b>Live from ESPN.</b>Scores, lineups and rosters keep updating through game day.</p></li>' +
+    '<li><span>🤝</span><p><b>Everything but your lineup.</b>Trades, keepers and Signing Day, the off-season drafts and league chat happen here. Lineups still get set on ESPN.</p></li></ul>' +
+    '<div class="tbtn"><button id="tskip">Skip</button><small></small><button class="go" id="tnext">Show me around ›</button></div></div>');
+}
+// One spotlight: a tab button (in the bar) gets a gold ring; anything else a cut-out with the bubble above or below it.
+function tourSpot(el, title, text, n, of) {
+  var r = el.getBoundingClientRect(), pad = 6, nav = tourNavTop(), inNav = r.top >= nav - 1, last = n === of, W = window.innerWidth;
+  var hole = { l: Math.max(4, r.left - pad), t: Math.max(4, r.top - pad), w: Math.min(r.width + 2 * pad, W - 8), h: Math.min(r.height + 2 * pad, nav * 0.6) };
+  var below = !inNav && hole.t + hole.h / 2 < nav / 2, ax = Math.min(Math.max(r.left + r.width / 2, 30), W - 30), bw = Math.min(W - 24, 420);
+  var pos = below ? "top:" + Math.min(hole.t + hole.h + 14, nav - 200) : "bottom:" + Math.max(window.innerHeight - (inNav ? nav : hole.t) + 14, 10);
+  tourPaint(inNav ? "" : '<div class="thole" style="left:' + hole.l + 'px;top:' + hole.t + 'px;width:' + hole.w + 'px;height:' + hole.h + 'px"></div>',
+    (inNav ? '<div class="tring" style="left:' + hole.l + 'px;top:' + (r.top - 2) + 'px;width:' + hole.w + 'px;height:' + (r.height + 4) + 'px"></div>' : '') +
+    '<div class="tbub ' + (below ? "dn" : "up") + '" style="' + pos + 'px"><i class="tarr" style="left:' + (ax - (W - bw) / 2) + 'px"></i>' +
+    (title ? '<h3>' + esc(title) + '</h3>' : '') + '<p>' + esc(text) + '</p><div class="tbtn"><button id="tskip">' + (last ? "" : "Skip") + '</button><small>' + n + ' / ' + of + '</small><button class="go" id="tnext">' + (last ? "Got it" : "Next ›") + '</button></div>' +
+    '<button class="tx" id="tx" aria-label="Close the tour">✕</button></div>', inNav ? "" : "hole");
+}
+function tourPaint(cut, h, mode) { var o = $("#tour"); o.className = "tour on" + (mode ? " " + mode : ""); o.style.setProperty("--navtop", tourNavTop() + "px");
+  o.innerHTML = '<div class="tscrim">' + cut + '</div><div class="tnav"></div>' + h;
+  $("#tnext").onclick = tourNext; $("#tskip").onclick = tourEnd; if ($("#tx")) $("#tx").onclick = tourEnd; }
+function tourDraw() {
+  var o = $("#tour"); if (!TR) { o.className = "tour"; o.innerHTML = ""; return; }
+  if (TR.i == null) return tourCard();
+  var s = TR.steps[TR.i]; if (!s) return tourEnd();
+  if (s[0] && tourScreen() !== s[0]) { o.className = "tour"; o.innerHTML = ""; go(s[0]); var at = TR.i; setTimeout(function () { if (TR && TR.i === at) tourDraw(); }, 350); return; } // let the tab paint first
+  var el = document.querySelector(s[1]); if (!el || !el.getClientRects().length) return tourNext();
+  var nav = tourNavTop(), r = el.getBoundingClientRect(), tt = tourText(s);
+  if (!$("#tabs").contains(el) && (r.top < 0 || r.top + Math.min(r.height, 60) > nav)) { el.scrollIntoView({ block: "center" }); r = el.getBoundingClientRect(); if (r.top < 0 || r.top + Math.min(r.height, 60) > nav) return tourNext(); }
+  tourSpot(el, tt[0], tt[1], TR.i + 1, TR.steps.length);
+}
+function tourNext() { if (!TR) return; TR.i = TR.i == null ? 0 : TR.i + 1; if (TR.i >= TR.steps.length) tourEnd(); else tourDraw(); }
+function tourEnd() { TR = null; tourDraw(); if (tourScreen() !== "home") go("home"); }
+window.addEventListener("resize", function () { if (TR) tourDraw(); });
+// 🛠️ Ops desk → 👋 Welcome tour: replay for me (now), for one owner or for everyone (on their next open).
+function tourDeskHTML() {
+  return '<div class="kv" style="display:block"><b>Replay it for me</b><br><small class="muted">Starts on Home right now.</small><p style="margin:8px 0 0"><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="tourReplay()">👋 Replay for me</button></p></div>' +
+    '<div class="kv" style="display:block;border:0"><b>Replay it for someone</b><br><small class="muted">They see it again the next time they open the app, on any phone.</small>' +
+    '<select id="tourWho" style="margin-top:8px"><option value="">Pick an owner…</option>' + OWNERS.map(function (o) { return '<option value="' + esc(o.id) + '">' + esc(o.name) + ' · ' + esc(o.team) + '</option>'; }).join("") + '</select>' +
+    '<div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="tourFor(0)">Replay for them</button><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="tourFor(1)">Everyone</button></div></div>';
+}
+function tourFor(all) {
+  var who = all ? "*" : ($("#tourWho") || {}).value, o = all ? null : owner(who); if (!who) return toast("Pick an owner first");
+  if (!confirm(all ? "Replay the welcome tour for every owner (you too) on their next open?" : "Replay the welcome tour for " + (o ? o.name : who) + " on his next open?")) return;
+  authed("tour", { target: who }).then(function (r) { if (!r.ok) throw new Error(r.error); toast("👋 Tour reset for " + (all ? "everyone" : r.who)); })
+    .catch(function (e) { toast(e.message); });
+}
+window.tourReplay = tourReplay; window.tourFor = tourFor;
+
 // ---- connection pill + boot. The header says nothing while all is well (Mike 11/26: "live" belongs on Match/Roster, not the header);
 // the pill shows only when the phone is offline or SPL HQ can't be reached. Chat messages typed offline wait in an outbox and send on reconnect.
 function setConn(bad, why) { var el = $("#conn"); if (!el) return; el.hidden = !bad; el.dataset.why = why || ""; }
@@ -2398,7 +2510,7 @@ window.addEventListener("offline", function () { pingConn(); toast("You're offli
 window.addEventListener("online", function () { pingConn(); flushOutbox(); });
 paintMe(); render(); pingConn(); setTimeout(flushOutbox, 2500);
 setTimeout(function () { pollRooms().catch(function () {}); }, 1500); setInterval(function () { if (!document.hidden) pollRooms().catch(function () {}); }, 60000);
-if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
+if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); tourStampCheck(r.tour); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 </script>
 <script>

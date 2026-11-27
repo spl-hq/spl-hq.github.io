@@ -499,6 +499,14 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
   const nb = w.mails.length; x = w.post({ action: "opsx", token: wm, run: "backup" });
   ok(x.did && x.did.sentAt && w.mails.length === nb + 1, "Back up now sends one");
   x = w.post({ action: "opsx", token: wm, run: "tick" }); ok(x.did && x.did.ok && JSON.parse(w.props.OPS_TICK).by === "desk", "Run checks now from the desk");
+  // 👋 welcome tour replay: ops only; one owner, then everyone; "me" hands each owner the newest stamp that applies
+  ok(w.post({ action: "tour", token: joeT, target: "*" }).ok === false, "tour replay is ops only");
+  ok(w.post({ action: "me", token: joeT }).tour === "", "no tour stamp until ops replays it");
+  ok(w.post({ action: "tour", token: wm, target: "nobody" }).ok === false, "tour replay needs a real owner");
+  x = w.post({ action: "tour", token: wm, target: "reilly" }); const st1 = w.post({ action: "me", token: joeT }).tour;
+  ok(x.ok && /^T\d+$/.test(st1) && w.post({ action: "me", token: wm }).tour === "", "replay for one owner stamps only him");
+  x = w.post({ action: "tour", token: wm, target: "*" }); const st2 = w.post({ action: "me", token: wm }).tour;
+  ok(x.ok && x.n > 0 && /^T\d+$/.test(st2) && w.post({ action: "me", token: joeT }).tour === st2, "replay for everyone stamps every owner");
   GH.code = 401; x = w.post({ action: "opsx", token: wm, run: "tick" });
   ok(/401/.test(x.robots.list[0].error), "GitHub token refused shows on the desk");
   reset();

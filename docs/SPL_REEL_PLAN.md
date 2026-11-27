@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **👋 Welcome tour, first visit only** (Mike, after MAFFL REEL's one-tour version). Once per owner (per phone), the first
+  time they land on a tab's front screen signed in: a welcome card, then 8 stops across the tabs (Desk stop only for desk owners). Replay
+  from You → Show me around again; Ops desk → 👋 Welcome tour: for me now, or for one owner / everyone on their next open (backend stamp
+  in Script property `TOUR_STAMPS`, handed back by `me`). No per-tab tips: one tour. Nothing goes stale, so no robot.
 - 2026-11-26 · **🧢 GM desk = the Team tab** (Mike). An owner's roster, trades and keepers are one desk with a 3-way bar
   (🏈 Roster · 🔁 Trades · 🔒 Keepers) on top of each page, each with a live status line; the Team tab stays lit across all three.
   No owner pill rows: other teams sit behind an 👀 Other teams picker. League → Keepers on your own team lands at the same desk.

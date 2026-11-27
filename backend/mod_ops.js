@@ -174,3 +174,15 @@ function opsx_(me, b) {
   return { ok: true, did: did, robots: R, backup: B, pages: P, cookie: K, sheet: S, tick: jsonProp_("OPS_TICK", {}),
     watchdog: jsonProp_("OPS_WATCHDOG", []), alerts: jsonProp_("OPS_ALERTS", {}) };
 }
+
+// ---------------------------------------------------------------- 👋 Welcome tour replay (Mike 11/27, after MAFFL REEL's desk control)
+// The app shows the tour once per owner on their first visit. The Ops desk can replay it for one owner or everyone: a new stamp in
+// Script property TOUR_STAMPS ({ owner: "T…", "*": "T…" }); "me" hands each owner the newest stamp that applies, and the app replays
+// the tour once per stamp it hasn't seen, on whatever phone they open next. "T" + epoch ms, so stamps compare as strings.
+function tourStampOf_(owner) { var t = jsonProp_("TOUR_STAMPS", {}), a = String(t[owner] || ""), b = String(t["*"] || ""); return a > b ? a : b; }
+function tourReset_(me, b) {
+  var who = String((b && b.target) || ""), t = jsonProp_("TOUR_STAMPS", {}), st = "T" + Date.now();
+  if (who === "*") { setProp_("TOUR_STAMPS", JSON.stringify({ "*": st })); log_("tour", me.owner + " → everyone"); return { ok: true, n: owners_().length }; }
+  var o = owners_().filter(function (x) { return x.owner === who; })[0]; if (!o) return { ok: false, error: "Pick an owner" };
+  t[who] = st; setProp_("TOUR_STAMPS", JSON.stringify(t)); log_("tour", me.owner + " → " + who); return { ok: true, who: o.name };
+}
