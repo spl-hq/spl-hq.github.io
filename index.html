@@ -524,7 +524,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.1";
+var APP_VERSION = "0.25.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -538,12 +538,12 @@ var OWNERS = [
 
 // ---- Questions for Joe (decisions the trade center + keeper engine need). Add new ones at the end; never reuse a qid.
 // Rebaselined 11/26 (Mike answered 6). Retired questions stay here (retired: why) so their answers still show on the Ops desk;
-// Joe only sees ACTIVE ones. Mike's answers already drive the rules (backend joeAnswer_ = latest answer from either commish).
+// Joe only sees ACTIVE ones (not retired, not later:). Mike's answers already drive the rules (backend joeAnswer_ = latest answer from either commish).
 var QUESTIONS = [
-  { qid: "espn_lm", q: "Will you make Mike's team a league manager (co-commish) in SPL on ESPN?",
-    why: "The app moves approved trades on ESPN by itself and loads the SPL Draft board onto everyone's ESPN team after the draft. ESPN only allows that from a league manager's login.",
-    choices: ["Yes, now", "Yes, after the demo", "Let's talk"] },
-  { qid: "test_league", q: "Will you join the test league as co-commish for the demo?",
+  { qid: "espn_lm", q: "Can the app do your ESPN typing?",
+    why: "Approved trades, the draft board, playoff picks, Shoot Out matchups and your rulings go onto ESPN by themselves. ESPN only allows that from a league manager, so Mike's team needs co-commish on ESPN. Nothing changes on ESPN until you've seen it work.",
+    choices: ["Yes", "After I see it", "Let's talk"] },
+  { qid: "test_league", retired: "Mike 11/27: cut, Mike demos it instead", q: "Will you join the test league as co-commish for the demo?",
     why: "We prove trades end to end in a throwaway 4-team ESPN league (your, Mike's, Al's and Glen's real rosters) first. Nothing touches the real SPL league until you sign off.",
     choices: ["Yes, send the invite", "Show me first"] },
   { qid: "keeper_travels", retired: "Mike: travels as-is → folded into mike_calls", q: "When a player under a keeper contract is traded, what happens to the contract?",
@@ -554,7 +554,7 @@ var QUESTIONS = [
     why: "", choices: ["I approve every trade", "Auto-approve after a review window", "League veto vote", "Other (explain)"] },
   { qid: "review_window", retired: "Constitution: 24 h in season, 72 h off-season → veto_vote", q: "If there's a review window, how long?",
     why: "", choices: ["None", "12 hours", "24 hours", "48 hours"] },
-  { qid: "deadlines", q: "What are the 2027 dates? Winter Meeting, keeper deadline (Signing Day), Divisional + Slot drafts, SPL Draft, trade deadline.",
+  { qid: "deadlines", later: "Mike 11/27: ask after the season", q: "What are the 2027 dates? Winter Meeting, keeper deadline (Signing Day), Divisional + Slot drafts, SPL Draft, trade deadline.",
     why: "Dates lock buttons in the app, start the countdown cards and open the draft rooms. Rough is fine (\"first Saturday in August\"); you can change them anytime.",
     choices: [] },
   { qid: "chat", retired: "League chat shipped → chat_move", q: "Chat: should the app have league chat, or keep the group text?",
@@ -567,21 +567,21 @@ var QUESTIONS = [
     why: "", choices: ["Yes, that's it", "Close (explain below)", "No (explain below)"] },
   { qid: "first_wish", q: "If the app could do one thing for you as commish, what would it be?",
     why: "Your answer goes to the top of the build list.", choices: [] },
-  { qid: "veto_vote", q: "Trades go to a league veto vote inside the app, by the constitution. Run it that way?",
-    why: "Every accepted trade posts to league chat and lands as a card on every owner's Home screen: owners vote veto, comment and react. In season: 24 hours, 6 vetoes from the 9 uninvolved owners kill it. Off-season: final after 72 hours unless someone challenges, then 6 vetoes. No veto → it goes through and the app moves the players on ESPN. Your trades with Mike go to the same vote, so nobody approves his own. (ESPN's own veto is set to 8 votes; the app would follow the constitution's 6.)",
-    choices: ["Yes, run it that way", "Yes, and I can overrule", "No, I approve every trade", "Other (explain)"] },
-  { qid: "mike_calls", q: "Mike made these calls for the app. Good with all three?",
+  { qid: "veto_vote", q: "Trades go to a league vote in the app, by the constitution (6 vetoes kills it). OK?",
+    why: "Same rule as always, finally enforced (ESPN needs 8). In season the vote runs 24 hours; off-season a trade is final after 72 hours unless challenged. Your trades with Mike go to the same vote.",
+    choices: ["Yes", "Yes, and I can overrule", "No, I approve every trade"] },
+  { qid: "mike_calls", retired: "Mike 11/27: his answers stand, Joe doesn't need to check them", q: "Mike made these calls for the app. Good with all three?",
     why: "1) A traded keeper keeps his contract as-is (KP, years left). 2) Only next season's picks can be traded (2027, 17 rounds). 3) Divisional Draft: the 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1; a pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division); if your division is full, you must assign.",
     choices: ["All good", "Change one (explain below)"] },
-  { qid: "history_gaps", q: "Can you fill the league history gaps NFL.com took with it?",
+  { qid: "history_gaps", later: "Mike 11/27: off-season", q: "Can you fill the league history gaps NFL.com took with it?",
     why: "2020-21 were on NFL.com and its old leagues are gone. Still missing: the 2020 draft picks, 2021 records for the 6 playoff teams, a few points totals (Mike 2020, Al + Rich 2021), and 2003-05 records + runner-ups. Champions and playoff seeds are already in (league emails, the Packet, Glen's GM Report). Old binders, spreadsheets, screenshots or memory all help: send them to Mike or type below.",
     choices: ["I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
-  { qid: "chat_move", q: "League chat is live in the app. Move the league's talk here?",
+  { qid: "chat_move", later: "Mike 11/27: once a few owners are in", q: "League chat is live in the app. Move the league's talk here?",
     why: "League chat, a room for each division (it follows the Divisional Draft by itself), DMs with any owner, and @ tags (an owner can choose to get an email when he's tagged). Everyone gets it once they sign in. The group text can stay for whatever you like.",
     choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] }
 ];
-var Q_ORDER = ["espn_lm", "test_league", "veto_vote", "mike_calls", "deadlines", "chat_move", "history_gaps", "first_wish"]; // the order Joe sees
-var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
+var Q_ORDER = ["first_wish", "espn_lm", "veto_vote"]; // the order Joe sees (Mike 11/27: 3 on day one; later: ones come back by moving them here)
+var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired && !q.later; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
 function answeredActive(ans) { return ACTIVE_Q.filter(function (q) { return ans[q.qid]; }).length; }
 
 // ---- tiny helpers
@@ -3164,9 +3164,9 @@ function loadDesk() {
       }).join("");
     var byQ = {}; d.answers.forEach(function (a) { (byQ[a.qid] = byQ[a.qid] || []).push(a); });
     opsBadge("opsAns", d.total + " saved" + (ACTIVE_Q.length ? " · " + ACTIVE_Q.length + " open" : ""), ACTIVE_Q.length ? "confirm" : "ok");
-    var html = ACTIVE_Q.concat(QUESTIONS.filter(function (q) { return q.retired; })).map(function (q) {
+    var html = ACTIVE_Q.concat(QUESTIONS.filter(function (q) { return q.later; }), QUESTIONS.filter(function (q) { return q.retired; })).map(function (q) {
       var list = byQ[q.qid] || [];
-      return '<div class="kv" style="display:block' + (q.retired ? ';opacity:.6' : '') + '"><b style="font-size:13px">' + esc(q.q) + '</b>' + (q.retired ? '<br><small class="muted">Retired · ' + esc(q.retired) + '</small>' : '') + '<br>' +
+      return '<div class="kv" style="display:block' + (q.retired || q.later ? ';opacity:.6' : '') + '"><b style="font-size:13px">' + esc(q.q) + '</b>' + (q.retired ? '<br><small class="muted">Retired · ' + esc(q.retired) + '</small>' : q.later ? '<br><small class="muted">Later · ' + esc(q.later) + '</small>' : '') + '<br>' +
         (list.length ? list.map(function (a) { var o = owner(a.who); return '<span class="lime">' + esc(o ? o.name : a.who) + ':</span> ' + esc(a.choice || "") + (a.note ? ' <span class="muted">“' + esc(a.note) + '”</span>' : ''); }).join("<br>") : '<span class="muted">no answer yet</span>') + '</div>';
     }).join("");
     $("#opsAns").innerHTML = html;

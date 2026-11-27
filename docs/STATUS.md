@@ -28,6 +28,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.2 · 📋 **Joe's day-one questions cut to 3** (Mike): his one wish (now first), "Can the app do your ESPN typing?" (espn_lm reworded around saving him work) and a short veto vote. Retired: `test_league` (Mike demos it instead), `mike_calls` (Mike's answers stand). New `later:` flag holds `deadlines`, `chat_move`, `history_gaps` off Joe's list (Ops desk shows them greyed as Later); bring one back by adding it to `Q_ORDER` and removing `later`. SW `splhq-v65`.
 - 2026-11-27 · v0.25.1 · 👋 **Tour + Joe's questions caught up with today's ships** (Mike: getting Joe in). Tour: GM desk stop covers keeper
   plans (up to 5, side by side, declare when the off-season opens); League stop = Drafts row (red live / gold on the clock), SPL Calendar, draft
   boards, champions, GM rankings, rivalries, rules, 💡 Ideas (fixed a doubled calendar line); Joe's 📥 Commish desk stop = folding sections that
