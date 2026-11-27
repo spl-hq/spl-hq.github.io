@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.3 · 🔒 **Keepers: one grid** (Mike: the 3-year outlook and "Your keepers" are the same thing). The keepers card is now the
+  table: one row per keeper (carried, 🆕 new, ✂️ terminated as penalty, old penalties) with 2027 / 2028 / 2029 KP, ⋯ to terminate / change the
+  deal / remove, "＋ Add a keeper" rows for open slots, then Total, KP left and Your 1st. Separate outlook card gone. SW `splhq-v54`.
 - 2026-11-27 · v0.23.2 (backend v0.17.1) · 🔒 **Keepers v2.2** (Mike: lost rename/delete, compare unclear, wants year columns). Under the plan chips:
   **"Plan name: ✏️ Rename · ⧉ Copy · 🗑 Delete"** always visible (no more hidden ⋯). **⚖️ Compare your plans** is now a grid on the page (rows =
   plans, columns = 2027 / 2028 / 2029 KP left, keepers count, ⚠ over-cap reason, "no 1st"; tap a row to open that plan). Outlook columns read
