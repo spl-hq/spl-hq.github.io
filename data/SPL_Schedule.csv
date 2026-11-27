@@ -1,5 +1,5 @@
 # SPL_Schedule.csv  --  GOLD (robot-written by tools/pull_history.py, daily): the newest season's games ESPN hasn't decided yet.
-# season=2026 reg_weeks=14 playoff_teams=6 current_week=12 pulled=2026-11-26T13:22Z
+# season=2026 reg_weeks=14 playoff_teams=6 current_week=12 pulled=2026-11-27T18:19Z
 # Week-14 Shoot Out rows are ESPN's placeholder until the Shoot Out Draft sets them; playoff rows appear once ESPN seeds them.
 season,week,playoff_tier,home_owner,away_owner
 2026,12,NONE,glen,patel
