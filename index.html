@@ -2481,7 +2481,7 @@ SCREENS.ops.after = function () {
 
 // ---- 👋 Welcome tour (Mike 11/27, ported from MAFFL REEL's one-tour version). An owner's first visit (once signed in): a welcome
 // card over the app, then one stop per tab: the app switches tabs and rings the button or cuts out the thing it's talking about.
-// The tab bar stays visible (the scrim stops above it). ✕ / Skip end it. Replay: You → 👋 Show me around again, or the Ops desk
+// The tab bar stays visible (the scrim stops above it). ‹ Back steps back (to the welcome card from stop 1); ✕ / Skip end it. Replay: You → 👋 Show me around again, or the Ops desk
 // (for me now; for one owner or everyone on their next open, via a backend stamp that "me" hands back). Seen = per owner, per phone.
 // A missing or off-screen target (not a desk owner, still loading) is skipped. Step: [screen to show ("" = stay), target, title, text, only-if].
 var TOUR_STEPS = [
@@ -2491,7 +2491,7 @@ var TOUR_STEPS = [
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here. Each shows a live line, and gold means it needs you: an offer waiting, or Signing Day open. Every roster row shows what keeping that player costs."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat and a DM with any owner. Trade news and commish alerts land here too. Tag an owner with his @handle."],
   ["league", "#tabs [data-t='league']", "🏆 League", "Standings, the trade wire, off-season drafts, keepers, every SPL Draft, champions since 2006, GM rankings, rivalries and the rules."],
-  ["", "#deskBtn", "", "", function () { return isDesk(); }],
+  ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish: trades to approve, Mike's questions for you (the number on this button), and opening the off-season drafts and Signing Day.", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
 var TR = null;
 function tourKey() { return "tour_seen_" + (ME ? ME.owner : ""); }
@@ -2509,11 +2509,6 @@ function tourStart() { if (!ME) return; store(tourKey(), 1); var sh = $("#sheet"
 function tourReplay() { if (!ME) return go("signin"); store(tourKey(), null); tourStart(); }
 // Ops desk replay for someone else: "me" carries the newest stamp for this owner; a stamp this phone hasn't seen = show it once more.
 function tourStampCheck(st) { if (!st || !ME) return; var k = "tour_stamp_" + ME.owner; if (store(k) === st) return; store(k, st); store(tourKey(), null); tourMaybe(); }
-function tourText(s) {
-  if (s[1] !== "#deskBtn") return [s[2], s[3]];
-  return isOps() ? ["🛠️ Desk", "Your Ops desk: robots, backups, passphrases, the test league and this tour's replay buttons. Joe's view of the Commish desk is one tap away."]
-    : ["📥 Desk", "Your Commish desk: trades to approve, Mike's questions for you (the number on the button), drafts and Signing Day."];
-}
 function tourCard() {
   var first = (ME && ME.name) || "";
   tourPaint("", '<div class="twel"><img src="icons/crest.png?v=3" alt=""><div class="tkick">' + (first ? "Welcome, " + esc(first) : "Welcome") + '</div>' +
@@ -2532,23 +2527,24 @@ function tourSpot(el, title, text, n, of) {
   tourPaint(inNav ? "" : '<div class="thole" style="left:' + hole.l + 'px;top:' + hole.t + 'px;width:' + hole.w + 'px;height:' + hole.h + 'px"></div>',
     (inNav ? '<div class="tring" style="left:' + hole.l + 'px;top:' + (r.top - 2) + 'px;width:' + hole.w + 'px;height:' + (r.height + 4) + 'px"></div>' : '') +
     '<div class="tbub ' + (below ? "dn" : "up") + '" style="' + pos + 'px"><i class="tarr" style="left:' + (ax - (W - bw) / 2) + 'px"></i>' +
-    (title ? '<h3>' + esc(title) + '</h3>' : '') + '<p>' + esc(text) + '</p><div class="tbtn"><button id="tskip">' + (last ? "" : "Skip") + '</button><small>' + n + ' / ' + of + '</small><button class="go" id="tnext">' + (last ? "Got it" : "Next ›") + '</button></div>' +
+    (title ? '<h3>' + esc(title) + '</h3>' : '') + '<p>' + esc(text) + '</p><div class="tbtn"><button id="tskip">‹ Back</button><small>' + n + ' / ' + of + '</small><button class="go" id="tnext">' + (last ? "Got it" : "Next ›") + '</button></div>' +
     '<button class="tx" id="tx" aria-label="Close the tour">✕</button></div>', inNav ? "" : "hole");
 }
 function tourPaint(cut, h, mode) { var o = $("#tour"); o.className = "tour on" + (mode ? " " + mode : ""); o.style.setProperty("--navtop", tourNavTop() + "px");
   o.innerHTML = '<div class="tscrim">' + cut + '</div><div class="tnav"></div>' + h;
-  $("#tnext").onclick = tourNext; $("#tskip").onclick = tourEnd; if ($("#tx")) $("#tx").onclick = tourEnd; }
+  $("#tnext").onclick = tourNext; $("#tskip").onclick = TR && TR.i != null ? tourBack : tourEnd; if ($("#tx")) $("#tx").onclick = tourEnd; }
 function tourDraw() {
   var o = $("#tour"); if (!TR) { o.className = "tour"; o.innerHTML = ""; return; }
   if (TR.i == null) return tourCard();
   var s = TR.steps[TR.i]; if (!s) return tourEnd();
   if (s[0] && tourScreen() !== s[0]) { o.className = "tour"; o.innerHTML = ""; go(s[0]); var at = TR.i; setTimeout(function () { if (TR && TR.i === at) tourDraw(); }, 350); return; } // let the tab paint first
-  var el = document.querySelector(s[1]); if (!el || !el.getClientRects().length) return tourNext();
-  var nav = tourNavTop(), r = el.getBoundingClientRect(), tt = tourText(s);
-  if (!$("#tabs").contains(el) && (r.top < 0 || r.top + Math.min(r.height, 60) > nav)) { el.scrollIntoView({ block: "center" }); r = el.getBoundingClientRect(); if (r.top < 0 || r.top + Math.min(r.height, 60) > nav) return tourNext(); }
-  tourSpot(el, tt[0], tt[1], TR.i + 1, TR.steps.length);
+  var el = document.querySelector(s[1]), skip = TR.back ? tourBack : tourNext; if (!el || !el.getClientRects().length) return skip();
+  var nav = tourNavTop(), r = el.getBoundingClientRect();
+  if (!$("#tabs").contains(el) && (r.top < 0 || r.top + Math.min(r.height, 60) > nav)) { el.scrollIntoView({ block: "center" }); r = el.getBoundingClientRect(); if (r.top < 0 || r.top + Math.min(r.height, 60) > nav) return skip(); }
+  tourSpot(el, s[2], s[3], TR.i + 1, TR.steps.length);
 }
-function tourNext() { if (!TR) return; TR.i = TR.i == null ? 0 : TR.i + 1; if (TR.i >= TR.steps.length) tourEnd(); else tourDraw(); }
+function tourBack() { if (!TR || TR.i == null) return; TR.back = 1; TR.i = TR.i ? TR.i - 1 : null; if (TR.i == null && tourScreen() !== "home") { go("home"); setTimeout(tourDraw, 300); } else tourDraw(); } // step 1 → the welcome card
+function tourNext() { if (!TR) return; TR.back = 0; TR.i = TR.i == null ? 0 : TR.i + 1; if (TR.i >= TR.steps.length) tourEnd(); else tourDraw(); }
 function tourEnd() { TR = null; tourDraw(); if (tourScreen() !== "home") go("home"); }
 window.addEventListener("resize", function () { if (TR) tourDraw(); });
 // 🛠️ Ops desk → 👋 Welcome tour: replay for me (now), for one owner or for everyone (on their next open).

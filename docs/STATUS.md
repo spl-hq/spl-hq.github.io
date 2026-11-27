@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, 👋 welcome tour v0.19.0, backend v0.14.0)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, 👋 welcome tour v0.19.1)
 
 ## Now
 - **WS7 ops ready-check (v0.16, backend v0.12.0):** audit in `docs/OPS_AUDIT_2026-11-26.md`. Big find: **GitHub's schedule has never fired on this repo**, so the backend's new hourly watchdog now runs late robots itself. **Mike, three one-time steps (runbook):** ① Script property `GH_TOKEN` (fine-grained, this repo, Actions read+write, 1 yr) ② Apps Script ⏰ trigger on `tick`, hourly ③ UptimeRobot on `?action=health`. Then Ops desk → 🤖 Robots & watchdog should read ✅ all good. ESPN writes are ON (test league): off after the demo.
@@ -19,6 +19,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.19.1 · 👋 Tour (Mike): **‹ Back** on every stop (stop 1 → back to the welcome card; ✕ still ends it). The Desk stop is now Joe's: "📥 Your Commish desk" (trades to approve, the questions waiting on him, opening the drafts + Signing Day), shown to commish only; ops (Mike) gets no desk stop. SW `splhq-v38`.
 - 2026-11-27 · v0.19.1 · 📇 **Player files + desk header** (Mike: header wasted space, button info weak, players should be clickable).
   **Header:** big blue team card gone; "GM desk · Mike" + team name + a chip line (record · rank of 12 · division rank · streak · next game), from gold
   history/schedule so it draws instantly. 🧢 dropped. **Buttons now say something:** Roster = PF per week + injury line (gold "1 hurt starter");
