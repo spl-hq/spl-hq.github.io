@@ -429,12 +429,13 @@ tr.pclk{cursor:pointer} tr.pclk:active{background:#EEF3FA} .gp.pclk{cursor:point
 .kpact{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;margin:0 0 8px} .kpact span{color:var(--muted);font-weight:700} .kpact a{color:#1E407C;font-weight:700;text-decoration:none} .kpact a.del{color:var(--coral)}
 .kcmp tr{cursor:pointer} .kcmp tr.on td{background:#EEF3FA} .kcmp td.n small{display:block;font-size:10px;white-space:nowrap}
 .kgrid tr.kr,.kgrid tr.kadd{cursor:pointer} .kgrid td.km{color:var(--muted);width:16px;text-align:center;padding-left:2px} .kgrid tr.kadd td{border-top:1px dashed var(--line);padding:12px 0;color:#1E407C} .kgrid tr.kadd small{color:var(--muted)}
-.kcwrap{overflow-x:auto;margin:0 -4px} .kcmp2 table{border-collapse:collapse;min-width:100%;font-size:13px} .kcmp2 th,.kcmp2 td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top;text-align:left;min-width:92px}
-.kcmp2 td.lab{min-width:70px;color:var(--muted);font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em} .kcmp2 th{border-top:0;font:800 14px var(--head,inherit);color:#1E407C;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.kcwrap{overflow-x:auto;margin:0 -4px} .kcmp2 table{border-collapse:collapse;min-width:100%;font-size:13px} .kcmp2 th,.kcmp2 td{padding:8px 5px;border-top:1px solid var(--line);vertical-align:top;text-align:left;min-width:74px}
+.kcmp2 td.lab{min-width:52px;width:52px;font-size:10px !important;color:var(--muted);font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em} .kcmp2 th{border-top:0;font:800 14px var(--head,inherit);color:#1E407C;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .kcmp2 .on{background:#EEF3FA} .kcmp2 th.on{color:#041E42;text-decoration:none} .kcmp2 td.names{line-height:1.45} .kcmp2 b{font-family:var(--mono);font-size:15px} .kok{color:#1E407C;font-weight:700}
 .kstrip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-left:4px solid #1E407C;border-radius:0 10px 10px 0;padding:8px 12px;margin:0 0 10px;font-size:14px}
 .kstrip b{font-family:var(--mono)} .kstrip small{display:block;color:var(--muted);font-size:12px;margin-top:2px} .kstrip a{color:#1E407C;font-weight:700;font-size:13px;white-space:nowrap} .kstrip.bad{border-left-color:var(--coral)}
 .kstripw{color:var(--coral);font-weight:700;font-size:13px;margin:-4px 0 10px}
+.kcmp2 td.names span{display:block;white-space:nowrap}
 /* ===== "Limestone" gray layer (Mike 11/26): Penn State's gray for structure; blue stays for anything you tap, win or own.
    Canvas, lines, labels, tab bar and quiet chips go neutral gray so white cards pop. Delete this block to go back to all-blue Nittany. ===== */
 :root{ --raised:#F1F2F4; --line:#D9DCE0; --muted:#5F666D; --soft:#3C4248; }
@@ -513,7 +514,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.23.7";
+var APP_VERSION = "0.23.8";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1655,10 +1656,13 @@ function kMineView(id, edit) {
   // who you cut, KP used this season, KP left the next two, your 1st, and whether it fits. Tap a column header to open that plan.
   if (list.length > 1) { var CS = list.map(function (x) { return kcalc(id, x); });
     var col = function (fn, cls) { return list.map(function (x, i) { return '<td class="' + (i === si ? "on " : "") + (cls || "") + '">' + fn(x, CS[i], i) + '</td>'; }).join(""); };
-    var who2 = function (x, c) { var keep = c.carried.filter(function (k) { return (x.cuts || []).indexOf(k.id) < 0; }).map(function (k) { return esc(k.player); })
-        .concat((x.signs || []).map(function (s2) { return "🆕 " + esc(s2.player) + (s2.tag ? " 🏷️" : ""); }));
-      return keep.length ? keep.join("<br>") : '<span class="muted">nobody</span>'; };
-    var cut2 = function (x, c) { var cs = c.carried.filter(function (k) { return (x.cuts || []).indexOf(k.id) >= 0; }); return cs.length ? '<span class="coral">' + cs.map(function (k) { return "✂️ " + esc(k.player); }).join("<br>") + '</span>' : '<span class="muted">·</span>'; };
+    var ln = function (n) { // last name only (Mike 11/27): "St. Brown", "Smith-Njigba", no Jr./III
+      var w = String(n || "").replace(/\s+(jr\.?|sr\.?|ii|iii|iv|v)$/i, "").trim().split(/\s+/);
+      return w.length > 2 && /^(st\.?|van|von|de|da|del|la|le|mc)$/i.test(w[w.length - 2]) ? w.slice(-2).join(" ") : w[w.length - 1] || n; };
+    var who2 = function (x, c) { var keep = c.carried.filter(function (k) { return (x.cuts || []).indexOf(k.id) < 0; }).map(function (k) { return '<span>' + esc(ln(k.player)) + '</span>'; })
+        .concat((x.signs || []).map(function (s2) { return '<span>🆕 ' + esc(ln(s2.player)) + (s2.tag ? " 🏷️" : "") + '</span>'; }));
+      return keep.length ? keep.join("") : '<span class="muted">nobody</span>'; };
+    var cut2 = function (x, c) { var cs = c.carried.filter(function (k) { return (x.cuts || []).indexOf(k.id) >= 0; }); return cs.length ? cs.map(function (k) { return '<span class="coral">✂️ ' + esc(ln(k.player)) + '</span>'; }).join("") : '<span class="muted">·</span>'; };
     var anyCut = list.some(function (x) { return (x.cuts || []).length; }), anyTag = KP_YRS.some(function (y) { return CS.some(function (c) { return c.yrs[y].first; }); });
     html += '<div class="card kcmp2"><div class="eyebrow">⚖️ Your plans side by side</div><p class="kfine" style="margin:0 0 8px">Who you\'d keep under each plan and what it costs. Tap a plan\'s name to open it.</p>' +
       '<div class="kcwrap"><table><tr><th></th>' + list.map(function (x, i) { return '<th class="' + (i === si ? "on" : "") + '" onclick="ksel(\'' + id + '\',' + i + ');render()">' + esc(x.name) + '</th>'; }).join("") + '</tr>' +
@@ -1666,8 +1670,8 @@ function kMineView(id, edit) {
       (anyCut ? '<tr><td class="lab">Cutting</td>' + col(cut2, "names") + '</tr>' : '') +
       '<tr><td class="lab">' + y0 + ' KP used</td>' + col(function (x, c) { var u = Math.round((10 - c.yrs[y0].room) * 10) / 10; return '<b class="' + (u > 10 ? "coral" : "") + '">' + u + '</b> / 10'; }) + '</tr>' +
       KP_YRS.slice(1).map(function (y) { return '<tr><td class="lab">' + y + ' KP left</td>' + col(function (x, c) { return '<b>' + c.yrs[y].room + '</b>'; }) + '</tr>'; }).join("") +
-      (anyTag ? '<tr><td class="lab">Your 1st</td>' + col(function (x, c) { var lost = KP_YRS.filter(function (y) { return c.yrs[y].first; }); return lost.length ? '<span class="coral">lost ' + lost.map(function (y) { return "\'" + String(y).slice(2); }).join(", ") + '</span>' : "✓ kept"; }) + '</tr>' : '') +
-      '<tr><td class="lab">Works?</td>' + col(function (x, c) { return c.errors.length ? '<span class="coral">⚠ ' + esc(c.errors[0]) + '</span>' : '<span class="kok">✓ fits</span>'; }) + '</tr>' +
+      (anyTag ? '<tr><td class="lab">Your 1st</td>' + col(function (x, c) { var lost = KP_YRS.filter(function (y) { return c.yrs[y].first; }); return lost.length ? '<span class="coral">lost ' + (lost.length > 1 ? "\'" + String(lost[0]).slice(2) + "–\'" + String(lost[lost.length - 1]).slice(2) : "\'" + String(lost[0]).slice(2)) + '</span>' : "✓ kept"; }) + '</tr>' : '') +
+      '<tr><td class="lab">Works?</td>' + col(function (x, c) { return c.errors.length ? '<span class="coral">⚠ ' + esc(c.errors[0].replace("Over the cap by ", "over by ")) + '</span>' : '<span class="kok">✓ fits</span>'; }) + '</tr>' +
       '</table></div></div>'; }
   // ③ declare
   if (W) html += '<button class="btn kdeclbtn" onclick="kDeclare(\'' + id + '\')">' + (dec ? "Declare the change" : "Declare " + (edit ? "these" : "my") + " keepers") + ' · ' + (10 - t0.room) + ' / 10 KP</button>' +

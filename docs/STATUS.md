@@ -23,6 +23,8 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.23.8 · ⚖️ **Plans side by side, tighter** (Mike): last names only ("St. Brown", no Jr./III), one name per line, narrower columns
+  so three plans fit at 390 px, "lost '27–'29" and "over by 8 KP" short forms. SW `splhq-v59`.
 - 2026-11-27 · v0.23.7 · 🔒 **Keepers: big blue cap box → a slim strip** (Mike: clogging real estate). One line "2027: 8 / 10 KP · 2 of 3 kept",
   the Signing Day status under it, Rules on the right; red edge + one warning line when a plan is over the cap or the max. The grid already
   shows KP by year, so your keepers now start on the first screen. SW `splhq-v58`.
