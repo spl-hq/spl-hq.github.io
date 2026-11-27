@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, Commish desk v0.24 + no test-team renames, backend v0.17.4) · was by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, no SPL Draft cards v0.24.2) · was by Claude (chat, Commish desk v0.24 + no test-team renames, backend v0.17.4) · was by Claude (chat, draft grid + desk draft controls + board → ESPN v0.23, backend v0.17.0) · was by Claude (chat, SPL Draft room + League tab v0.22, backend v0.16.0) · was (chat, Shoot Out Draft + off-season mode v0.21, backend v0.15.0) · was 2026-11-27 by Claude (chat, Keepers v2) · was 2026-11-27 by Claude (chat, injury tags v0.19.5, backend v0.14.1)
 
 
 ## Now
@@ -23,6 +23,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 One more question cleanup before the list goes to Joe.
 
 ## Recently shipped
+- 2026-11-27 · v0.24.2 · 🗓️ **No Home cards for the SPL Draft** (Mike: everyone is in the draft room, 2-3 hours). `draftCards` skips
+  kind `spl`: no ⏱️ on-the-clock, live or done cards (the done card also wrongly read "Divisions are set"). Divisional, Slot and Shoot Out keep
+  their card cycle. Room, chat round posts and the 30-min on-the-clock email unchanged. SW `splhq-v62`.
 - 2026-11-27 · v0.24.1 / backend 0.17.5 · 💬 **SPL HQ chat posts link to the right place** (Mike: every bot post said "Open trade", even draft
   openings/cancels). The button now follows the post's ref: trade → "Open trade", draft → "Open draft room", Signing Day → "Open keepers",
   anything else → no button. Draft-cancel posts carry no link (a cancelled room is hidden; old ones are suppressed too). SW `splhq-v61`.

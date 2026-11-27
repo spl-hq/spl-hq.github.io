@@ -514,7 +514,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.24.1";
+var APP_VERSION = "0.24.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2428,10 +2428,11 @@ function drSend(choice) { var x = DR;
   authed("draftpick", { id: x.id, n: x.picks.length + 1, choice: choice }).then(function (r) { if (!r.ok) { if (r.stale) { DRAFTS = null; render(); } throw new Error(r.error); } DSEL = null; DRAFTS = null; SPLQ = ""; toast("✓ Pick in"); drawRoom(r.draft); }).catch(function (e) { toast(e.message); }); }
 window.drUndo = function (id) { if (!confirm("Take back the last pick?")) return; authed("draftundo", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; render(); }).catch(function (e) { toast(e.message); }); };
 window.drCancel = function (id) { if (!confirm("Cancel this draft? The league is told.")) return; authed("draftcancel", { id: id }).then(function (r) { if (!r.ok) throw new Error(r.error); DRAFTS = null; toast("Cancelled"); render(); }).catch(function (e) { toast(e.message); }); };
-// Reel cards: you're on the clock (needs you), a draft is live, results (7 days)
+// Reel cards: you're on the clock (needs you), a draft is live, results (7 days). Divisional, Slot and Shoot Out only:
+// the SPL Draft gets no cards (Mike 11/27: everyone is in the draft room, 2-3 hours start to finish; the room + chat carry it).
 function draftCards(D, me) {
   var out = []; if (!D || !D.ok) return out;
-  D.drafts.forEach(function (x) { var t = (x.mode === "test" ? "🧪 " : "") + x.season + " " + x.name;
+  D.drafts.forEach(function (x) { if (x.kind === "spl") return; var t = (x.mode === "test" ? "🧪 " : "") + x.season + " " + x.name;
     if (x.status === "open" && x.clock === me) out.push({ id: "dclock:" + x.id + ":" + x.picks.length, needs: 1, scope: "me", eb: "⏱️ " + esc(t), title: "You're on the clock", body: '<p>Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + '. The league is waiting on you.</p>', action: ["Make your pick", "go('droom','" + x.id + "')"] });
     else if (x.status === "open") out.push({ id: "dlive:" + x.id + ":" + x.picks.length, scope: "league", eb: "🗓️ " + esc(t) + " · live", title: esc(oname(x.clock)) + " is up", body: '<p>Pick ' + (x.picks.length + 1) + ' of ' + x.turns.length + '.' + (x.picks.length ? ' Last: ' + esc(oname(x.picks[x.picks.length - 1].owner)) + ' ' + esc(pickTxt(x, x.picks[x.picks.length - 1])) + '.' : '') + '</p>', action: ["Watch the room", "go('droom','" + x.id + "')"] });
     else if (x.status === "done" && Date.now() - new Date(x.updated).getTime() < 7 * 864e5) out.push({ id: "ddone:" + x.id, scope: "league", eb: "🏁 " + esc(t), title: x.kind === "slot" ? "Draft order is set" : x.kind === "shootout" ? "Week " + regWks() + " is set" : "Divisions are set",

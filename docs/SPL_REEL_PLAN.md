@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-27 · **No Home cards for the SPL Draft** (Mike): everyone is in the draft room and it's done in 2-3 hours, so no on-the-clock / live / done card cycle. Divisional, Slot and Shoot Out drafts keep theirs (spread out over days, that's where the cards earn their keep).
 - 2026-11-27 · **Joe's desk is the clean one; the Ops desk is the workshop** (Mike). Commish desk = real league controls only (drafts incl. ESPN
   load, Signing Day, trades, questions, pick fixes) in folding sections; rehearsals, robots, watchdog, test league and tour stay on the Ops desk.
 - 2026-11-27 · **Test league team names stay as ESPN has them** (Mike): the mirror only moves players.

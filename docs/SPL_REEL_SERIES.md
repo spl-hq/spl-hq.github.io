@@ -95,7 +95,7 @@ A card with empty space under its content is missing a part: add chips or tiles,
 | 📰 Trade wire | `wire` | Instant | data | 💸 🤑 🤡 👀 🔥 | 7 days. |
 | 🎟️ Pick trade wire | `pickwire` | Instant | data | 💸 🤑 🤡 👀 🔥 | Every pick that's changed hands. |
 | 📰 Trade wire · season | `wireseason` | Instant | data | 💸 🤑 🤡 👀 🔥 | Count + most active. |
-| 🗓️ Drafts live / done | `dlive` / `ddone` | Instant | data | | Off-season drafts (WS3). |
+| 🗓️ Drafts live / done | `dlive` / `ddone` | Instant | data | | Divisional, Slot, Shoot Out drafts (+ ⏱️ `dclock` needs-you). Not the SPL Draft: everyone's in the room (Mike 11/27). |
 
 ### Play
 | Series | id | Drop | Lives | Notes |
