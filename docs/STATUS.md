@@ -28,6 +28,8 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.7 · 📇 Player file bars: your years now read at a glance (Mike: still couldn't read them): light-blue bar, blue label, and a
+  "You" pill in place of your name; legend says so. SW `splhq-v70`.
 - 2026-11-27 · v0.25.6 · 🔁 **Email trade sweep** (Mike: "go"): `data/Trade_History.csv` now holds **36 pre-app deals, 2009–2026** (96 rows) read from
   the trade-announcement threads in Mike's Gmail: e.g. Forte → Mos (2009), McCoy → Slappies (2010), A.J. Green ↔ Greg Little + picks (2012),
   Doug Martin + the six-round pick swap (2013), Michael Thomas + Brady ↔ the #4 and #21 (2017), Henry / Bell / McCaffrey (2019), Diggs + M. Williams (2021),
