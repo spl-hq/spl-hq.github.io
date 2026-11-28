@@ -528,6 +528,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 .cflag small{display:block;margin-top:3px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:#96BEE6}
 .cflag.tb{background:repeating-linear-gradient(135deg,#041E42 0 14px,#0A2752 14px 28px)}
 .dcard.flagged.tb{background:#FBF8F1;border:2px solid #041E42}
+.cflag.tv{background:linear-gradient(135deg,#041E42,#1E407C)} .dcard.flagged.tv{border:2px solid #1E407C} /* 🧠 SPL Trivia */
 .yrtag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:6px;background:#041E42;color:#fff;font:700 13px var(--mono);letter-spacing:.04em;vertical-align:middle}
 .yrtag.sm{margin:0 4px 0 0;font-size:11px;padding:1px 6px}
 .tl b.yr{color:var(--ink,#0B1F3A);font-family:var(--mono)}
@@ -846,6 +847,7 @@ function buildFeed(d) {
         '<p class="muted" style="font-size:12px;margin-top:8px">Live from ESPN. Leader highlighted.</p>', action: ["Match", "go('match')"] }); }
   // 🗞️ The week's drops (Edition · Play · Vault · Preview). Off-season: only while the last issue is fresh.
   if (issue && (!OFF || nowMs() - weekTue(season, issue) < 21 * 864e5)) weekCards(season, issue, me).forEach(function (c) { cards.push(c); });
+  var tv = triviaCard(now, OFF); if (tv) cards.push(tv); // 🧠 SPL Trivia, in season and out
   // 🔒 Your keepers + 💰 keeper economy (vault)
   var LDx = window.LEAGUE_DATA || { contracts: [] };
   if (me) { var mc = LDx.contracts.filter(function (c) { return c.owner === me && (c.kp["2027"] != null || c.pen["2027"] != null); });
@@ -1614,7 +1616,7 @@ SCREENS.desk.after = function () { meRefresh();
     if (d.recent.length) html += cSec("recent", "📜 Recent decisions", "cRc", d.recent.map(offerCard).join(""), d.recent.length + " recent", "ok");
     $("#dsk").innerHTML = html;
     loadKeep(true).then(function () { var k = $("#cKp"); if (!k) return; k.innerHTML = kdeskBody(true); var st = kdeskState(true); opsBadge("cKp", st.badge, st.cls); }).catch(function (e) { var k = $("#cKp"); if (k) k.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
-    deskDraftsFill("#cDr", true); VOTES = null; deskVotesFill();
+    deskDraftsFill("#cDr", true); MVOTES = null; deskVotesFill();
   }).catch(function (e) { if ($("#dsk")) $("#dsk").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
 function wipeTrades() { if (!confirm("Wipe ALL test trades and reset every pick to its original team?")) return; authed("wipetrades").then(function (r) { if (!r.ok) throw new Error(r.error); TRADES = null; toast("Wiped"); render(); }).catch(function (e) { toast(e.message); }); }
@@ -1914,11 +1916,11 @@ SCREENS.rules.after = function (arg) {
 // owner's Home (Needs you until they vote). Yes / No / Abstain, changeable until it closes. Rule changes pass with 7 Yes (rulebook C.1),
 // league matters with more Yes than No, practice votes change nothing. Owners can send a 💡 rule idea; it lands in league chat + on Joe's desk,
 // and Joe decides if it goes to a vote. Names show once a vote closes (the desk sees them as they come in). Backend: mod_votes.js.
-var VOTES = null;
+var MVOTES = null;
 function loadVotes(fresh) {
   if (!ME) return Promise.reject(new Error("Sign in to vote."));
-  if (!fresh && VOTES && Date.now() - VOTES._at < 20000) return Promise.resolve(VOTES);
-  return authed("votes").then(function (v) { if (!v.ok) throw new Error(v.error); v._at = Date.now(); VOTES = v; return v; });
+  if (!fresh && MVOTES && Date.now() - MVOTES._at < 20000) return Promise.resolve(MVOTES);
+  return authed("votes").then(function (v) { if (!v.ok) throw new Error(v.error); v._at = Date.now(); MVOTES = v; return v; });
 }
 var KIND_TXT = { rule: ["📖 Rule change", "7 Yes passes it"], matter: ["🗳️ League matter", "More Yes than No passes it"], practice: ["🧪 Practice vote", "Nothing changes"] };
 function closesTxt(iso) { var d = new Date(iso); return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + " · " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
@@ -1934,7 +1936,7 @@ function voteWho(m) {
 }
 function voteBtns(m) {
   return '<div class="row" style="gap:8px;margin-top:10px">' + ["Yes", "No", "Abstain"].map(function (c) {
-    return '<button class="btn' + (m.mine === c ? "" : " ghost") + '" style="flex:1" onclick="castVote(\'' + esc(m.id) + '\',\'' + c + '\')">' + (m.mine === c ? "✓ " : "") + c + '</button>'; }).join("") + '</div>';
+    return '<button class="btn' + (m.mine === c ? "" : " ghost") + '" style="flex:1" onclick="castMVote(\'' + esc(m.id) + '\',\'' + c + '\')">' + (m.mine === c ? "✓ " : "") + c + '</button>'; }).join("") + '</div>';
 }
 function voteCard(m) {
   var k = KIND_TXT[m.kind] || KIND_TXT.matter, open = m.status === "open";
@@ -1944,8 +1946,8 @@ function voteCard(m) {
       : '<p style="font-size:13px"><b>' + esc(m.result || m.note || "") + '</b></p>' + voteTally(m)) + voteWho(m) +
     (m.by ? '<p class="muted" style="font-size:11px;margin-top:8px">Raised by ' + esc(oname(m.by)) + '</p>' : '') + '</div>';
 }
-function castVote(id, c) {
-  authed("mvote", { id: id, choice: c }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; HOME_D = null; toast("✓ " + c + ". You can change it until the vote closes."); render(); }).catch(function (e) { toast(e.message); });
+function castMVote(id, c) {
+  authed("mvote", { id: id, choice: c }).then(function (r) { if (!r.ok) throw new Error(r.error); MVOTES = null; HOME_D = null; toast("✓ " + c + ". You can change it until the vote closes."); render(); }).catch(function (e) { toast(e.message); });
 }
 SCREENS.votes = function () {
   if (!ME) return back("league", "League") + '<h2>League votes</h2>' + needSignIn("to vote");
@@ -1965,7 +1967,7 @@ SCREENS.votes.after = function () {
     $("#riS").onclick = function () {
       var t = $("#riT").value.trim(); if (t.length < 5) { toast("Say the idea in a line first"); return; }
       var btn = this; btn.disabled = true;
-      authed("ruleidea", { title: t, detail: $("#riD").value }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; toast("💡 Sent to the commish + league chat"); render(); }).catch(function (e) { toast(e.message); btn.disabled = false; });
+      authed("ruleidea", { title: t, detail: $("#riD").value }).then(function (r) { if (!r.ok) throw new Error(r.error); MVOTES = null; toast("💡 Sent to the commish + league chat"); render(); }).catch(function (e) { toast(e.message); btn.disabled = false; });
     };
   }).catch(function (e) { if ($("#vts")) $("#vts").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
@@ -2010,19 +2012,19 @@ function deskVotesFill() {
 function votePublish() {
   var t = $("#vbT").value.trim(), d = $("#vbD").value.trim(); if (t.length < 5) { toast("Write the question first"); return; }
   if (!confirm("Publish this vote to the league?\n\n" + t + "\n\n" + (KIND_TXT[VB.kind] || KIND_TXT.matter)[0] + " · closes in " + VB.days + " day" + (VB.days > 1 ? "s" : "") + ".\nIt goes to league chat and every owner's Home.")) return;
-  authed("voteopen", { kind: VB.kind, days: VB.days, title: t, detail: d }).then(function (r) { if (!r.ok) throw new Error(r.error); VB = { kind: "matter", days: 3 }; VOTES = null; HOME_D = null; toast("🗳️ Published to the league"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+  authed("voteopen", { kind: VB.kind, days: VB.days, title: t, detail: d }).then(function (r) { if (!r.ok) throw new Error(r.error); VB = { kind: "matter", days: 3 }; MVOTES = null; HOME_D = null; toast("🗳️ Published to the league"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
 }
 function ideaVote(id) {
   var kind = confirm("Is this a rule change?\n\nOK = rule change (7 Yes passes it)\nCancel = league matter (more Yes than No)") ? "rule" : "matter";
-  authed("voteopen", { id: id, kind: kind, days: VB.days }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; HOME_D = null; toast("🗳️ Put to a vote · " + VB.days + " days"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+  authed("voteopen", { id: id, kind: kind, days: VB.days }).then(function (r) { if (!r.ok) throw new Error(r.error); MVOTES = null; HOME_D = null; toast("🗳️ Put to a vote · " + VB.days + " days"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
 }
 function ideaNo(id) {
   var why = prompt("Why not now? (the league sees this)"); if (!why) return;
-  authed("voteopen", { id: id, decline: true, reason: why }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; toast("Noted in league chat"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+  authed("voteopen", { id: id, decline: true, reason: why }).then(function (r) { if (!r.ok) throw new Error(r.error); MVOTES = null; toast("Noted in league chat"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
 }
 function votePractice() {
   if (!confirm("Start the practice vote?\n\n“Should an in-season trade's review stay at 24 hours?”\n\nIt goes to league chat and every owner's Home. Nothing changes whatever the result.")) return;
-  authed("votepractice").then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; HOME_D = null; toast("🧪 Practice vote is live"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+  authed("votepractice").then(function (r) { if (!r.ok) throw new Error(r.error); MVOTES = null; HOME_D = null; toast("🧪 Practice vote is live"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
 }
 
 // 🔒 Keepers (v0.16): scenarios (up to 3, saved with your sign-in) → the Signing Day declaration. Cap profile with terminate what-ifs,
@@ -3105,7 +3107,7 @@ var SERIES = {
   slate: ["league", 0, "", "sc"], dlive: ["league", 0, ""], ddone: ["league", 1, ""], headline: ["league", 1, "ed", "hl"], awards: ["league", 2, "ed", "aw"],
   power5: ["league", 3, "ed", "race"], table: ["league", 4, "ed", "race"], wire: ["league", 5, "", "wire"], pickwire: ["league", 6, "", "wire"], wireseason: ["league", 7, "", "wire"], kboard: ["league", 1, "", "wire"],
   vote: ["league", 0, ""], voteres: ["league", 1, ""], onwire: ["league", 4, "", "wire"], // 🗳️ SPL Owners Votes + ⏳ trades on the wire (Mike 11/28)
-  gotw: ["play", 1, "play"], quiz: ["play", 2, "play"],
+  gotw: ["play", 1, "play"], quiz: ["play", 2, "play"], trivia: ["play", 3, ""], // 🧠 SPL Trivia: own drop clock (Wed 7 AM, + Sat off-season)
   rivalry: ["vault", 1, "vault", "riv"], history: ["vault", 2, "prev", "hist"], economy: ["vault", 3, "vault", "wire"] };
 var TRAYS = { hl: ["🔥", "😂", "🤯", "🤡", "💀"], aw: ["🏆", "🧠", "🔥", "😬", "👏"], race: ["📈", "😤", "🙏", "👀", "🔥"], sc: ["🔥", "😱", "🥱", "👏", "🤡"],
   wire: ["💸", "🤑", "🤡", "👀", "🔥"], riv: ["🔥", "😤", "😂", "👀", "💀"], hist: ["👀", "😂", "🔥", "🤯", "🫡"] };
@@ -3267,6 +3269,22 @@ function weekCards(season, wk, me) {
   return out;
 }
 
+// 🧠 SPL Trivia (Mike 11/28): a fun fact from league history, asked as a question first; the fact is the reveal. Deck = LEAGUE_DATA.trivia
+// (lore from gold data/Trivia.csv + record cards tools/build_data.py recomputes on every rebuild). A new card every Wednesday 7 AM ET
+// (the Vault drop); in the off-season a second one Saturday 7 AM. Same card for everyone; the deck reshuffles each time through. One shot (votes).
+var TRIVIA_GO = { history: ["📚 History", "go('history')"], rules: ["📜 Constitution", "go('rules')"], calendar: ["🗓️ SPL Calendar", "go('calendar')"] };
+function triviaCard(now, OFF) {
+  var deck = LD("trivia"), D = 864e5, ep = weekTue(2026, 1) + D; if (!deck.length || now < ep) return null; // first Wednesday: Sep 16, 2026
+  var w = Math.floor((now - ep) / (7 * D)), sat = OFF && now - (ep + w * 7 * D) >= 3 * D, slot = 2 * w + (sat ? 1 : 0), at = ep + w * 7 * D + (sat ? 3 * D : 0);
+  var cyc = Math.floor(slot / deck.length), t = deck.slice().sort(function (a, b) { return hsh(a.id + "~" + cyc) - hsh(b.id + "~" + cyc); })[slot % deck.length];
+  var ref = "trivia:" + t.id + "." + cyc, isO = function (v) { return LD("owners").some(function (o) { return o.id === v; }); };
+  VSPEC[ref] = { kind: "quiz", answer: t.opts[t.ans], reveal: esc(t.fact),
+    options: t.opts.slice().sort(function (a, b) { return hsh(t.id + a) - hsh(t.id + b); }).map(function (v) {
+      return { v: v, html: isO(v) ? '<span class="qt" style="display:flex;align-items:center;gap:8px">' + av(v, "sm") + esc(oname(v)) + '</span>' : '<span class="qt">' + esc(v) + '</span>' }; }) };
+  var g = String(t.go || ""), act = TRIVIA_GO[g] || (/^rivalry:/.test(g) ? ["⚔️ The rivalry", "go('rivalry','" + esc(g.slice(8)) + "')"] : null);
+  return { id: "trivia:" + t.id, at: new Date(at).toISOString(), scope: "league", flag: ["🧠", "SPL Trivia", esc(t.topic) + (t.y ? " · " + t.y : " · since 2006"), "tv"],
+    eb: "🧠 Know your SPL", title: esc(t.q), body: voteBox(ref), action: act };
+}
 // 🗳️ Votes (Game of the Week, quizzes): one per owner, locked; results after you vote (backend `vote` / `social`).
 var VSPEC = {}, VOTES = {};
 function voteBox(ref) {
@@ -4125,7 +4143,7 @@ function tourCard(k) {
     '<h2>It all lands on Home</h2><ul>' +
     li("⚡", "Your move, up top.", "Your pick in the Shoot Out, Slot or Divisional draft, a trade offer, keepers to declare. Gold cards stay first until you handle them.") +
     li("🗞️", "Every week of the season.", "Tuesday: your result, awards, Power 3, the table. Your game live on Sunday, who you play next by Thursday, trades as they happen.") +
-    li("🎯", "Polls and trivia.", "Game of the Week vote, a weekly quiz, and a bite of league history midweek.") +
+    li("🎯", "Polls and trivia.", "Game of the Week vote, a weekly quiz, and 🧠 SPL Trivia every Wednesday: one shot, see how everyone did.") +
     li("🗓️", "Off-season too.", "Live drafts, the Signing Day board, keeper prices and the cap.") + '</ul>' +
     '<div class="tbtn"><button id="tskip">‹ Back</button><small>2 / 2</small><button class="go" id="tnext">Show me around ›</button></div></div>');
 }

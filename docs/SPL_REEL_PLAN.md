@@ -6,6 +6,12 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 (`maffl-commish/maffl` → `_ops/docs/REEL.md`, `APP_DESIGN.md`, `REEL_OPERATIONS.md`, `REEL_SERIES.md`, `TRADE_CENTER_DESIGN.md`).
 
 ## 0. Decisions (newest on top)
+- **2026-11-28 · 🧠 SPL Trivia cards** (Mike: "fun facts that turn into a question to post the league"). A Home card asks the
+  question; answering reveals the fact. One new card every Wednesday 7 AM, plus Saturday in the off-season; same card for everyone,
+  one shot, "x of y got it right". Deck = lore (gold `data/Trivia.csv`, hand-edited, frozen-in-time facts) + record cards computed by
+  `tools/build_data.py` on every rebuild (lowest/highest score, titles, runner-ups, playoff wins, streaks, closest final…), so a broken
+  record changes its card by itself (build-data.yml is its robot). New lore card = a new CSV row.
+
 - **2026-11-28 · Rules → Constitution; dates live only on the SPL Calendar** (Mike). Constitution §B is now a pointer to the calendar;
   its pick-trading windows moved to §D (picks trade only in the Off-Season). §D is flagged incomplete: the full trade rules
   (review process, trade exceptions) get written in when Joe shares his latest files. **Before trades go live:** the app must

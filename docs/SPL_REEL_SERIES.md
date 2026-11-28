@@ -105,6 +105,7 @@ A card with empty space under its content is missing a part: add chips or tiles,
 |---|---|---|---|---|
 | 🗳️ Game of the Week | `gotw` | Play | Vote closes Thu 5 PM | Three curated games: ⏱️ thriller, 😱 upset, 💥 shootout (🔨 beatdown as a fallback). |
 | 🧠 Quiz | `quiz` | Play | Until next issue | One a week. Even weeks: who won with the lowest score; odd: who lost with the highest. One shot. |
+| 🧠 SPL Trivia | `trivia` | Own clock: Wed 7 AM (+ Sat 7 AM off-season) | Until the next one | League history as a question; the fun fact is the reveal. Deck = `data/Trivia.csv` (lore) + record cards rebuilt from the games (`build_data.py`). Reshuffles each pass. Ribbon 🧠 SPL Trivia. One shot. |
 
 ### Vault
 | Series | id | Drop | Tray | Notes |

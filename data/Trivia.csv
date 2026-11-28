@@ -1,0 +1,27 @@
+# Trivia.csv  --  GOLD (hand-edited). 🧠 SPL Trivia cards: a fun fact from league history, asked as a question first, the fact is the reveal.
+# Records that can change (highest score, most titles, streaks…) are NOT here: tools/build_data.py computes those fresh from the games on every
+#   rebuild (ids rec-*), so they can never go stale. This file is for lore that is frozen in time. Add a row = add a card; the app rotates the deck.
+# a/b/c = the three choices (an owner_id from SPL_Owner_Registry.csv shows with their avatar; anything else is plain text). answer = a | b | c.
+#   The app shuffles the display order. fact = the reveal (one or two phone lines). go = where the card's button goes: history | rules | calendar |
+#   rivalry:<owner>,<owner> | gm (blank = no button). Sources: data/ (games, GM Report, League_Timeline, ESPN_Season_Teams), Mike 2026-11-28.
+id,topic,season,question,a,b,c,answer,fact,go,source
+losing-champ,Champions,2019,One SPL champion had a LOSING regular-season record. Who?,murello,glen,moyer,a,"Mike, 2019: 6–7 in the regular season, then past Drew by 0.3 in the first round (130.6–130.3), Seth, and Amit for the title.",history,SPL_Matchups 2019
+twelve-one,Seasons,2013,The best regular season on file is 12–1. Whose?,reilly,smith,bucher,a,"Joe, 2013: 12–1 and the most points in the league. Al knocked him out in the semis by 3.1 (129.9–126.8). Seth won it all.",history,SPL_Matchups 2013
+one-twelve,Seasons,2009,Someone went 1–12 in 2009. Two years later he won the whole thing. Who?,hoosier,salerno,reilly,a,"Hoos: 1–12 in 2009, SPL champion in 2011.",history,SPL_Matchups 2009/2011
+parity,Eras,2013,"From 2013 to 2018, how many different owners won the title?",Three,Four,Six,c,"Six seasons, six champs: Seth, Glen, Matt, Rich, Amit, Drew. That's why it's called The Parity Years.",history,League_Timeline
+first-champ,The Founding,2003,Who won the very first SPL title in 2003?,glen,bucher,smith,a,"Glen's Fluff Muffins, 2003: three seasons before the league moved onto ESPN.",history,GM_Report_2025
+vegas,Draft weekends,2006,"2006 draft weekend: the Mirage, Las Vegas. Skip the trip and you lost…",Your 1st-round pick,Your 3rd-round pick,$100,b,"Your 3rd-rounder. The Mirage, Aug 24–27, 2006: one of three Vegas drafts by 2008.",history,League_Timeline
+psu-2008,Draft weekends,2008,The owners' 2008 draft survey sent draft weekend where?,Vegas again,State College,Atlantic City,b,"State College: the Penn State trip won the survey. The league came back to town for the 2023 draft.",history,League_Timeline
+graduate,Draft weekends,2023,"2023 draft, back in State College at the Graduate hotel. Whose suite?",smith,patel,reilly,a,"Matt's suite, Sat Sep 2. Amit ran the rooms.",history,League_Timeline
+expansion,The Founding,2006,"In 2006 the SPL went to 12 teams. Which two owners joined?",Mike + Pete,Mike + Owen,Pete + Hoos,a,"Mike (Bad Attitude Gang) and Pete (then the Manayunk Gunz). Everyone else goes back to 2003.",history,SPL_Owner_Registry
+kicker,Rules,2020,Which position got kicked out of the SPL in 2020?,Kicker,D/ST,Tight end,a,"Kickers. Constitution Appendix Two swapped the K slot for an extra Flex.",rules,League_Timeline
+nflcom,Eras,2020,The SPL left ESPN for two seasons. Which two?,2010–11,2016–17,2020–21,c,"2020–21 on NFL.com: the Winter Meeting picked it, then picked ESPN again for 2022. ESPN kept no scores from those years.",history,League_Timeline
+superflex,Rules,2023,What year did Super Flex (a QB in the OP slot) arrive?,2019,2023,2025,b,"2023: proposed and passed at the 2022 Winter Meeting.",rules,League_Timeline
+ppr,Rules,2021,Half-point PPR came in when?,2006,2014,2021,c,"2021, the second NFL.com season: 0.5 a catch.",rules,League_Timeline
+keepers-155,Keepers,2012,"Glen's 2012 keeper report counted every contract since day one. How many?",55,155,255,b,"155 keeper contracts by 2012. The Keeper Matrix sheets only start in 2019.",history,League_Timeline
+gm-report,Lore,2011,Who writes the annual GM Report (first one in 2011)?,glen,reilly,moyer,a,"Glen. His 2012 edition added a Special Report on every keeper contract.",gm,League_Timeline
+trophy,Lore,2020,Who ran the 2020 owner vote to rebuild the trophy?,murello,reilly,bucher,a,"Mike, as the reigning champ (2019): the cup and its plaques got refreshed.",history,League_Timeline
+slappies,Team names,2006,BlaKK BoCCes didn't start out as BlaKK BoCCes. What was Drew's first name on ESPN?,Happiest Slappies,Manayunk Gunz,S.D. Beasters,a,"Happiest Slappies (2006), then Scrappy Chappies, then BlaKK BoCCes.",history,ESPN_Season_Teams
+beasters,Team names,2010,"The S.D. Beasters went 11–2 in 2010. Whose team was that?",bucher,farrington,smith,a,"Seth's. S.D. Beasters became Los Beasters, then Los Beasters Big Sky.",history,ESPN_Season_Teams
+gunz,Team names,2006,The Manayunk Gunz are known today as…,The Gunz,Ween's Machine,Kimble's Finast,a,"Pete's Gunz dropped the Manayunk somewhere along the way.",history,ESPN_Season_Teams
+div-draft,Rules,2020,"The Divisional Draft (non-champs draft their division rivals) came from whose rules?",Glen + Owen,Joe + Al,Mike + Rich,a,"Glen and Owen wrote it; voted in at the 2020 Winter Meeting.",rules,League_Timeline

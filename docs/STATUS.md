@@ -35,6 +35,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · app · 🧠 **SPL Trivia cards** (Mike). A Home card every Wednesday 7 AM (Saturday too in the off-season): a league-history
+  question with three choices; your answer reveals the fun fact and how the league did ("5 of 9 got it right"). One shot, same card for everyone,
+  button to History / Constitution / the rivalry. **Deck of 33:** 20 lore cards in new gold `data/Trivia.csv` (Mike's 6–7 champs, Joe's 12–1,
+  Hoos 1–12 → champ, the Mirage, the Graduate, kickers out, team names…) + 13 record cards `tools/build_data.py` recomputes on every data rebuild
+  (lowest/highest score, most points in a loss, titles, runner-ups, playoff wins, best all-time record, win streak, closest + lowest final, tenth-of-a-point
+  games, best season, most lopsided head-to-head): a new record = a new card, no hand edits. **Fix:** League → Votes buttons were calling the Home
+  quiz/Game of the Week vote (two `castVote`s + two `VOTES` since v0.28); the League votes ones are now `castMVote` / `MVOTES`. SW `splhq-v104`.
 - 2026-11-28 · data · 📜 **Constitution cleanup** (Mike): §B (schedule) now points to the SPL Calendar instead of repeating every date; its pick-trading rule moved to §D as rule 3 (picks trade only in the Off-Season), plus rule 4 (next season's picks only, how the app runs; Joe to confirm). §D flagged incomplete until Joe's files fill in the trade rules.
 - 2026-11-28 · app · 📜 **Rules → Constitution** (Mike): the League tile (📜 Constitution · The league rules), page title, first tab, calendar links (Constitution ›), keeper strip link (Constitution §J), the App · ESPN · Email chart and the welcome tour now say Constitution. Route stays `#rules`; search box still says "Search the rules". Many sections still "for Joe to confirm" until Joe shares the latest files.
 - 2026-11-28 · app · 🔒 **Keepers "Rules" link opens the real rulebook** (Mike): the Rules / How keepers work links on the keeper screens now go to League → Rules opened and scrolled to **J. Keeper Rules** instead of a separate pop-up summary (removed). Opened that way, the Rules page's back button says ‹ Back and returns where you came from.
