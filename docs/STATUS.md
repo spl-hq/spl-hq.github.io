@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.4: pre-app trades from league email)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.6: 36 pre-app trades from league email)
 
 
 ## Now
@@ -28,6 +28,12 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.6 · 🔁 **Email trade sweep** (Mike: "go"): `data/Trade_History.csv` now holds **36 pre-app deals, 2009–2026** (96 rows) read from
+  the trade-announcement threads in Mike's Gmail: e.g. Forte → Mos (2009), McCoy → Slappies (2010), A.J. Green ↔ Greg Little + picks (2012),
+  Doug Martin + the six-round pick swap (2013), Michael Thomas + Brady ↔ the #4 and #21 (2017), Henry / Bell / McCaffrey (2019), Diggs + M. Williams (2021),
+  Hurts (2025), Tracy (2025), McBride (2026). Every one lands on the player files ("Traded from Drew for 2019 R4 pick (Mike's) · Jul 19").
+  Skipped: never-closed offers, the 2013 Decker deal (un-confirmed same day), image-only posts (Aug 1 2026 BAG ↔ Bocces). Open: the 2019 Bell deal drew
+  an "I veto" from Craig (looks like a joke; kept); a few older threads not read yet; picks stay as text (no pick-ownership ledger for old years). SW `splhq-v69`.
 - 2026-11-27 · v0.25.5 · 📇 Player file bars: your seasons no longer turn into unreadable blue pills (the bar used class `me`, which the
   header's "me" button style grabbed). Now `mine`: Beaver Blue bar + your name in blue. SW `splhq-v68`.
 - 2026-11-27 · v0.25.4 · 🔁 **Pre-app trades: new gold `data/Trade_History.csv`** (Mike: "email often had trade info"). Trades made before SPL HQ, from the

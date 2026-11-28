@@ -1,7 +1,102 @@
-# Trade_History.csv  --  GOLD (hand-entered). Trades made BEFORE SPL HQ (league email threads, SPL Packet), one row per player/pick that moved.
-#   Trades made in the app are robot-written to Trade_Log.csv instead. deal = rows that were one trade. Never put email addresses here (public repo).
-#   2026-11-27: first row, from the "SPL Trade Announcement" email thread (Owen's announcement Aug 19 2026, confirmed by the league that night).
+# Trade_History.csv  --  GOLD (hand-entered). Trades made BEFORE SPL HQ, from the league's trade-announcement email threads in Mike's Gmail
+#   (and later the SPL Packet notes): one row per player/pick that moved; rows sharing `deal` were one trade. Trades made in the app are robot-written
+#   to Trade_Log.csv instead. Never put email addresses here (public repo). Picks are text as the email gave them.
+#   2026-11-27: first sweep (Claude) of "SPL Trade Announcement"-style threads 2009-2026, 37 deals. Skipped: offers that never closed, the 2013
+#   Gunz/Streakers Eric Decker deal (un-confirmed same day), image-only announcements (Aug 1 2026 BAG + Bocces). Not yet read: a handful of older threads.
 deal,date,season,from_owner,to_owner,asset,source
-2026-08-19-salerno-bucher,2026-08-19,2026,bucher,salerno,Trey McBride,league email
-2026-08-19-salerno-bucher,2026-08-19,2026,salerno,bucher,J.J. McCarthy,league email
-2026-08-19-salerno-bucher,2026-08-19,2026,salerno,bucher,2026 R7 pick (Owen's),league email
+2009-01-24-farrington-reilly,2009-01-24,2009,farrington,reilly,Darren Sproles,league email
+2009-01-24-farrington-reilly,2009-01-24,2009,reilly,farrington,2009 R6 pick (Joe's),league email
+2009-04-28-glen-smith,2009-04-28,2009,smith,glen,Steve Slaton,league email
+2009-04-28-glen-smith,2009-04-28,2009,smith,glen,Eddie Royal,league email
+2009-04-28-glen-smith,2009-04-28,2009,smith,glen,2009 R3 pick (Matt's),league email
+2009-04-28-glen-smith,2009-04-28,2009,glen,smith,2009 R2 pick (Glen's),league email
+2009-04-28-glen-smith,2009-04-28,2009,glen,smith,2009 R3 pick (Glen's),league email
+2009-05-11-bucher-hoosier,2009-05-11,2009,bucher,hoosier,Matt Forte,league email
+2009-05-11-bucher-hoosier,2009-05-11,2009,bucher,hoosier,2009 R3 pick (Seth's),league email
+2009-05-11-bucher-hoosier,2009-05-11,2009,hoosier,bucher,2009 R2 pick (Craig's),league email
+2009-05-11-bucher-hoosier,2009-05-11,2009,hoosier,bucher,2009 R5 pick (Craig's),league email
+2010-07-22-murello-smith,2010-07-22,2010,smith,murello,Leon Washington,league email
+2010-07-22-murello-smith,2010-07-22,2010,smith,murello,2010 R10 pick (Matt's),league email
+2010-07-23-chappie-farrington,2010-07-23,2010,farrington,chappie,LeSean McCoy,league email
+2010-07-23-chappie-farrington,2010-07-23,2010,chappie,farrington,2010 R7 pick (Drew's),league email
+2012-01-30-salerno-smith,2012-01-30,2012,smith,salerno,Shonn Greene,league email
+2012-01-30-salerno-smith,2012-01-30,2012,salerno,smith,2012 R8 pick (Owen's),league email
+2012-07-25-glen-murello,2012-07-25,2012,murello,glen,A.J. Green,league email
+2012-07-25-glen-murello,2012-07-25,2012,murello,glen,2012 pick #82 (R7),league email
+2012-07-25-glen-murello,2012-07-25,2012,glen,murello,Greg Little,league email
+2012-07-25-glen-murello,2012-07-25,2012,glen,murello,2012 pick #75 (R7),league email
+2012-07-25-glen-murello,2012-07-25,2012,glen,murello,2012 pick #118 (R10),league email
+2012-07-27-farrington-murello,2012-07-27,2012,murello,farrington,Fred Jackson,league email
+2012-07-27-farrington-murello,2012-07-27,2012,murello,farrington,2012 pick #58 (R5),league email
+2012-07-27-farrington-murello,2012-07-27,2012,farrington,murello,2012 pick #50 (R5),league email
+2012-07-27-farrington-murello,2012-07-27,2012,farrington,murello,2012 pick #95 (R8),league email
+2012-07-29-sikora-smith,2012-07-29,2012,smith,sikora,Stevan Ridley,league email
+2012-07-29-sikora-smith,2012-07-29,2012,sikora,smith,2012 pick #90 (R8),league email
+2012-07-30-farrington-smith,2012-07-30,2012,smith,farrington,Steve Smith Sr.,league email
+2012-07-30-farrington-smith,2012-07-30,2012,smith,farrington,"2012 pick #90 (R8, Pete's)",league email
+2012-07-30-farrington-smith,2012-07-30,2012,farrington,smith,2012 pick #71 (R6),league email
+2012-07-30-farrington-smith,2012-07-30,2012,farrington,smith,2012 pick #119 (R10),league email
+2012-07-30-bucher-chappie-b,2012-07-30,2012,chappie,bucher,James Starks,league email
+2012-07-30-bucher-chappie-b,2012-07-30,2012,bucher,chappie,2012 pick #126 (R11),league email
+2012-07-30-chappie-farrington-c,2012-07-30,2012,farrington,chappie,Aaron Hernandez,league email
+2012-07-30-chappie-farrington-c,2012-07-30,2012,chappie,farrington,2012 pick #117 (R10),league email
+2012-08-08-hoosier-smith,2012-08-08,2012,hoosier,smith,Darren Sproles,league email · after Signing Day; 2-yr contract came with him
+2012-08-08-hoosier-smith,2012-08-08,2012,smith,hoosier,2012 R2 pick (Matt's),league email · after Signing Day; 2-yr contract came with him
+2013-06-12-bucher-glen,2013-06-12,2013,bucher,glen,Doug Martin,league email
+2013-06-12-bucher-glen,2013-06-12,2013,glen,bucher,2013 pick #37 (R4),league email
+2013-06-12-bucher-glen,2013-06-12,2013,glen,bucher,Glen's R2/R6/R8/R10/R12/R14 (#13 #61 #85 #109 #133 #157),league email
+2013-06-12-bucher-glen,2013-06-12,2013,bucher,glen,Seth's R2/R6/R8/R10/R12/R14 (#24 #72 #96 #120 #144 #168),league email
+2013-07-19-reilly-sikora,2013-07-19,2013,reilly,sikora,Reggie Wayne,league email
+2013-07-19-reilly-sikora,2013-07-19,2013,sikora,reilly,2013 R8 pick (Pete's),league email
+2013-07-23-murello-salerno,2013-07-23,2013,salerno,murello,Emmanuel Sanders,league email
+2013-07-23-murello-salerno,2013-07-23,2013,murello,salerno,2013 pick #117 (R10),league email
+2013-07-24-hoosier-smith,2013-07-24,2013,smith,hoosier,Rashard Mendenhall,league email
+2013-07-24-hoosier-smith,2013-07-24,2013,hoosier,smith,2013 R8 pick (Craig's),league email
+2013-07-30-farrington-sikora,2013-07-30,2013,farrington,sikora,Tony Gonzalez,league email
+2013-07-30-farrington-sikora,2013-07-30,2013,sikora,farrington,2013 pick #112 (R10),league email
+2014-07-08-sikora-smith,2014-07-08,2014,smith,sikora,Michael Crabtree,league email
+2014-07-08-sikora-smith,2014-07-08,2014,smith,sikora,2014 R11 pick (Matt's),league email
+2014-07-08-sikora-smith,2014-07-08,2014,sikora,smith,2014 R6 pick (Pete's),league email
+2016-05-20-farrington-smith,2016-05-20,2016,farrington,smith,Joseph Randle,league email · Al paid the 8th for Matt to take Randle's contract
+2016-05-20-farrington-smith,2016-05-20,2016,farrington,smith,2016 R8 pick (Al's),league email · Al paid the 8th for Matt to take Randle's contract
+2016-05-20-chappie-reilly-b,2016-05-20,2016,chappie,reilly,Brandin Cooks,league email
+2016-05-20-chappie-reilly-b,2016-05-20,2016,reilly,chappie,2016 R8 pick,league email
+2016-05-20-hoosier-reilly-c,2016-05-20,2016,reilly,hoosier,Carson Palmer,league email
+2016-05-20-hoosier-reilly-c,2016-05-20,2016,reilly,hoosier,Travis Kelce,league email
+2016-05-20-hoosier-reilly-c,2016-05-20,2016,hoosier,reilly,2016 R8 pick,league email
+2016-05-23-bucher-smith,2016-05-23,2016,smith,bucher,Joseph Randle,league email
+2016-05-23-bucher-smith,2016-05-23,2016,smith,bucher,Golden Tate,league email
+2016-08-05-moyer-smith,2016-08-05,2016,moyer,smith,Duke Johnson,league email · a reversal: Matt had sent Duke to Rich for Rich's 8th a week or two earlier; the 8th went back
+2016-08-05-moyer-smith,2016-08-05,2016,smith,moyer,2016 R5 pick (Matt's),league email · a reversal: Matt had sent Duke to Rich for Rich's 8th a week or two earlier; the 8th went back
+2016-08-05-moyer-smith,2016-08-05,2016,smith,moyer,2016 R10 pick (Matt's),league email · a reversal: Matt had sent Duke to Rich for Rich's 8th a week or two earlier; the 8th went back
+2017-07-11-hoosier-murello,2017-07-11,2017,murello,hoosier,Michael Thomas,league email
+2017-07-11-hoosier-murello,2017-07-11,2017,murello,hoosier,Tom Brady,league email
+2017-07-11-hoosier-murello,2017-07-11,2017,murello,hoosier,2017 pick #6 (R1),league email
+2017-07-11-hoosier-murello,2017-07-11,2017,murello,hoosier,2017 pick #115 (R11),league email
+2017-07-11-hoosier-murello,2017-07-11,2017,hoosier,murello,2017 pick #4 (R1),league email
+2017-07-11-hoosier-murello,2017-07-11,2017,hoosier,murello,2017 pick #21 (R2),league email
+2017-07-25-farrington-smith,2017-07-25,2017,smith,farrington,Terrelle Pryor,league email · plus a 7th-round swap
+2017-07-25-farrington-smith,2017-07-25,2017,farrington,smith,2017 R6 pick (Al's),league email · plus a 7th-round swap
+2017-07-25-farrington-smith,2017-07-25,2017,farrington,smith,2017 R10 pick (Al's),league email · plus a 7th-round swap
+2017-07-28-farrington-smith,2017-07-28,2017,smith,farrington,Tyler Lockett,league email · Lockett's 3 KP contract
+2017-07-28-farrington-smith,2017-07-28,2017,smith,farrington,2017 pick #120 (R10),league email · Lockett's 3 KP contract
+2017-07-28-patel-smith-b,2017-07-28,2017,patel,smith,Jordan Howard,league email · plus 5th- and 7th-round swaps
+2017-07-28-patel-smith-b,2017-07-28,2017,smith,patel,2017 pick #47 (R4),league email · plus 5th- and 7th-round swaps
+2019-07-18-sikora-smith,2019-07-18,2019,sikora,smith,Derrick Henry,league email · plus an 11th-round swap
+2019-07-18-sikora-smith,2019-07-18,2019,smith,sikora,2019 R5 pick (Matt's),league email · plus an 11th-round swap
+2019-07-19-reilly-salerno,2019-07-19,2019,reilly,salerno,Le'Veon Bell,"league email · plus swaps in rounds 2, 3, 4"
+2019-07-19-chappie-murello-b,2019-07-19,2019,chappie,murello,Christian McCaffrey,league email
+2019-07-19-chappie-murello-b,2019-07-19,2019,murello,chappie,2019 R4 pick (Mike's),league email
+2021-05-13-moyer-reilly,2021-05-13,2021,moyer,reilly,Stefon Diggs,league email
+2021-05-13-moyer-reilly,2021-05-13,2021,moyer,reilly,Mike Williams,league email
+2021-05-13-moyer-reilly,2021-05-13,2021,reilly,moyer,2021 R4 pick (Joe's),league email
+2021-08-23-chappie-patel,2021-08-23,2021,patel,chappie,Myles Gaskin,league email
+2021-08-23-chappie-patel,2021-08-23,2021,chappie,patel,2021 pick #111,league email
+2025-07-20-glen-hoosier,2025-07-20,2025,glen,hoosier,Jalen Hurts,league email
+2025-07-20-glen-hoosier,2025-07-20,2025,hoosier,glen,2025 R6 pick (Craig's),league email
+2025-07-20-glen-hoosier,2025-07-20,2025,hoosier,glen,Jauan Jennings,league email
+2025-08-20-murello-patel,2025-08-20,2025,murello,patel,Tyrone Tracy Jr.,league email
+2025-08-20-murello-patel,2025-08-20,2025,patel,murello,2025 R10 pick (Amit's),league email
+2026-08-19-bucher-salerno,2026-08-19,2026,bucher,salerno,Trey McBride,league email
+2026-08-19-bucher-salerno,2026-08-19,2026,salerno,bucher,J.J. McCarthy,league email
+2026-08-19-bucher-salerno,2026-08-19,2026,salerno,bucher,2026 R7 pick (Owen's),league email

@@ -83,3 +83,7 @@ the `needs_review` flags, then shows you only the rows it couldn't place:
 
 Where: attach in chat, or connect the folder from the Claude desktop app. Claude commits the gold CSVs; `build-data.yml` rebuilds the app data;
 player files, records and reel cards pick it up with no app change.
+
+
+## Pre-app trades (2026-11-27)
+First sweep of league trade emails → `data/Trade_History.csv` (36 deals, 2009–2026). Left: image-only announcements (Aug 1 2026 BAG ↔ Bocces), a few un-read older threads, turning `Packet_Trade_Notes.csv` lines into rows where an email doesn't already cover them.
