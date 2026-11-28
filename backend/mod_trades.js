@@ -27,17 +27,6 @@ function ledger_() {
     trades: offers_().filter(function (o) { return o.status === "APPROVED"; }).map(function (o) { return { id: o.offer_id, approved: o.updated_ts, from: o.from, to: o.to, mode: o.mode,
       fromSends: o.giveO, toSends: o.getO, by: o.by }; }), drafts: draftLedger_(), keepers: keepLedger_() };
 }
-// Commish fix for the pick ledger (a pick traded before the app existed, a typo): move one pick, with a reason. Logged + posted.
-function pickFix_(me, b) {
-  var picks = seedPicks_(), idx = -1; picks.forEach(function (p, i) { if (p.pid === b.pid) idx = i; });
-  if (idx < 0) return { ok: false, error: "Unknown pick" }; if (!oid_(b.to)) return { ok: false, error: "Pick an owner" };
-  if (!String(b.reason || "").trim()) return { ok: false, error: "Give a reason (the league sees it)." };
-  var p = picks[idx], from = p.owner; if (from === b.to) return { ok: false, error: "Already theirs." };
-  p.owner = b.to; p.updated_ts = new Date(); p.via = "fix:" + me.owner; setRow_("Picks", idx, p);
-  botPost_("league", "🎟️ Pick ledger fix: " + p.season + " round " + p.round + " (" + oName_(p.original) + "'s) now belongs to " + oName_(b.to) + " · “" + clip_(b.reason, 160) + "” (" + me.name + ")", "");
-  log_("pickfix", me.owner + " " + p.pid + " " + from + "→" + b.to + " " + clip_(b.reason, 160));
-  return { ok: true };
-}
 function offers_() { return rows_("Offers").map(function (r) { r.giveO = parseJ_(r.give); r.getO = parseJ_(r.get); return r; }); }
 function parseJ_(s) { try { return JSON.parse(s || "{}"); } catch (e) { return {}; } }
 function pub_offer_(r) { return { id: r.offer_id, ts: r.ts, from: r.from, to: r.to, give: r.giveO, get: r.getO, note: r.note, status: r.status, updated: r.updated_ts, reason: r.reason, by: r.by, mode: r.mode, espn: r.espn, espnNote: r.espn_note, counterOf: r.counter_of }; }

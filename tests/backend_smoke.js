@@ -265,17 +265,10 @@ r = e.post({ action: "chat", token: glen });
 ok(r.handles.glen === "Muffins" && r.mentions.some(m => m.who === "reilly" && m.room === "league"), "chat returns handles + Glen's @ mentions");
 ok(!e.post({ action: "chat", token: joeTok }).mentions.some(m => /Muffins/.test(m.text)), "Joe's mentions don't include Glen's tag");
 
-// 14 · ledger feed for the robot + commish pick fixes
+// 14 · ledger feed for the robot
 let L = e.get({ action: "ledger" });
 ok(L.ok && L.mode === "test" && L.picks.length === 2 * 12 * 17 && Array.isArray(L.trades), "ledger feed: picks + approved trades + rules");
 ok(!JSON.stringify(L).includes("let's deal") && !JSON.stringify(L).includes("@example.com"), "ledger feed carries no notes or contacts");
-ok(e.post({ action: "pickfix", token: glen, pid: "2027-R1-smith", to: "glen", reason: "x" }).error === "Commish only", "owners can't fix picks");
-ok(/Joe's call/.test(e.post({ action: "pickfix", token: mike, pid: "2027-R1-smith", to: "glen", reason: "x" }).error), "pick fixes are Joe's (Mike read-only)");
-ok(e.post({ action: "pickfix", token: joeTok, pid: "2027-R1-smith", to: "glen" }).error.includes("reason"), "pick fix needs a reason");
-ok(e.post({ action: "pickfix", token: joeTok, pid: "2027-R1-smith", to: "glen", reason: "Traded in August" }).ok, "commish moves a pick");
-L = e.get({ action: "ledger" });
-ok(L.picks.find(p => p.pid === "2027-R1-smith").owner === "glen" && /^fix:reilly/.test(L.picks.find(p => p.pid === "2027-R1-smith").via), "fix shows in the ledger with who did it");
-ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Pick ledger fix/.test(r[4])), "league told about the fix");
 // Joe answers "Contract resets" → rule flips
 e.post({ action: "answers", token: joeTok, items: [{ qid: "keeper_travels", question: "q", choice: "Contract resets" }] });
 ok(e.get({ action: "ledger" }).rules.contracts === "resets", "contract rule follows Joe's answer");

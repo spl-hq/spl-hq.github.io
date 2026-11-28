@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.20.0";
+var VERSION = "0.20.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -72,7 +72,7 @@ function doGet(e) {
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
 var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1, track: 1, usage: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
-var WRITES = { pickfix: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1 }; // rate-limited per owner
+var WRITES = { answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1 }; // rate-limited per owner
 function doPost(e) {
   SH_ = {}; ROWS_ = {};
   var b = {};
@@ -104,7 +104,6 @@ function doPost(e) {
       case "respond":  return json(respond_(me, b));
       case "blockset": return json(blockSet_(me, b));
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
-      case "pickfix":  return json(!desk ? { ok: false, error: "Commish only" } : isBackup_(me) ? { ok: false, error: "Pick fixes are Joe's call (read-only in Joe's view)." } : pickFix_(me, b));
       case "drafts":   return json(drafts_(me));
       case "splpool":  return json(splPool_());
       case "reacts":   return json(reacts_(b.keys));

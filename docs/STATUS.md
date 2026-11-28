@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.3: Ideas → settings; before it v0.26.2 usage tracking)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.4: pick ledger fix retired; before it v0.26.3 Ideas → settings)
 
 
 ## Now
@@ -33,6 +33,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.4 (backend v0.20.1) · 🎟️ **Pick ledger fix retired** (Mike: "we'll reconcile as necessary, no formal tool"). Card gone from the Commish desk; backend `pickfix` action + `pickFix_` removed (and its smoke tests). Pre-app pick trades get reconciled by hand in the Sheet Picks tab; the ledger robot copies them to gold as before. SW `splhq-v84`.
 - 2026-11-28 · v0.26.3 · 💡 **Ideas moved off League into your settings** (Mike). League grid is now 6 tiles (even 3×2); the You screen (tap your initials)
   gets a 💡 Ideas & feedback card → the same send screen, which now backs out to Settings. Tour stops updated (League no longer mentions Ideas; 👤 You does). SW `splhq-v83`.
 - 2026-11-28 · v0.26.2 (backend v0.20.0) · 👀 **Who's using it** (Mike: "monitor Joe's usage, what he's clicking"). First-party, no Google
@@ -147,7 +148,7 @@ Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move co
 - 2026-11-27 · v0.24.0 (backend v0.17.4) · 📥 **Commish desk gets the Ops desk treatment, minus the backend** (Mike). Joe's desk now folds like
   the Ops desk (Open all / Close all; a section that needs Joe opens itself: trades waiting, ESPN to-dos, open questions, a live draft):
   ⏳ Trades to approve · 🏈 Do on ESPN · 🗓️ **Drafts with full controls** (live drafts with Room / ↩ Undo / ✕ Cancel / 🏈 **Load into ESPN**
-  (was ops-only), one **Open ›** per draft) · 🔒 Keeper Signing Day · 📋 Questions · 🎟️ Pick ledger fix · 📜 Recent decisions. **Shielded from Joe:**
+  (was ops-only), one **Open ›** per draft) · 🔒 Keeper Signing Day · 📋 Questions · 📜 Recent decisions. **Shielded from Joe:**
   rehearsals (no 🧪 Rehearse buttons, rehearsal drafts and Signing Day rehearsals hidden), robots, watchdog, test switches, the tour, "Mike can wipe"
   and robot wording; the test-mode banner is one line. Mike's "Joe's view" shows exactly that. **Ops desk** keeps every rehearsal control and gains
   its own 🔒 Keeper Signing Day section (rehearse / wipe moved there). **Test league: no more renames** (Mike: ESPN's names are fine): the mirror's
