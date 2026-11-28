@@ -99,7 +99,8 @@ for r in opt_rows("Draft_Picks.csv"):
 draft.sort(key=lambda d: (-d[0], d[1], d[3] or 999))
 
 # ---- 📇 Player files (DERIVED → player-history.js, loaded by the app only when a player file opens; ~300 KB kept out of the launch).
-# d = SPL Draft picks [season, round, overall, owner, slot owner, player, src (p = Packet/gold board, e = ESPN), flags]
+# d = SPL Draft picks [season, round, overall, owner, slot owner, player, src (p = Packet/gold board, e = ESPN), flags, pos (ESPN rows)]
+#   The League → Draft boards screen also shows the ESPN-only seasons (2006-2018) from these rows.
 #   gold Draft_Picks.csv wins for its seasons (SPL rounds); ESPN_Draft_Boards.csv fills the rest (2006-2018; empty 2020-21 skipped).
 # k = Keeper Matrix history [season, owner, player, pos, term, kp_by_season, cut, franchise]
 # r = final rosters ESPN kept [season, owner, player, how acquired]; t = trades + pickups ESPN kept (2018-19, 2022-26)
@@ -108,7 +109,7 @@ gold_seasons = {d[0] for d in draft}
 for d in draft: ph["d"].append([d[0], d[1], d[3], d[4], d[5], d[6], "p", d[7]])
 for r in opt_rows("ESPN_Draft_Boards.csv"):
     if int(r["season"]) in gold_seasons or not r["player"]: continue
-    ph["d"].append([int(r["season"]), int(r["round"]), int(r["overall_pick"] or 0), r["owner_id"], r["owner_id"], r["player"], "e", "K" if r["keeper"] == "Y" else ""])
+    ph["d"].append([int(r["season"]), int(r["round"]), int(r["overall_pick"] or 0), r["owner_id"], r["owner_id"], r["player"], "e", "K" if r["keeper"] == "Y" else "", r["position"]])
 for r in opt_rows("Keeper_Matrix_History.csv"):
     ph["k"].append([int(r["season"]), r["owner_id"], r["player"] or r["player_raw"], r["position"], r["contract_length"], r["kp_by_season"], r["cut"] == "Y", r["franchise"] == "Y"])
 # t = moves ESPN kept [season, date, move (TRADE / ADD), from owner, to owner, player]: trades + pickups (drops left out: size)

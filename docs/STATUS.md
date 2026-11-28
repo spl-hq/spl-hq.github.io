@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.9: ⭐ Power 5 → Power 3 with write-ups)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.10: Draft boards back to 2006)
 
 
 ## Now
@@ -28,6 +28,12 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.10 · 📝 **Draft boards back to 2006** (Mike: "no draft data pre 2019?"). The screen only read gold `Draft_Picks.csv`
+  (2019, 2021–26); ESPN's boards for **2006–2018** were already on file (`ESPN_Draft_Boards.csv`, in player files only). Now the year chips
+  run 2026 → 2006: gold wins where it exists, ESPN fills the rest (`allDraft()`, rows from `player-history.js`, loaded on first visit and the
+  screen redraws). ESPN rows carry position (`ph.d[8]`). ESPN only knows who made each pick, so the grid places those by pick number and
+  "→ X" marks a pick made from someone else's slot; ESPN's slots are clean every year except 2013 (keepers placed in rounds 1–3, noted on
+  screen). 🔒 keeper cells/tags on both views. Selected year chip scrolls into view. Still missing: 2020 (played off ESPN, no Packet board). SW `splhq-v73`.
 - 2026-11-28 · v0.25.9 · ⭐ **Power 5 → Power 3, with a write-up per team** (Mike). Home's Edition card now ranks three teams; each row
   (rank · avatar · @name ▲▼ · PF + last 3 · record) gets a 2–3 sentence write-up under it. Card-lines robot (`tools/card_lines.py`) now writes
   `power3: [{owner, write}]` (≤ 260 chars, the one exception to the 110 rule); until it has a token the app builds the write-up from the numbers:

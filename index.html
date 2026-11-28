@@ -527,7 +527,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.8";
+var APP_VERSION = "0.25.10";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2030,9 +2030,23 @@ window.kWin = function (op, mode) {
 };
 
 // 📝 Draft: every pick by year, traded picks flagged, who dealt what.
+// Gold boards (Packet / app, with traded picks) + ESPN's boards for the seasons gold doesn't cover (2006–2018: no trade info,
+// keepers sit on the board). ESPN rows live in player-history.js, loaded here on first visit; the screen redraws when it lands.
+function allDraft() {
+  var g = LD("draft"), got = {}; g.forEach(function (d) { got[d[0]] = 1; });
+  if (!window.PLAYER_HISTORY) {
+    if (!PH_LOADING) { PH_LOADING = 1; var sc = document.createElement("script"); sc.src = "player-history.js";
+      sc.onload = function () { if (location.hash.indexOf("#draft") === 0) render(); }; sc.onerror = function () { PH_LOADING = 0; }; document.head.appendChild(sc); }
+    return g;
+  }
+  var e = PLAYER_HISTORY.d.filter(function (d) { return d[6] === "e" && !got[d[0]]; }).map(function (d) {
+    return [d[0], d[1], d[2] ? d[2] - 12 * (d[1] - 1) : 0, d[2], d[3], d[3], d[5], d[7] || "", d[8] || "", "e"]; });
+  return g.concat(e).sort(function (a, b) { return b[0] - a[0] || a[1] - b[1] || (a[3] || 999) - (b[3] || 999); });
+}
 SCREENS.draft = function (arg) {
-  var all = LD("draft"), years = []; all.forEach(function (d) { if (years.indexOf(d[0]) < 0) years.push(d[0]); });
+  var all = allDraft(), years = []; all.forEach(function (d) { if (years.indexOf(d[0]) < 0) years.push(d[0]); });
   if (!years.length) return back("league", "League") + soon("Draft", "No draft boards loaded yet.");
+  setTimeout(function () { var c = document.querySelector("#view .hscroll .chip.on"); if (c && c.parentNode) c.parentNode.scrollLeft = Math.max(0, c.offsetLeft - 60); }, 30);
   var parts = String(arg || "").split(","), y = +parts[0] || years[0], who = parts[1] || "";
   var ps = all.filter(function (d) { return d[0] === y; }), traded = ps.filter(function (d) { return d[4] !== d[5]; });
   var html = back("league", "League") + '<h2>Draft</h2><div class="hscroll">' + years.map(function (x) { return '<button class="chip' + (x === y ? " on" : "") + '" onclick="go(\'draft\',\'' + x + '\')">' + x + '</button>'; }).join("") + '</div>' +
@@ -2054,7 +2068,8 @@ SCREENS.draft = function (arg) {
     html += '<div class="card"><div class="eyebrow">📝 ' + esc(oname(who)) + "'s " + y + ' draft · ' + mine.length + ' picks</div>' + mine.map(pickRow).join("") + '</div>' +
       (gone.length ? '<div class="card"><div class="eyebrow">➡️ ' + esc(oname(who)) + "'s picks someone else made</div>" + gone.map(pickRow).join("") + '</div>' : '');
   }
-  return html + '<p class="muted" style="font-size:12px">' + (y === 2026 ? "2026 board from Mike\'s screenshot" : "Board from the SPL Packet, names matched to ESPN") + '. Keepers aren\'t on the board (they fill each team\'s open late-round slots). ? = board shorthand, name not confirmed. 2020 was played off ESPN and the Packet has no picks for it; 2006–2018 drafts show in player files from ESPN.</p>';
+  if (ps[0] && ps[0][9] === "e") return html + '<p class="muted" style="font-size:12px">' + y + ' board from ESPN. ESPN doesn\'t record traded picks, so every pick shows under the team that made it' + (ps.some(function (d) { return d[7].indexOf("K") >= 0; }) ? '; 🔒 = a keeper ESPN slotted into the draft (in ' + y + ' it put them in the first rounds, so "→" there just means a keeper, not a trade)' : '; in the grid, "→ Joe" = Joe made the pick from that slot (a traded pick)') + '. 2020 and 2021 aren\'t on ESPN.</p>';
+  return html + '<p class="muted" style="font-size:12px">' + (y === 2026 ? "2026 board from Mike\'s screenshot" : "Board from the SPL Packet, names matched to ESPN") + '. Keepers aren\'t on the board (they fill each team\'s open late-round slots). ? = board shorthand, name not confirmed. 2020 was played off ESPN and the Packet has no picks for it; 2006–2018 boards come from ESPN (tap a year).</p>';
 };
 window.draftV = function (v, y) { store("draftv", v); go("draft", String(y)); };
 // ▦ Grid for past boards (Mike 11/28): same look as the SPL Draft room's grid. Columns = the 12 draft slots, rows = rounds.
@@ -2070,20 +2085,23 @@ function histGrid(ps) {
   var free = []; for (var i = 1; i <= Math.max(12, owners.length); i++) if (!taken[i]) free.push(i);
   owners.forEach(function (o) { if (!slot[o]) slot[o] = free.shift(); });
   var order = owners.slice().sort(function (a, b) { return slot[a] - slot[b]; }), by = {}, my = ME ? ME.owner : "";
-  ps.forEach(function (d) { var k = d[1] + ":" + d[5]; (by[k] = by[k] || []).push(d); });
+  // ESPN boards (d[9] = "e") only know who made each pick, so they're placed by pick number; "→ X" then means X made a pick from that slot.
+  var at = {}; order.forEach(function (o) { at[slot[o]] = o; });
+  ps.forEach(function (d) { var p = d[3] ? d[3] - 12 * (d[1] - 1) : 0, col = d[9] === "e" && p >= 1 && p <= 12 && at[d[1] % 2 ? p : 13 - p] || d[5];
+    var k = d[1] + ":" + col; if (col !== d[5]) d = d.slice(0, 5).concat([col], d.slice(6)); (by[k] = by[k] || []).push(d); });
   var th = '<tr><th class="rc">Rd</th>' + order.map(function (o) { return '<th' + (o === my ? ' class="gme"' : '') + '><small>' + slot[o] + '</small><br>' + esc(oname(o)) + '</th>'; }).join("") + '</tr>', body = "";
   for (var r = 1; r <= maxR; r++) body += '<tr><th class="rc">' + r + '<small>' + (r % 2 ? "→" : "←") + '</small></th>' + order.map(function (o) {
-    var cs = by[r + ":" + o]; if (!cs) return '<td class="gx"><small class="pk">' + r + '.' + String(r % 2 ? slot[o] : 13 - slot[o]).padStart(2, "0") + '</small><small>🔒 keeper slot</small></td>';
-    var d = cs[0], tag = d[7].indexOf("F") >= 0, nm = String(d[6] || "").replace(/^\d*\s*FRANCHISE$/i, "");
-    var cls = tag ? "gtg" : "g" + String(d[8] || "x").replace("/", "").toLowerCase();
+    var cs = by[r + ":" + o]; if (!cs) return '<td class="gx"><small class="pk">' + r + '.' + String(r % 2 ? slot[o] : 13 - slot[o]).padStart(2, "0") + '</small><small>' + (ps[0][9] === "e" ? "no pick" : "🔒 keeper slot") + '</small></td>';
+    var d = cs[0], tag = d[7].indexOf("F") >= 0, kp = d[7].indexOf("K") >= 0, nm = String(d[6] || "").replace(/^\d*\s*FRANCHISE$/i, "");
+    var cls = tag ? "gtg" : kp ? "gkp" : "g" + String(d[8] || "x").replace("/", "").toLowerCase();
     return '<td class="' + cls + (d[4] === my ? " mine" : "") + '"' + (nm ? ' data-p="' + esc(nm) + '" onclick="pcard(this.dataset.p)" style="cursor:pointer"' : '') + '><small class="pk">' + r + '.' + String(r % 2 ? slot[o] : 13 - slot[o]).padStart(2, "0") + (d[4] !== d[5] ? ' → ' + esc(oname(d[4])) : '') + '</small>' +
-      (tag ? '<b>🏷️ TAG</b><small>' + esc(shortPl(nm) || "Franchise") + '</small>' : '<b>' + esc(shortPl(nm) || "—") + (d[7].indexOf("?") >= 0 ? ' ?' : '') + '</b><small>' + esc(d[8] || "") + '</small>') + '</td>';
+      (tag ? '<b>🏷️ TAG</b><small>' + esc(shortPl(nm) || "Franchise") + '</small>' : '<b>' + (kp ? "🔒 " : "") + esc(shortPl(nm) || "—") + (d[7].indexOf("?") >= 0 ? ' ?' : '') + '</b><small>' + esc((d[8] || "") + (kp ? " · keeper" : "")) + '</small>') + '</td>';
   }).join("") + '</tr>';
-  return '<div class="dgridw"><table class="dgrid">' + th + body + '</table></div><div class="chips" style="margin:8px 0 12px"><span class="gqb">QB</span><span class="grb">RB</span><span class="gwr">WR</span><span class="gte">TE</span><span class="gdst">D/ST</span><span class="gkp">🏷️ tag</span></div>' +
+  return '<div class="dgridw"><table class="dgrid">' + th + body + '</table></div><div class="chips" style="margin:8px 0 12px"><span class="gqb">QB</span><span class="grb">RB</span><span class="gwr">WR</span><span class="gte">TE</span><span class="gdst">D/ST</span><span class="gkp">🔒 keeper · 🏷️ tag</span></div>' +
     '<p class="muted" style="font-size:12px;margin-top:0">Scroll both ways; the owner row and rounds stay put. "→ Joe" = traded pick, made by Joe. Grey cells = no pick on the board (a keeper filled it). Tap a player for his file.</p>';
 }
 function pickRow(d) {
-  return '<div class="pk"><span class="no">' + d[1] + (d[2] ? '.' + String(d[2]).padStart(2, "0") : '') + '</span><span><b>' + esc(d[6] || "—") + '</b>' + (d[7].indexOf("?") >= 0 ? ' <small class="muted">?</small>' : '') + (d[7].indexOf("F") >= 0 ? ' <span class="tag">🏷️ FRANCHISE TAG</span>' : '') +
+  return '<div class="pk"><span class="no">' + d[1] + (d[2] ? '.' + String(d[2]).padStart(2, "0") : '') + '</span><span><b>' + esc(d[6] || "—") + '</b>' + (d[7].indexOf("?") >= 0 ? ' <small class="muted">?</small>' : '') + (d[7].indexOf("F") >= 0 ? ' <span class="tag">🏷️ FRANCHISE TAG</span>' : '') + (d[7].indexOf("K") >= 0 ? ' <span class="tag">🔒 KEEPER</span>' : '') +
     '<br><small class="muted">' + (d[3] ? '#' + d[3] + ' · ' : '') + esc(oname(d[4])) + '</small></span>' + (d[4] !== d[5] ? '<span class="via">via ' + esc(oname(d[5])) + '</span>' : '') + '</div>';
 }
 
