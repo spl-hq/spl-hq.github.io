@@ -498,7 +498,9 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
     if (o && o.method === "post") {
       ok(/lm-api-writes.*leagues\/1722387564\/transactions\/$/.test(url), "write goes only to the test league (" + url.split("/leagues/")[1] + ")");
       const b = JSON.parse(o.payload); posts.push(b);
-      if (b.type !== "FREEAGENT" && rejectTrades) return res(409, { messages: ["Roster limit"] });
+      if (b.type !== "FREEAGENT" && b.type !== "ROSTER" && rejectTrades) return res(409, { messages: ["Roster limit"] });
+      // real ESPN 11/28: an LM FREEAGENT call with no ADD is refused. The mock takes drop-only moves only as a ROSTER move.
+      if (b.items.every(i => i.type === "DROP") && b.type !== "ROSTER") return res(409, { messages: ["TransactionType FREEAGENT may only contain one item for MoveType: ADD."] });
       const where = id => Object.keys(T).find(k => T[k].includes(id));
       for (const it of b.items) {
         if (it.type === "ADD" && where(it.playerId)) return res(409, { messages: ["Player already rostered"] });
@@ -533,7 +535,10 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
   ok(last.ok && last.left === 0 && last.match === 1, "mirror step reads back what's left");
   d = w.post({ action: "testleague", token: wm });
   ok(d.teams.every(x => x.match === x.want && x.drops === 0 && x.adds === 0), "after the mirror every test team matches its SPL roster");
-  ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.memberId === "{XYZ}") && posts.filter(b => b.type === "FREEAGENT").every(b => b.items.length === 1), "commish moves, one player per add/drop, no retries");
+  ok(posts.every(b => b.isLeagueManager === true && b.executionType === "EXECUTE" && b.memberId === "{XYZ}") && posts.filter(b => b.type === "FREEAGENT" || b.type === "ROSTER").every(b => b.items.length === 1), "commish moves, one player per add/drop");
+  const dropPosts = posts.filter(b => b.items.every(i => i.type === "DROP"));
+  ok(dropPosts.length === 3 && dropPosts[0].isActingAsTeamOwner === true && dropPosts[0].type === "FREEAGENT" && dropPosts[1].type === "ROSTER" && dropPosts[2].type === "ROSTER" && w.props.ESPN_DROP_SHAPE === "roster",
+    "drop-only: ESPN refuses (409) → next shape; the one that works is remembered and goes first next time");
   ok(w.sheets.EspnLog.rows.length === posts.length + 1, "every write logged");
   // Demo trade: Mike's Allen for Joe's Olave → Joe accepts → Joe approves (commish-to-commish) → ESPN moves it, read back
   let o = w.post({ action: "offer", token: wm, to: "reilly", give: { players: [{ n: "Josh Allen", id: 1 }] }, get: { players: [{ n: "Chris Olave" }] } });
@@ -562,6 +567,16 @@ ok(e.post({ action: "react", token: glen, key: "2026-12:awards", emoji: "🏆" }
   w.post({ action: "respond", token: wj, id: o.offer.id, decision: "accept" }); const b3 = posts.length;
   ok(w.post({ action: "tradeact", token: wm, id: o.offer.id, decision: "approve" }).ok && posts.length === b3, "Matt isn't a test team: approved, nothing sent to ESPN");
   ok(w.post({ action: "trades", token: wm }).offers.find(x => x.id === o.offer.id).espn === "test", "…and nothing owed (test mode)");
+  // 🎲 Test trade Al → Glen made on the Ops desk: offer + accept in their names, Mike approves, ESPN moves it
+  ok(w.post({ action: "testtrade", token: wj }).ok === false, "test trades are ops only");
+  const tt = w.post({ action: "testtrade", token: wm, shape: "1for1" });
+  ok(tt.ok && tt.stage === "accepted" && tt.from === "farrington" && tt.to === "glen" && tt.sends === "Derrick Henry" && tt.gets === "Puka Nacua", "test trade: Al sends Henry, Glen sends Puka, accepted in Glen's name");
+  ok(w.sheets.Chat.rows.some(x => x[2] === "dm:farrington,glen" && /🧪 Test trade/.test(x[4])), "DM card says it's a test trade");
+  ok(w.post({ action: "testtrade", token: wm, shape: "1for1" }).ok === false, "players already in an open trade aren't reused");
+  const b4 = posts.length;
+  ok(w.post({ action: "tradeact", token: wm, id: tt.id, decision: "approve" }).ok && posts.length === b4 + 1 && T[4].includes(5) && T[2].includes(6), "Mike approves → one LM trade on ESPN, Henry on Glen's test team, Puka on Al's");
+  const tp2 = w.post({ action: "testtrade", token: wm, shape: "pick" });
+  ok(tp2.ok && /R\d+/.test(tp2.gets) && tp2.stage === "accepted", "player-for-a-pick shape");
   // 📝 SPL Draft board → ESPN (test league): proven LM adds, read ESPN first, never re-add, no team = skipped
   Object.assign(NAMES, { 21: "Rookie A", 22: "Rookie B", 23: "Rookie C" });
   const ord = ["reilly", "murello", "smith", "farrington", "glen", "chappie", "sikora", "hoosier", "patel", "salerno", "moyer", "bucher"];

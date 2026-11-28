@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
 
 
 ## Now
@@ -35,6 +35,12 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.28.1 (backend v0.22.1) · 🗑️ **Mirror drops fixed** + 🎲 **Test trades**. Mike's screenshot: mirror-drops for Joe's test team
+  came back 409 "TransactionType FREEAGENT may only contain one item for MoveType: ADD" (ESPN won't take an LM free-agent call that's only a
+  drop). New `espnDrop_` (mod_espn) tries LM acting as owner → ROSTER move → old shape, only moving on after a 400/409, remembers the winner
+  (`ESPN_DROP_SHAPE`), logs each as `mirror-drops/<shape>`. Trade drops (v0.28 📏) use it too, so they had the same bug. **🎲 Test trade ·
+  Al ↔ Glen** on the Ops desk test-league card: 1 for 1 · 2 for 2 · player for a pick · Glen → Al; offer + accept in their names (no emails,
+  🧪 note on the DM card), auto-drops if a roster runs over, skips players already in open trades; ops can Approve now on them. Smoke +7. SW `splhq-v98`.
 - 2026-11-28 · v0.28.0 (backend v0.22.0) · ⏳🚫🗳️ **Trades by the rulebook + league votes** (Mike). **Trades:** accepted = *on the trade wire*:
   24 h review in season, 72 h off-season (phase switch); owners not in it tap 🚫 Veto (names public, can take it back); the first veto posts
   "veto vote on" to league chat; 6 vetoes → VETOED; review over → goes through by itself (`tradeTick_` hourly + on every trades/desk read),

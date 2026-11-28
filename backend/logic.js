@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.22.0";
+var VERSION = "0.22.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -133,6 +133,7 @@ function doPost(e) {
       case "testleague": return json(isRole_(me, "ops") ? testDesk_() : { ok: false, error: "Ops only" });
       case "mirror":   return json(isRole_(me, "ops") ? mirror_(me, b) : { ok: false, error: "Ops only" });
       case "espnwrites": return json(isRole_(me, "ops") ? espnSwitch_(me, b) : { ok: false, error: "Ops only" });
+      case "testtrade": return json(isRole_(me, "ops") ? testTrade_(me, b) : { ok: false, error: "Ops only" }); // 🎲 (mod_trades)
       case "wipetrades": return json(isRole_(me, "ops") ? wipeTrades_(me) : { ok: false, error: "Ops only" });
       case "opsx":     return json(isRole_(me, "ops") ? opsx_(me, b) : { ok: false, error: "Ops only" });
       case "track":    return json(track_(me, b)); // 👀 what owners open + tap (mod_usage)
@@ -243,6 +244,7 @@ function deskLock_(me, r) {
   var mine = r.from === me.owner || r.to === me.owner;
   if (mine && !(desk(r.from) && desk(r.to))) return "You're in this trade: the other commish approves it.";
   if (!isBackup_(me) || mine) return "";
+  if (isRole_(me, "ops") && /^🧪 Test trade made on the Ops desk/.test(String(r.note || ""))) return ""; // 🎲 ops' own test trades: no wait
   var primaryIn = [r.from, r.to].some(function (id) { var o = byId[id]; return o && isRole_(o, "commish") && !isBackup_(o); });
   if (primaryIn) return "";
   var h = (Date.now() - new Date(r.updated_ts || r.ts).getTime()) / 36e5;

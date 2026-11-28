@@ -159,6 +159,27 @@ var ESPN_TRADE_TYPE = "TRADE_PROPOSAL"; // LM trade, EXECUTE: MAFFL APP_DESIGN �
 // MAFFL's exact body (mod_espn.js espnWriteTest_): executes at once, several players + both directions in one call.
 function lmTrade_(teamId, sp, items, comment) { return { isLeagueManager: true, teamId: teamId, type: prop_("ESPN_TRADE_TYPE") || ESPN_TRADE_TYPE, memberId: swid_(), scoringPeriodId: sp, executionType: "EXECUTE",
   items: items, expirationDate: null, comment: comment, isActingAsTeamOwner: false, skipTransactionCounters: false }; }
+// 🗑️ A drop with no add (Mike 11/28): ESPN answered our LM FREEAGENT drop with 409 "TransactionType FREEAGENT may only contain one item
+// for MoveType: ADD" (an LM free-agent call wants exactly one ADD). Owners' own drop-only moves do land as FREEAGENT, so the LM shape is
+// what's off. Ladder: the shape that last worked first, then LM acting as the team owner, then a ROSTER move. A 400/409 means ESPN
+// refused and nothing changed, so the next shape is a different call, not a retry; any other answer stops the ladder. Every try is in the
+// write log ("kind/shape"); the winner is remembered (Script property ESPN_DROP_SHAPE).
+var DROP_SHAPES = ["acting", "roster", "lm"];
+function dropBody_(shape, teamId, sp, playerId) {
+  var b = { isLeagueManager: true, teamId: teamId, type: shape === "roster" ? "ROSTER" : "FREEAGENT", memberId: swid_(), scoringPeriodId: sp, executionType: "EXECUTE",
+    items: [{ playerId: playerId, type: "DROP", fromTeamId: teamId }] };
+  if (shape === "acting") b.isActingAsTeamOwner = true;
+  return b;
+}
+function espnDrop_(kind, ref, teamId, sp, playerId, by) {
+  var known = prop_("ESPN_DROP_SHAPE"), order = (known ? [known] : []).concat(DROP_SHAPES.filter(function (x) { return x !== known; })), r = null;
+  for (var i = 0; i < order.length; i++) {
+    r = espnPost_(kind + "/" + order[i], ref, dropBody_(order[i], teamId, sp, playerId), by);
+    if (r.ok) { if (known !== order[i]) setProp_("ESPN_DROP_SHAPE", order[i]); return r; }
+    if (r.code !== 400 && r.code !== 409) return r;
+  }
+  return r;
+}
 function writesOn_() { return ESPN_WRITES || prop_("ESPN_WRITES") === "on"; }
 function swid_() { var m = /SWID=(\{[^}]+\})/.exec(cookies_()); return m ? m[1] : ""; }
 function espnPost_(kind, ref, body, by, path, method) {
@@ -224,8 +245,8 @@ function mirror_(me, b) {
     var r0 = espnPost_("mirror-moves", plan.owner, lmTrade_(plan.teamId, tl.sp, plan.moves.slice(0, 30).map(function (p) { return { playerId: p.id, type: "TRADE", fromTeamId: p.from, toTeamId: plan.teamId }; }), "SPL HQ mirror"), me.owner);
     if (r0.ok) done = plan.moves.length; else fails.push("move " + plan.moves.length + " players (" + (r0.msg || r0.code) + ")"); }
   } else plan[step].slice(0, 30).forEach(function (p) {
-    var it = step === "drops" ? { playerId: p.id, type: "DROP", fromTeamId: plan.teamId } : { playerId: p.id, type: "ADD", toTeamId: plan.teamId };
-    var r = espnPost_("mirror-" + step, plan.owner, { isLeagueManager: true, teamId: plan.teamId, type: "FREEAGENT", memberId: sw, scoringPeriodId: tl.sp, executionType: "EXECUTE", items: [it] }, me.owner);
+    var r = step === "drops" ? espnDrop_("mirror-drops", plan.owner, plan.teamId, tl.sp, p.id, me.owner)
+      : espnPost_("mirror-adds", plan.owner, { isLeagueManager: true, teamId: plan.teamId, type: "FREEAGENT", memberId: sw, scoringPeriodId: tl.sp, executionType: "EXECUTE", items: [{ playerId: p.id, type: "ADD", toTeamId: plan.teamId }] }, me.owner);
     if (r.ok) done++; else fails.push(p.n + " (" + (r.msg || r.code) + ")");
   });
   var after = mirrorPlan_(testLeague_(), splRosters_()).filter(function (p) { return p.owner === b.owner; })[0];
@@ -264,7 +285,7 @@ function espnDrops_(r, me, tl, teamOf) {
   list.forEach(function (x) {
     var t = teamOf[x.owner], hit = t && t.players.filter(function (q) { return (x.p.id && q.id === x.p.id) || norm_(q.n) === norm_(x.p.n); })[0];
     if (!hit) { miss.push(x.p.n); return; }
-    espnPost_("trade-drop", r.offer_id, { isLeagueManager: true, teamId: t.id, type: "FREEAGENT", memberId: sw, scoringPeriodId: tl.sp, executionType: "EXECUTE", items: [{ playerId: hit.id, type: "DROP", fromTeamId: t.id }] }, me.owner);
+    espnDrop_("trade-drop", r.offer_id, t.id, tl.sp, hit.id, me.owner);
   });
   var after = testLeague_(), still = {}; after.teams.forEach(function (t) { t.players.forEach(function (q) { still[norm_(q.n)] = 1; }); });
   return list.filter(function (x) { return still[norm_(x.p.n)]; }).map(function (x) { return x.p.n; }).concat(miss.filter(function (n) { return still[norm_(n)]; })).filter(function (n, i, a) { return a.indexOf(n) === i; }).join(", ");

@@ -558,7 +558,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.28.0";
+var APP_VERSION = "0.28.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -3727,11 +3727,24 @@ function loadTL() {
       '<p style="margin-top:10px"><button class="btn' + (off ? "" : " ghost") + '" id="tlMirror"' + (d.writes ? "" : " disabled") + '>🪞 Mirror SPL rosters</button></p>' +
       '<p class="muted" style="font-size:12px;margin:6px 0 0">' + (d.writes ? "Keeps ESPN's team names, drops players no SPL team has, moves SPL players sitting on the wrong test team over (commish trade, no waivers), then adds the rest. Run it again any time to reset after demo trades." : "Turn writes on to mirror.") + ' Approved trades between these 4 move on ESPN by themselves.</p>' +
       '<div id="tlProg"></div>' +
+      '<div class="kv" style="display:block;margin-top:10px"><b>🎲 Test trade · Al ↔ Glen</b><br><small class="muted">Makes a random trade in their names (no emails to them), already accepted, so it sits on the trade wire. ' +
+        'Approve it now from your desk (or let the review run) and watch it move on ESPN. Picks a drop for them if a roster runs over.</small>' +
+        '<div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px">' + [["1for1", "1 for 1"], ["2for2", "2 for 2"], ["pick", "Player for a pick"]].map(function (x) {
+          return '<button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="tlTestTrade(\'' + x[0] + '\')">' + x[1] + '</button>'; }).join("") +
+        '<button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="tlTestTrade(\'1for1\',1)">Glen → Al</button></div><div id="tlTT"></div></div>' +
       (d.log.length ? '<details style="margin-top:10px"><summary class="eyebrow" style="cursor:pointer">ESPN write log · last ' + d.log.length + '</summary>' + d.log.map(function (l) {
         return '<div class="kv" style="display:block;font-size:12px"><span class="' + (l.code >= 200 && l.code < 300 ? "lime" : "coral") + '">' + esc(l.code) + '</span> ' + esc(l.kind) + ' · ' + esc(l.ref) + ' <span class="muted">' + ago(l.ts) + (l.msg ? ' · ' + esc(l.msg) : '') + '</span></div>'; }).join("") + '</details>' : '');
     var b = $("#tlMirror"); if (b) b.onclick = function () { tlMirror(d); };
   }).catch(function (e) { var el = $("#opsTL"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge("opsTL", "error", "stale"); });
 }
+window.tlTestTrade = function (shape, flip) {
+  var el = $("#tlTT"); if (el) el.innerHTML = '<p style="font-size:13px;margin:8px 0 0">⏳ Making it…</p>';
+  authed("testtrade", { shape: shape, from: flip ? "glen" : "farrington", to: flip ? "farrington" : "glen" }).then(function (r) {
+    if (!r.ok) throw new Error(r.error); var el = $("#tlTT"); if (!el) return;
+    el.innerHTML = '<p style="font-size:13px;margin:8px 0 0"><span class="lime">✅ On the trade wire:</span> ' + esc(oname(r.from)) + ' sends ' + esc(r.sends) + ' · ' + esc(oname(r.to)) + ' sends ' + esc(r.gets) +
+      (r.drops.length ? ' · drops ' + esc(r.drops.join(", ")) : '') + '<br><a href="#trades">Open Trades →</a> · approve now from 📥 Commish desk.</p>';
+  }).catch(function (e) { var el = $("#tlTT"); if (el) el.innerHTML = '<p class="coral" style="font-size:13px;margin:8px 0 0">' + esc(e.message) + '</p>'; });
+};
 window.tlSwitch = function (on) {
   if (!confirm(on ? "Turn ESPN writes ON? The app can then change rosters in the test league (never the real SPL league)." : "Turn ESPN writes off?")) return;
   authed("espnwrites", { on: on }).then(function (r) { if (!r.ok) throw new Error(r.error); toast(r.writes ? "ESPN writes on (test league)" : "ESPN writes off"); loadTL(); }).catch(function (e) { toast(e.message); });

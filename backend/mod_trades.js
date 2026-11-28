@@ -237,6 +237,42 @@ function rosterRoom_(ownerId, out, inn, drops) {
 }
 function dropText_(r) { var d = parseJ_(r.drops), l = (d.from || []).map(function (p) { return oName_(r.from) + " drops " + p.n; }).concat((d.to || []).map(function (p) { return oName_(r.to) + " drops " + p.n; })); return l.length ? " · " + l.join(" · ") : ""; }
 
+// 🎲 Test trades (Mike 11/28): Ops makes a practice trade between two demo owners who aren't signed in (default Al → Glen), so the
+// whole path can be watched: offer → accepted on the trade wire → veto/review → Approve now on the desk → ESPN test league moves it
+// (and any drops). Test mode only. Shapes: 1for1 · 2for2 · pick (a player for a pick, so the receiver usually needs a drop).
+// Drops are picked automatically from the end of the bench. No emails to the owners it's made for (QUIET_); chat posts say 🧪.
+var QUIET_ = false;
+function testTrade_(me, b) {
+  if (TRADE_MODE !== "test") return { ok: false, error: "Test trades only while trades are in test mode." };
+  var from = String(b.from || "farrington"), to = String(b.to || "glen"), shape = ["1for1", "2for2", "pick"].indexOf(b.shape) >= 0 ? b.shape : "1for1";
+  if (from === to || !oid_(from) || !oid_(to)) return { ok: false, error: "Pick two different owners." };
+  var act = function (id) { return (rosterOf_(id) || []).filter(function (p) { return p.slot !== "IR"; }); }, ra = act(from), rb = act(to);
+  if (!ra.length || !rb.length) return { ok: false, error: "Couldn't read both rosters on ESPN." };
+  var busy = {}; offers_().forEach(function (r) { if (r.status === "PROPOSED" || r.status === "ACCEPTED") (r.giveO.players || []).concat(r.getO.players || []).forEach(function (p) { busy[p.n] = 1; }); });
+  var take = function (list, n) { var pool = list.filter(function (p) { return !busy[p.n]; }), out = [];
+    while (out.length < n && pool.length) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); return out; };
+  var pl = function (p) { var o = { n: p.n, pos: p.pos, tm: p.tm }; if (Number(p.id) > 0) o.id = Number(p.id); return o; };
+  var give = { players: take(ra, shape === "2for2" ? 2 : 1).map(pl), picks: [] }, get = { players: [], picks: [] };
+  if (shape === "pick") { var pk = seedPicks_().filter(function (p) { return p.owner === to && Number(p.round) >= 3; });
+    if (!pk.length) return { ok: false, error: oName_(to) + " has no round 3+ pick to trade." }; get.picks = [pk[Math.floor(Math.random() * pk.length)].pid]; }
+  else get.players = take(rb, shape === "2for2" ? 2 : 1).map(pl);
+  if (give.players.length + get.players.length < (shape === "2for2" ? 4 : shape === "pick" ? 1 : 2)) return { ok: false, error: "Not enough free players (some are already in open trades). Wipe test trades or try another shape." };
+  var autoDrops = function (owner, out, inn, list) { var drops = [], e = rosterRoom_(owner, out, inn, drops), bench = list.filter(function (p) { return !out.some(function (q) { return q.n === p.n; }); }).slice().reverse();
+    while (e && /more to drop/.test(e) && bench.length) { drops.push(pl(bench.shift())); e = rosterRoom_(owner, out, inn, drops); } return e ? null : drops; };
+  var dFrom = autoDrops(from, give.players, get.players, ra), dTo = autoDrops(to, get.players, give.players, rb);
+  if (!dFrom || !dTo) return { ok: false, error: "Couldn't make roster room." };
+  var asFrom = { owner: from, name: oName_(from) }, asTo = { owner: to, name: oName_(to) }, res;
+  QUIET_ = true;
+  try {
+    var o = offer_(asFrom, { to: to, give: give, get: get, drops: dFrom, note: "🧪 Test trade made on the Ops desk by " + me.name });
+    if (!o.ok) return o;
+    res = { ok: true, id: o.offer.id, from: from, to: to, sends: sideText_(give), gets: sideText_(get), drops: dFrom.concat(dTo).map(function (p) { return p.n; }), stage: "proposed" };
+    if (b.stage !== "proposed") { var a = respond_(asTo, { id: o.offer.id, decision: "accept", drops: dTo }); if (!a.ok) return { ok: false, error: "Offer made, accept failed: " + a.error, id: o.offer.id }; res.stage = "accepted"; }
+  } finally { QUIET_ = false; }
+  log_("testtrade", res.id + " " + from + "→" + to + " " + shape + " by " + me.owner);
+  return res;
+}
+
 function wipeTrades_(me) {
   if (TRADE_MODE !== "test") return { ok: false, error: "Only test trades can be wiped." };
   var ss = SpreadsheetApp.getActive(); ["Offers", "Picks"].forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); delete SH_[n]; dirty_(n); });

@@ -7,6 +7,11 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **ESPN drop-only writes use a shape ladder** (Claude, from Mike's 409 screenshot): ESPN refuses an LM FREEAGENT call with no ADD.
+  Drops now try LM-acting-as-owner, then a ROSTER move, then the old shape; a 400/409 = refused, nothing changed, so the next shape isn't a retry.
+  The winner is remembered (`ESPN_DROP_SHAPE`). If all three are refused: capture ESPN's own LM drop call (desktop, LM Tools) and pin it.
+- 2026-11-28 · **🎲 Test trades on the Ops desk** (Mike: "generate test trades for Al and Glen"): ops makes a random trade in two demo owners'
+  names, already accepted, quiet (no owner emails); ops may Approve now on those without Joe's 48 h backup wait.
 - 2026-11-28 · **Trades run by the rulebook, not by Joe** (Mike): 24 h review in season (72 h off-season), owners not in it veto, 6 kills it,
   otherwise it goes through by itself; Joe steps in only if needed. Vetoes are public (Claude's call, in Joe's `trade_process` question).
   Roster-legal trades: drops chosen with the trade, rechecked at the end (supersedes the 11/28 "open" note). **League votes are owned by the app:**

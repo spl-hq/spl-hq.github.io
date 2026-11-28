@@ -137,7 +137,7 @@ function contacts_() {
 }
 // One email to an owner who turned this kind on. Chat emails: at most one per room every 30 minutes.
 function notify_(ownerId, kind, subject, body, room) {
-  if (OWNER_EMAILS === "off") return;
+  if (OWNER_EMAILS === "off" || (typeof QUIET_ !== "undefined" && QUIET_)) return; // 🎲 test trades made on the Ops desk email nobody
   try {
     var o = owners_().filter(function (x) { return x.owner === ownerId; })[0]; if (!o || !o.email || !notifyOf_(o)[kind]) return;
     if (room) { var c = CacheService.getScriptCache(), k = "nchat:" + ownerId + ":" + room; if (c.get(k)) return; c.put(k, "1", 1800); }
