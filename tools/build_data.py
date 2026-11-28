@@ -98,6 +98,18 @@ for r in opt_rows("Draft_Picks.csv"):
     draft.append([int(r["season"]), int(r["round"]), iv(r["pick_in_round"]), iv(r["overall_pick"]), r["owner_id"], r["original_owner_id"], r["player"] or r["player_raw"], flags, POS.get(r["player"] or r["player_raw"], "")])
 draft.sort(key=lambda d: (-d[0], d[1], d[3] or 999))
 
+# ---- 🔒 Draft-board keepers (Mike 11/28: keepers sit apart from the rounds, locked under each team). From the Keeper Matrix
+#   (2019-2026, gold): who each owner kept going into season S. Terminated (cut) rows are cap penalties, not keepers; a matrix keeper
+#   who also shows as a normal pick on that season's board was re-drafted, so the board wins. Franchise tags stay (flag F).
+#   [season, owner, player, pos, flags(F), contract_length]. ESPN-only seasons use ESPN's keeper flags instead (app side).
+drafted = {(d[0], d[6]) for d in draft if "F" not in d[7]}
+keep = []
+for r in opt_rows("Keeper_Matrix_History.csv"):
+    if r["cut"] == "Y": continue
+    pl = r["player"] or r["player_raw"]
+    if (int(r["season"]), pl) in drafted: continue
+    keep.append([int(r["season"]), r["owner_id"], pl, r["position"], "F" if r["franchise"] == "Y" else "", r["contract_length"]])
+
 # ---- 📇 Player files (DERIVED → player-history.js, loaded by the app only when a player file opens; ~300 KB kept out of the launch).
 # d = SPL Draft picks [season, round, overall, owner, slot owner, player, src (p = Packet/gold board, e = ESPN), flags, pos (ESPN rows)]
 #   The League → Draft boards screen also shows the ESPN-only seasons (2006-2018) from these rows.
@@ -212,10 +224,10 @@ lines = (json.load(open(cp, encoding="utf-8")).get("weeks") or [])[:3] if os.pat
 ls = os.path.join(ROOT, "data", "ledger_status.json")
 ledger = json.load(open(ls)) if os.path.exists(ls) else None
 payload = {'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts,
-           'seasons': seasons, 'ledger': ledger, 'games': games, 'history': history, 'draft': draft, 'rules': rules,
+           'seasons': seasons, 'ledger': ledger, 'games': games, 'history': history, 'draft': draft, 'keep': keep, 'rules': rules,
            'conflicts': conflicts, 'calendar': calendar, 'offseason': offseason, 'schedule': schedule, 'lines': lines}
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
-       "// Sources: data/Keeper_Contracts.csv, SPL_Owner_Registry.csv, SPL_Matchups.csv, Season_Results_Manual.csv, Draft_Picks.csv,\n"
+       "// Sources: data/Keeper_Contracts.csv, SPL_Owner_Registry.csv, SPL_Matchups.csv, Season_Results_Manual.csv, Draft_Picks.csv, Keeper_Matrix_History.csv,\n"
        f"//   SPL_Rulebook.md, Rules_Conflicts.csv, Season_Calendar.csv, Offseason_Drafts.csv,\n"
        f"//   SPL_Schedule.csv, Card_Lines.json. Generated {datetime.date.today()}.\n"
        f"var LEAGUE_DATA = {json.dumps(payload, ensure_ascii=False, separators=(',', ':'))};\n")

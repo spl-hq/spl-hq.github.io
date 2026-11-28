@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.11: ⭐ Power 3 = one take + three tiles)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.12: keepers carved out of the draft boards)
 
 
 ## Now
@@ -28,6 +28,14 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.12 · 🔒 **Draft boards: keepers carved out** (Mike: use the keeper data as gold; keepers aren't part of a round, put
+  them locked in at the bottom under each team). Grid: rounds first, then a gold **Keepers** band and K1…Kn rows under each team (🔒 + deal
+  length, 🏷️ tag), tap → player file. Rounds view + owner view get a 🔒 Keepers card. Source: new `keep` in league-data.js from
+  `Keeper_Matrix_History.csv` (2019–26; terminated rows are penalties so they're out; a matrix name re-drafted that season stays a pick;
+  tags kept). ESPN-only years use ESPN's keeper flags (2013 only); 2006–12 and 2014–18 have no keeper record, so keepers there are ordinary
+  picks (said on screen). ESPN boards now sit each pick under the team that made it (two in one round stack in the cell), round as ESPN
+  logged it, with a note that Joe's ESPN entry may not be the real draft order. Empty rounds are skipped; unnumbered gold picks get their
+  pick number from the team's slot. SW `splhq-v75`.
 - 2026-11-28 · v0.25.11 · ⭐ **Power 3: one take + three tiles, not a paragraph** (Mike: "a blob of text"). Each team: rank · avatar · @name ▲▼ ·
   record, one take line under the name, then three tiles: **Form** (streak, L3) · **Points** (league rank, ± vs average) · **Next** (opponent,
   his record, H2H). Robot now writes `power3: [{owner, take}]` (one sentence ≤ 80 chars); until then the app picks the sharpest fact (tops a
