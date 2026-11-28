@@ -1,5 +1,5 @@
 # ESPN_Season_Rosters.csv  --  GOLD (robot-written by tools/pull_espn_archive.py from ESPN league 19583; never hand-edit, re-run to refresh).
-# Pulled 2026-11-27T12:29Z. Final roster of each finished season, one row per player.
+# Pulled 2026-11-28T05:55Z. Final roster of each finished season, one row per player.
 season,owner_id,player_id,player,position,nfl_team,acquired,acquired_on,keeper_value,lineup_slot
 2025,bucher,4890973,Ashton Jeanty,RB,LV,trade,2025-11-20,,23
 2025,bucher,4429435,Brady Cook,QB,NYJ,add,2025-12-18,,7

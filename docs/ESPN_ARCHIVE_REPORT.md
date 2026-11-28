@@ -1,6 +1,6 @@
 # ESPN archive pull report
 
-_Robot: tools/pull_espn_archive.py · 2026-11-27T12:29Z · league 19583._
+_Robot: tools/pull_espn_archive.py · 2026-11-28T05:55Z · league 19583._
 
 | Season | Source | Teams | Draft | Final rosters | Transactions |
 |---|---|---|---|---|---|
