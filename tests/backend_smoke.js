@@ -286,6 +286,26 @@ ok(e.post({ action: "tradeact", token: mike, id: b1.offer.id, decision: "approve
   ok(e.get({ action: "ledger" }).votes.length === 1 && e.get({ action: "ledger" }).votes[0].yes === 6, "closed votes go to the ledger robot (practice stays out)");
 }
 
+// 12c · 📋 Q&A with Joe: questions live in the Sheet, Mike asks / parks / closes / re-asks from the Ops desk (Mike 11/28)
+{ ok(e.post({ action: "qa", token: glen }).error === "Commish only", "owners don't see the Q&A");
+  let q = e.post({ action: "qa", token: mike });
+  ok(q.ok && q.questions.length === 22 && q.questions.filter(x => x.status === "open").length === 4 && q.questions[0].qid === "trade_process", "first read seeds the shipped questions (4 open, trade_process first)");
+  ok(e.post({ action: "qa", token: mike }).questions.length === 22, "seeded once");
+  ok(e.post({ action: "me", token: joeTok }).questions.map(x => x.qid).join() === "trade_process,history_gaps,espn_writes,rules_rewrite", "Joe's open questions ride on me, in order");
+  ok(e.post({ action: "me", token: glen }).questions.length === 0, "owners get none");
+  ok(e.post({ action: "qsave", token: joeTok, q: "Is the deadline Week 11?" }).error === "Ops only", "only ops asks");
+  const nq = e.post({ action: "qsave", token: mike, q: "Is the trade deadline still Week 11?", why: "ESPN says Nov 25.", choices: "Yes, No, It moved" });
+  ok(nq.ok && e.post({ action: "me", token: joeTok }).questions.find(x => x.qid === nq.qid).choices.length === 3, "Mike asks a new one: Joe sees it with its choices");
+  e.post({ action: "answers", token: joeTok, items: [{ qid: nq.qid, question: "Is the trade deadline still Week 11?", choice: "It moved", note: "Week 12 now" }] });
+  q = e.post({ action: "qa", token: mike }); ok(q.answers.some(a => a.qid === nq.qid && a.who === "reilly" && a.role === "commish" && a.note === "Week 12 now"), "Mike sees Joe's answer");
+  const a1 = q.questions.find(x => x.qid === nq.qid).asked;
+  ok(e.post({ action: "qset", token: mike, qid: nq.qid, op: "again" }).ok && e.post({ action: "qa", token: mike }).questions.find(x => x.qid === nq.qid).asked >= a1, "ask again moves asked");
+  ok(e.post({ action: "qset", token: mike, qid: nq.qid, op: "close", note: "Fixed in the calendar" }).ok && !e.post({ action: "me", token: joeTok }).questions.some(x => x.qid === nq.qid), "closed: off Joe's list");
+  ok(e.post({ action: "qset", token: mike, qid: "first_wish", op: "open" }).ok && e.post({ action: "qset", token: mike, qid: "first_wish", op: "top" }).ok && e.post({ action: "me", token: joeTok }).questions[0].qid === "first_wish", "a parked one comes back, to the top");
+  ok(e.post({ action: "qset", token: mike, qid: "first_wish", op: "park" }).ok && e.post({ action: "me", token: joeTok }).questions.length === 4, "parked again");
+  ok(e.post({ action: "qsave", token: mike, q: "Later: playoff money?", status: "parked" }).ok && e.post({ action: "me", token: joeTok }).questions.length === 4, "save for later: Joe doesn't see it yet");
+}
+
 // wipe
 ok(e.post({ action: "wipetrades", token: joeTok }).ok === false, "only ops wipes");
 ok(e.post({ action: "wipetrades", token: mike }).ok && e.post({ action: "trades", token: mike }).offers.length === 0, "ops wipes test trades + reseeds picks");

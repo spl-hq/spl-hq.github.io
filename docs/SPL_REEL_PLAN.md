@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Questions for Joe are a running Q&A run from the Ops desk** (Mike). They live in the Sheet, not code: Mike asks, parks, closes
+  (with a note), re-asks and follows up; Joe's Desk number counts what he hasn't answered.
+
 - 2026-11-28 · **ESPN drop-only writes use a shape ladder** (Claude, from Mike's 409 screenshot): ESPN refuses an LM FREEAGENT call with no ADD.
   Drops now try LM-acting-as-owner, then a ROSTER move, then the old shape; a 400/409 = refused, nothing changed, so the next shape isn't a retry.
   The winner is remembered (`ESPN_DROP_SHAPE`). If all three are refused: capture ESPN's own LM drop call (desktop, LM Tools) and pin it.

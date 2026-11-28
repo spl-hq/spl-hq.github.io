@@ -35,6 +35,13 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.29.0 (backend v0.23.0) · 📋 **Q&A with Joe** (Mike: "a running Q&A with him"). Questions moved from code into the Sheet
+  (new `mod_qa.js`, tab Questions, seeded once with the 22 shipped questions: 4 open, 6 parked, 12 closed with their reasons). Ops desk section
+  (now first): ✍️ Ask Joe something (question · context · answer buttons → Ask now / Save for later) · ✅ Joe answered (Close it with a note · Ask
+  again · Follow up, which pre-fills a new question with his answer) · ⏳ Waiting on Joe (⬆ Top · Park · Close · Edit) · 🅿️ Saved for later · 📁
+  Closed (every answer kept). Badge = new from Joe since you last opened it. Joe gets an email for each new/re-asked question (commish emails on).
+  Joe's screen: 🆕 / 🔁 asked again / ✓ answered per question, unanswered first, refreshes on open; his open questions ride on `me`.
+  "Ask again" = he answers fresh (answered = his latest answer newer than `asked`). Smoke +13. SW `splhq-v99`.
 - 2026-11-28 · v0.28.1 (backend v0.22.1) · 🗑️ **Mirror drops fixed** + 🎲 **Test trades**. Mike's screenshot: mirror-drops for Joe's test team
   came back 409 "TransactionType FREEAGENT may only contain one item for MoveType: ADD" (ESPN won't take an LM free-agent call that's only a
   drop). New `espnDrop_` (mod_espn) tries LM acting as owner → ROSTER move → old shape, only moving on after a 400/409, remembers the winner
