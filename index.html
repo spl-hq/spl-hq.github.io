@@ -527,7 +527,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.2";
+var APP_VERSION = "0.25.8";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2037,7 +2037,11 @@ SCREENS.draft = function (arg) {
   var ps = all.filter(function (d) { return d[0] === y; }), traded = ps.filter(function (d) { return d[4] !== d[5]; });
   var html = back("league", "League") + '<h2>Draft</h2><div class="hscroll">' + years.map(function (x) { return '<button class="chip' + (x === y ? " on" : "") + '" onclick="go(\'draft\',\'' + x + '\')">' + x + '</button>'; }).join("") + '</div>' +
     '<div class="hscroll"><button class="chip' + (!who ? " on" : "") + '" onclick="go(\'draft\',\'' + y + '\')">Everyone</button>' + OWNERS.map(function (o) { return '<button class="chip' + (o.id === who ? " on" : "") + '" onclick="go(\'draft\',\'' + y + ',' + o.id + '\')">' + esc(o.name) + '</button>'; }).join("") + '</div>';
-  if (!who) {
+  var gv = store("draftv") !== "rounds";
+  if (!who) html += '<div class="hscroll" style="margin-bottom:10px"><button class="chip' + (gv ? " on" : "") + '" onclick="draftV(\'grid\',' + y + ')">▦ Grid</button><button class="chip' + (gv ? "" : " on") + '" onclick="draftV(\'rounds\',' + y + ')">📋 Rounds</button></div>';
+  if (!who && gv) {
+    html += histGrid(ps);
+  } else if (!who) {
     var net = {}; OWNERS.forEach(function (o) { net[o.id] = { got: 0, gave: 0 }; }); traded.forEach(function (d) { if (net[d[4]]) net[d[4]].got++; if (net[d[5]]) net[d[5]].gave++; });
     html += '<div class="card"><div class="eyebrow">🔁 ' + traded.length + ' traded picks in ' + y + '</div>' + OWNERS.filter(function (o) { return net[o.id].got || net[o.id].gave; }).sort(function (a, b) { return (net[b.id].got - net[b.id].gave) - (net[a.id].got - net[a.id].gave); }).map(function (o) {
       return '<div class="kv" style="cursor:pointer" onclick="go(\'draft\',\'' + y + ',' + o.id + '\')"><span><b>' + esc(o.name) + '</b></span><span><small class="muted">got</small> ' + net[o.id].got + ' · <small class="muted">gave</small> ' + net[o.id].gave + ' ›</span></div>'; }).join("") + '</div>';
@@ -2052,6 +2056,32 @@ SCREENS.draft = function (arg) {
   }
   return html + '<p class="muted" style="font-size:12px">' + (y === 2026 ? "2026 board from Mike\'s screenshot" : "Board from the SPL Packet, names matched to ESPN") + '. Keepers aren\'t on the board (they fill each team\'s open late-round slots). ? = board shorthand, name not confirmed. 2020 was played off ESPN and the Packet has no picks for it; 2006–2018 drafts show in player files from ESPN.</p>';
 };
+window.draftV = function (v, y) { store("draftv", v); go("draft", String(y)); };
+// ▦ Grid for past boards (Mike 11/28): same look as the SPL Draft room's grid. Columns = the 12 draft slots, rows = rounds.
+// A slot's owner = the original owner of its picks; the slot is read off the overall pick numbers (snake: odd rounds →, even ←),
+// majority vote per owner since some old boards are numbered loosely; owners with no numbers fill the open slots in board order.
+function histGrid(ps) {
+  var votes = {}, owners = [], maxR = 0;
+  ps.forEach(function (d) { if (owners.indexOf(d[5]) < 0) owners.push(d[5]); if (d[1] > maxR) maxR = d[1];
+    var p = d[3] ? d[3] - 12 * (d[1] - 1) : d[2]; if (p >= 1 && p <= 12) { var sl = d[1] % 2 ? p : 13 - p; votes[d[5]] = votes[d[5]] || {}; votes[d[5]][sl] = (votes[d[5]][sl] || 0) + 1; } });
+  var slot = {}, taken = {}, ranked = [];
+  owners.forEach(function (o) { Object.keys(votes[o] || {}).forEach(function (sl) { ranked.push([votes[o][sl], o, +sl]); }); });
+  ranked.sort(function (a, b) { return b[0] - a[0]; }).forEach(function (v) { if (!slot[v[1]] && !taken[v[2]]) { slot[v[1]] = v[2]; taken[v[2]] = 1; } });
+  var free = []; for (var i = 1; i <= Math.max(12, owners.length); i++) if (!taken[i]) free.push(i);
+  owners.forEach(function (o) { if (!slot[o]) slot[o] = free.shift(); });
+  var order = owners.slice().sort(function (a, b) { return slot[a] - slot[b]; }), by = {}, my = ME ? ME.owner : "";
+  ps.forEach(function (d) { var k = d[1] + ":" + d[5]; (by[k] = by[k] || []).push(d); });
+  var th = '<tr><th class="rc">Rd</th>' + order.map(function (o) { return '<th' + (o === my ? ' class="gme"' : '') + '><small>' + slot[o] + '</small><br>' + esc(oname(o)) + '</th>'; }).join("") + '</tr>', body = "";
+  for (var r = 1; r <= maxR; r++) body += '<tr><th class="rc">' + r + '<small>' + (r % 2 ? "→" : "←") + '</small></th>' + order.map(function (o) {
+    var cs = by[r + ":" + o]; if (!cs) return '<td class="gx"><small class="pk">' + r + '.' + String(r % 2 ? slot[o] : 13 - slot[o]).padStart(2, "0") + '</small><small>🔒 keeper slot</small></td>';
+    var d = cs[0], tag = d[7].indexOf("F") >= 0, nm = String(d[6] || "").replace(/^\d*\s*FRANCHISE$/i, "");
+    var cls = tag ? "gtg" : "g" + String(d[8] || "x").replace("/", "").toLowerCase();
+    return '<td class="' + cls + (d[4] === my ? " mine" : "") + '"' + (nm ? ' data-p="' + esc(nm) + '" onclick="pcard(this.dataset.p)" style="cursor:pointer"' : '') + '><small class="pk">' + r + '.' + String(r % 2 ? slot[o] : 13 - slot[o]).padStart(2, "0") + (d[4] !== d[5] ? ' → ' + esc(oname(d[4])) : '') + '</small>' +
+      (tag ? '<b>🏷️ TAG</b><small>' + esc(shortPl(nm) || "Franchise") + '</small>' : '<b>' + esc(shortPl(nm) || "—") + (d[7].indexOf("?") >= 0 ? ' ?' : '') + '</b><small>' + esc(d[8] || "") + '</small>') + '</td>';
+  }).join("") + '</tr>';
+  return '<div class="dgridw"><table class="dgrid">' + th + body + '</table></div><div class="chips" style="margin:8px 0 12px"><span class="gqb">QB</span><span class="grb">RB</span><span class="gwr">WR</span><span class="gte">TE</span><span class="gdst">D/ST</span><span class="gkp">🏷️ tag</span></div>' +
+    '<p class="muted" style="font-size:12px;margin-top:0">Scroll both ways; the owner row and rounds stay put. "→ Joe" = traded pick, made by Joe. Grey cells = no pick on the board (a keeper filled it). Tap a player for his file.</p>';
+}
 function pickRow(d) {
   return '<div class="pk"><span class="no">' + d[1] + (d[2] ? '.' + String(d[2]).padStart(2, "0") : '') + '</span><span><b>' + esc(d[6] || "—") + '</b>' + (d[7].indexOf("?") >= 0 ? ' <small class="muted">?</small>' : '') + (d[7].indexOf("F") >= 0 ? ' <span class="tag">🏷️ FRANCHISE TAG</span>' : '') +
     '<br><small class="muted">' + (d[3] ? '#' + d[3] + ' · ' : '') + esc(oname(d[4])) + '</small></span>' + (d[4] !== d[5] ? '<span class="via">via ' + esc(oname(d[5])) + '</span>' : '') + '</div>';
@@ -2470,7 +2500,7 @@ window.splView = function (v) { SPLV = v; splRoom(DR); };
 // ▦ Grid (Mike 11/27): the draft board the way the league's Google Sheet shows it. Columns = the 12 slots (owner on top), rows = rounds,
 // cells colored by position; 🔒 keepers and 🏷️ tags in gold; a traded pick says who has it now. Scrolls both ways; the owner row
 // and the round column stay put.
-function shortPl(n) { var w = String(n || "").replace(/\s+(Jr\.?|Sr\.?|II|III|IV)$/i, "").split(/\s+/); return w.length > 1 ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : w[0]; }
+function shortPl(n) { if (/D\/ST$/i.test(String(n || "").trim())) return String(n).trim(); var w = String(n || "").replace(/\s+(Jr\.?|Sr\.?|II|III|IV)$/i, "").split(/\s+/); return w.length > 1 ? w[0].charAt(0) + ". " + w.slice(1).join(" ") : w[0]; }
 function splGrid(x) {
   var by = {}, rs = []; x.cells.forEach(function (c) { by[c.r + ":" + c.orig] = c; });
   var my = ME.owner, now = x.at ? x.at.n : 0;

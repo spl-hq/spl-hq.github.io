@@ -85,12 +85,17 @@ for y, rs in manual.items():
     history.append({"y": y, "src": "manual", "done": bool(c), "champ": c[0] if c else None, "runner": ru[0] if ru else None, "teams": ts})
 history.sort(key=lambda h: -h["y"])
 
-# ---- 📝 Draft (gold Draft_Picks.csv): [season, round, pick_in_round, overall, owner, original_owner, player, flags]
+# ---- 📝 Draft (gold Draft_Picks.csv): [season, round, pick_in_round, overall, owner, original_owner, player, flags, pos]
+#   pos (for the ▦ grid's colors) = the player's position from ESPN's boards / final rosters / the Keeper Matrix, "" if unknown.
+POS = {}
+for f in ("ESPN_Draft_Boards.csv", "ESPN_Season_Rosters.csv", "Keeper_Matrix_History.csv"):
+    for r in opt_rows(f):
+        if r.get("player") and r.get("position"): POS.setdefault(r["player"], r["position"])
 draft = []
 for r in opt_rows("Draft_Picks.csv"):
     flags = ("F" if r["is_franchise"] == "Y" else "") + ("K" if r["is_keeper"] == "Y" else "") + ("?" if r["needs_review"] == "Y" else "")
     iv = lambda v: int(v) if str(v).strip().isdigit() else 0
-    draft.append([int(r["season"]), int(r["round"]), iv(r["pick_in_round"]), iv(r["overall_pick"]), r["owner_id"], r["original_owner_id"], r["player"] or r["player_raw"], flags])
+    draft.append([int(r["season"]), int(r["round"]), iv(r["pick_in_round"]), iv(r["overall_pick"]), r["owner_id"], r["original_owner_id"], r["player"] or r["player_raw"], flags, POS.get(r["player"] or r["player_raw"], "")])
 draft.sort(key=lambda d: (-d[0], d[1], d[3] or 999))
 
 # ---- 📇 Player files (DERIVED → player-history.js, loaded by the app only when a player file opens; ~300 KB kept out of the launch).

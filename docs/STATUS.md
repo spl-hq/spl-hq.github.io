@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.6: 36 pre-app trades from league email)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.8: ▦ grid view on the Draft boards)
 
 
 ## Now
@@ -28,6 +28,12 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.8 · ▦ **Draft boards get a grid** (Mike: great info, needs a grid). League → Draft boards → **▦ Grid | 📋 Rounds** toggle
+  (Grid is the default; the choice is remembered). Same look as the SPL Draft room's grid: 12 slot columns × rounds, owner row + round column
+  stay put, cells colored by position, pick number on each cell (snake), "→ Joe" on traded picks, 🏷️ tags in gold, grey = keeper slot (no
+  pick on the board), your column/picks in blue, tap a player for his file. Slots are read off the overall pick numbers (majority vote per
+  owner, since some old boards are loosely numbered). `build_data.py` now adds position (from ESPN boards / final rosters / Keeper Matrix)
+  as `draft[8]`; 1190 of 1215 picks have one. D/ST names stay whole on both grids ("Bills D/ST"). SW `splhq-v71`.
 - 2026-11-27 · v0.25.7 · 📇 Player file bars: your years now read at a glance (Mike: still couldn't read them): light-blue bar, blue label, and a
   "You" pill in place of your name; legend says so. SW `splhq-v70`.
 - 2026-11-27 · v0.25.6 · 🔁 **Email trade sweep** (Mike: "go"): `data/Trade_History.csv` now holds **36 pre-app deals, 2009–2026** (96 rows) read from
