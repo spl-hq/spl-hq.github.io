@@ -6,7 +6,7 @@ robot only writes the few words of personality on them.
 1. Facts: the newest fully decided week of the newest season in gold data/SPL_Matchups.csv, the table, streaks, rank moves, all-time
    series, next week's pairings (data/SPL_Schedule.csv). Pure gold, no ESPN.
 2. Claude (CLAUDE_CODE_OAUTH_TOKEN set) writes data/Card_Lines.json for that week: league headline/hot/cold, a result + next line per
-   owner, and the Power 3 (with a write-up each). Validated (owner ids from the registry, ≤ 120 chars). The app shows plain facts without lines, so: no token →
+   owner, and the Power 3 (a one-line take each). Validated (owner ids from the registry, ≤ 120 chars). The app shows plain facts without lines, so: no token →
    nothing is written (fine); Claude failed → nothing written, exit 1 (red Action).
 3. Drops: a week's lines are published once and kept (never rewritten) unless --force. Keeps the last 30 weeks.
 Usage: python3 tools/card_lines.py [--force] [--week N] [--facts-only]"""
@@ -121,7 +121,7 @@ and a wrong line is not.
 Return ONLY a JSON object (no markdown fence):
 {"league": {"headline": "...", "hot": "...", "cold": "..."},
  "owners": {"<owner id>": {"result": "...", "next": "..."}},
- "power3": [{"owner": "<owner id>", "write": "..."}]}
+ "power3": [{"owner": "<owner id>", "take": "..."}]}
 
 - headline: the league's story after this week. NEVER the week's top score or high scorer (the Week awards card owns that fact: one fact,
   one card). Lead with the race, a streak, an upset, a rank swing. Shared card: never say "you".
@@ -131,9 +131,8 @@ Return ONLY a JSON object (no markdown fence):
 - The card already shows both scores and both records. Don't restate them. Give the one angle the numbers alone don't: the streak it
   started or snapped, the rank move, the all-time series, the season high, the opponent's form.
   Good: "Snapped a three-game skid, and Pete still owns you 16-6 all-time." Bad: "You lost 98.1-113.2; now 5-6."
-- power3: the three best teams right now, best first, judged on record, points and last3. "write" is a short write-up of that team:
-  2 or 3 sentences, <= 260 characters (the one exception to the 110 rule). Why they're here, what the numbers say (streak, points rank,
-  rank move), what's next (facts.next_week, the all-time series). The card already shows record, PF and last 3: don't just restate them.
+- power3: the three best teams right now, best first, judged on record, points and last3. "take" is ONE punchy sentence on why
+  they're here (<= 80 chars). The card already shows record, streak, points rank and next game as tiles: give the angle those don't.
 - Only facts in the JSON. No players, injuries, news or quotes. No guessing beyond "a win would..." arithmetic.
 - Short: every line <= 110 characters, one sentence, no hashtags, at most one emoji at the start. Owners by first name.
 - Voice: a commissioner who knows everyone: dry, a little teasing, never mean about a person. Spread the spotlight.
@@ -155,7 +154,7 @@ def valid(x):
     played = {r["home"] for r in results} | {r["away"] for r in results}
     miss = sorted(i for i in played if not ow.get(i, {}).get("result"))
     if miss: raise ValueError("missing result lines: " + ", ".join(miss))
-    p3 = [{"owner": i.get("owner"), "write": clip(i.get("write"), 300)} for i in x.get("power3") or [] if isinstance(i, dict) and i.get("owner") in ids and i.get("write")][:3]
+    p3 = [{"owner": i.get("owner"), "take": clip(i.get("take"), 100)} for i in x.get("power3") or [] if isinstance(i, dict) and i.get("owner") in ids and i.get("take")][:3]
     return {"league": lg, "owners": ow, "power3": p3}
 def claude():
     p = subprocess.run(["claude", "-p", "--output-format", "text", "--tools", ""], input=PROMPT + json.dumps(facts, ensure_ascii=False),

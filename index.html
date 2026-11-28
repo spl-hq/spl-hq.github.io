@@ -165,7 +165,7 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .tl.hot{background:rgba(184,138,46,.08)} .tl.cold{background:rgba(150,190,230,.16)}
 .prow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)} .prow:last-child{border:0}
 .prow .rk{font:800 26px var(--head);width:22px;text-align:center;color:#041E42} .prow .pt{flex:1;min-width:0;line-height:1.25} .prow .pt b{font-size:16px} .prow .pt small{display:block;font-size:12.5px;color:var(--muted)}
-.prow .pr{font:700 14px var(--mono)} .prow.p3{border:0;padding-bottom:4px} .p3w{margin:0 0 6px 34px;padding:0 0 12px;font-size:14px;line-height:1.4;color:var(--ink,#0B1F3A);border-bottom:1px solid var(--line)} .p3w:last-of-type{border:0} .prow.mine{background:rgba(184,138,46,.10);margin:0 -10px;padding:9px 10px;border-radius:10px}
+.prow .pr{font:700 14px var(--mono)} .prow.p3{border:0;padding-bottom:4px} .prow .pt small.p3t{font-size:13.5px;color:#0B1F3A;margin-top:2px} .p3s{display:grid;grid-template-columns:.9fr 1fr 1.25fr;gap:6px;margin:2px 0 10px 34px;padding-bottom:12px;border-bottom:1px solid var(--line)} .p3s:last-of-type{border:0;padding-bottom:4px} .p3s>div{background:#F2F5FA;border-radius:10px;padding:6px 7px;min-width:0} .p3s i{display:block;font:700 10px var(--mono);font-style:normal;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)} .p3s b{display:block;font:800 17px/1.2 var(--mono);color:#041E42;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .p3s b.w{color:#1E407C} .p3s b.l{color:#C8102E} .p3s small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .prow.mine{background:rgba(184,138,46,.10);margin:0 -10px;padding:9px 10px;border-radius:10px}
 .up{color:#1E407C;font:700 11px var(--mono);margin-left:4px} .dn{color:#C8102E;font:700 11px var(--mono);margin-left:4px}
 .tbl{width:100%;border-collapse:collapse;font-size:14px} .tbl td{padding:7px 2px;border-bottom:1px solid var(--line)} .tbl td.n{text-align:right;font-family:var(--mono)} .tbl tr.mine td{background:rgba(184,138,46,.10);font-weight:700}
 .tbl tr.cut td{border-bottom:2px dashed #B88A2E} .tbl .rkc{width:22px;color:var(--muted);font-family:var(--mono)}
@@ -2713,24 +2713,31 @@ function weekCards(season, wk, me) {
   var nth = function (n) { return n + (n % 100 > 10 && n % 100 < 14 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th"); };
   var byPf = lead.slice().sort(function (a, b) { return b.pf - a.pf; }), lgAvg = lead.reduce(function (s, t) { return s + t.pf; }, 0) / Math.max(1, lead.reduce(function (s, t) { return s + t.res.length; }, 0));
   var nxS = (window.LEAGUE_DATA || {}).schedule || {}, nxG = (nxS.games || []).filter(function (g) { return g[0] === wk + 1 && g[2] && g[3]; });
-  var writeUp = function (o) { var t = T[o]; if (!t) return ""; var pr = (P[o] || {}).rank, n = +t.streak.slice(1), out = [];
+  // One take line (robot's, else the sharpest fact) + three tiles: Form · Points · Next (Mike 11/28: "a blob of text").
+  var takeOf = function (o) { var t = T[o]; if (!t) return ""; var pr = (P[o] || {}).rank, n = +t.streak.slice(1), pk = byPf.indexOf(t) + 1;
     var tied = lead.filter(function (x) { return x.owner !== o && x.w === t.w && x.l === t.l && x.t === t.t; });
-    out.push((t.streak[0] === "W" && n > 1 ? "Won " + n + " straight" : t.streak[0] === "L" && n > 1 ? "Lost " + n + " straight" : t.res.slice(-1) === "W" ? "Won this week" : "Lost this week") +
-      (pr && pr > t.rank ? " and climbed to #" + t.rank : pr && pr < t.rank ? " and slipped to #" + t.rank : ", still #" + t.rank) +
-      (tied.length ? ", level at " + t.rec + " with " + tied.map(function (x) { return oname(x.owner); }).join(" and ") + (tied.every(function (x) { return t.rank < x.rank; }) ? ", ahead on points." : tied.every(function (x) { return t.rank > x.rank; }) ? ", behind on points." : ", in the middle on points.") : "."));
-    var pk = byPf.indexOf(t) + 1, d = t.avg - lgAvg;
-    out.push((pk === 1 ? "Most points in the league" : nth(pk) + " in points") + " (" + fmtPts(t.pf) + "), " + fmtPts(Math.abs(d)) + " a week " + (d >= 0 ? "above" : "below") + " the league average.");
-    var ng = nxG.filter(function (g) { return g[2] === o || g[3] === o; })[0];
-    if (ng) { var op = ng[2] === o ? ng[3] : ng[2], ot = T[op] || {}; out.push("Next: " + (ME && op === ME.owner ? "you" : oname(op)) + (ot.rec ? " (" + ot.rec + ", #" + ot.rank + ")" : "") + "; " + (function () { var h = h2h(o, op), dd = h.all.W - h.all.L; return !h.main.length ? "their first meeting" : dd ? oname(o) + (dd > 0 ? " leads" : " trails") + " the all-time series " + recTxt(h.all) : "the all-time series is even at " + recTxt(h.all); })() + "."); }
-    return out.join(" "); };
+    var top = tied.length && tied.every(function (x) { return t.rank < x.rank; }), wn = t.streak[0] === "W" && n >= 3;
+    if (top) return "Tops the " + t.rec + " logjam on points" + (wn ? ", " + n + " straight wins." : ".");
+    if (wn) return "Hasn't lost since Week " + (wk - n) + ".";
+    if (pk <= 2) return (pk === 1 ? "The league's best offense." : "The league's 2nd-best offense.");
+    if (pr && pr - t.rank >= 2) return "Jumped " + (pr - t.rank) + " spots this week.";
+    if (tied.length) return "Stuck in the " + t.rec + " logjam" + (tied.every(function (x) { return t.rank > x.rank; }) ? ", last on points." : "; points split it.");
+    if (t.streak[0] === "L" && n >= 2) return "Hanging on through " + n + " straight losses.";
+    return t.res.slice(-1) === "W" ? "Won this week to hold #" + t.rank + "." : "Holds #" + t.rank + " despite the loss."; };
+  var statsOf = function (o) { var t = T[o]; if (!t) return ""; var pk = byPf.indexOf(t) + 1, d = t.avg - lgAvg, n = +t.streak.slice(1);
+    var ng = nxG.filter(function (g) { return g[2] === o || g[3] === o; })[0], third;
+    if (ng) { var op = ng[2] === o ? ng[3] : ng[2], ot = T[op] || {}, h = h2h(o, op);
+      third = '<div><i>Next</i><b>' + (ME && op === ME.owner ? "You" : esc(oname(op))) + '</b><small>' + esc(ot.rec || "") + (h.main.length ? ' · H2H ' + recTxt(h.all) : ' · 1st game') + '</small></div>'; }
+    else third = '<div><i>Avg</i><b>' + fmtPts(t.avg) + '</b><small>a week</small></div>';
+    return '<div class="p3s"><div><i>Form</i><b class="' + (t.streak[0] === "W" ? "w" : t.streak[0] === "L" ? "l" : "") + '">' + esc(t.streak || "–") + '</b><small>L3 ' + esc(t.res.slice(-3)) + '</small></div>' +
+      '<div><i>Points</i><b>' + nth(pk) + '</b><small>' + (d >= 0 ? "+" : "−") + fmtPts(Math.abs(d)) + ' vs avg</small></div>' + third + '</div>'; };
   var robot = L && L.power3 && L.power3.length ? L.power3 : L && L.power5 && L.power5.length ? L.power5.map(function (p) { return { owner: p.owner }; }) : null;
   var p3 = (robot || lead.map(function (t) { return { owner: t.owner }; })).filter(function (p) { return T[p.owner]; }).slice(0, 3);
   var inP3 = p3.some(function (p) { return p.owner === me; });
   out.push({ id: "power5", scope: "league", eb: "⭐ Power 3 · Week " + wk, title: "The Power 3",
     body: p3.map(function (p, i) { var t = T[p.owner] || {};
       return '<div class="prow p3' + (p.owner === me ? " mine" : "") + '"><span class="rk">' + (i + 1) + '</span>' + av(p.owner) + '<span class="pt"><b>' + who(p.owner) + '</b>' + arrow((P[p.owner] || {}).rank, t.rank) +
-        '<small>' + fmtPts(t.pf) + ' PF · last 3 ' + esc(t.res.slice(-3)) + '</small></span><span class="pr">' + esc(t.rec || "") + '</span></div>' +
-        '<p class="p3w">' + esc(p.write || writeUp(p.owner)) + '</p>'; }).join("") +
+        '<small class="p3t">' + esc(p.take || takeOf(p.owner)) + '</small></span><span class="pr">' + esc(t.rec || "") + '</span></div>' + statsOf(p.owner); }).join("") +
       (me && !inP3 && T[me] ? chips([["You: #" + T[me].rank + " · " + esc(T[me].rec), "bl"]]) : '') });
   // 📊 The table after the week (top 6 = playoffs; the dashed line is the cut)
   out.push({ id: "table", scope: "league", eb: "📊 The table · after Week " + wk,

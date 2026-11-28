@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.10: Draft boards back to 2006)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.11: ⭐ Power 3 = one take + three tiles)
 
 
 ## Now
@@ -28,6 +28,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.11 · ⭐ **Power 3: one take + three tiles, not a paragraph** (Mike: "a blob of text"). Each team: rank · avatar · @name ▲▼ ·
+  record, one take line under the name, then three tiles: **Form** (streak, L3) · **Points** (league rank, ± vs average) · **Next** (opponent,
+  his record, H2H). Robot now writes `power3: [{owner, take}]` (one sentence ≤ 80 chars); until then the app picks the sharpest fact (tops a
+  tied record on points, hasn't lost since Week N, best offense, big jump, stuck in a logjam). SW `splhq-v74`.
 - 2026-11-28 · v0.25.10 · 📝 **Draft boards back to 2006** (Mike: "no draft data pre 2019?"). The screen only read gold `Draft_Picks.csv`
   (2019, 2021–26); ESPN's boards for **2006–2018** were already on file (`ESPN_Draft_Boards.csv`, in player files only). Now the year chips
   run 2026 → 2006: gold wins where it exists, ESPN fills the rest (`allDraft()`, rows from `player-history.js`, loaded on first visit and the
