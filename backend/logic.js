@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.24.0";
+var VERSION = "0.25.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -72,7 +72,7 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1, track: 1, usage: 1, votes: 1, qa: 1, homeget: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
+var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, oprobot: 1, keepers: 1, track: 1, usage: 1, votes: 1, qa: 1, homeget: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
 var WRITES = { setphase: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1, tradeveto: 1, tradedrops: 1, mvote: 1, ruleidea: 1, voteopen: 1, qsave: 1, qset: 1, homemark: 1 }; // rate-limited per owner
 function doPost(e) {
   SH_ = {}; ROWS_ = {};
@@ -86,7 +86,7 @@ function doPost(e) {
     if (!READS[b.action]) { lock = LockService.getScriptLock(); try { lock.waitLock(10000); } catch (x) { lock = null; return json({ ok: false, busy: true, error: "The league server is busy. Try again in a few seconds." }); } }
     var desk = isRole_(me, "commish") || isRole_(me, "ops");
     switch (b.action) {
-      case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner), tour: tourStampOf_(me.owner), handles: handles_(), phase: phase_(), review: reviewCount_(me), questions: desk ? openQs_() : [] });
+      case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner), tour: tourStampOf_(me.owner), handles: handles_(), phase: phase_(), review: reviewCount_(me), questions: desk ? openQs_() : [], joeDesk: isRole_(me, "ops") ? joeDesk_() : null });
       case "setphase": return json(desk ? setPhase_(me, b) : { ok: false, error: "Commish only" }); // 🍂 Joe or Mike flips the off-season (mod_ops)
       case "tour":     return json(isRole_(me, "ops") ? tourReset_(me, b) : { ok: false, error: "Ops only" }); // 👋 replay the welcome tour (mod_ops)
       case "answers":  return json(saveAnswers_(me, b));
@@ -141,6 +141,7 @@ function doPost(e) {
       case "testtrade": return json(isRole_(me, "ops") ? testTrade_(me, b) : { ok: false, error: "Ops only" }); // 🎲 (mod_trades)
       case "wipetrades": return json(isRole_(me, "ops") ? wipeTrades_(me) : { ok: false, error: "Ops only" });
       case "opsx":     return json(isRole_(me, "ops") ? opsx_(me, b) : { ok: false, error: "Ops only" });
+      case "oprobot":  return json(isRole_(me, "ops") ? oprobot_(me, b) : { ok: false, error: "Ops only" }); // 🔎 one robot's page (mod_ops)
       case "track":    return json(track_(me, b)); // 👀 what owners open + tap (mod_usage)
       case "usage":    return json(isRole_(me, "ops") ? usage_(me, b) : { ok: false, error: "Ops only" });
       default:         return json({ ok: false, error: "unknown action" });
@@ -242,6 +243,13 @@ function reviewCount_(me) {
   if (!isRole_(me, "commish") || isRole_(me, "ops")) return 0;
   var n = offers_().filter(function (r) { return (r.status === "ACCEPTED" && r.challenge_ts && !deskLock_(me, r)) || (r.status === "APPROVED" && r.espn === "todo"); }).length;
   return n + rows_("Matters").filter(function (m) { return m.status === "idea"; }).length;
+}
+// 📥 Joe's Desk number as Joe sees it (Mike 11/28: "Joe's view should show a 4 on the desk icon"): his unanswered open questions
+// (answered = his latest answer newer than when it was asked) + his reviewCount_. For the ops account's "Joe's view".
+function joeDesk_() {
+  var id = (commishIds_() || [])[0], o = owners_().filter(function (x) { return x.owner === id; })[0]; if (!o) return null;
+  var mine = myAnswers_(id), q = openQs_().filter(function (x) { var a = mine[x.qid]; return !(a && (!x.asked || !a.ts || new Date(a.ts) >= new Date(x.asked))); }).length;
+  var rv = reviewCount_(o); return { owner: id, name: o.name, q: q, review: rv, n: q + rv };
 }
 // Why `me` can't approve/negate this trade right now ("" = can act).
 function deskLock_(me, r) {
@@ -358,7 +366,14 @@ function menuCheck() {
     "\nESPN · test " + WRITE_LEAGUE + ": " + line(h.espnTest) +
     "\nEmails left today: " + h.mailLeft + boot);
 }
-function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepAnnounce_(); keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } try { usageTick_(); } catch (e) { log_("usage_error", String(e)); } try { tradeTick_(); votesTick_(); } catch (e) { log_("review_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
+function tick() { // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day clock (mod_keepers) + usage + trade review + votes; one journal line per run (Ops desk)
+  SH_ = {}; ROWS_ = {}; var o = null, x = {};
+  try { o = ops_tick_("trigger"); } catch (e) { o = { error: String(e) }; log_("tick_error", String(e)); }
+  try { keepAnnounce_(); keepFinalize_(""); } catch (e) { x.k = "err"; log_("kfinal_error", String(e)); }
+  try { var u = usageTick_() || {}; if (u.trimmed) x.ut = u.trimmed; if (u.digest) x.ud = u.digest; } catch (e) { x.u = "err"; log_("usage_error", String(e)); }
+  try { x.t = tradeTick_(); x.v = votesTick_(); } catch (e) { x.t = "err"; log_("review_error", String(e)); }
+  try { tickJournal_("trigger", o, x); } catch (e) {}
+}
 
 // ---------------------------------------------------------------- parts: the rest of the backend, in this same scope
 // logic.js is the CORE (config, routing, Sheet helpers, sign-in, questions, health). The other parts live next to it as

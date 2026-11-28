@@ -8,13 +8,48 @@
 //     ④ alerts: ops is emailed when a problem appears and when everything is clear again (never every hour).
 //   · ops action "opsx" feeds the Ops desk's 🤖 Robots card with all of it.
 // Safe to re-run: the watchdog only runs a robot that hasn't run within its interval and isn't already running.
+// Each robot explains itself on the Ops desk (Mike 11/28: tap a robot → what it does + what it did each run): does / when / reads / writes are
+// plain English; msg = the start of the commit message it pushes (so the desk can match each run to what it changed).
 var ROBOTS = [
-  { file: "ledger-sync.yml", name: "Ledger sync", every: 2, grace: 1.5, why: "pick ledger, trades, contracts → repo" },
-  { file: "espn-history.yml", name: "ESPN history pull", every: 24, grace: 4, why: "finals + schedule from ESPN", anchor: { dow: 2, utc: 11.3 } }, // + Tue 6:17 AM ET for the 7 AM Edition
-  { file: "espn-archive.yml", name: "ESPN archive pull", every: 24 * 7, grace: 24, why: "past drafts, teams, rosters, trades from ESPN" },
-  { file: "card-lines.yml", name: "Card lines", every: 0, why: "follows each history pull" },
-  { file: "build-data.yml", name: "Build league data", every: 0, why: "on every data/ change" },
-  { file: "checks.yml", name: "Checks (CI)", every: 0, why: "on every app/backend push" }
+  { file: "ledger-sync.yml", name: "Ledger sync", icon: "📒", every: 2, grace: 1.5, why: "pick ledger, trades, contracts → repo", msg: "Ledger sync",
+    does: "Copies what the app decided into the repo's gold files: who owns which draft pick, approved trades (with drops), keeper contracts that moved with traded players, finished off-season drafts and the live SPL Draft board, closed league votes, final Signing Day declarations. Then rebuilds the app's data file.",
+    when: "Every 2 hours (the watchdog runs it if GitHub's schedule skips), and when its own code changes.", reads: "The backend (the Sheet behind the app)", writes: "data/Draft_Pick_Ownership.csv, Trade_Log.csv, Keeper_Contracts.csv, Offseason_Drafts.csv, Draft_Picks.csv, League_Votes.csv, Keeper_Declarations.csv → league-data.js" },
+  { file: "espn-history.yml", name: "ESPN history pull", icon: "🏈", every: 24, grace: 4, why: "finals + schedule from ESPN", anchor: { dow: 2, utc: 11.3 }, msg: "ESPN history pull", // + Tue 6:17 AM ET for the 7 AM Edition
+    does: "Reads every SPL game ESPN has: final scores go into the history file, games still to play go into the schedule (the Up next and Match cards). Tuesday morning's run adds last week's finals before the Home cards turn over.",
+    when: "Every morning at 6:17 AM ET (a must-run on Tuesday), and when its own code changes.", reads: "ESPN league 19583 (read only)", writes: "data/SPL_Matchups.csv, SPL_Schedule.csv → league-data.js" },
+  { file: "espn-archive.yml", name: "ESPN archive pull", icon: "🗄️", every: 24 * 7, grace: 24, why: "past drafts, teams, rosters, trades from ESPN", msg: "ESPN archive pull",
+    does: "Pulls everything ESPN keeps about past seasons: draft boards, team names, final rosters and transactions. Feeds History, the draft boards and player files.",
+    when: "Once a week, and when its script or the Owner Registry changes.", reads: "ESPN league 19583, past seasons (read only)", writes: "data/ESPN_Draft_Boards.csv, ESPN_Season_Teams.csv, ESPN_Season_Rosters.csv, ESPN_Transactions.csv, docs/ESPN_ARCHIVE_REPORT.md" },
+  { file: "card-lines.yml", name: "Card lines", icon: "✍️", every: 0, why: "follows each history pull", msg: "Card lines",
+    does: "Claude writes the one-line takes on the Home cards for the newest final week (Power 3, results, rivalries). Once per week; without the CLAUDE_CODE_OAUTH_TOKEN secret it does nothing and the cards show plain facts.",
+    when: "After every successful history pull, plus Tuesday 7:07 AM ET.", reads: "league-data.js (the week's facts)", writes: "data/Card_Lines.json → league-data.js" },
+  { file: "build-data.yml", name: "Build league data", icon: "🧱", every: 0, why: "on every data/ change", msg: "Build league data",
+    does: "Rebuilds the app's two data files from the gold CSVs whenever anything in data/ changes, so the app never runs on stale numbers.",
+    when: "On every push that touches data/ (by a person or another robot).", reads: "Every gold CSV in data/", writes: "league-data.js, player-history.js" },
+  { file: "checks.yml", name: "Checks (CI)", icon: "✅", every: 0, why: "on every app/backend push", msg: "",
+    does: "Checks every push before anyone notices a problem: every backend file compiles and fits Apps Script's size limit, the backend smoke test (hundreds of checks), and the app's scripts compile. Red on main = something live is broken.",
+    when: "On every push to main.", reads: "The pushed code", writes: "Nothing (pass / fail only)" }
+];
+// The backend's own robots (Apps Script, the hourly tick + on reads). log = Log-tab kinds that belong to each, shown on its page.
+var JOBS = [
+  { id: "tick", icon: "🐕", name: "Hourly watchdog", log: ["watchdog", "watchdog_error", "tick_error"],
+    does: "Reads every GitHub robot's runs, runs any robot GitHub's schedule skipped, checks Pages = main, ESPN cookie age, GitHub token, Sheet size, and emails ops when a problem starts and when it clears (never every hour).",
+    when: "Every hour (Apps Script trigger on tick). Without the trigger it rides the app's health pings." },
+  { id: "backup", icon: "💾", name: "Sheet backup", log: ["backup_error"],
+    does: "Zips every Sheet tab as CSV and emails it to the ops inbox, only when something changed since the last one. Restore steps: runbook §4d.",
+    when: "Once a day, inside the hourly watchdog. Back up now on the desk any time." },
+  { id: "trades", icon: "⏳", name: "Trade review clock", log: ["trade_approve", "tradehold", "review_error"],
+    does: "Finishes trades whose review is over (24 h in season, 72 h off-season) with fewer than 6 vetoes: moves players and picks, writes ESPN, posts to chat. Holds a trade if a roster ends up over the limit until that owner picks a drop.",
+    when: "Every hour, and whenever anyone opens trades or a desk." },
+  { id: "votes", icon: "🗳️", name: "Vote closer", log: ["voteclose", "voteopen"],
+    does: "Closes SPL Owners Votes at their deadline, counts them by the rule (rule change = 7 Yes; league matter = more Yes than No) and posts the result to league chat.",
+    when: "Every hour, and whenever anyone opens votes." },
+  { id: "keepers", icon: "🔒", name: "Signing Day clock", log: ["kauto", "kfinal", "kfinal_error", "kwindow"],
+    does: "Opens Signing Day when the calendar says (tells the league once) and, once it's closed, makes everyone's latest declaration final and posts the results.",
+    when: "Every hour, and on every ledger sync." },
+  { id: "usage", icon: "👀", name: "Usage upkeep", log: ["usage_error"],
+    does: "Trims usage rows older than 120 days and, after 7 AM ET, emails ops one recap of who was in yesterday.",
+    when: "Every hour (the recap once a day)." }
 ];
 var SHEET_CELL_LIMIT = 10000000;
 
@@ -42,7 +77,7 @@ function robots_(fresh) {
   ROBOTS.forEach(function (rb) {
     var r = gh_("/actions/workflows/" + rb.file + "/runs?branch=main&per_page=15");
     if (r.exp) out.tokenExp = r.exp;
-    var x = { file: rb.file, name: rb.name, why: rb.why, every: rb.every };
+    var x = { file: rb.file, name: rb.name, icon: rb.icon, why: rb.why, every: rb.every };
     if (r.code !== 200 || !r.json) { x.error = r.code === 401 ? "GitHub token refused (401)" : r.code === 403 ? "GitHub said 403 (" + (out.token ? "token can't read Actions" : "add GH_TOKEN") + ")" : "GitHub " + (r.code || r.error); err = x.error; out.list.push(x); return; }
     var runs = r.json.workflow_runs || [];
     var done = runs.filter(function (u) { return u.status === "completed" && u.conclusion !== "cancelled" && u.conclusion !== "skipped"; });
@@ -156,24 +191,99 @@ function ops_tick_(by) {
   var lock = LockService.getScriptLock(); if (lock.tryLock && !lock.tryLock(1000)) return { ok: false, busy: true };
   try {
     setProp_("OPS_TICK", JSON.stringify({ at: new Date().toISOString(), by: by }));
-    var R = robots_(true), ran = watchdog_(R), B = backup_(false), P = pages_(), K = cookie_(), S = sheetSize_(), H = health_(false);
-    alert_(problems_(R, B, P, K, S, H));
-    return { ok: true, ran: ran };
+    var b0 = jsonProp_("OPS_BACKUP", {}).at;
+    var R = robots_(true), ran = watchdog_(R), B = backup_(false), P = pages_(), K = cookie_(), S = sheetSize_(), H = health_(false), p = problems_(R, B, P, K, S, H);
+    alert_(p);
+    return { ok: true, ran: ran, backup: B.at === b0 ? "skip" : B.error ? "err" : B.sentAt === B.at ? "sent" : "same", problems: Object.keys(p).map(function (k) { return p[k]; }) };
   } finally { try { lock.releaseLock(); } catch (e) {} }
+}
+// 📓 Tick journal (Mike 11/28: "what did it do each run"): one compact line per tick, newest first, ~1.5 days. Script property (9 KB cap).
+function tickJournal_(by, o, extra) {
+  if (!o || o.busy) return;
+  var e = { at: new Date().toISOString(), by: by, w: (o.ran || []).map(function (r) { return r.name + (r.ok ? "" : " ✗"); }), b: o.backup || "", p: (o.problems || []).map(function (t) { return String(t).slice(0, 90); }).slice(0, 3) };
+  if (o.error) e.err = String(o.error).slice(0, 120);
+  Object.keys(extra || {}).forEach(function (k) { e[k] = extra[k]; });
+  var log = jsonProp_("OPS_TICKLOG", []); log.unshift(e);
+  while (log.length > 1 && JSON.stringify(log).length > 8000) log.pop();
+  setProp_("OPS_TICKLOG", JSON.stringify(log.slice(0, 36)));
 }
 function maybeTick_() { // no trigger installed? ride the (cached-miss) health pings, at most every 70 min
   var t = jsonProp_("OPS_TICK", {}); if (hoursSince_(t.at) < 70 / 60) return;
-  try { ops_tick_("lazy"); } catch (e) { log_("tick_error", String(e)); }
+  try { tickJournal_("lazy", ops_tick_("lazy")); } catch (e) { log_("tick_error", String(e)); }
 }
 
 // Ops desk feed (ops only). action "opsx" {run: "tick" | "backup"}.
 function opsx_(me, b) {
   var did = null;
-  if (b && b.run === "tick") did = ops_tick_("desk");
+  if (b && b.run === "tick") { did = ops_tick_("desk"); tickJournal_("desk", did); }
   if (b && b.run === "backup") did = backup_(true);
+  if (b && b.run === "robot") did = runRobot_(me, b.file);
   var R = robots_(!!(b && b.run)), B = jsonProp_("OPS_BACKUP", {}), P = jsonProp_("OPS_PAGES", {}), K = cookie_(), S = sheetSize_();
   return { ok: true, did: did, robots: R, backup: B, pages: P, cookie: K, sheet: S, tick: jsonProp_("OPS_TICK", {}),
-    watchdog: jsonProp_("OPS_WATCHDOG", []), alerts: jsonProp_("OPS_ALERTS", {}) };
+    watchdog: jsonProp_("OPS_WATCHDOG", []), alerts: jsonProp_("OPS_ALERTS", {}), journal: jsonProp_("OPS_TICKLOG", []).slice(0, 1),
+    jobs: JOBS.map(function (j) { return { id: j.id, icon: j.icon, name: j.name }; }) };
+}
+// ▶️ Run now from a robot's page (ops). Robots are safe to re-run; never one that's already running.
+function runRobot_(me, file) {
+  var rb = ROBOTS.filter(function (x) { return x.file === file; })[0]; if (!rb) return { ok: false, error: "No such robot" };
+  if (!prop_("GH_TOKEN")) return { ok: false, error: "Add GH_TOKEN first (runbook §2)" };
+  var cur = robots_(true).list.filter(function (x) { return x.file === file; })[0];
+  if (cur && cur.running) return { ok: false, error: rb.name + " is already running" };
+  var r = gh_("/actions/workflows/" + file + "/dispatches", { ref: "main" }), good = r.code === 204 || r.code === 200;
+  log_(good ? "robot_run" : "robot_run_error", rb.name + " by " + me.owner + (good ? "" : " · " + r.code));
+  if (good) { var h = jsonProp_("OPS_HANDRUN", []); h.unshift({ at: new Date().toISOString(), file: file, by: me.owner }); setProp_("OPS_HANDRUN", JSON.stringify(h.slice(0, 20))); CacheService.getScriptCache().remove("ops_robots"); CacheService.getScriptCache().remove("ops_rb_" + file); }
+  return good ? { ok: true, name: rb.name } : { ok: false, error: "GitHub refused (" + r.code + ")" };
+}
+
+// 🔎 One robot's page (ops; action "oprobot" {id}). GitHub robots: the last 15 runs, each with what started it (schedule, watchdog,
+// Run now, a push, another robot), how long it took, how it ended (the failing step if it failed) and what it changed (its commit's
+// files, +/− lines). Backend robots: the tick journal + their Log-tab lines. Cached 5 min per robot; commit details 6 h by sha.
+function oprobot_(me, b) {
+  var id = String((b && b.id) || ""), rb = ROBOTS.filter(function (x) { return x.file === id; })[0], jb = JOBS.filter(function (x) { return x.id === id; })[0];
+  if (jb) return jobPage_(jb);
+  if (!rb) return { ok: false, error: "No such robot" };
+  var c = CacheService.getScriptCache(), hit = b.fresh ? null : c.get("ops_rb_" + id); if (hit) return JSON.parse(hit);
+  var info = { file: rb.file, name: rb.name, icon: rb.icon, does: rb.does, when: rb.when, reads: rb.reads, writes: rb.writes, every: rb.every };
+  var r = gh_("/actions/workflows/" + id + "/runs?branch=main&per_page=15");
+  if (r.code !== 200 || !r.json) return { ok: true, robot: info, error: r.code === 401 ? "GitHub token refused (401)" : !prop_("GH_TOKEN") ? "Add GH_TOKEN so the desk can read GitHub (runbook §2)" : "GitHub " + (r.code || r.error), runs: [] };
+  var runs = r.json.workflow_runs || [], wd = jsonProp_("OPS_WATCHDOG", []), hand = jsonProp_("OPS_HANDRUN", []);
+  var near = function (list, at, f) { var t = new Date(at).getTime(); return list.some(function (x) { return (!f || x.file === f) && Math.abs(new Date(x.at).getTime() - t) < 10 * 6e4; }); };
+  var commits = [];
+  if (rb.msg && runs.length) {
+    var since = runs[runs.length - 1].created_at, cr = gh_("/commits?sha=main&author=" + encodeURIComponent("spl-hq-robot@users.noreply.github.com") + "&since=" + since + "&per_page=100");
+    commits = cr.code === 200 && Array.isArray(cr.json) ? cr.json.map(function (k) { return { sha: k.sha, at: k.commit && (k.commit.committer || k.commit.author || {}).date, msg: k.commit && k.commit.message || "" }; }) : [];
+  }
+  var jobsCalls = 0, filesCalls = 0;
+  var out = runs.map(function (u) {
+    var start = u.run_started_at || u.created_at, end = u.status === "completed" ? u.updated_at : null;
+    var x = { at: u.created_at, status: u.status, result: u.conclusion || "", url: u.html_url, secs: end ? Math.max(0, Math.round((new Date(end) - new Date(start)) / 1000)) : null, event: u.event };
+    x.how = u.event === "schedule" ? "schedule" : u.event === "workflow_run" ? "after" : u.event === "push" ? "push" :
+      u.event === "workflow_dispatch" ? (near(hand, u.created_at, id) ? "hand" : near(wd.filter(function (w) { return w.name === rb.name; }), u.created_at) ? "watchdog" : "dispatch") : u.event;
+    if (u.event === "push" && u.head_commit) x.cause = String(u.head_commit.message || "").split("\n")[0].slice(0, 120);
+    if (u.conclusion === "failure" && jobsCalls < 3) { jobsCalls++; var jr = gh_("/actions/runs/" + u.id + "/jobs");
+      if (jr.code === 200 && jr.json) (jr.json.jobs || []).forEach(function (j) { (j.steps || []).forEach(function (st) { if (st.conclusion === "failure" && !x.failStep) x.failStep = st.name; }); }); }
+    if (u.status === "completed") {
+      var t0 = new Date(start).getTime() - 6e4, t1 = new Date(end).getTime() + 3 * 6e4;
+      var mine = commits.filter(function (k) { var t = new Date(k.at).getTime(); return t >= t0 && t <= t1 && (k.msg.indexOf(rb.msg) === 0 || /^Rebuild league-data/.test(k.msg)); });
+      x.commits = mine.map(function (k) {
+        var key = "ops_cm_" + k.sha.slice(0, 12), got = c.get(key), d = got ? JSON.parse(got) : null;
+        if (!d && filesCalls < 8) { filesCalls++; var kr = gh_("/commits/" + k.sha);
+          if (kr.code === 200 && kr.json) { d = { files: (kr.json.files || []).slice(0, 12).map(function (f) { return { f: f.filename, a: f.additions, d: f.deletions }; }) }; try { c.put(key, JSON.stringify(d), 21600); } catch (e) {} } }
+        return { sha: k.sha.slice(0, 7), msg: k.msg.split("\n")[0].slice(0, 120), url: "https://github.com/" + REPO + "/commit/" + k.sha, files: d ? d.files : null };
+      });
+    }
+    return x;
+  });
+  var res = { ok: true, robot: info, runs: out, at: new Date().toISOString() };
+  try { c.put("ops_rb_" + id, JSON.stringify(res), 300); } catch (e) {}
+  return res;
+}
+function jobPage_(jb) {
+  var lines = [], want = {}; jb.log.forEach(function (k) { want[k] = 1; });
+  try { lines = rows_("Log").slice(-600).filter(function (r) { return want[r.kind] && (r.kind !== "trade_approve" || / by review$/.test(r.detail)); }).reverse().slice(0, 25)
+    .map(function (r) { return { at: r.ts instanceof Date ? r.ts.toISOString() : String(r.ts), kind: r.kind, detail: String(r.detail || "") }; }); } catch (e) {}
+  return { ok: true, job: { id: jb.id, icon: jb.icon, name: jb.name, does: jb.does, when: jb.when }, journal: jsonProp_("OPS_TICKLOG", []), log: lines,
+    tick: jsonProp_("OPS_TICK", {}), backup: jsonProp_("OPS_BACKUP", {}) };
 }
 
 // ---------------------------------------------------------------- 👋 Welcome tour replay (Mike 11/27, after MAFFL REEL's desk control)

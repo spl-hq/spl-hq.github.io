@@ -6,6 +6,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 (`maffl-commish/maffl` → `_ops/docs/REEL.md`, `APP_DESIGN.md`, `REEL_OPERATIONS.md`, `REEL_SERIES.md`, `TRADE_CENTER_DESIGN.md`).
 
 ## 0. Decisions (newest on top)
+- **2026-11-28 · Ops desk = Needs you first, then groups; every robot has a page** (Mike). One 🤖 System & robots section (health + robots + app);
+  tap any robot (GitHub or backend) for what it does and what it did each run. Joe's view on Mike's phone shows Joe's Desk number exactly as Joe sees it.
+  A new robot needs its plain-English `does/when/reads/writes` + commit `msg` in `ROBOTS` (mod_ops.js), or a `JOBS` entry for a backend one.
+
 - **2026-11-28 · Saved/Done are per owner, not per phone** (Mike): stored in the Sheet (`HomeCards`, mod_home), synced on every swipe and every Home open. The phone keeps a copy for speed and offline.
 
 - 2026-11-28 · **Cards from the past announce their type first** (Mike). A throwback/history card leads with a full-width ribbon (📼 Throwback)

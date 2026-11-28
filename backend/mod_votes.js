@@ -97,7 +97,7 @@ function votesTick_() {
     rows_("Matters").forEach(function (m, i) {
       if (m.status !== "open" || Date.now() < new Date(m.closes).getTime()) return;
       m.status = "closed"; m.result = resultOf_(m, tallyOf_(m).t); m.updated_ts = new Date(); setRow_("Matters", i, m); n++;
-      botPost_("league", "🗳️ Vote closed: “" + m.title + "” · " + m.result, m.mid);
+      botPost_("league", "🗳️ Vote closed: “" + m.title + "” · " + m.result, m.mid); log_("voteclose", m.mid + " · " + m.title + " · " + m.result);
     });
   } finally { if (lock.releaseLock) lock.releaseLock(); }
   return n;

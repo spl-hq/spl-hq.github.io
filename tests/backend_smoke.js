@@ -12,6 +12,10 @@ const GH = { runs: {}, dispatched: [], code: 200, live: "0.14", main: "0.14", ex
 const iso = h => new Date(Date.now() - h * 3.6e6).toISOString();
 const ghRun = (h, conclusion, event) => ({ created_at: iso(h), status: "completed", conclusion: conclusion || "success", event: event || "schedule", html_url: "https://github.com/run/" + h });
 const ghFetch = (url, o) => {
+  const J = (v) => ({ getResponseCode: () => GH.code, getContentText: () => JSON.stringify(v), getAllHeaders: () => ({}) });
+  if (/\/commits\?/.test(url)) return J(GH.commits || []);
+  const cm = /\/commits\/(\w+)$/.exec(url); if (cm) return J({ files: [{ filename: "data/Trade_Log.csv", additions: 2, deletions: 0 }] });
+  if (/\/actions\/runs\/\d+\/jobs/.test(url)) return J({ jobs: [{ steps: [{ name: "Set up job", conclusion: "success" }, { name: "Run python3 tools/ledger_sync.py", conclusion: "failure" }] }] });
   const d = /actions\/workflows\/([\w.-]+)\/(runs|dispatches)/.exec(url);
   if (d && d[2] === "dispatches") { GH.dispatched.push(d[1]); return { getResponseCode: () => 204, getContentText: () => "", getAllHeaders: () => ({}) }; }
   const runs = GH.runs[d[1]] || [ghRun(1)];
@@ -665,6 +669,25 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
   const nb = w.mails.length; x = w.post({ action: "opsx", token: wm, run: "backup" });
   ok(x.did && x.did.sentAt && w.mails.length === nb + 1, "Back up now sends one");
   x = w.post({ action: "opsx", token: wm, run: "tick" }); ok(x.did && x.did.ok && JSON.parse(w.props.OPS_TICK).by === "desk", "Run checks now from the desk");
+  // 🔎 robot pages (Mike 11/28): what each robot is and what it did each run
+  w.M.tick(); { const jl = JSON.parse(w.props.OPS_TICKLOG); ok(jl.length >= 2 && jl[0].by === "trigger" && "t" in jl[0] && "v" in jl[0] && jl[1].by === "desk", "tick journal: one line per run (trigger + desk), trades/votes counted"); }
+  ok(x.jobs.length === 6 && x.robots.list[0].icon, "desk feed lists the backend robots + icons");
+  ok(w.post({ action: "oprobot", token: joeT, id: "ledger-sync.yml" }).ok === false, "robot pages are ops only");
+  { const t1 = new Date(Date.now() - 2 * 3.6e6), t2 = new Date(Date.now() - 4 * 3.6e6);
+    GH.runs["ledger-sync.yml"] = [{ id: 11, created_at: t1.toISOString(), run_started_at: t1.toISOString(), updated_at: new Date(t1.getTime() + 50e3).toISOString(), status: "completed", conclusion: "success", event: "schedule", html_url: "u1" },
+      { id: 12, created_at: t2.toISOString(), run_started_at: t2.toISOString(), updated_at: new Date(t2.getTime() + 40e3).toISOString(), status: "completed", conclusion: "failure", event: "workflow_dispatch", html_url: "u2" }];
+    GH.commits = [{ sha: "abcdef1234567890", commit: { message: "Ledger sync: picks, trades, keeper contracts, drafts", committer: { date: new Date(t1.getTime() + 30e3).toISOString() } } }];
+    const rp = w.post({ action: "oprobot", token: wm, id: "ledger-sync.yml", fresh: 1 });
+    ok(rp.ok && rp.robot.does && rp.runs.length === 2 && rp.runs[0].secs === 50 && rp.runs[0].how === "schedule", "robot page: plain-English job + each run (when, how it started, how long)");
+    ok(rp.runs[0].commits.length === 1 && rp.runs[0].commits[0].files[0].f === "data/Trade_Log.csv" && rp.runs[0].commits[0].files[0].a === 2, "a run that pushed shows what it changed (+/- per file)");
+    ok(rp.runs[1].failStep === "Run python3 tools/ledger_sync.py" && rp.runs[1].commits.length === 0, "a failed run names the step that broke");
+    GH.commits = []; GH.dispatched = [];
+    ok(w.post({ action: "opsx", token: wm, run: "robot", file: "ledger-sync.yml" }).did.ok && GH.dispatched.join() === "ledger-sync.yml" && JSON.parse(w.props.OPS_HANDRUN)[0].by === "murello", "Run now dispatches the robot and remembers it was by hand");
+    ok(w.post({ action: "opsx", token: wm, run: "robot", file: "nope.yml" }).did.ok === false, "Run now: unknown robot refused");
+    const jp = w.post({ action: "oprobot", token: wm, id: "tick" });
+    ok(jp.ok && jp.job.name === "Hourly watchdog" && jp.journal.length >= 2 && Array.isArray(jp.log), "backend robot page: job + tick journal + its Log lines"); }
+  { const mm = w.post({ action: "me", token: wm }), jm = w.post({ action: "me", token: joeT }), joeOpen = jm.questions.filter(q => !jm.myAnswers[q.qid]).length;
+    ok(mm.joeDesk && mm.joeDesk.owner === "reilly" && mm.joeDesk.q === joeOpen && mm.joeDesk.n === joeOpen + jm.review && jm.joeDesk === null, "ops' me carries Joe's Desk number as Joe sees it (" + (mm.joeDesk && mm.joeDesk.n) + ")"); }
   // 👋 welcome tour replay: ops only; one owner, then everyone; "me" hands each owner the newest stamp that applies
   ok(w.post({ action: "tour", token: joeT, target: "*" }).ok === false, "tour replay is ops only");
   ok(w.post({ action: "me", token: joeT }).tour === "", "no tour stamp until ops replays it");

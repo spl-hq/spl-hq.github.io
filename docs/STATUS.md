@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.29.3 card buttons + fixed Team order; v0.29.1 📼 throwback ribbon; v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.30.0 Ops desk reorganized + robot pages + Joe's Desk number in Joe's view; v0.29.3 card buttons + fixed Team order; v0.29.1 📼 throwback ribbon; v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
 
 
 ## Now
@@ -35,6 +35,17 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.30.0 (backend v0.25.0) · 🛠️ **Ops desk reorganized + every robot explains itself** (Mike: "jammed up… bring my attention where it needs to be").
+  **🎯 Needs you** on top: every section whose badge is gold/red, red first, tap = open + scroll there (the desk no longer pops red sections open by itself).
+  Sections grouped **🏈 League** (Q&A, Season, Drafts, Signing Day) · **👥 Owners** (Passphrases, Who's using it, Feedback, Welcome tour) · **⚙️ System** ·
+  **🧪 Test kit** (Test league, Test trades). **🩺 System & robots + 🤖 Robots & watchdog + 📱 App merged** into one **🤖 System & robots**: Robots on GitHub,
+  Robots in the backend, Connections, Safety checks, one badge. **Robot pages** (`#robot=<file|job>`): what it does, when, reads → writes, ▶️ Run now, and
+  each of the last 15 runs: when · what started it (⏰ schedule / 🐕 watchdog / 👆 your Run now / 📦 a push / 🔗 after the history pull) · how long ·
+  result (the step that broke) · what it saved (files, +/− lines, link to the change) or "nothing new". Backend robots (watchdog, backup, trade review
+  clock, vote closer, Signing Day clock, usage upkeep) read a new **tick journal** (`OPS_TICKLOG`, one line per hourly run) + their Log lines.
+  Backend: `ROBOTS` gains icon/does/when/reads/writes/msg, new `JOBS`, `oprobot` action, `opsx run:"robot"`, Log kinds `tradehold` + `voteclose`.
+  **📥 Joe's view shows Joe's Desk number** (Mike): `me` for ops carries `joeDesk` (his unanswered questions + reviewCount_); the Joe's view chip and the
+  header button ("📥 Desk · 4") show it while you're on Joe's view. Smoke +11. SW `splhq-v103`.
 - 2026-11-28 · v0.29.3 · 🧭 **Card buttons name where they go** (Mike). Audit of every Home card button: live game "Lineups" → **Match**;
   live slate "Every game" → **Match**; your result → **Match · Week N**; 🔒 2027 keepers card "Your team" → **🔒 Your keepers** (opens your
   keeper desk on Team); 💸 cap impact → 🔒 Your keepers; 📋 Signing Day board now opens the league board (`#keepers=@league`), not your plan;

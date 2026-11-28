@@ -204,7 +204,7 @@ function tradeTick_() {
       var dr = parseJ_(r.drops), hold = rosterRoom_(r.from, r.giveO.players, r.getO.players, dr.from || []) ? r.from : rosterRoom_(r.to, r.getO.players, r.giveO.players, dr.to || []) ? r.to : "";
       if (hold) { if (holdOf_(r) !== hold) { r.espn_note = "HOLD:" + hold; delete r.giveO; delete r.getO; setRow_("Offers", i, r);
           notify_(hold, "commish", "Pick a drop to finish your trade", "Your trade is through review, but your roster is over " + ROSTER_MAX + " now. Pick who you'll drop: " + APP_URL + "#trades");
-          botPost_(dmRoom_(r.from, r.to), "⏸️ Review's over. " + oName_(hold) + " is over the roster limit now and picks a drop, then it goes through.", r.offer_id); }
+          log_("tradehold", r.offer_id + " " + hold); botPost_(dmRoom_(r.from, r.to), "⏸️ Review's over. " + oName_(hold) + " is over the roster limit now and picks a drop, then it goes through.", r.offer_id); }
         return; }
       if (approveTrade_({ row: r, idx: i }, review, "").ok) n++;
     });

@@ -327,6 +327,9 @@ textarea,input[type=text],select{background:#fff}
 .st.current{background:#E8F0FB;color:#1E407C} .st.confirm{background:#FFF6E3;color:#8A6516} .st.stale{background:#FBE9EC;color:#C8102E} .st.ok{background:#E8F0FB;color:#1E407C}
 details.sec{padding:0} details.sec>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:8px;align-items:center}
 details.sec>summary::-webkit-details-marker{display:none}
+.opsgrp{font:800 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 4px 6px}
+.rrow{cursor:pointer;align-items:center} .rrow>span:last-child{white-space:nowrap;flex:none} .rrow:active{background:rgba(30,64,124,.06)} .rrow .chev{color:var(--muted);margin-left:8px;font-size:18px;vertical-align:middle}
+.opsneed{border-left:4px solid var(--gold,#B88A2E)} .opsneed.allgood{border-left-color:var(--lime)} .rbrun{padding:12px 14px} .rbf{font-size:13px;margin-top:3px}
 details.sec.ops>summary b{font-size:14px} details.ops .rbody p.coral{color:var(--coral)} details.ops .rbody .kv:first-child{border-top:0}
 details.sec>summary b{flex:1;font:800 16px/1.15 var(--head);text-transform:uppercase;letter-spacing:.03em}
 details.sec>summary::after{content:"›";color:var(--muted);font-size:20px;transition:transform .15s} details.sec[open]>summary::after{transform:rotate(90deg)}
@@ -570,7 +573,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.29.3";
+var APP_VERSION = "0.30.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -628,14 +631,14 @@ function isOps() { return isRole("ops"); }
 function goDesk() { go(isOps() ? "ops" : "desk"); }
 function deskTop(which) {
   if (!isOps()) return '<h2>📥 Commish desk</h2>';
-  return '<div class="hscroll" style="margin-bottom:4px"><button class="chip' + (which === "ops" ? " on" : "") + '" onclick="go(\'ops\')">🛠️ Ops desk</button><button class="chip' + (which === "desk" ? " on" : "") + '" onclick="go(\'desk\')">📥 Commish · Joe\'s view</button></div>' +
+  return '<div class="hscroll" style="margin-bottom:4px"><button class="chip' + (which === "ops" ? " on" : "") + '" onclick="go(\'ops\')">🛠️ Ops desk</button><button class="chip' + (which === "desk" ? " on" : "") + '" onclick="go(\'desk\')">📥 Commish · Joe\'s view' + (joeN() ? ' <span class="st confirm">' + joeN() + '</span>' : '') + '</button></div>' +
     '<h2>' + (which === "ops" ? "🛠️ Ops desk" : "📥 Commish desk") + '</h2>';
 }
 function authed(action, body) {
   body = body || {}; body.token = store("token");
   return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
 }
-function setMe(r) { ME = r.me; if (typeof r.review === "number") ME.review = r.review; if (Array.isArray(r.questions)) { ACTIVE_Q = r.questions; store("qs", ACTIVE_Q); } store("me", ME); if (r.myAnswers) MY = r.myAnswers; if (r.handles) setHandles(r.handles); paintMe(); }
+function setMe(r) { ME = r.me; if (typeof r.review === "number") ME.review = r.review; if (r.joeDesk !== undefined) ME.joeDesk = r.joeDesk; if (Array.isArray(r.questions)) { ACTIVE_Q = r.questions; store("qs", ACTIVE_Q); } store("me", ME); if (r.myAnswers) MY = r.myAnswers; if (r.handles) setHandles(r.handles); paintMe(); }
 function signOut(quiet) { uvEnd(); uvFlush(true); store("uq", null); UV.opened = 0; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("spl_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
 function fullOf(id) { var o = (window.LEAGUE_DATA && LEAGUE_DATA.owners || []).filter(function (x) { return x.id === id; })[0]; return o && o.full; } // Owner Registry canonical_name
 function initials() { // Michael Murello → MM
@@ -644,9 +647,12 @@ function initials() { // Michael Murello → MM
 }
 function fullName() { return (ME && (fullOf(ME.owner) || ME.name)) || ""; }
 // 📥 Joe's Desk button number = his open questions from the Ops Manager + trades waiting on him (backend me.review).
+function joeN() { var j = ME && ME.joeDesk; return j ? (+j.n || 0) : 0; }
 function paintMe() {
   var b = $("#meBtn"); if (b) { b.textContent = ME ? initials() : "Sign in"; b.setAttribute("aria-label", ME ? "Your settings" : "Sign in"); }
-  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); var qOpen = isOps() ? 0 : ACTIVE_Q.length - answeredActive(MY || {}) + ((ME && +ME.review) || 0); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk" + (qOpen > 0 ? " · " + qOpen : ""); d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
+  // Ops on 📥 Joe's view sees Joe's button exactly as Joe does (Mike 11/28): his open questions + trades/ideas waiting on him (backend me.joeDesk).
+  var jv = isOps() && /^#desk\b/.test(location.hash || ""), jn = joeN();
+  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); var qOpen = isOps() ? jn : ACTIVE_Q.length - answeredActive(MY || {}) + ((ME && +ME.review) || 0); d.textContent = isOps() && !jv ? "🛠️ Desk" : "📥 Desk" + (qOpen > 0 ? " · " + qOpen : ""); d.setAttribute("aria-label", isOps() && !jv ? "Ops desk" : "Commish desk"); }
 }
 function flushOutbox() { // chat typed offline never reached the backend, so sending it now can't double-post
   var ob = store("outbox") || []; if (!ob.length || !ME || !navigator.onLine || flushOutbox.busy) return; flushOutbox.busy = true;
@@ -692,7 +698,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "home", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league", votes: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "home", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league", votes: "league", robot: "" };
 // SPL HQ bot posts carry a ref; the button follows what it points at (T… trade offer, D… draft room unless cancelled, K…/keep: Signing Day). Unknown refs get no button.
 function hqLink(ref, text) {
   ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone
@@ -719,9 +725,10 @@ function render() {
   uvView(name); // 👀 first, so a screen that errors still counts
   var tab = name === "keepers" && ME && (!arg || arg === ME.owner || /^@|!$/.test(arg)) ? "team" : TAB_OF[name]; // your keepers = your GM desk
   document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === tab); });
-  var dk = $("#deskBtn"); if (dk) dk.classList.toggle("on", name === "desk" || name === "ops" || name === "joe");
+  var dk = $("#deskBtn"); if (dk) dk.classList.toggle("on", name === "desk" || name === "ops" || name === "joe" || name === "robot");
   $("#view").innerHTML = SCREENS[name](arg); $("#view").scrollTop = 0;
   if (SCREENS[name].after) SCREENS[name].after(arg);
+  if (isOps()) paintMe(); // the header Desk button follows Ops desk ↔ Joe's view
   if ($("#gmK")) gmFill();
   if (typeof tourMaybe === "function") tourMaybe(); // 👋 first visit
 }
@@ -1582,7 +1589,9 @@ SCREENS.desk = function () {
   return deskTop("desk") + (isOps() ? '<div class="card" style="border-color:var(--pugh,#96BEE6);padding:10px 14px"><small>👀 <b>Joe\'s view.</b> Exactly what Joe sees (no rehearsals or backend). You can act on trades Joe is in, and as backup on any trade that has waited 48 h on him. Rehearsals live on your 🛠️ Ops desk.</small></div>' : '') +
     '<div id="dsk"><div class="card"><p class="muted">Loading…</p></div></div>';
 };
-SCREENS.desk.after = function () {
+// Ops: refresh Joe's Desk number when either desk opens (throttled), so Joe's view shows his count as it stands.
+function meRefresh() { if (!isOps() || meRefresh.at > Date.now() - 20000) return; meRefresh.at = Date.now(); authed("me").then(function (r) { if (r.ok) { setMe(r); var c = document.querySelector(".hscroll .chip:nth-child(2)"); if (c && /#(desk|ops)\b/.test(location.hash)) c.innerHTML = "📥 Commish · Joe's view" + (joeN() ? ' <span class="st confirm">' + joeN() + '</span>' : ''); } }).catch(function () {}); }
+SCREENS.desk.after = function () { meRefresh();
   if (!$("#dsk")) return;
   authed("desk").then(function (d) {
     if (!d.ok) throw new Error(d.error);
@@ -3661,28 +3670,32 @@ SCREENS.feedback.after = function () {
 };
 
 // ---- 🛠️ Ops desk (Mike): is everything connected and working?
+// v0.30 (Mike 11/28: "bring my attention where it needs to be"): 🎯 Needs you on top (every section whose badge is gold or red, tap to
+// jump), then the sections in four groups (League · Owners · System · Test kit). System + robots are one section; every robot opens its
+// own page (#robot=…): what it does, when, what it reads and writes, and what it did on each of its last runs.
 SCREENS.ops = function () {
   if (!ME) return '<h2>🛠️ Ops desk</h2>' + needSignIn("to open the desk");
   if (!isOps()) return back(isDesk() ? "desk" : "home", isDesk() ? "Commish desk" : "Home") + '<h2>🛠️ Ops desk</h2><div class="card"><p style="margin:0">Ops only (Mike).</p></div>';
-  var load = '<p class="muted">Loading…</p>';
+  var load = '<p class="muted">Loading…</p>', grp = function (t) { return '<div class="opsgrp">' + t + '</div>'; };
   return deskTop("ops") +
     '<div id="issued"></div>' +
-    '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
+    '<div class="card opsneed" id="opsNeed"><div class="eyebrow">🎯 Needs you</div><p class="muted" style="margin:6px 0 0">Checking every section…</p></div>' +
+    '<div class="row" style="justify-content:flex-end;margin:-4px 0 0"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
+    grp("🏈 League") +
     opsSec("answers", "📋 Q&A with Joe", "opsAns", load, "…") +
-    opsSec("usage", "👀 Who's using it", "opsUse", load, "…") +
     phaseSec(true) +
     opsSec("drafts", "🗓️ Drafts", "opsDr", '<p class="muted">Loading drafts…</p>', "…") +
-    opsSec("keep", "🔒 Keeper Signing Day", "opsKp", '<p class="muted">Loading…</p>', "…") +
-    opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
-    opsSec("robots", "🤖 Robots &amp; watchdog", "opsRob", '<p class="muted">Asking GitHub…</p>', "…") +
+    opsSec("keep", "🔒 Keeper Signing Day", "opsKp", load, "…") +
+    grp("👥 Owners") +
     opsSec("owners", "🔑 Passphrases", "opsOwners", load, "…") +
+    opsSec("usage", "👀 Who's using it", "opsUse", load, "…") +
     opsSec("feedback", "💡 Feedback", "opsFb", load, "…") +
-    opsSec("tl", "🏈 Test league", "opsTL", load, "…") +
-    opsSec("trades", "🧪 Test trades", "opsTT", '<p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p>', "test only", "ok") +
     opsSec("tour", "👋 Welcome tour", "opsTour", tourDeskHTML(), "replay", "ok") +
-    opsSec("app", "📱 App", "opsApp", '<div class="kv"><span>App version</span><span>' + APP_VERSION + '</span></div>' +
-      '<div class="kv"><span>Backend URL</span><span>' + (API_URL ? '<span class="lime">set</span>' : '<span class="coral">not set</span>') + '</span></div>' +
-      '<div class="kv"><span>Home Screen app</span><span>' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "yes" : "no (browser)") + '</span></div>', "v" + APP_VERSION, API_URL ? "ok" : "stale");
+    grp("⚙️ System") +
+    opsSec("sys", "🤖 System &amp; robots", "opsSys", '<div id="opsSysRob"><p class="muted">Asking GitHub…</p></div><div id="opsSysCon"><p class="muted">Checking the backend…</p></div><div id="opsSysChk"></div>', "…") +
+    grp("🧪 Test kit") +
+    opsSec("tl", "🏈 Test league", "opsTL", load, "…") +
+    opsSec("trades", "🧪 Test trades", "opsTT", '<p style="margin:0">Wipe every test trade and reset the pick ledger (test mode only).</p><p style="margin-top:10px"><button class="btn ghost" onclick="wipeTrades()">Wipe test trades</button></p>', "test only", "ok");
 };
 // Ops desk accordions (Mike 11/26): every card folds; the badge in the header says how it's doing without opening it.
 // Open/closed is remembered on this phone. A section whose badge turns red opens itself so problems aren't hidden.
@@ -3695,7 +3708,8 @@ window.opsToggle = function (el) { if (el.dataset.auto) { delete el.dataset.auto
 window.opsAll = function (on) { var o = {}; document.querySelectorAll("details.ops").forEach(function (d) { o[d.dataset.k] = on; if (d.open !== on) { d.dataset.auto = 1; d.open = on; } }); store("opsOpen", o); };
 function opsBadge(id, text, cls) { // cls: ok (blue) · confirm (gold, needs a look) · stale (red, broken → opens itself)
   var b = $("#" + id + "St"); if (!b) return; b.className = "st " + (cls || "ok"); b.textContent = text;
-  var d = b.closest("details"); if (cls === "stale" && d && !d.open) { d.dataset.auto = 1; d.open = true; }
+  var d = b.closest("details"); if (cls === "stale" && d && !d.open && !$("#opsNeed")) { d.dataset.auto = 1; d.open = true; } // the Ops desk lists red ones in 🎯 Needs you instead
+  if ($("#opsNeed")) { clearTimeout(opsBadge.t); opsBadge.t = setTimeout(opsNeedPaint, 60); }
 }
 function ago(ts) {
   if (!ts) return "never"; var m = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
@@ -3883,62 +3897,198 @@ function loadDesk() {
     $("#opsFb").innerHTML = d.feedback.length ? d.feedback.map(function (f) { var o = owner(f.who); return '<div class="kv" style="display:block"><span class="lime">' + esc(o ? o.name : f.who) + '</span> ' + esc(f.mood || "") + '<br>' + esc(f.note) + '</div>'; }).join("") : '<p class="muted" style="margin:0">No feedback yet.</p>';
   }).catch(function (e) { ["opsOwners", "opsFb"].forEach(function (id) { var el = $("#" + id); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge(id, "error", "stale"); }); });
 }
-// 🤖 WS7: the robots as GitHub sees them + the backend's hourly watchdog (mod_ops): who ran when, who failed, who GitHub's schedule
-// skipped (the watchdog runs those by hand), backups, Pages, ESPN cookie age, GitHub token, Sheet size. Red opens the section.
+// 🤖 System & robots (one section since v0.30): robots first (tap any → its page), then connections, then the safety checks.
+// Two feeds fill it: the backend's health (connections) and opsx (robots as GitHub sees them + the watchdog). The badge adds both up.
+var SYSB = {};
+function sysBadge() {
+  if (!SYSB.rob || !SYSB.con) return;
+  var bad = SYSB.rob.bad + SYSB.con.bad, look = SYSB.rob.look;
+  opsBadge("opsSys", bad ? "❌ " + bad + (bad > 1 ? " problems" : " problem") : look ? look + " to set up" : "✅ all good", bad ? "stale" : look ? "confirm" : "ok");
+}
+function sysSub(t) { return '<div class="eyebrow" style="margin:14px 0 2px">' + t + '</div>'; }
+// What each GitHub robot's data says about itself (the app's own copy of league-data.js), shown under its name.
+function robotData(file) {
+  var L = window.LEAGUE_DATA || {}, g = L.games || [], last = g.length ? g[g.length - 1] : null, S = L.schedule, lg = L.ledger, P = (L.lines || [])[0];
+  var age = function (ts) { return ts ? (Date.now() - new Date(ts).getTime()) / 864e5 : 99; };
+  if (file === "espn-history.yml") { var hp = S && S.pulled; return { bad: age(hp) >= 2, t: (hp ? "pulled " + ago(hp) : "not stamped yet") + (last ? " · results through " + last[0] + " wk " + last[1] : "") + (S && S.season ? " · " + S.games.length + " games to play" : "") }; }
+  if (file === "ledger-sync.yml") return lg ? { bad: age(lg.at) >= 1.5, t: "synced " + ago(lg.at) + " · " + lg.trades + " trades · " + (lg.mode === "test" ? "test files" : "gold") } : { bad: true, t: "not run yet" };
+  if (file === "card-lines.yml") return P ? { bad: age(P.at) >= 9, t: "Week " + P.week + " lines · " + ago(P.at) } : { gold: 1, t: "off: add the CLAUDE_CODE_OAUTH_TOKEN secret (cards show plain facts)" };
+  return null;
+}
 function loadRobots(run) {
-  var el = $("#opsRob"); if (!el) return; if (run) el.innerHTML = '<p class="muted">' + (run === "backup" ? "Backing up…" : "Running the checks…") + '</p>';
+  var el = $("#opsSysRob"); if (!el) return; if (run) el.innerHTML = '<p class="muted">' + (run === "backup" ? "Backing up…" : "Running the checks…") + '</p>';
   authed("opsx", run ? { run: run } : {}).then(function (d) {
-    if (!d.ok) throw new Error(d.error); var el = $("#opsRob"); if (!el) return;
+    if (!d.ok) throw new Error(d.error); var el = $("#opsSysRob"); if (!el) return;
     var bad = 0, look = 0, R = d.robots, li = function (cls, t) { if (cls === "coral") bad++; if (cls === "gold") look++; return '<span class="' + cls + '">' + t + '</span>'; };
-    var rows = R.list.map(function (x) {
-      var st = x.error ? li("coral", "❌ " + esc(x.error)) : x.failing ? li("coral", "❌ failed " + ago(x.failAt)) + (x.url ? ' · <a href="' + esc(x.url) + '" target="_blank" rel="noopener">open run ›</a>' : '')
-        : x.running ? li("lime", "⏳ running now") : x.late ? li("gold", "late · last ran " + ago(x.lastAt)) : x.okAt ? li("lime", "✅ " + ago(x.okAt)) : li("muted", "not run yet");
-      var note = x.every ? (x.scheduled ? "GitHub's schedule fires" : "GitHub's schedule hasn't fired yet: the watchdog runs it") + (x.watchdog ? " · watchdog ran it " + x.watchdog + "× this week" : "") : esc(x.why);
-      return '<div class="kv" style="display:block"><b>' + esc(x.name) + '</b> <span style="float:right">' + st + '</span><br><small class="muted">' + note + '</small></div>'; }).join("");
-    var t = d.tick || {}, tAge = t.at ? (Date.now() - new Date(t.at).getTime()) / 36e5 : 99, B = d.backup || {}, P = d.pages || {}, K = d.cookie || {}, S = d.sheet || {};
+    var row = function (go2, icon, name, st, sub) { return '<div class="kv rrow" onclick="go(\'robot\',\'' + go2 + '\')"><span><b>' + icon + ' ' + esc(name) + '</b><br><small class="muted">' + sub + '</small></span><span style="text-align:right">' + st + '<span class="chev">›</span></span></div>'; };
+    var gh = R.list.map(function (x) {
+      var st = x.error ? li("coral", "❌ can't read") : x.failing ? li("coral", "❌ failed " + ago(x.failAt)) : x.running ? li("lime", "⏳ running") : x.late ? li("gold", "late") : x.okAt ? li("lime", "✅ " + ago(x.okAt)) : li("muted", "not run yet");
+      var dd = robotData(x.file), sub = esc(x.why) + (dd ? '<br>' + (dd.bad ? li("coral", "⚠️ " + esc(dd.t)) : dd.gold ? li("gold", esc(dd.t)) : esc(dd.t)) : '');
+      return row(x.file, x.icon || "🤖", x.name, st, sub); }).join("");
+    var t = d.tick || {}, tAge = t.at ? (Date.now() - new Date(t.at).getTime()) / 36e5 : 99, B = d.backup || {}, P = d.pages || {}, K = d.cookie || {}, S = d.sheet || {}, J = (d.journal || [])[0];
+    var tickSt = !t.at ? li("coral", "❌ never ran") : tAge > 3 ? li("coral", "❌ last " + ago(t.at)) : t.by === "lazy" ? li("gold", ago(t.at) + " · no trigger") : li("lime", "✅ " + ago(t.at));
+    var bk = B.error ? li("coral", "❌ failed") : B.sentAt ? li("lime", "✅ " + ago(B.sentAt)) : li("gold", "not yet");
+    var hourly = t.by === "trigger" && tAge <= 3 ? '<span class="lime">✅ hourly</span>' : '<span class="muted">with the watchdog</span>';
+    var JSUB = { tick: J ? (J.w.length ? "last run started " + esc(J.w.join(", ")) : "last run: no robots late") + (J.p.length ? " · " + J.p.length + " problem" + (J.p.length > 1 ? "s" : "") : "") : "checks every robot, runs the late ones",
+      backup: B.sentAt ? "last emailed " + ago(B.sentAt) + (B.at && B.at !== B.sentAt ? " · checked " + ago(B.at) + ", no changes" : "") : "daily zip of every tab to the ops inbox",
+      trades: "finishes trades whose review is over", votes: "closes votes at their deadline, posts results", keepers: "opens + closes Signing Day on its dates", usage: "trims old rows · 7 AM recap of yesterday" };
+    var be = (d.jobs || []).map(function (j) { return row(j.id, j.icon, j.name, j.id === "tick" ? tickSt : j.id === "backup" ? bk : hourly, JSUB[j.id] || ""); }).join("");
     var expD = R.tokenExp ? Math.round((new Date(R.tokenExp.replace(" UTC", "Z").replace(" ", "T")).getTime() - Date.now()) / 864e5) : null;
-    rows += '<div class="kv"><span>Hourly watchdog</span><span>' + (!t.at ? li("coral", "❌ never ran") : tAge > 3 ? li("coral", "❌ last " + ago(t.at)) : t.by === "lazy" ? li("gold", ago(t.at) + " · riding health pings: add the trigger") : li("lime", "✅ " + ago(t.at))) + '</span></div>' +
+    el.innerHTML = sysSub("Robots on GitHub · tap one for every run") + gh + sysSub("Robots in the backend") + be +
+      '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="loadRobots(\'tick\')">Run checks now</button><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="loadRobots(\'backup\')">Back up now</button></div>';
+    var lg = (window.LEAGUE_DATA || {}).ledger;
+    $("#opsSysChk").innerHTML = sysSub("Safety checks") +
       '<div class="kv"><span>GitHub token</span><span>' + (!R.token ? li("gold", "add GH_TOKEN (runbook §2)") : expD == null ? li("lime", "✅ set") : expD < 14 ? li("coral", "❌ expires in " + expD + " d") : li("lime", "✅ " + expD + " days left")) + '</span></div>' +
-      '<div class="kv"><span>Sheet backup</span><span>' + (B.error ? li("coral", "❌ " + esc(B.error)) : B.sentAt ? li("lime", "✅ emailed " + ago(B.sentAt)) + (B.at !== B.sentAt ? ' <small class="muted">· checked ' + ago(B.at) + ', no changes</small>' : '') : li("gold", "not yet")) + '</span></div>' +
       '<div class="kv"><span>Pages = main</span><span>' + (P.same ? li("lime", "✅ app v" + esc(P.live)) : P.at ? li((Date.now() - new Date(P.since).getTime()) > 36e5 ? "coral" : "gold", "live v" + esc(P.live || "?") + " · main v" + esc(P.main || "?")) : li("muted", "not checked yet")) + '</span></div>' +
       '<div class="kv"><span>ESPN cookies</span><span>' + (!K.set ? li("coral", "❌ not set") : K.days >= 300 ? li("gold", K.days + " days old: refresh soon") : li("lime", "✅ " + K.days + " days on these")) + '</span></div>' +
-      '<div class="kv"><span>Sheet size</span><span>' + (S.pct >= 50 ? li("gold", S.pct + "% of Google's limit") : li("lime", "✅ " + (S.pct || 0) + "% of Google's limit")) + ' <small class="muted">· ' + (S.tabs || []).slice(0, 3).map(function (x) { return esc(x.name) + " " + x.rows; }).join(" · ") + '</small></span></div>' +
-      (d.watchdog.length ? '<details style="margin-top:8px"><summary class="eyebrow" style="cursor:pointer">Watchdog log · last ' + d.watchdog.length + '</summary>' + d.watchdog.map(function (w) { return '<div class="kv" style="font-size:12px"><span>' + esc(w.name) + '</span><span class="' + (w.ok ? "muted" : "coral") + '">' + (w.ok ? "run by hand " : "refused ") + ago(w.at) + '</span></div>'; }).join("") + '</details>' : '') +
-      '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="loadRobots(\'tick\')">Run checks now</button><button class="btn ghost" style="padding:7px 10px;font-size:13px" onclick="loadRobots(\'backup\')">Back up now</button></div>' +
-      '<p class="muted" style="font-size:12px;margin:6px 0 0">Problems email ops when they start and when they clear. Robots run on GitHub; the watchdog runs every hour in the backend.</p>';
-    el.innerHTML = rows;
-    opsBadge("opsRob", bad ? "❌ " + bad + (bad > 1 ? " problems" : " problem") : look ? look + " to set up" : "✅ all good", bad ? "stale" : look ? "confirm" : "ok");
+      '<div class="kv"><span>Sheet size</span><span>' + (S.pct >= 50 ? li("gold", S.pct + "% of Google's limit") : li("lime", "✅ " + (S.pct || 0) + "%")) + ' <small class="muted">· ' + (S.tabs || []).slice(0, 3).map(function (x) { return esc(x.name) + " " + x.rows; }).join(" · ") + '</small></span></div>' +
+      (lg ? '<div class="kv"><span>Rules in force</span><span>' + esc(lg.rules.pickSeasons.join(", ")) + ' picks (' + esc(lg.rules.pickYearsFrom) + ') · contracts ' + esc(lg.rules.contracts) + ' (' + esc(lg.rules.contractsFrom) + ')</span></div>' : '') +
+      '<div class="kv"><span>This phone</span><span>app v' + APP_VERSION + ' · ' + (navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "Home Screen app" : "browser") + (API_URL ? '' : ' · <span class="coral">no backend URL</span>') + '</span></div>' +
+      '<p class="muted" style="font-size:12px;margin:8px 0 0">Problems email ops when they start and when they clear. Robots run on GitHub; the watchdog runs every hour in the backend.</p>';
+    R.list.forEach(function (x) { var dd = robotData(x.file); if (dd && dd.bad) bad++; });
+    SYSB.rob = { bad: bad, look: look }; sysBadge();
     if (run === "backup") toast(d.did && d.did.sentAt ? "Backup emailed to the ops account" : "Backup: " + ((d.did && d.did.error) || "?"));
-  }).catch(function (e) { var el = $("#opsRob"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge("opsRob", "error", "stale"); });
+  }).catch(function (e) { var el = $("#opsSysRob"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; SYSB.rob = { bad: 1, look: 0 }; sysBadge(); });
 }
 window.loadRobots = loadRobots;
-SCREENS.ops.after = function () {
-  if (!$("#opsHealth")) return;
-  loadDesk(); loadTL(); loadRobots(); loadUsage(); deskDraftsFill("#opsDr");
-  loadKeep(true).then(function () { var k = $("#opsKp"); if (!k) return; k.innerHTML = kdeskBody(false); var st = kdeskState(false); opsBadge("opsKp", st.badge, st.cls); }).catch(function () {});
+function loadConn() {
   var bad = 0, ok = function (b, t) { if (!b) bad++; return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {
+    var el = $("#opsSysCon"); if (!el) return;
     var e = function (x) { return x.ok ? ok(true, x.name + " · " + x.teams + " teams") : ok(false, x.error); };
-    $("#opsHealth").innerHTML = '<div class="muted" style="font-size:12px">Checked ' + new Date(h.at).toLocaleTimeString() + '</div>' +
+    el.innerHTML = sysSub("Connections · checked " + new Date(h.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })) +
       '<div class="kv"><span>Backend</span><span>' + ok(true, "logic v" + h.version) + '</span></div>' +
       '<div class="kv"><span>Sheet</span><span>' + ok(h.sheet, h.sheetName || "not reachable") + '</span></div>' +
       '<div class="kv"><span>ESPN · SPL (read)</span><span>' + e(h.espnRead) + '</span></div>' +
       '<div class="kv"><span>ESPN · test league</span><span>' + e(h.espnTest) + '</span></div>' +
-      '<div class="kv"><span>ESPN writes</span><span>' + (h.espnWrites ? '<span class="gold">ON</span>' : '<span class="muted">off</span>') + '</span></div>' +
+      '<div class="kv"><span>ESPN writes</span><span>' + (h.espnWrites ? '<span class="gold">ON (test league)</span>' : '<span class="muted">off</span>') + '</span></div>' +
       '<div class="kv"><span>Emails left today</span><span>' + (h.mailLeft == null ? "?" : h.mailLeft < 20 ? '<span class="gold">' + h.mailLeft + ' (Google allows 100 a day)</span>' : h.mailLeft) + '</span></div>' +
       '<div class="kv"><span>Copy emails to Mike</span><span>' + (h.opsEmail ? ok(true, "OPS_EMAIL set") : '<span class="muted">add OPS_EMAIL</span>') + '</span></div>' +
-      '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>' +
-      (function () { var L = window.LEAGUE_DATA || {}, g = L.games || [], last = g.length ? g[g.length - 1] : null, hp = (L.schedule && L.schedule.pulled) || null, age = hp ? (Date.now() - new Date(hp).getTime()) / 864e5 : 99;
-        var lg = L.ledger, la = lg ? (Date.now() - new Date(lg.at).getTime()) / 864e5 : 99;
-        return '<div class="kv"><span>History robot</span><span>' + ok(age < 2, (hp ? "pulled " + ago(hp) : "not stamped yet") + (last ? " · through " + last[0] + " wk " + last[1] : "")) + '</span></div>' +
-          '<div class="kv"><span>Ledger robot</span><span>' + ok(la < 1.5, lg ? "synced " + ago(lg.at) + " · " + lg.trades + " trades · " + (lg.mode === "test" ? "test files" : "gold") : "not run yet") + '</span></div>' +
-          (function () { var P = (L.lines || [])[0], S = L.schedule, pa = P ? (Date.now() - new Date(P.at).getTime()) / 864e5 : 99;
-            return '<div class="kv"><span>Card lines robot</span><span>' + (P ? ok(pa < 9, "Week " + P.week + " · " + ago(P.at)) : '<span class="muted">off · add the CLAUDE_CODE_OAUTH_TOKEN secret (cards show plain facts)</span>') + '</span></div>' +
-              '<div class="kv"><span>Schedule (Up next)</span><span>' + ok(!!(S && S.season), S && S.season ? S.season + " · " + S.games.length + " games to play · week " + S.current : "not pulled yet") + '</span></div>'; })() +
-          (lg ? '<div class="kv"><span>Rules in force</span><span>' + esc(lg.rules.pickSeasons.join(", ")) + ' picks (' + esc(lg.rules.pickYearsFrom) + ') · contracts ' + esc(lg.rules.contracts) + ' (' + esc(lg.rules.contractsFrom) + ')</span></div>' : ''); })();
-    opsBadge("opsHealth", bad ? "❌ " + bad + (bad > 1 ? " problems" : " problem") : "✅ all good", bad ? "stale" : "ok");
-  }).catch(function (e) { $("#opsHealth").innerHTML = ok(false, e.message); opsBadge("opsHealth", "unreachable", "stale"); });
+      '<div class="kv"><span>Owners signed up</span><span>' + (h.signedUp == null ? "?" : h.signedUp + " of " + h.owners) + '</span></div>';
+    SYSB.con = { bad: bad }; sysBadge();
+  }).catch(function (e) { var el = $("#opsSysCon"); if (el) el.innerHTML = sysSub("Connections") + ok(false, e.message); SYSB.con = { bad: 1 }; sysBadge(); });
+}
+// 🎯 Needs you: every Ops section whose badge is gold (needs a look) or red (broken), in desk order; tap = open it and scroll there.
+function opsNeedPaint() {
+  var box = $("#opsNeed"); if (!box) return;
+  var secs = [].slice.call(document.querySelectorAll("details.ops")), wait = 0, hit = [];
+  secs.forEach(function (d) { var b = d.querySelector("summary .st"); if (!b) return; if (b.textContent === "…") wait++;
+    if (/\b(confirm|stale)\b/.test(b.className)) hit.push({ k: d.dataset.k, t: d.querySelector("summary b").innerHTML, s: b.textContent, red: /stale/.test(b.className) }); });
+  hit.sort(function (a, b) { return b.red - a.red; });
+  box.classList.toggle("allgood", !hit.length && !wait);
+  box.innerHTML = '<div class="eyebrow">🎯 Needs you' + (hit.length ? ' · ' + hit.length : '') + '</div>' +
+    (hit.length ? hit.map(function (h) { return '<div class="kv rrow" onclick="opsJump(\'' + h.k + '\')"><span>' + h.t + '</span><span><span class="st ' + (h.red ? "stale" : "confirm") + '">' + esc(h.s) + '</span><span class="chev">›</span></span></div>'; }).join("") : '') +
+    (wait ? '<p class="muted" style="margin:6px 0 0;font-size:12px">Still checking ' + wait + ' section' + (wait > 1 ? "s" : "") + '…</p>' : !hit.length ? '<p style="margin:6px 0 0">✅ Nothing needs you. Everything below is green.</p>' : '');
+}
+window.opsJump = function (k) {
+  var d = document.querySelector('details.ops[data-k="' + k + '"]'); if (!d) return;
+  if (!d.open) { d.dataset.auto = 1; d.open = true; }
+  setTimeout(function () { d.scrollIntoView({ block: "start", behavior: "smooth" }); }, 30);
 };
+SCREENS.ops.after = function () {
+  if (!$("#opsSys")) return; SYSB = {}; meRefresh();
+  loadDesk(); loadTL(); loadRobots(); loadConn(); loadUsage(); deskDraftsFill("#opsDr");
+  loadKeep(true).then(function () { var k = $("#opsKp"); if (!k) return; k.innerHTML = kdeskBody(false); var st = kdeskState(false); opsBadge("opsKp", st.badge, st.cls); }).catch(function () {});
+  opsNeedPaint();
+};
+
+// 🔎 A robot's page (Mike 11/28: "click on each robot and understand exactly what it is doing each run"). GitHub robots: what it does,
+// when, what it reads and writes, Run now, and each of its last 15 runs: when, what started it, how long, how it ended (the step that
+// broke) and what it changed (files, +/− lines; "nothing new" when it pushed nothing). Backend robots: the hourly tick's journal.
+var RB_FILES = { "data/SPL_Matchups.csv": "game results", "data/SPL_Schedule.csv": "schedule", "league-data.js": "app data (rebuilt)", "player-history.js": "player files (rebuilt)",
+  "data/Trade_Log.csv": "trade log", "data/Draft_Pick_Ownership.csv": "pick ledger", "data/Keeper_Contracts.csv": "keeper contracts", "data/Offseason_Drafts.csv": "off-season drafts",
+  "data/Draft_Picks.csv": "SPL Draft board", "data/League_Votes.csv": "league votes", "data/Keeper_Declarations.csv": "keeper declarations", "data/ledger_status.json": "sync stamp",
+  "data/Card_Lines.json": "card lines", "docs/HISTORY_PULL_REPORT.md": "pull report", "docs/ESPN_ARCHIVE_REPORT.md": "archive report", "data/ESPN_Draft_Boards.csv": "ESPN draft boards",
+  "data/ESPN_Season_Teams.csv": "team names by season", "data/ESPN_Season_Rosters.csv": "final rosters", "data/ESPN_Transactions.csv": "ESPN transactions" };
+var RB_HOW = { schedule: "⏰ On schedule", watchdog: "🐕 Watchdog ran it (GitHub skipped)", hand: "👆 You tapped Run now", dispatch: "▶️ Run by hand", push: "📦 A push", after: "🔗 After the history pull" };
+function rbWhen(ts) { var d = new Date(ts), old = Date.now() - d.getTime() > 6 * 864e5;
+  return d.toLocaleString([], old ? { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" } : { weekday: "short", hour: "numeric", minute: "2-digit" }); }
+function rbSecs(s) { return s == null ? "" : s < 90 ? s + " s" : Math.round(s / 60) + " min"; }
+SCREENS.robot = function (id) {
+  if (!ME || !isOps()) return back("home", "Home") + '<h2>Robot</h2><div class="card"><p style="margin:0">Ops only (Mike).</p></div>';
+  return back("ops", "Ops desk") + '<div id="rbP"><div class="card"><p class="muted" style="margin:0">Asking GitHub…</p></div></div>';
+};
+SCREENS.robot.after = function (id) { rbLoad(id); };
+function rbLoad(id, fresh) {
+  authed("oprobot", { id: id, fresh: fresh ? 1 : 0 }).then(function (d) { var el = $("#rbP"); if (!el) return; if (!d.ok) throw new Error(d.error); el.innerHTML = d.job ? rbJob(d) : rbGit(d); })
+    .catch(function (e) { var el = $("#rbP"); if (el) el.innerHTML = '<div class="card"><p class="coral" style="margin:0">' + esc(e.message) + '</p></div>'; });
+}
+window.rbLoad = rbLoad;
+function rbHead(icon, name, where, does, kv) {
+  return '<div class="eyebrow">🤖 Robot · ' + where + '</div><h2>' + icon + ' ' + esc(name) + '</h2>' +
+    '<div class="card"><div class="eyebrow">What it does</div><p style="margin:6px 0 4px">' + esc(does) + '</p>' +
+    kv.filter(function (x) { return x[1]; }).map(function (x) { return '<div class="kv" style="display:block"><small class="muted">' + x[0] + '</small><br>' + esc(x[1]) + '</div>'; }).join("") + '</div>';
+}
+function rbGit(d) {
+  var R = d.robot, runs = d.runs || [], okN = 0, badN = 0, chg = 0;
+  runs.forEach(function (u) { if (u.result === "success") okN++; if (u.result === "failure") badN++; if (u.commits && u.commits.length) chg++; });
+  var lastOk = runs.filter(function (u) { return u.result === "success"; })[0], lastDone = runs.filter(function (u) { return u.status === "completed" && u.result !== "cancelled" && u.result !== "skipped"; })[0];
+  var now = runs[0] && runs[0].status !== "completed" ? '<span class="lime">⏳ running now</span>' : lastDone && lastDone.result === "failure" ? '<span class="coral">❌ last run failed ' + ago(lastDone.at) + '</span>' : lastOk ? '<span class="lime">✅ last good run ' + ago(lastOk.at) + '</span>' : '<span class="muted">no runs yet</span>';
+  var h = rbHead(R.icon || "🤖", R.name, "GitHub Actions", R.does, [["When it runs", R.when], ["Reads", R.reads], ["Writes", R.writes]]) +
+    '<div class="card"><div class="kv"><span>Right now</span><span>' + now + '</span></div>' +
+    (runs.length ? '<div class="kv"><span>Last ' + runs.length + ' runs</span><span>' + okN + ' ✅ · ' + badN + ' ❌' + (R.file !== "checks.yml" ? ' · changed something ' + chg + '×' : '') + '</span></div>' : '') +
+    (d.error ? '<p class="coral" style="margin:8px 0 0">' + esc(d.error) + '</p>' : '') +
+    '<div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" style="padding:8px 12px;font-size:13px" onclick="rbRun(\'' + esc(R.file) + '\',this)">▶️ Run now</button>' +
+    '<button class="btn ghost" style="padding:8px 12px;font-size:13px" onclick="rbLoad(\'' + esc(R.file) + '\',1)">↻ Refresh</button>' +
+    '<a class="btn ghost" style="padding:8px 12px;font-size:13px" href="https://github.com/spl-hq/spl-hq.github.io/actions/workflows/' + esc(R.file) + '" target="_blank" rel="noopener">GitHub ›</a></div></div>';
+  h += '<div class="opsgrp">Each run, newest first</div>' + (runs.length ? runs.map(function (u) { return rbRun1(u, R); }).join("") : '<div class="card"><p class="muted" style="margin:0">No runs to show.</p></div>');
+  return h;
+}
+function rbRun1(u, R) {
+  var res = u.status !== "completed" ? ['⏳', 'running', 'lime'] : u.result === "success" ? ['✅', 'done', 'lime'] : u.result === "failure" ? ['❌', 'failed', 'coral'] : ['⊘', u.result || u.status, 'muted'];
+  var did;
+  if (u.status !== "completed") did = '<span class="muted">Working on it…</span>';
+  else if (u.result === "failure") did = '<span class="coral">Broke at: <b>' + esc(u.failStep || "a step (open the run)") + '</b></span>';
+  else if (u.result !== "success") did = '<span class="muted">' + (u.result === "cancelled" ? "Cancelled (another run took its place)" : "Skipped") + '</span>';
+  else if (R.file === "checks.yml") did = 'All checks passed';
+  else if (u.commits && u.commits.length) {
+    var files = [], seen = {}; u.commits.forEach(function (c) { (c.files || []).forEach(function (f) { if (seen[f.f]) { seen[f.f].a += f.a; seen[f.f].d += f.d; } else { seen[f.f] = { f: f.f, a: f.a, d: f.d }; files.push(seen[f.f]); } }); });
+    did = '<b>Saved changes</b>' + (files.length ? files.slice(0, 6).map(function (f) { var nm = RB_FILES[f.f] || f.f.replace(/^data\//, ""), gen = /\.js$/.test(f.f);
+      return '<div class="rbf">📄 ' + esc(nm) + (gen ? '' : ' <span class="muted">+' + f.a + ' −' + f.d + '</span>') + '</div>'; }).join("") + (files.length > 6 ? '<div class="rbf muted">+ ' + (files.length - 6) + ' more</div>' : '')
+      : '<div class="rbf muted">' + esc(u.commits[0].msg) + '</div>') +
+      '<div class="rbf"><a href="' + esc(u.commits[0].url) + '" target="_blank" rel="noopener">see the change ›</a></div>';
+  } else did = '<span class="muted">' + (R.file === "build-data.yml" ? "Nothing to rebuild (data already current)" : "Checked: nothing new to save") + '</span>';
+  return '<div class="card rbrun"><div class="kv" style="border:0;padding-top:0"><span><b>' + esc(rbWhen(u.at)) + '</b></span><span class="' + res[2] + '">' + res[0] + ' ' + esc(res[1]) + (u.secs != null ? ' <small class="muted">· ' + rbSecs(u.secs) + '</small>' : '') + '</span></div>' +
+    '<div class="muted" style="font-size:12px">' + esc(RB_HOW[u.how] || u.how) + (u.cause ? ': “' + esc(u.cause) + '”' : '') + '</div>' +
+    '<div style="margin-top:6px;font-size:14px">' + did + '</div>' +
+    (u.url ? '<div style="font-size:12px;margin-top:4px"><a href="' + esc(u.url) + '" target="_blank" rel="noopener">open the run on GitHub ›</a></div>' : '') + '</div>';
+}
+window.rbRun = function (file, btn) {
+  if (!confirm("Run this robot now? Robots are safe to re-run.")) return; btn.disabled = true; btn.textContent = "Starting…";
+  authed("opsx", { run: "robot", file: file }).then(function (r) { if (!r.ok) throw new Error(r.error); if (!r.did.ok) throw new Error(r.did.error);
+    toast("▶️ " + r.did.name + " started. Refresh in a minute."); setTimeout(function () { rbLoad(file, 1); }, 4000); })
+    .catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = "▶️ Run now"; });
+};
+// Backend robots: the hourly tick journal, read for this robot's part of each run, + its own Log-tab lines.
+var RB_BY = { trigger: "⏰ Hourly trigger", lazy: "📡 Rode a health ping (no trigger)", desk: "👆 Run checks now" };
+function rbJob(d) {
+  var J = d.job, jr = d.journal || [], T = d.tick || {}, B = d.backup || {};
+  var line = function (e) {
+    if (J.id === "tick") return (e.err ? '<span class="coral">❌ ' + esc(e.err) + '</span>' : (e.w.length ? 'Ran late robot' + (e.w.length > 1 ? 's' : '') + ': <b>' + esc(e.w.join(", ")) + '</b>' : 'Checked every robot: none late')) +
+      (e.p && e.p.length ? e.p.map(function (p) { return '<div class="rbf coral">⚠️ ' + esc(p) + '</div>'; }).join("") : '<div class="rbf muted">✅ no problems</div>');
+    if (J.id === "backup") return { sent: "💾 Emailed a backup (something changed)", same: '<span class="muted">Checked: nothing changed, no email</span>', skip: '<span class="muted">Already backed up today</span>', err: '<span class="coral">❌ backup failed</span>' }[e.b] || '<span class="muted">—</span>';
+    if (J.id === "trades") return e.t === "err" ? '<span class="coral">❌ error (see log)</span>' : e.t ? '<b>Finished ' + e.t + ' trade' + (e.t > 1 ? "s" : "") + '</b>' : '<span class="muted">No trades due</span>';
+    if (J.id === "votes") return e.v ? '<b>Closed ' + e.v + ' vote' + (e.v > 1 ? "s" : "") + '</b>' : '<span class="muted">No votes due</span>';
+    if (J.id === "keepers") return e.k === "err" ? '<span class="coral">❌ error (see log)</span>' : '<span class="muted">Checked the Signing Day dates</span>';
+    if (J.id === "usage") return e.u === "err" ? '<span class="coral">❌ error (see log)</span>' : (e.ut ? 'Trimmed ' + e.ut + ' old rows' : '<span class="muted">Nothing to trim</span>') + (e.ud ? ' · <b>sent the recap (' + e.ud + ' owners)</b>' : '');
+    return "";
+  };
+  var only = J.id === "tick" || J.id === "backup" ? jr : jr.filter(function (e) { return e.by === "trigger"; });
+  var now = J.id === "backup" ? (B.error ? '<span class="coral">❌ ' + esc(B.error) + '</span>' : B.sentAt ? '<span class="lime">✅ last emailed ' + ago(B.sentAt) + '</span>' : '<span class="gold">not yet</span>')
+    : T.at ? '<span class="' + (T.by === "trigger" ? "lime" : "gold") + '">' + (T.by === "trigger" ? "✅ " : "") + 'last tick ' + ago(T.at) + (T.by === "lazy" ? " · no hourly trigger yet" : "") + '</span>' : '<span class="coral">❌ never ran</span>';
+  var h = rbHead(J.icon, J.name, "Backend (Apps Script)", J.does, [["When it runs", J.when]]) +
+    '<div class="card"><div class="kv"><span>Right now</span><span>' + now + '</span></div>' +
+    '<div class="row" style="margin-top:10px;flex-wrap:wrap">' + (J.id === "backup" ? '<button class="btn" style="padding:8px 12px;font-size:13px" onclick="rbTick(\'backup\',this)">💾 Back up now</button>' : '<button class="btn" style="padding:8px 12px;font-size:13px" onclick="rbTick(\'tick\',this)">▶️ Run checks now</button>') +
+    '<button class="btn ghost" style="padding:8px 12px;font-size:13px" onclick="rbLoad(\'' + J.id + '\')">↻ Refresh</button></div></div>';
+  h += '<div class="opsgrp">Each run, newest first</div>' + (only.length ? only.map(function (e) {
+    return '<div class="card rbrun"><div class="kv" style="border:0;padding-top:0"><span><b>' + esc(rbWhen(e.at)) + '</b></span><span class="muted" style="font-size:12px">' + esc(RB_BY[e.by] || e.by) + '</span></div><div style="font-size:14px">' + line(e) + '</div></div>'; }).join("")
+    : '<div class="card"><p class="muted" style="margin:0">' + (J.id === "tick" || J.id === "backup" ? "No runs recorded yet (the journal starts with this version)." : "Runs here come from the hourly trigger; none recorded yet. Without the trigger this robot still runs whenever someone opens the matching screen.") + '</p></div>');
+  if (d.log && d.log.length) h += '<div class="opsgrp">Its log</div><div class="card">' + d.log.map(function (l) { return '<div class="kv" style="display:block;font-size:13px"><small class="muted">' + esc(rbWhen(l.at)) + ' · ' + esc(l.kind) + '</small><br>' + esc(l.detail) + '</div>'; }).join("") + '</div>';
+  return h;
+}
+window.rbTick = function (run, btn) { btn.disabled = true; btn.textContent = run === "backup" ? "Backing up…" : "Running…";
+  authed("opsx", { run: run }).then(function (r) { if (!r.ok) throw new Error(r.error); toast(run === "backup" ? "Backup emailed to the ops account" : "✓ Checks ran"); rbLoad(location.hash.split("=")[1]); })
+    .catch(function (e) { toast(e.message); btn.disabled = false; }); };
 
 // ---- 👋 Welcome tour (Mike 11/27, ported from MAFFL REEL's one-tour version). An owner's first visit (once signed in): a welcome
 // card over the app, then one stop per tab: the app switches tabs and rings the button or cuts out the thing it's talking about.
