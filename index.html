@@ -130,6 +130,8 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);overflow-y:auto;padding:calc(var(--top) + 30px) 0 calc(var(--bot) + 20px)}
 .sheet .sbody{background:var(--night);border:1px solid var(--line);border-radius:20px;margin:0 10px;padding:16px;max-width:540px;margin:0 auto}
 .sheet .dcard{min-height:0}
+.howhome{margin-top:14px;text-align:left}.howhome summary{list-style:none;cursor:pointer;text-align:center;font:600 12px var(--body);color:var(--muted);text-decoration:underline}.howhome summary::-webkit-details-marker{display:none}
+.howhome ul{margin:10px 0 0;padding-left:18px;font-size:13px;line-height:1.45;color:var(--text)}.howhome li{margin-bottom:6px}
 .bkbar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:-6px -6px 12px;padding:0 0 10px;border-bottom:1px solid var(--line)}
 .bka{flex:none;padding:6px 12px;border-radius:99px;border:1.5px solid var(--lime);background:transparent;color:var(--lime);font:700 13px var(--body);cursor:pointer}
 .bka.home{background:var(--lime);color:#fff}.bka.sv{border-color:var(--gold);color:var(--gold)}
@@ -858,7 +860,16 @@ function drawFeed(keep) {
     (left ? (left === 1 ? "1 card is" : left + " cards are") + " still on Home. Swipe each one: ← done, → save." : (FEED_N ? "You cleared Home." : "Nothing new right now.")) +
     (nn ? " The " + (nn === 1 ? "one" : nn) + " at the top that need" + (nn === 1 ? "s" : "") + " you stay until handled." : "") + (nSv ? " Your saved cards are up top." : "") + '</p>' +
     '<div class="row" style="margin-top:16px;justify-content:center;flex-wrap:wrap"><button class="btn" onclick="go(\'chat\')">💬 Chat</button><button class="btn ghost" onclick="go(\'match\')">⚔️ Your game</button></div>' +
-    (FEED.length > 1 ? '<p style="margin-top:12px"><button class="back" onclick="document.getElementById(\'feed\').scrollTo({top:0,behavior:\'smooth\'})">Back to the top</button></p>' : '') + '</div>';
+    (FEED.length > 1 ? '<p style="margin-top:12px"><button class="back" onclick="document.getElementById(\'feed\').scrollTo({top:0,behavior:\'smooth\'})">Back to the top</button></p>' : '') +
+    // Tucked-away explainer for the curious (Mike 11/28): only on the last card, closed until tapped.
+    '<details class="howhome"><summary>How Home works</summary><ul>' +
+    '<li><b>New cards every Tuesday, 7 AM.</b> Once the week\'s games are final, a fresh set lands and last week\'s roll off Home.</li>' +
+    '<li><b>Swipe ← ✓ Done.</b> Off Home and into ✓ Done for ' + DONE_DAYS + ' days, then it drops off for good.</li>' +
+    '<li><b>Swipe → ⭐ Save.</b> Kept in ⭐ Saved with no time limit, until you clear it.</li>' +
+    '<li><b>Needs you</b> cards (gold) can\'t be swiped. They stay on top until it\'s handled.</li>' +
+    '<li><b>Changed your mind?</b> Open ⭐ Saved or ✓ Done up top. A card can go back to Home while its week is still up, or flip between Saved and Done. Moving one to Done starts its ' + DONE_DAYS + ' days fresh.</li>' +
+    '<li><b>This phone only.</b> What you save or clear here doesn\'t follow you to another device.</li>' +
+    '</ul></details></div>';
   f.innerHTML = FEED.map(function (x, k) { return '<div class="fslot" data-k="' + k + '"><div class="swu"><span class="sv">⭐ Save</span><span class="dn">✓ Done</span></div>' + cardShell(x) + '</div>'; }).join("") + '<div class="fslot" data-k="' + FEED.length + '">' + end + '</div>';
   FPOS = Math.max(0, Math.min(keep || 0, FEED.length)); f.scrollTop = FPOS * f.clientHeight; rail();
   f.onscroll = function () { var k = Math.round(f.scrollTop / Math.max(1, f.clientHeight)); if (k !== FPOS) { FPOS = k; rail(); } };

@@ -35,6 +35,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.6 · ℹ️ **"How Home works"** (Mike): small link at the bottom of the last Home card, closed until tapped; explains the Tuesday 7 AM turnover, Done = 7 days, Saved = no limit, Needs you, moving cards back, this-phone-only. sw cache v94.
 - 2026-11-28 · v0.29.1 · 📼 **Throwback cards say so up front** (Mike: "hard to find that this was historic and what year it was"). New
   card-type ribbon in `cardShell` (`flag: [icon, title, sub, class]`): full-width navy band as the card's first line. This week in SPL history =
   📼 THROWBACK band, old-paper card, navy border; every year is a navy year tag (record holder, both tiles, "10 years ago"). Any future
