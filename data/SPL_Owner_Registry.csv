@@ -3,6 +3,7 @@
 # 2026-11-25: ESPN history shows "Alan Farrington" owning teams in 2009 + 2013 -> alias added (Al = Alan).
 # confidence=confirmed|inferred|conflict. 2026-11-26: farrington confirmed by Mike in the app (al_name): Al = James Farrington on ESPN.
 # 2026-11-27: Packet draft-board tags MOS = hoosier, NUD/NUDE = patel (ESPN shows all 6 tagged picks made by those owners); Slappies = chappie (2025 board).
+# 2026-11-28: Seth = Boogs / Boogie (Mike); Seth won 2005 (Mike confirmed).
 # 2026-11-28: Mike + Pete joined in 2006, the expansion to 12 (Mike; Joe's 3/24/2006 email has Mike taking the 11th seat). Everyone else: inception (2003).
 owner_id,canonical_name,short_name,active,first_season,team_2026,division_2026,team_2025,team_2019,division_2019,co_managers,aliases,confidence
 murello,Michael Murello,Mike,TRUE,2006,Bad Attitude Gang,East Coast,Bad Attitude Gang,Bad Attitude Gang,East Coast,,MM|Mike|mike|Michael Murello|Bad Attitude Gang|BAG|Gang|Attitude Gang,confirmed
@@ -15,5 +16,5 @@ hoosier,Craig Hoosier,Hoos,TRUE,inception,Hoosier's Dynamos,Philly,Hoosier's Dyn
 patel,Amit Patel,Amit,TRUE,inception,Cheater's Streakers,Philly,Cheater's Streakers,Cheater's Streakers,North,,Amit|Amit Patel|Cheater's Streakers|Streakers|NUD|NUDE,confirmed
 salerno,Owen Salerno,Owen,TRUE,inception,Ween's Machine,Philly,Ween's Machine,Ween's Machine,West Coast,,Owen|owen|owen salerno|Owen Salerno|Ween's Machine|Machine|MACH,confirmed
 moyer,Rich Moyer,Rich,TRUE,inception,Kimble's Finast,West Coast,Kimble's Finast,Kimble's Finast,Philly,,Rich|rich|Rich Moyer|Kimble's Finast|Finast|FIN,confirmed
-bucher,Seth Bucher,Seth,TRUE,inception,Los Beasters Big Sky,West Coast,Los Beasters Big Sky,Los Beasters Big Sky,West Coast,,Seth|Seth Bucher|Los Beasters Big Sky|Beasters|BEA,confirmed
+bucher,Seth Bucher,Seth,TRUE,inception,Los Beasters Big Sky,West Coast,Los Beasters Big Sky,Los Beasters Big Sky,West Coast,,Seth|Seth Bucher|Los Beasters Big Sky|Beasters|BEA|Boogs|Boogie|S.D. Beasters|Los Beasters,confirmed
 smith,Matthew Smith,Matt,TRUE,inception,Tijuana Trojans,West Coast,Tijuana Trojans,Tijuana Trojans,West Coast,,Matt|matt|Matthew|Matthew Smith|Tijuana Trojans|Trojans|TROJ,confirmed

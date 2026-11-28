@@ -330,6 +330,84 @@ if pairs:
     W_, L_, a, b = pairs[0]
     rec("h2h-%s-%s-%d" % (a, b, W_), "Rivalries", None, "Most lopsided head-to-head in the SPL: who owns %s (%d–%d)?" % (ON[b], W_, L_), [a] + [o for o in ON if o not in (a, b)][::-1],
         "%s leads %s %d–%d all-time, every game since 2006 counted." % (ON[a], ON[b], W_, L_), "rivalry:%s,%s" % (a, b))
+# 🔥 Hall of Shame (Mike 11/28: "harsh ribbing is welcomed in this league"). Same rules: computed, so a new low replaces the card.
+SHAME = "Hall of Shame"
+def tiedq(key, q, val, best, fact, go="history"):
+    """val: owner → number; best: the owners tied for the (worst) mark. Answer = one of them; the other choices are never tied with it."""
+    rest = sorted([o for o in val if o not in best], key=lambda o: val[o]) + [o for o in ON if o not in val]
+    rec("%s-%s" % (key, "-".join(sorted(best))), SHAME, None, q, [best[0]] + rest[:6][::-1], fact, go)
+done = [h for h in history if h["done"]]
+champ_y = {}
+for h in done: champ_y.setdefault(h["champ"], []).append(h["y"])
+first = {r["owner_id"]: (2003 if r["first_season"] == "inception" else int(r["first_season"])) for r in opt_rows("SPL_Owner_Registry.csv")}
+cl = sorted(champ_y, key=lambda c: (-len(champ_y[c]), c))
+for k, o in enumerate([o for o in ON if o not in champ_y]):  # 0 titles: one card per owner still waiting (different champs as the decoys)
+    ns = len([h for h in done if h["y"] >= first.get(o, 2003)]); ru = runners.get(o, [])
+    rec("never-%s-%d" % (o, ns), SHAME, None, "Which of these owners has NEVER won an SPL title?", [o] + cl[2 * k:] + cl,
+        "%s: 0 for %d seasons. %s" % (ON[o], ns, ("Lost the title game in %s." % " and ".join(str(y) for y in sorted(ru))) if ru else "Never even made the title game."))
+po_pct = {o: pw[o][0] / sum(pw[o]) for o in pw if sum(pw[o]) >= 6}
+if po_pct:
+    lo_ = min(po_pct.values()); best = [o for o in po_pct if po_pct[o] == lo_]
+    tiedq("poworst", "Worst playoff record in the SPL (6+ playoff games)?", po_pct, best,
+          " · ".join("%s: %d–%d" % (ON[o], pw[o][0], pw[o][1]) for o in best) + " in the playoffs. Gets in, gets sent home.")
+if reg:
+    rp = {o: reg[o][0] / max(1, sum(reg[o])) for o in reg}; lo_ = min(rp.values()); best = [o for o in rp if rp[o] == lo_]
+    tiedq("regworst", "Worst all-time regular-season record since 2006?", rp, best, " · ".join("%s: %d–%d" % (ON[o], reg[o][0], reg[o][1]) for o in best) + ". Somebody has to hold up the table.")
+lstreaks = {}
+for o in ON:
+    c, st = 0, None
+    for g in sorted(x for x in games if x[2] == "R" and o in (x[3], x[5])):
+        lost = (g[4] < g[6]) == (g[3] == o) and g[4] != g[6]
+        if lost:
+            if not c: st = (g[0], g[1])
+            c += 1
+            if c > lstreaks.get(o, (0,))[0]: lstreaks[o] = (c, st, (g[0], g[1]))
+        else: c = 0
+if lstreaks:
+    mx = max(v[0] for v in lstreaks.values()); best = [o for o in lstreaks if lstreaks[o][0] == mx]
+    tiedq("lstreak", "Longest losing streak in the SPL?", {o: -lstreaks[o][0] for o in lstreaks}, best,
+          " · ".join("%s: %d straight L's (%s)" % (ON[o], mx, "Week %d %d → Week %d %d" % (lstreaks[o][1][1], lstreaks[o][1][0], lstreaks[o][2][1], lstreaks[o][2][0])) for o in best) + ".")
+last = {}
+for h in done:
+    ts = [t for t in h["teams"] if t[2] is not None]
+    if len(ts) >= 12: w = min(ts, key=lambda t: (t[2] - t[3], t[5] or 0)); last.setdefault(w[0], []).append(h["y"])
+if last:
+    mx = max(len(v) for v in last.values()); best = [o for o in last if len(last[o]) == mx]
+    tiedq("lastplace-%d" % mx, "Who has finished DEAD LAST %d times?" % mx, {o: -len(last.get(o, [])) for o in ON}, best,
+          " · ".join("%s (%s)" % (ON[o], ", ".join(str(y) for y in last[o])) for o in best) + ": the regular-season basement, %d times each." % mx if len(best) > 1 else
+          "%s (%s): the regular-season basement, %d times." % (ON[best[0]], ", ".join(str(y) for y in last[best[0]]), mx))
+pos = sorted([(g[4], g[3], g[6], g[5], g) for g in games if g[2] == "P"] + [(g[6], g[5], g[4], g[3], g) for g in games if g[2] == "P"], key=lambda x: x[0])
+if pos:
+    x = pos[0]
+    rec("lowpo-%s-%d" % (x[1], x[4][0]), SHAME, x[4][0], "Lowest score ever in an SPL playoff game?", [x[1]] + [y[1] for y in pos[1:20]],
+        "%s: %s in the %d playoffs. %s scored %s and moved on." % (ON[x[1]], fp(x[0]), x[4][0], ON[x[3]], fp(x[2])))
+beat = sorted([g for g in games if g[2] == "R" and g[4] != g[6]], key=lambda g: -abs(g[4] - g[6]))
+if beat:
+    g = beat[0]; w, l = (g[3], g[5]) if g[4] > g[6] else (g[5], g[3])
+    rec("beatdown-%s-%d" % (l, g[0]), SHAME, g[0], "Worst regular-season beating in SPL history: who was on the wrong end of it?",
+        [l] + [(b[5] if b[4] > b[6] else b[3]) for b in beat[1:15]],
+        "%s, Week %d, %d: %s %s, %s %s. A %s-point beatdown." % (ON[l], g[1], g[0], ON[w], fp(max(g[4], g[6])), ON[l], fp(min(g[4], g[6])), fp(abs(g[4] - g[6]))))
+defense = {}
+for h in done:
+    nx = [x for x in done if x["y"] == h["y"] + 1]
+    if not nx or not h["champ"]: continue
+    t = [t for t in nx[0]["teams"] if t[0] == h["champ"] and t[2] is not None]
+    if t and t[0][9] == "missed": defense.setdefault(h["champ"], []).append((t[0][2] / max(1, t[0][2] + t[0][3]), t[0][2], t[0][3], h["y"]))
+if defense:
+    worst = {o: min(v) for o, v in defense.items()}; lo_ = min(v[0] for v in worst.values()); best = [o for o in worst if worst[o][0] == lo_]
+    tiedq("defense", "Worst title defense ever: which champ followed it up with %d–%d and no playoffs?" % (worst[best[0]][1], worst[best[0]][2]),
+          {o: worst[o][0] for o in worst}, best,
+          " · ".join("%s won it in %d, then went %d–%d" % (ON[o], worst[o][3], worst[o][1], worst[o][2]) for o in best) + ". Hangover.")
+miss = sorted([(t[5], t[0], h["y"], t[2], t[3]) for h in done if h["src"] == "espn" for t in h["teams"] if t[9] == "missed" and t[5]], reverse=True)
+if miss:
+    m = miss[0]
+    rec("misspf-%s-%d" % (m[1], m[2]), SHAME, m[2], "Most points by a team that MISSED the playoffs?", [x[1] for x in miss[:30]],
+        "%s, %d: %s points, %d–%d, home for the playoffs." % (ON[m[1]], m[2], fp(m[0]), m[3], m[4]))
+pa = sorted([(t[6], t[0], h["y"], t[2], t[3]) for h in done if h["src"] == "espn" for t in h["teams"] if t[6]], reverse=True)
+if pa:
+    m = pa[0]
+    rec("pa-%s-%d" % (m[1], m[2]), SHAME, m[2], "Most points scored AGAINST one team in a season?", [x[1] for x in pa[:30]],
+        "%s, %d: %s points against. Everybody brought their A game.%s" % (ON[m[1]], m[2], fp(m[0]), " (%d–%d)" % (m[3], m[4])))
 print(len(trivia), "trivia cards (", len([t for t in trivia if t["id"].startswith("rec-")]), "records )")
 
 payload = {'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts,

@@ -3282,7 +3282,7 @@ function triviaCard(now, OFF) {
     options: t.opts.slice().sort(function (a, b) { return hsh(t.id + a) - hsh(t.id + b); }).map(function (v) {
       return { v: v, html: isO(v) ? '<span class="qt" style="display:flex;align-items:center;gap:8px">' + av(v, "sm") + esc(oname(v)) + '</span>' : '<span class="qt">' + esc(v) + '</span>' }; }) };
   var g = String(t.go || ""), act = TRIVIA_GO[g] || (/^rivalry:/.test(g) ? ["⚔️ The rivalry", "go('rivalry','" + esc(g.slice(8)) + "')"] : null);
-  return { id: "trivia:" + t.id, at: new Date(at).toISOString(), scope: "league", flag: ["🧠", "SPL Trivia", esc(t.topic) + (t.y ? " · " + t.y : " · since 2006"), "tv"],
+  return { id: "trivia:" + t.id, at: new Date(at).toISOString(), scope: "league", flag: t.topic === "Hall of Shame" ? ["🔥", "Hall of Shame", "SPL Trivia" + (t.y ? " · " + t.y : " · all-time"), "tv"] : ["🧠", "SPL Trivia", esc(t.topic) + (t.y ? " · " + t.y : " · since 2006"), "tv"],
     eb: "🧠 Know your SPL", title: esc(t.q), body: voteBox(ref), action: act };
 }
 // 🗳️ Votes (Game of the Week, quizzes): one per owner, locked; results after you vote (backend `vote` / `social`).

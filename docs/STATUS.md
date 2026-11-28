@@ -26,7 +26,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.30
 ## ⚠️ Found in email, needs Joe/Mike (11/28)
 - **Shoot Out:** the league voted it out in Jul 2025 (random Week 4 games instead, Joe confirmed in the 8/28/25 draft email), but the app
   (rulebook, SPL Calendar, Shoot Out Draft room, card-lines robot) still runs the 2023 Week 14 rules. Did 2026 play a Shoot Out? If not, retire it.
-- **2005 champ:** History/GM Report say Seth; Glen signed his 2007 email "2005 SPL Champ" (and Rich in 2012 disputes Glen's "first" title).
+- ~~**2005 champ**~~ settled 11/28: Seth (Boogs) won 2005 (Mike). Glen's "2005 SPL Champ" sign-off was ribbing.
 
 ## Open questions (in the app: 📥 Commish desk → 📋 Questions, rebaselined 11/26)
 Joe sees 8 (history_gaps added 11/27): ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
@@ -35,6 +35,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · app · 🔥 **Hall of Shame trivia** (Mike: "harsh ribbing is welcomed in this league"). 12 more computed cards with their own 🔥 ribbon:
+  never won a title (one card each: Joe, Al, Owen), worst playoff record (Joe 2–10), worst all-time record + longest losing streak (Hoos), dead last 3 times
+  (Joe, Seth, Hoos), lowest playoff score (Joe 43.9), worst beating (Joe 49.2 vs Hoos's 151.5), worst title defense (Glen '13, Rich '17: 4–9), most points
+  missing the playoffs (Rich 2025), most points against (Seth 2025). Deck now 45. **2005 = Seth** confirmed (Mike); Boogs/Boogie added to Seth's aliases.
 - 2026-11-28 · app · 🧠 **SPL Trivia cards** (Mike). A Home card every Wednesday 7 AM (Saturday too in the off-season): a league-history
   question with three choices; your answer reveals the fun fact and how the league did ("5 of 9 got it right"). One shot, same card for everyone,
   button to History / Constitution / the rivalry. **Deck of 33:** 20 lore cards in new gold `data/Trivia.csv` (Mike's 6–7 champs, Joe's 12–1,
