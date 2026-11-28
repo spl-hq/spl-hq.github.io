@@ -35,6 +35,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.5 · 📋 `espn_writes` reworded (Mike): trades aren't typed into ESPN by hand today, ESPN runs them (owner sends, league votes,
+  ESPN moves the players); the app would take that over and write the trade to ESPN. Dropped the vague "rulings"; named the real hand work instead
+  (keying the SPL Draft board, keepers included, into ESPN). SW `splhq-v95`.
 - 2026-11-28 · v0.27.6 · 📋 **History ↔ Draft boards linked, with draft highlights** (Mike: History had no draft link or summary). Each
   season page gets a **📋 The YYYY draft** card: No. 1 pick, Round 1 by position, first QB off the board, the champion's title draft (first
   two picks, keepers, how many of his picks were on the title roster), a late find (Rd 8+ pick still rostered at season's end), keepers +

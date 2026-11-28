@@ -626,8 +626,8 @@ var QUESTIONS = [
     why: "The constitution says no, but ESPN doesn't stop them. The app can flag those adds; it can't block them on ESPN. Section I also still has the 2021 note about Boogie and Owen working out a FAAB payout. Drop it?",
     choices: ["No adds: flag them", "That rule's gone", "Explain below"] },
   { qid: "espn_writes", q: "Are you comfortable with the app making changes on ESPN for you?",
-    why: "Today approved trades and rulings get typed into ESPN by hand. The app can do that itself, but ESPN only allows it from a league manager, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
-    choices: ["Yes, make Mike co-commish", "Show me the test league first", "Keep ESPN by hand", "Let's talk"] }
+    why: "Today trades run on ESPN: owners send them there, the league votes there (ESPN needs 8 vetoes, the rulebook says 6), and ESPN moves the players. With the app, trades happen here instead: the league votes by the rulebook, then the app makes the trade on ESPN itself. It can also load the SPL Draft board, keepers included, onto ESPN after the draft, so nobody keys it in by hand. ESPN only lets a league manager do that, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
+    choices: ["Yes, make Mike co-commish", "Show me the test league first", "Keep trades on ESPN", "Let's talk"] }
 ];
 var Q_ORDER = ["history_gaps", "espn_writes", "rules_rewrite"]; // the order Joe sees (Mike 11/28: missing history, ESPN writes + the test league, the 2027 rulebook; later: ones come back by moving them here)
 var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired && !q.later; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
