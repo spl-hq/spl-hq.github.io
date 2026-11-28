@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.29.1 📼 throwback ribbon; v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.29.3 card buttons + fixed Team order; v0.29.1 📼 throwback ribbon; v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
 
 
 ## Now
@@ -35,6 +35,11 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.29.3 · 🧭 **Card buttons name where they go** (Mike). Audit of every Home card button: live game "Lineups" → **Match**;
+  live slate "Every game" → **Match**; your result → **Match · Week N**; 🔒 2027 keepers card "Your team" → **🔒 Your keepers** (opens your
+  keeper desk on Team); 💸 cap impact → 🔒 Your keepers; 📋 Signing Day board now opens the league board (`#keepers=@league`), not your plan;
+  📰 trade wire → **See the trade** (lands on that trade). **Team tab order no longer changes in the off-season**: Roster · Trades · Keepers
+  all year (the 🍂 off-season card above the roster stays). SW `splhq-v102`.
 - 2026-11-28 · v0.29.2 (backend v0.24.0) · 🏠 **Saved + Done follow the sign-in** (Mike): new `mod_home.js` + `HomeCards` tab (one row per owner/kind/week/card, Done rows trimmed after 30 days, 200 per owner). Every swipe queues to the backend (`homemark`, batched, offline-safe); Home pulls the list back on open (`homeget`). A phone's first sync uploads what it already had. "How Home works" corrected: live cards (trade offers/wire, votes, your live game, chat, deadlines) show up any time; Saved/Done now go with your sign-in. sw cache v101.
 - 2026-11-28 · v0.27.6 · ℹ️ **"How Home works"** (Mike): small link at the bottom of the last Home card, closed until tapped; explains the Tuesday 7 AM turnover, Done = 7 days, Saved = no limit, Needs you, moving cards back, this-phone-only. sw cache v94.
 - 2026-11-28 · v0.29.1 · 📼 **Throwback cards say so up front** (Mike: "hard to find that this was historic and what year it was"). New

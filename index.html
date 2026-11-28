@@ -570,7 +570,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.29.2";
+var APP_VERSION = "0.29.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -818,7 +818,7 @@ function buildFeed(d) {
     T.offers.filter(function (o) { return o.status === "APPROVED" && Date.now() - new Date(o.updated).getTime() < 7 * 864e5; }).slice(0, 3).forEach(function (o) {
       cards.push({ id: "wire:" + o.id, at: o.updated, scope: "league", eb: "📰 Trade wire" + (o.mode === "test" ? " · test" : ""), title: atO(o.from) + " ⇄ " + atO(o.to),
         body: '<div class="grid" style="gap:12px"><div><div class="byline" style="margin-bottom:6px">' + av(o.to, "sm") + '<b>' + who(o.to) + ' gets</b></div>' + sideList(o.give, o.from) + '</div><div><div class="byline" style="margin-bottom:6px">' + av(o.from, "sm") + '<b>' + who(o.from) + ' gets</b></div>' + sideList(o.get, o.to) + '</div></div>' +
-          chips(["✅ Approved " + esc(ago(o.updated)), o.mode === "test" ? ["🧪 Test mode", "hi"] : ""]), action: ["Trade wire", "go('trades')"] }); });
+          chips(["✅ Approved " + esc(ago(o.updated)), o.mode === "test" ? ["🧪 Test mode", "hi"] : ""]), action: ["See the trade", "go('trades','" + o.id + "')"] }); });
   }
   if (ME) wireCards(T, me).forEach(function (c) { cards.push(c); });
   voteCards(d.votes).forEach(function (c) { cards.push(c); }); // 🗳️ SPL Owners Votes (Needs you until you've voted)
@@ -831,12 +831,12 @@ function buildFeed(d) {
         body: bug({ o: me, sub: esc(m.rec) + " · " + m.left + " to play", pts: m.pts }, { o: o.owner, sub: esc(o.rec) + " · " + o.left + " to play", pts: o.pts }, 1) +
           '<p class="story">' + (m.left + o.left ? (up ? "Up " : "Down ") + fmtPts(diff) + " with " + (m.left + o.left) + " players still to go." : (up ? "Should hold: everyone's played." : "Everyone's played.")) + '</p>' +
           meter(m.pts, Math.max(1, m.pts + o.pts)) + '<div class="kv" style="border:0;padding-top:2px;font-size:12px"><span class="muted">Your share of the points</span><span class="muted">' + Math.round(100 * m.pts / Math.max(1, m.pts + o.pts)) + '%</span></div>' +
-          chips([top ? ["⭐ " + esc(top.n) + " " + fmtPts(top.pts), "hi"] : "", o.owner ? "⚔️ " + seriesTxt(me, o.owner) : ""]), action: ["Lineups", "go('match')"] }); }
+          chips([top ? ["⭐ " + esc(top.n) + " " + fmtPts(top.pts), "hi"] : "", o.owner ? "⚔️ " + seriesTxt(me, o.owner) : ""]), action: ["Match", "go('match')"] }); }
     cards.push({ id: "slate:" + W.week, scope: "league", eb: "🏟️ Week " + W.week + " · live",
       body: '<div class="slate2">' + games.map(function (g) { var a = g.away || {}, h = g.home || {}, ld = a.pts === h.pts ? "" : a.pts > h.pts ? "a" : "h";
         var r = function (x, k) { return '<div class="bl' + (ld === k ? " w" : "") + '">' + av(x.owner) + '<span class="bn"><b>' + atO(x.owner) + '</b></span><span class="bp">' + fmtPts(x.pts) + '</span></div>'; };
         return '<div class="bug mini' + (me && (a.owner === me || h.owner === me) ? " mine" : "") + '">' + r(a, "a") + r(h, "h") + '</div>'; }).join("") + '</div>' +
-        '<p class="muted" style="font-size:12px;margin-top:8px">Live from ESPN. Leader highlighted.</p>', action: ["Every game", "go('match')"] }); }
+        '<p class="muted" style="font-size:12px;margin-top:8px">Live from ESPN. Leader highlighted.</p>', action: ["Match", "go('match')"] }); }
   // 🗞️ The week's drops (Edition · Play · Vault · Preview). Off-season: only while the last issue is fresh.
   if (issue && (!OFF || nowMs() - weekTue(season, issue) < 21 * 864e5)) weekCards(season, issue, me).forEach(function (c) { cards.push(c); });
   // 🔒 Your keepers + 💰 keeper economy (vault)
@@ -847,7 +847,7 @@ function buildFeed(d) {
     cards.push({ id: "keepers", scope: "me", eb: "🔒 Your 2027 keepers", body: '<div class="big' + (kp27 > 10 ? " coral" : "") + '">' + kp27 + '<small class="muted" style="font-size:20px"> / 10 KP</small></div>' +
       meter(kp27, 10, kp27 > 10) + chips([[mc.filter(function (c) { return c.status !== "cut"; }).length + " of 3 keepers", "bl"], kp27 <= 10 ? (10 - kp27) + " KP to spend" : ["Over by " + (kp27 - 10), "rd"]]) +
       '<div class="sub">Committed before Signing Day</div>' + (mc.length ? mc.slice(0, 4).map(function (c) { return '<div class="krow"><span class="kn">' + esc(c.player) + '<small>' + esc(c.pos) + (c.status === "cut" ? " · cut penalty" : " · " + yrs(c)) + '</small></span><b>' + (c.status === "cut" ? c.pen["2027"] : c.kp["2027"]) + ' KP</b></div>'; }).join("") : '<p class="story">Nothing yet: a clean 10 KP.</p>'),
-      action: ["Your team", "go('team')"] }); }
+      action: ["🔒 Your keepers", "go('keepers')"] }); }
   var live27 = LDx.contracts.filter(function (c) { return c.status === "active" && c.kp["2027"] != null; });
   if (live27.length) { var by = {}; live27.forEach(function (c) { by[c.owner] = (by[c.owner] || 0) + (typeof c.kp["2027"] === "number" ? c.kp["2027"] : 0); });
     var lead = Object.keys(by).sort(function (a, b) { return by[b] - by[a]; });
@@ -1129,7 +1129,7 @@ function gmBar(on) {
   var it = [["team", "🏈", "Roster", sd ? sd.ppg.toFixed(1) + " pts/wk" : "Your roster", "Injury report…", "gmR"],
     ["trades", "🔁", "Trades", "Offers…", dlt, "gmT"],
     ["keepers", "🔒", "Keepers", k.t, k.needs ? "Signing Day is open" : sdt, "gmK"]];
-  if (offSeason()) it = [it[2], it[1], it[0]]; // 🍂 off-season: keepers lead the desk (Mike 11/28)
+  // Same order all year: Roster · Trades · Keepers (Mike 11/28: owners learn one Team layout; the off-season doesn't reshuffle it).
   return '<div class="gmhd"><div class="eyebrow">GM desk · ' + esc(o.name || "") + '</div><h2 class="gmteam">' + esc(o.team || "") + '</h2>' +
     (sd ? '<div class="gmline"><b>' + sd.rec + '</b><span>' + ordn(sd.rank) + ' of ' + sd.n + '</span><span>' + ordn(sd.drank) + ' ' + esc(sd.div || "") + '</span>' + (sd.streak ? '<span class="' + (sd.streak[0] === "W" ? "w" : "l") + '">' + sd.streak + '</span>' : '') +
       (nx ? '<span>Wk ' + nx.wk + ' vs ' + esc(oname(nx.opp)) + '</span>' : '') + '</div>' : '') + '</div>' +
@@ -3167,7 +3167,7 @@ function weekCards(season, wk, me) {
     body: '<div class="tiles2">' + (hot && hot.streak[0] === "W" ? tile("🔥 Hottest", hot.streak, hot.owner, Lg.hot ? esc(Lg.hot) : esc(hot.rec) + " · #" + hot.rank).replace('class="tl"', 'class="tl hot"') : '') +
       (cold && cold.streak[0] === "L" ? tile("🥶 Coldest", cold.streak, cold.owner, Lg.cold ? esc(Lg.cold) : esc(cold.rec) + " · #" + cold.rank).replace('class="tl"', 'class="tl cold"') : '') + '</div>' +
       '<div class="sub">The results, by margin</div>' + res.slice().sort(function (a, b) { return b.m - a.m; }).map(function (r) { return '<div class="wrow' + (r.w === me || r.l === me ? " mine" : "") + '">' + av(r.w, "sm") + '<b>' + esc(oname(r.w)) + '</b><span class="muted">' + (r.tie ? "tied" : "beat") + '</span><span style="flex:1">' + esc(oname(r.l)) + '</span><b style="font-family:var(--mono);font-size:13px">+' + fmtPts(r.m) + '</b></div>'; }).join(""),
-    action: ["Every game", "go('match','" + wk + "')"] });
+    action: ["Match · Week " + wk, "go('match','" + wk + "')"] });
   // 🏅 Week awards: High score + Coach of the Week (biggest jump over his own average). Same owner → shows once.
   var hi = res.reduce(function (b, r) { [[r.w, r.ws], [r.l, r.ls]].forEach(function (x) { if (!b || x[1] > b[1]) b = x; }); return b; }, null);
   var coach = null; res.forEach(function (r) { [[r.w, r.ws], [r.l, r.ls]].forEach(function (x) { var t = P[x[0]]; if (!t || !t.res.length) return; var gap = x[1] - t.avg; if (!coach || gap > coach[2]) coach = [x[0], x[1], gap, t.avg]; }); });
@@ -3384,7 +3384,7 @@ function wireCards(T, me) {
     out.push({ id: "cap:" + o.id, scope: "me", eb: "💸 Cap impact · trade with " + esc(oname(o.from === me ? o.to : o.from)),
       body: '<div class="big' + (kp > 10 ? " coral" : "") + '">' + kp + '<small class="muted" style="font-size:20px"> / 10 KP for 2027</small></div>' + meter(kp, 10, kp > 10) +
         '<p class="story">' + (kp > 10 ? "Over the cap: something has to give by Signing Day." : (10 - kp) + " KP left to spend at Signing Day.") + '</p>' +
-        lines.map(function (l) { return '<div class="krow"><span class="kn">' + esc(l[0]) + '</span><b class="' + (l[1][0] === "+" ? "" : "coral") + '">' + l[1] + ' KP</b></div>'; }).join(""), action: ["Keepers", "go('keepers')"] });
+        lines.map(function (l) { return '<div class="krow"><span class="kn">' + esc(l[0]) + '</span><b class="' + (l[1][0] === "+" ? "" : "coral") + '">' + l[1] + ' KP</b></div>'; }).join(""), action: ["🔒 Your keepers", "go('keepers')"] });
   });
   return out;
 }
@@ -3433,7 +3433,7 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
     body: ds.slice(0, 6).map(function (d) { var it = d.items || {}, names = (it.keep || []).map(function (k) { return k.player; }).concat((it.signs || []).map(function (x) { return "🆕 " + x.player + (x.tag ? " 🏷️" : ""); }));
         return '<div class="wrow' + (d.owner === me ? " mine" : "") + '">' + av(d.owner, "sm") + '<span style="flex:1;min-width:0"><b>' + who(d.owner) + '</b><br><small class="muted">' + esc(names.join(", ") || "no keepers") + '</small></span><b class="mono">' + d.kp + '<small class="muted"> KP</small></b></div>'; }).join("") +
       chips([ds.length > 6 ? "+ " + (ds.length - 6) + " more" : "", tags ? ["🏷️ " + tags + " tag" + (tags > 1 ? "s" : ""), "hi"] : "", cuts ? "✂️ " + cuts + " terminated" : "", KW.done ? "" : (12 - ds.length) + " still to declare"]),
-    action: ["Signing Day board", "go('keepers')"] };
+    action: ["Signing Day board", "go('keepers','@league')"] };
 }
 
 // ---- League grid
