@@ -7,6 +7,11 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **No ⚖️ vs ESPN tab; constitution gaps are Joe's questions** (Mike). The tab was for Mike + Joe while building, never for owners. The rulebook
+  needs a 2027 rewrite that accounts for the app (trades, keepers, drafts, playoff picks run here); Mike takes that to Joe. Open items live as questions
+  in the "rulebook rewrite" batch (rules_rewrite, playoff_rules, money_rules, late_adds), parked until Mike moves them into Joe's queue (Q_ORDER).
+  Supersedes the earlier "Rules = rulebook + vs ESPN" line.
+
 - 2026-11-28 · **Off-season is a switch Joe (or Mike) flips, never automatic or date-based** (Mike). Replaces the auto flip on SPL Bowl final. A 🍂 *Switch to off-season* button on both the 📥 Commish desk and the 🛠️ Ops desk writes one phase setting to the Sheet (who, when); every phone reads it from the backend on open/refresh, so no code push at flip time: the off-season layouts ship ahead of time, dormant. The desk only *nudges* when the SPL Bowl is final. Confirm step, a *Back to the season* undo, an ops-only preview, one chat line + Home card when it flips; robots read the same setting. Per-tab plan below accepted (Mike: "I like this").
 - 2026-11-28 · **No off-season button for owners: the whole site formats itself for the off-season** (Mike). The League hero card is gone. When `seasonPhase()` = offseason (SPL Bowl final, robot-driven, nobody flips a switch), each tab's own content changes. First cut, for Mike to correct: **Home** cards turn to the off-season (next event + countdown, Signing Day, draft orders, trade/keeper news; no matchup cards). **Match** shows the final season recap (champion, final standings, playoff bracket) instead of a live matchup. **Team** leads with keepers (contracts, KP, Signing Day plan) and picks owned, then roster. **Chat** unchanged. **League** Drafts row leads with the next draft and its date; Info's SPL Calendar shows the off-season timeline.
 - 2026-11-28 · **League tab order: Info · Drafts · The league** (Mike, same morning: Info on top).

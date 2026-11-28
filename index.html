@@ -552,7 +552,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.27.0";
+var APP_VERSION = "0.27.1";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -606,7 +606,19 @@ var QUESTIONS = [
     choices: ["I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
   { qid: "chat_move", later: "Mike 11/27: once a few owners are in", q: "League chat is live in the app. Move the league's talk here?",
     why: "League chat, a room for each division (it follows the Divisional Draft by itself), DMs with any owner, and @ tags (an owner can choose to get an email when he's tagged). Everyone gets it once they sign in. The group text can stay for whatever you like.",
-    choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] }
+    choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] },
+  { qid: "rules_rewrite", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "The constitution was written around ESPN. Rewrite it for 2027 around the app?",
+    why: "Trades now go to a league vote in the app, keepers get declared on Signing Day in the app, the drafts run in the app, and the app can set playoff matchups on ESPN. The 2023 draft still has ESPN doing all of that. Mike drafts a 2027 edition from the 2023 one plus your answers here, you mark it up, and the league votes it in at the Winter Meeting.",
+    choices: ["Yes, draft it", "Let's talk first", "Keep the 2023 one"] },
+  { qid: "playoff_rules", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "Do the playoffs still work the way the constitution says?",
+    why: "Seeding: win %, then points, then head-to-head, then a coin flip (ESPN only uses points). Week 15: Seed 3 picks its opponent from Seeds 4, 5 or 6. Week 16: Seed 1 picks. ESPN can't do either, so the app would ask Seed 3 and Seed 1 and put the matchups on ESPN. Still the rule? Has someone been doing it by hand?",
+    choices: ["Yes, have the app run it", "The rule changed (explain below)", "Let's talk"] },
+  { qid: "money_rules", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "What are dues and prizes now?",
+    why: "The constitution says dues go up 5% a year ($348 in 2026, $366 in 2027) and the weekly high score wins that week's free-agent fees. Since 2024 it looks like $400 flat, a set prize sheet and $40 a week. Which one goes in the 2027 rulebook?",
+    choices: ["$400 flat + the prize sheet", "Changing for 2027 (explain below)", "Let's talk"] },
+  { qid: "late_adds", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "After Week 14, can teams out of the playoffs still pick up free agents?",
+    why: "The constitution says no, but ESPN doesn't stop them. The app can flag those adds; it can't block them on ESPN. Section I also still has the 2021 note about Boogie and Owen working out a FAAB payout. Drop it?",
+    choices: ["No adds: flag them", "That rule's gone", "Explain below"] }
 ];
 var Q_ORDER = ["first_wish", "espn_lm", "veto_vote"]; // the order Joe sees (Mike 11/27: 3 on day one; later: ones come back by moving them here)
 var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired && !q.later; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
@@ -1729,30 +1741,18 @@ function untilTxt(iso) { var n = dayDiff(iso); return n > 1 ? "in " + n + " days
 function calOf(season, key) { return LD("calendar").filter(function (c) { return +c.season === season && c.key === key; })[0]; }
 function nextSeason() { var d = new Date(); return d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear(); } // the season whose Signing Day + draft are next (draft ≈ early Sept)
 
-// 📖 Rules: the rulebook (search, status per section) and where ESPN disagrees. Dates live on 📅 SPL Calendar, league lore on 📚 History (eras).
+// 📖 Rules: the rulebook (search, status per section). Dates live on 📅 SPL Calendar, league lore on 📚 History (eras).
+// The old ⚖️ vs ESPN tab is gone (Mike 11/28): its open items are Joe's questions (rules_rewrite, playoff_rules, money_rules, late_adds).
 SCREENS.rules = function (arg) {
-  var view = arg === "espn" ? arg : "book";
-  var tabs = [["book", "📖 Rulebook"], ["espn", "⚖️ vs ESPN"]];
-  var html = back("league", "League") + '<h2>Rules</h2><div class="hscroll">' + tabs.map(function (t) { return '<button class="chip' + (t[0] === view ? " on" : "") + '" onclick="go(\'rules\'' + (t[0] === "book" ? "" : ",\'" + t[0] + "\'") + ')">' + t[1] + '</button>'; }).join("") + '</div>';
-  if (view === "book") {
-    var rs = LD("rules"), cnt = { current: 0, confirm: 0, stale: 0 }; rs.forEach(function (r) { cnt[r.status] = (cnt[r.status] || 0) + 1; });
-    html += '<input type="text" id="rq" placeholder="Search the rules (keeper, veto, Shoot Out…)" autocomplete="off" style="margin-bottom:10px">' +
-      '<p class="muted" style="font-size:12px;margin:0 0 10px">The 2023 constitution draft, cleaned up for the phone. ' + cnt.current + ' sections current · ' + cnt.confirm + ' for Joe to confirm · ' + cnt.stale + ' out of date.</p><div id="rlist">' +
-      rs.map(function (r, i) {
-        return '<details class="card sec" data-i="' + i + '"' + (arg === r.id ? " open" : "") + '><summary><b>' + esc(r.title) + '</b>' + stBadge(r.status) + '</summary>' +
-          (r.note ? '<div class="rnote">' + esc(r.note) + '</div>' : '') + '<div class="rbody">' + r.html + '</div></details>';
-      }).join("") + '</div><p id="rnone" class="muted" style="display:none">Nothing matches.</p>' +
-      '<p class="muted" style="font-size:12px">Source: SPL Constitution, draft 6/12/2023. Rule changes the league votes in get written into the rulebook here.</p>';
-  } else {
-    var cs = LD("conflicts");
-    html += '<p class="muted" style="font-size:13px;margin:0 0 10px">Where the constitution and ESPN\'s league settings disagree. The constitution governs; ESPN either gets fixed or the commish works around it.</p>' +
-      cs.map(function (c) {
-        return '<div class="card"><div class="row" style="justify-content:space-between"><div class="eyebrow" style="margin:0">' + esc(c.id) + ' · Section ' + esc(c.section) + '</div>' + stBadge(c.status) + '</div><h3 style="margin-top:6px">' + esc(c.item) + '</h3>' +
-          '<div class="kv"><span class="muted">Constitution</span><span>' + esc(c.constitution) + '</span></div><div class="kv"><span class="muted">ESPN</span><span>' + esc(c.espn) + '</span></div>' +
-          (c.proposed && c.proposed !== "—" ? '<div class="kv"><span class="muted">Proposed</span><span><b>' + esc(c.proposed) + '</b></span></div>' : '') +
-          (c.note ? '<p style="font-size:13px">' + esc(c.note) + '</p>' : '') + '</div>';
-      }).join("");
-  }
+  var html = back("league", "League") + '<h2>Rules</h2>';
+  var rs = LD("rules"), cnt = { current: 0, confirm: 0, stale: 0 }; rs.forEach(function (r) { cnt[r.status] = (cnt[r.status] || 0) + 1; });
+  html += '<input type="text" id="rq" placeholder="Search the rules (keeper, veto, Shoot Out…)" autocomplete="off" style="margin-bottom:10px">' +
+    '<p class="muted" style="font-size:12px;margin:0 0 10px">The 2023 constitution draft, cleaned up for the phone. ' + cnt.current + ' sections current · ' + cnt.confirm + ' for Joe to confirm · ' + cnt.stale + ' out of date.</p><div id="rlist">' +
+    rs.map(function (r, i) {
+      return '<details class="card sec" data-i="' + i + '"' + (arg === r.id ? " open" : "") + '><summary><b>' + esc(r.title) + '</b>' + stBadge(r.status) + '</summary>' +
+        (r.note ? '<div class="rnote">' + esc(r.note) + '</div>' : '') + '<div class="rbody">' + r.html + '</div></details>';
+    }).join("") + '</div><p id="rnone" class="muted" style="display:none">Nothing matches.</p>' +
+    '<p class="muted" style="font-size:12px">Source: SPL Constitution, draft 6/12/2023. Rule changes the league votes in get written into the rulebook here.</p>';
   return html;
 };
 SCREENS.rules.after = function () {

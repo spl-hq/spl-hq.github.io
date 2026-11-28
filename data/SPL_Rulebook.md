@@ -7,7 +7,7 @@ right under a heading sets that section's badge. Paragraphs, "- " bullets, "1. "
 -->
 
 ## A. General
-> status: stale -- Dues and prizes changed: the league has paid $400 flat since 2024 with a fixed prize sheet (C5, C6).
+> status: stale -- Dues and prizes look different now ($400 flat since 2024 with a set prize sheet). Joe to confirm for 2027.
 
 1. The number of owners will be 12.
 2. **League fees.**
@@ -61,7 +61,7 @@ right under a heading sets that section's badge. Paragraphs, "- " bullets, "1. "
 3. In-season, special circumstances may require the Commissioner to make a judgement call on an ambiguous issue without a league vote. Such decisions are final.
 
 ## D. Trades and Trade Challenges
-> status: confirm -- ESPN's veto threshold is set to 8 votes; the constitution says 6 (C1).
+> status: confirm -- The trade vote runs in SPL HQ: 6 vetoes kills a trade, as written here.
 
 1. During the Season, trades must be completed via the league software. Completed trades are subject to a 24-hour review by the SPL owners. Owners may veto a trade if 60% of the uninvolved teams vote to veto it. (If two teams complete a trade, it passes unless six (6) owners vote to veto.)
 2. During the Off-Season, trades must be announced and accepted via email to the entire league. Off-Season trades are final unless an owner challenges within 72 hours. If an owner challenges, owners vote on it. Six (6) veto votes are required to veto the trade.
@@ -87,7 +87,7 @@ right under a heading sets that section's badge. Paragraphs, "- " bullets, "1. "
    - **Choices 7–12:** final standings order. The SPL Champ chooses #12. The runner-up #11. The owner who lost to the Champ in Week 15 chooses #10. The owner who lost to the runner-up #9. The Wildcard Round loser on the Champ's side of the bracket #8. The Wildcard Round loser on the runner-up's side #7.
 
 ## G. Playoffs
-> status: confirm -- ESPN can hold only one tiebreaker (points) and can't model Seed 3 / Seed 1 choosing opponents (C3, C4).
+> status: confirm -- Joe to confirm the seeding tiebreaks and the Seed 3 / Seed 1 picks for 2027.
 
 1. Seeding for playoff spots 1–5 follows the **Tie Breaker Rules**, in order:
    - first by winning percentage,
@@ -106,7 +106,7 @@ right under a heading sets that section's badge. Paragraphs, "- " bullets, "1. "
 See the league settings on ESPN for scoring and roster rules. Appendix One summarizes scoring; Appendix Two lists roster requirements.
 
 ## I. Free Agents
-> status: confirm -- The FAAB-fee weekly prize appears retired ($40 flat weekly prize since 2024). ESPN doesn't block non-playoff teams from adding after Week 14.
+> status: confirm -- The free-agent-fee weekly prize looks retired ($40 a week since 2024). Joe to confirm the Week 14 add rule for 2027.
 
 1. Blind bid auction.
 2. Each team gets $200 of fake money for the season and playoffs.
@@ -153,7 +153,7 @@ See the league settings on ESPN for scoring and roster rules. Appendix One summa
 4. See Appendix Three for the Shoot Out Draft order and rules.
 
 ## Appendix One · Scoring
-> status: current -- From ESPN league settings (2026). Kicking rules are still on ESPN but no kicker can start (C8).
+> status: current -- From ESPN league settings (2026). No kicker slot since 2020.
 
 Head-to-head points, 0.5 PPR (added for 2021).
 

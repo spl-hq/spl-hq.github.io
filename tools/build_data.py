@@ -145,7 +145,7 @@ open(os.path.join(ROOT, "player-history.js"), "w", encoding="utf-8").write(
     f"var PLAYER_HISTORY = {json.dumps(ph, ensure_ascii=False, separators=(',', ':'))};\n")
 print("player-history.js:", len(ph["d"]), "picks ·", len(ph["k"]), "keeper rows ·", len(ph["r"]), "roster rows ·", len(ph["t"]), "moves")
 
-# ---- 📖 Rules: data/SPL_Rulebook.md (gold) -> sections of safe HTML; conflicts + calendar CSVs.
+# ---- 📖 Rules: data/SPL_Rulebook.md (gold) -> sections of safe HTML; calendar CSV.
 import html as _h
 def inline(s):
     s = _h.escape(s, quote=False)
@@ -198,7 +198,6 @@ if os.path.exists(rp):
         sid = m.group(1) if m else title.split("·")[0].strip()
         text = re.sub(r"[*|#>-]", " ", "\n".join(body))
         rules.append({"id": sid, "title": title, "status": status, "note": note, "html": md_blocks(body), "text": re.sub(r"\s+", " ", text).strip()})
-conflicts = [{k: r[k] for k in ("id", "item", "section", "constitution", "espn", "proposed", "status", "note")} for r in opt_rows("Rules_Conflicts.csv")]
 calendar = [{k: r[k] for k in ("season", "key", "event", "date", "kind", "note")} for r in opt_rows("Season_Calendar.csv")]
 # 📚 History: eras + milestones ("how the league got here"), data/League_Timeline.csv (gold).
 timeline = [{"y": int(r["season"]), "kind": r["kind"], "key": r["key"], "title": r["title"], "note": r["note"]} for r in opt_rows("League_Timeline.csv")]
@@ -227,12 +226,12 @@ ls = os.path.join(ROOT, "data", "ledger_status.json")
 ledger = json.load(open(ls)) if os.path.exists(ls) else None
 payload = {'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='minutes'), 'owners': owners, 'contracts': contracts,
            'seasons': seasons, 'ledger': ledger, 'games': games, 'history': history, 'draft': draft, 'keep': keep, 'rules': rules,
-           'conflicts': conflicts, 'calendar': calendar, 'timeline': timeline, 'offseason': offseason, 'schedule': schedule, 'lines': lines}
+           'calendar': calendar, 'timeline': timeline, 'offseason': offseason, 'schedule': schedule, 'lines': lines}
 out = ("// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
        "// Sources: data/Keeper_Contracts.csv, SPL_Owner_Registry.csv, SPL_Matchups.csv, Season_Results_Manual.csv, Draft_Picks.csv, Keeper_Matrix_History.csv,\n"
-       f"//   SPL_Rulebook.md, Rules_Conflicts.csv, Season_Calendar.csv, Offseason_Drafts.csv,\n"
+       f"//   SPL_Rulebook.md, Season_Calendar.csv, Offseason_Drafts.csv,\n"
        f"//   SPL_Schedule.csv, Card_Lines.json. Generated {datetime.date.today()}.\n"
        f"var LEAGUE_DATA = {json.dumps(payload, ensure_ascii=False, separators=(',', ':'))};\n")
 open(os.path.join(ROOT, "league-data.js"), "w", encoding="utf-8").write(out)
 print(len(contracts), "contracts,", len(owners), "owners,", len(games), "games", seasons[:1], "-", seasons[-1:], "·", len(history), "seasons of history ·",
-      len(draft), "draft picks ·", len(rules), "rule sections ·", len(conflicts), "conflicts ·", len(calendar), "dates ·", len((schedule or {}).get("games") or []), "scheduled ·", len(lines), "weeks of card lines")
+      len(draft), "draft picks ·", len(rules), "rule sections ·", len(calendar), "dates ·", len((schedule or {}).get("games") or []), "scheduled ·", len(lines), "weeks of card lines")

@@ -35,6 +35,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.1 · 📖 Rules: **⚖️ vs ESPN tab removed** (Mike: it was build scaffolding for Mike + Joe, owners never see it). Rules is the
+  rulebook only. Its open items became 4 **Questions for Joe**, parked as a "rulebook rewrite" batch (`later:`, visible on the Ops desk):
+  `rules_rewrite` (2027 constitution written around the app), `playoff_rules` (tiebreaks + Seed 3/Seed 1 picks), `money_rules` (dues/prizes),
+  `late_adds` (Week 14 add rule + the 2021 FAAB-payout note). `data/Rules_Conflicts.csv` retired; rulebook notes no longer cite C-ids. SW `splhq-v89`.
 - 2026-11-28 · v0.27.0 (backend v0.21.0) · 🍂 **Off-season switch** (Mike: "we click the button, not automatic or date-based"). Backend: Script property
   `PHASE` {phase, by, at, season}; `setphase` (commish/ops only, confirm in the app) posts one league-chat line on the flip to the off-season (none
   going back); phase rides on `me` and public GET `?action=phase` (signed-out phones, future robots). App: `offSeason()` now reads the switch
@@ -471,7 +475,7 @@ Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move co
   champ on his side and flags it.)
 - 2026-11-26 · v0.10 · 🏆 **WS2 League screens** (no more "Coming soon" on League). 📖 **Rules**: rulebook from new gold `data/SPL_Rulebook.md`
   (the 2023 constitution, same words, rebuilt for the phone), search with highlights, each section badged ✓ current / Joe to confirm / out of date;
-  🗓️ Timeline (`data/Season_Calendar.csv`: 2027 off-season dates + how the league got here); ⚖️ vs ESPN (`data/Rules_Conflicts.csv`, C1–C10).
+  🗓️ Timeline (`data/Season_Calendar.csv`: 2027 off-season dates + how the league got here).
   🔒 **Keepers**: Signing Day countdown (from the draft date once set), 2027 cap card (committed / penalties / plan, KP left, x of 3),
   2027–29 cap profile, 🧪 try a signing (roster from ESPN when signed in, or search; price from the 2026 draft round; plans saved on the phone),
   every contract in the league. 📝 **Draft**: 2026 board by round, traded picks ("via X"), who got/gave, per-owner view (gold `data/Draft_Picks.csv`).
