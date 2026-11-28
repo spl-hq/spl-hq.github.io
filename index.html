@@ -558,7 +558,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.27.6";
+var APP_VERSION = "0.28.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -601,7 +601,7 @@ var QUESTIONS = [
     why: "", choices: ["Yes, that's it", "Close (explain below)", "No (explain below)"] },
   { qid: "first_wish", later: "Mike 11/28: swapped off day one", q: "If the app could do one thing for you as commish, what would it be?",
     why: "Your answer goes to the top of the build list.", choices: [] },
-  { qid: "veto_vote", later: "Mike 11/28: swapped off day one", q: "Trades go to a league vote in the app, by the constitution (6 vetoes kills it). OK?",
+  { qid: "veto_vote", retired: "Mike 11/28: replaced by trade_process (review window + owner vetoes, as the rulebook says)", q: "Trades go to a league vote in the app, by the constitution (6 vetoes kills it). OK?",
     why: "Same rule as always, finally enforced (ESPN needs 8). In season the vote runs 24 hours; off-season a trade is final after 72 hours unless challenged. Your trades with Mike go to the same vote.",
     choices: ["Yes", "Yes, and I can overrule", "No, I approve every trade"] },
   { qid: "mike_calls", retired: "Mike 11/27: his answers stand, Joe doesn't need to check them", q: "Mike made these calls for the app. Good with all three?",
@@ -626,10 +626,13 @@ var QUESTIONS = [
     why: "The constitution says no, but ESPN doesn't stop them. The app can flag those adds; it can't block them on ESPN. Section I also still has the 2021 note about Boogie and Owen working out a FAAB payout. Drop it?",
     choices: ["No adds: flag them", "That rule's gone", "Explain below"] },
   { qid: "espn_writes", q: "Are you comfortable with the app making changes on ESPN for you?",
-    why: "Today trades run on ESPN: owners send them there, the league votes there (ESPN needs 8 vetoes, the rulebook says 6), and ESPN moves the players. With the app, trades happen here instead: owners agree in the app, you approve or negate them here, then the app makes the trade on ESPN itself. It can also load the SPL Draft board, keepers included, onto ESPN after the draft, so nobody keys it in by hand. ESPN only lets a league manager do that, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
-    choices: ["Yes, make Mike co-commish", "Show me the test league first", "Keep trades on ESPN", "Let's talk"] }
+    why: "Today trades run on ESPN: owners send them there, the league votes there (ESPN needs 8 vetoes, the rulebook says 6), and ESPN moves the players. With the app, trades happen here instead: owners agree in the app, the league reviews and can veto here by the rulebook, then the app makes the trade on ESPN itself. It can also load the SPL Draft board, keepers included, onto ESPN after the draft, so nobody keys it in by hand. ESPN only lets a league manager do that, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
+    choices: ["Yes, make Mike co-commish", "Show me the test league first", "Keep trades on ESPN", "Let's talk"] },
+  { qid: "trade_process", q: "This is how trades and league votes run in the app. Is that the SPL way?",
+    why: "TRADES\n1) An owner accepts an offer. The trade goes on the trade wire for review: 24 hours in season, 72 off-season.\n2) Any owner not in it can tap 🚫 Veto. The first veto tells the league a veto vote is on. Names show on the trade.\n3) 6 vetoes kill it. Otherwise it goes through by itself when the review ends, and the app makes it on ESPN.\n4) You step in only if needed: Approve now, or Negate with a reason the league sees.\n5) If a trade puts a team over the roster limit, that owner picks his drop when he sends or accepts.\n\nLEAGUE VOTES\n6) You build an SPL Owners Vote on your desk (rule change or league matter). It goes to league chat and every owner's Home.\n7) Yes / No / Abstain, changeable until it closes. Rule changes need 7 Yes; other matters need more Yes than No.\n8) Owners can send a rule idea. You decide if it goes to a vote.\n\nOff-season: does a challenge work like this, and how long should the challenge vote stay open? (The app keeps it open at least 24 hours.)",
+    choices: ["That's it", "Close: tweaks below", "Let's talk"] }
 ];
-var Q_ORDER = ["history_gaps", "espn_writes", "rules_rewrite"]; // the order Joe sees (Mike 11/28: missing history, ESPN writes + the test league, the 2027 rulebook; later: ones come back by moving them here)
+var Q_ORDER = ["trade_process", "history_gaps", "espn_writes", "rules_rewrite"]; // the order Joe sees (Mike 11/28: missing history, ESPN writes + the test league, the 2027 rulebook; later: ones come back by moving them here)
 var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired && !q.later; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
 function answeredActive(ans) { return ACTIVE_Q.filter(function (q) { return ans[q.qid]; }).length; }
 
@@ -736,7 +739,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "home", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "home", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league", votes: "league" };
 // SPL HQ bot posts carry a ref; the button follows what it points at (T… trade offer, D… draft room unless cancelled, K…/keep: Signing Day). Unknown refs get no button.
 function hqLink(ref, text) {
   ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone
@@ -816,9 +819,12 @@ function buildFeed(d) {
       cards.push({ id: "offer:" + o.id, needs: 1, scope: "me", eb: "🔁 Trade offer · from " + esc(oname(o.from)), title: atO(o.from) + " wants to deal",
         body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">You get</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">You send</div>' + sideList(o.get, o.to) + '</div></div>' + (o.note ? '<p class="story">“' + esc(o.note) + '”</p>' : ''),
         action: ["Answer it", "go('trades','" + o.id + "')"] }); });
-    var rv = T.offers.filter(function (o) { return o.status === "ACCEPTED" && !o.lock; });
-    if (isDesk() && rv.length) cards.push({ id: "review:" + rv.map(function (o) { return o.id; }).join(","), needs: 1, scope: "me", eb: "📥 Commish desk", title: rv.length + " trade" + (rv.length > 1 ? "s" : "") + " to approve",
-      body: rv.slice(0, 3).map(function (o) { return '<div class="kv"><span>' + atO(o.from) + ' ⇄ ' + atO(o.to) + '</span><span class="gold">agreed</span></div>'; }).join(""), action: ["Open the desk", "go('desk')"] });
+    T.offers.filter(function (o) { return o.status === "ACCEPTED"; }).forEach(function (o) { // ⏳ on the wire: everyone sees it, can veto from the card
+      var mineO = o.from === me || o.to === me;
+      cards.push({ id: "onwire:" + o.id + ":" + (o.vetoes || []).length, at: o.updated, scope: "league", eb: "⏳ On the trade wire" + (o.challenged ? " · 🚫 veto vote" : ""), title: atO(o.from) + " ⇄ " + atO(o.to),
+        body: '<div class="grid" style="gap:12px"><div><div class="eyebrow">' + esc(oname(o.to)) + ' gets</div>' + sideList(o.give, o.from) + '</div><div><div class="eyebrow">' + esc(oname(o.from)) + ' gets</div>' + sideList(o.get, o.to) + '</div></div>' + dropsLine(o) + reviewLine(o) +
+          (!mineO ? '<div class="row" style="margin-top:10px">' + ((o.vetoes || []).indexOf(me) >= 0 ? '<button class="btn ghost" onclick="vetoTrade(\'' + o.id + '\',false)">↩️ Take back my veto</button>' : '<button class="btn ghost" style="color:var(--coral);border-color:var(--coral)" onclick="vetoTrade(\'' + o.id + '\',true)">🚫 Veto</button>') + '</div>' : ''),
+        action: ["Trades", "go('trades','" + o.id + "')"] }); });
     // ⚡ Instant: 📰 trade wire (7 days)
     T.offers.filter(function (o) { return o.status === "APPROVED" && Date.now() - new Date(o.updated).getTime() < 7 * 864e5; }).slice(0, 3).forEach(function (o) {
       cards.push({ id: "wire:" + o.id, at: o.updated, scope: "league", eb: "📰 Trade wire" + (o.mode === "test" ? " · test" : ""), title: atO(o.from) + " ⇄ " + atO(o.to),
@@ -826,6 +832,7 @@ function buildFeed(d) {
           chips(["✅ Approved " + esc(ago(o.updated)), o.mode === "test" ? ["🧪 Test mode", "hi"] : ""]), action: ["Trade wire", "go('trades')"] }); });
   }
   if (ME) wireCards(T, me).forEach(function (c) { cards.push(c); });
+  voteCards(d.votes).forEach(function (c) { cards.push(c); }); // 🗳️ SPL Owners Votes (Needs you until you've voted)
   // ⚡ Instant: your game while it's live, and the live scoreboard (the top score waits for 🏅 Week awards)
   var games = W && W.ok && W.games ? W.games : [], live = W && W.ok && !W.final && W.week === W.current && games.some(function (g) { return (g.home && g.home.pts) || (g.away && g.away.pts); });
   if (live) { var mine = null; games.forEach(function (g) { if (me && ((g.home && g.home.owner === me) || (g.away && g.away.owner === me))) mine = g; });
@@ -879,7 +886,8 @@ SCREENS.home.after = function () {
     jobs.push(pollRooms().catch(function () {}));
     jobs.push(loadTrades(true).then(function (t) { d.trades = t; }).catch(function () {}));
     jobs.push(loadDrafts(true).then(function (x) { d.drafts = x; }).catch(function () {}));
-    jobs.push(loadKeep(true).then(function (k) { d.keep = k; }).catch(function () {})); }
+    jobs.push(loadKeep(true).then(function (k) { d.keep = k; }).catch(function () {}));
+    jobs.push(loadVotes(true).then(function (v) { d.votes = v; }).catch(function () {})); }
   var drawn = false; if (!HOME_D && ME) { var kd = kept("home", 24); if (kd) HOME_D = kd; }
   if (HOME_D) { drawFeed(0); drawn = true; } // instant: last reel (memory or this phone), refreshed below
   Promise.all(jobs).then(function () { if (!$("#feed")) return; HOME_D = d; if (ME) keep("home", d); drawFeed(drawn ? FPOS : 0); });
@@ -1361,12 +1369,17 @@ function sideList(side, holder) {
     .concat((side.picks || []).map(function (pid) { return '<div>🎟️ <b>' + esc(pickLabel(pid, holder)) + '</b></div>'; }));
   return a.join("") || '<div class="muted">nothing</div>';
 }
-var STATUS = { PROPOSED: ["Waiting on answer", "muted"], ACCEPTED: ["Agreed · with the commish", "gold"], APPROVED: ["Approved ✓", "lime"], DECLINED: ["Declined", "coral"], WITHDRAWN: ["Withdrawn", "muted"], NEGATED: ["Negated", "coral"] };
+var STATUS = { PROPOSED: ["Waiting on answer", "muted"], ACCEPTED: ["On the wire · in review", "gold"], VETOED: ["Vetoed by the league", "coral"], APPROVED: ["Approved ✓", "lime"], DECLINED: ["Declined", "coral"], WITHDRAWN: ["Withdrawn", "muted"], NEGATED: ["Negated", "coral"] };
 function offerCard(o) {
   var st = STATUS[o.status] || [o.status, "muted"], me = ME.owner, btns = "";
   if (o.status === "PROPOSED" && o.to === me) btns = '<button class="btn" onclick="answerOffer(\'' + o.id + '\',\'accept\')">Accept</button><button class="btn ghost" onclick="go(\'trade\',\'' + o.from + ':' + o.id + '\')">Counter</button><button class="btn ghost" onclick="answerOffer(\'' + o.id + '\',\'decline\')">Decline</button>';
   if (o.status === "PROPOSED" && o.from === me) btns = '<button class="btn ghost" onclick="answerOffer(\'' + o.id + '\',\'withdraw\')">Withdraw</button>';
-  if (o.status === "ACCEPTED" && isDesk() && !o.lock) btns = '<button class="btn" onclick="deskTrade(\'' + o.id + '\',\'approve\')">Approve</button><button class="btn ghost" onclick="deskTrade(\'' + o.id + '\',\'negate\')">Negate</button>';
+  var inIt = o.from === me || o.to === me;
+  if (o.status === "ACCEPTED") {
+    if (!inIt) btns = (o.vetoes || []).indexOf(me) >= 0 ? '<button class="btn ghost" onclick="vetoTrade(\'' + o.id + '\',false)">↩️ Take back my veto</button>' : '<button class="btn ghost" style="color:var(--coral);border-color:var(--coral)" onclick="vetoTrade(\'' + o.id + '\',true)">🚫 Veto</button>';
+    if (o.hold === me) btns = '<button class="btn" onclick="pickDrops(\'' + o.id + '\')">Pick your drop</button>';
+    if (isDesk() && !o.lock && /#(desk|ops)/.test(location.hash)) btns += '<button class="btn ghost" onclick="deskTrade(\'' + o.id + '\',\'approve\')">Approve now</button><button class="btn ghost" onclick="deskTrade(\'' + o.id + '\',\'negate\')">Negate</button>';
+  }
   if (o.status === "APPROVED" && o.espn === "todo" && isDesk()) btns = '<button class="btn" onclick="deskTrade(\'' + o.id + '\',\'espndone\')">✓ Done on ESPN</button>';
   var other = o.from === me ? o.to : o.from;
   return '<div class="card offer" id="o-' + esc(o.id) + '"><div class="row" style="justify-content:space-between"><div class="eyebrow" style="margin:0">' + (o.counterOf ? "↩️ Counter · " : "🔁 ") + esc(oname(o.from)) + ' ⇄ ' + esc(oname(o.to)) + '</div><span class="' + st[1] + '" style="font:700 11px var(--mono)">' + st[0] + '</span></div>' +
@@ -1374,15 +1387,65 @@ function offerCard(o) {
     (o.note ? '<p style="font-size:13px">“' + esc(o.note) + '”</p>' : '') + (o.reason && o.status !== "PROPOSED" ? '<p class="muted" style="font-size:13px">' + esc(o.reason) + '</p>' : '') +
     (o.status === "APPROVED" && o.espn === "todo" ? '<p class="gold" style="font-size:13px">Players still to move on ESPN' + (o.mode === "test" ? " (test league)" : "") + '.' + (o.espnNote ? ' <span class="muted">' + esc(o.espnNote) + '</span>' : '') + '</p>' : '') +
     (o.status === "APPROVED" && o.espn === "done" ? '<p class="lime" style="font-size:13px">🏈 Done on ESPN' + (o.mode === "test" ? " · test league" : "") + '</p>' : '') +
-    (o.status === "ACCEPTED" && isDesk() && o.lock ? '<p class="muted" style="font-size:13px;margin-top:10px">👀 ' + esc(o.lock) + '</p>' : '') +
+    dropsLine(o) + reviewLine(o) +
+    (o.status === "VETOED" && o.vetoes ? '<p class="muted" style="font-size:13px">🚫 Vetoed by ' + o.vetoes.map(function (x) { return esc(oname(x)); }).join(", ") + '. Nothing moved.</p>' : '') +
+    (o.status === "ACCEPTED" && isDesk() && o.lock && /#(desk|ops)/.test(location.hash) ? '<p class="muted" style="font-size:13px;margin-top:10px">👀 ' + esc(o.lock) + '</p>' : '') +
     (btns ? '<div class="row" style="margin-top:12px;flex-wrap:wrap">' + btns + '</div>' : '') +
     (other !== me && (o.from === me || o.to === me) ? '<p style="margin-top:8px"><button class="back" onclick="go(\'chat\',\'' + dmRoom(other) + '\')">💬 Talk it over with ' + esc(oname(other)) + '</button></p>' : '') +
     '<p class="muted" style="font-size:11px;margin-top:6px">' + new Date(o.updated || o.ts).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + (o.mode === "test" ? " · test" : "") + '</p></div>';
 }
-function answerOffer(id, d) {
-  var msg = { accept: "Accept this trade? It goes to the commish for approval.", decline: "Decline this offer?", withdraw: "Withdraw your offer?" }[d];
-  if (!confirm(msg)) return;
-  authed("respond", { id: id, decision: d }).then(function (r) { if (!r.ok) throw new Error(r.error); toast({ accept: "✓ Accepted · sent to the commish", decline: "Declined", withdraw: "Withdrawn" }[d]); TRADES = null; render(); }).catch(function (e) { toast(e.message); });
+// ⏳ Review + 🚫 vetoes + 📏 drops (Mike 11/28, rulebook D): an accepted trade sits on the wire (24 h in season, 72 h off-season), owners
+// not in it can veto (6 kills it), and it goes through by itself when the review ends. Joe steps in only if needed (desk: Approve now / Negate).
+// A side that ends up over the roster limit picks its drops in the same step (send or accept); they go to ESPN with the trade.
+function reviewLine(o) {
+  if (o.status !== "ACCEPTED" || !o.reviewEnds) return "";
+  var v = o.vetoes || [], left = Math.max(0, new Date(o.reviewEnds) - Date.now()), h = Math.floor(left / 36e5), m = Math.floor((left % 36e5) / 6e4);
+  return '<div class="card" style="background:var(--raised,#F2F5FA);padding:10px 12px;margin:10px 0 0"><p style="margin:0;font-size:13px">⏳ ' + (o.hold ? '<b>Review\'s over.</b> Waiting on ' + esc(oname(o.hold)) + ' to pick a drop.' :
+    'Goes through <b>' + esc(closesTxt(o.reviewEnds)) + '</b> (' + (h ? h + " h " : "") + m + ' min) unless ' + (o.vetoNeed || 6) + ' owners veto it.') + '</p>' +
+    '<p style="margin:6px 0 0;font-size:13px">🚫 <b>' + v.length + ' of ' + (o.vetoNeed || 6) + '</b> vetoes' + (v.length ? ': ' + v.map(function (x) { return esc(oname(x)); }).join(", ") : '') + '</p></div>';
+}
+function dropsLine(o) {
+  var d = o.drops || {}, l = (d.from || []).map(function (p) { return esc(oname(o.from)) + ' drops <b>' + esc(p.n) + '</b>'; }).concat((d.to || []).map(function (p) { return esc(oname(o.to)) + ' drops <b>' + esc(p.n) + '</b>'; }));
+  return l.length ? '<p style="font-size:13px;margin:8px 0 0">📏 ' + l.join(" · ") + '</p>' : '';
+}
+function vetoTrade(id, on) {
+  if (on && !confirm("Veto this trade?\n\nThe league sees your name. 6 vetoes kill it. You can take it back while the review runs.")) return;
+  authed("tradeveto", { id: id, on: on }).then(function (r) { if (!r.ok) throw new Error(r.error); TRADES = null; HOME_D = null;
+    toast(r.status === "VETOED" ? "🚫 That was the 6th: the trade is vetoed" : on ? "🚫 Veto in (" + r.vetoes.length + " of 6)" : "↩️ Veto taken back"); render(); }).catch(function (e) { toast(e.message); });
+}
+// The drop picker: your active roster minus what you're trading away; pick at least `need`. cb(list of {n,pos,tm,id}).
+function dropSheet(title, players, need, cb) {
+  var sh = $("#sheet"); if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
+  sh.onclick = function (e) { if (e.target === sh) pclose(); };
+  var on = {};
+  sh.innerHTML = '<div class="card" style="margin:0 14px"><div class="eyebrow">📏 Roster room</div><h3 style="margin-top:4px">' + esc(title) + '</h3><p style="font-size:13px">This trade puts you over the roster limit. Pick <b>' + need + '</b> to drop. They\'re dropped on ESPN when the trade goes through, and everyone sees them on the trade.</p>' +
+    players.map(function (p, i) { return '<button class="gp sel" data-i="' + i + '" style="width:100%;text-align:left"><b>' + esc(p.n) + '</b><small>' + esc(p.pos || "") + ' · ' + esc(p.tm || "") + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + '</small></button>'; }).join("") +
+    '<div class="row" style="gap:8px;margin-top:12px"><button class="btn" id="dsGo" style="flex:1" disabled>Drop 0</button><button class="btn ghost" onclick="pclose()">Cancel</button></div></div>';
+  sh.querySelectorAll(".gp.sel").forEach(function (b) { b.onclick = function () { var i = b.dataset.i; if (on[i]) delete on[i]; else on[i] = 1; b.classList.toggle("on");
+    var n = Object.keys(on).length, g = $("#dsGo"); g.textContent = "Drop " + n; g.disabled = n < need; }; });
+  $("#dsGo").onclick = function () { var list = Object.keys(on).map(function (i) { var p = players[i]; return { n: p.n, pos: p.pos, tm: p.tm, id: p.id }; }); pclose(); cb(list); };
+}
+function dropFor(owner, out, inn, title, cb) {
+  loadRosters().then(function (ro) {
+    var t = teamRoster(ro, owner); if (!t) throw new Error("Couldn't read your roster.");
+    var max = (TRADES && TRADES.rosterMax) || 17, act = t.players.filter(function (p) { return p.slot !== "IR"; }), outN = act.filter(function (p) { return out.some(function (q) { return q.n === p.n; }); });
+    var need = Math.max(1, act.length - outN.length + inn.length - max);
+    dropSheet(title, act.filter(function (p) { return !out.some(function (q) { return q.n === p.n; }); }), need, cb);
+  }).catch(function (e) { toast(e.message); });
+}
+function pickDrops(id) {
+  var o = ((TRADES && TRADES.offers) || []).filter(function (x) { return x.id === id; })[0]; if (!o) return;
+  var mine = o.from === ME.owner, out = (mine ? o.give : o.get).players || [], inn = (mine ? o.get : o.give).players || [];
+  dropFor(ME.owner, out, inn, "Finish your trade", function (list) {
+    authed("tradedrops", { id: id, drops: list }).then(function (r) { if (!r.ok) throw new Error(r.error); TRADES = null; toast("✓ Drop set"); render(); }).catch(function (e) { toast(e.message); }); });
+}
+function answerOffer(id, d, drops) {
+  var msg = { accept: "Accept this trade?\n\nIt goes on the trade wire for review (24 h in season), then goes through unless 6 owners veto it.", decline: "Decline this offer?", withdraw: "Withdraw your offer?" }[d];
+  if (!drops && !confirm(msg)) return;
+  authed("respond", { id: id, decision: d, drops: drops || [] }).then(function (r) {
+    if (!r.ok && r.needDrops) { var o = ((TRADES && TRADES.offers) || []).filter(function (x) { return x.id === id; })[0]; if (!o) throw new Error(r.error);
+      return dropFor(ME.owner, o.get.players || [], o.give.players || [], "Accept: pick your drop", function (list) { answerOffer(id, d, list); }); }
+    if (!r.ok) throw new Error(r.error); toast({ accept: "✓ Accepted · on the trade wire", decline: "Declined", withdraw: "Withdrawn" }[d]); TRADES = null; HOME_D = null; render(); }).catch(function (e) { toast(e.message); });
 }
 function deskTrade(id, d) {
   var body = { id: id, decision: d };
@@ -1400,7 +1463,7 @@ SCREENS.trades.after = function (focus) {
   loadTrades(true).then(function (t) {
     var me = ME.owner, inb = t.offers.filter(function (o) { return o.status === "PROPOSED" && o.to === me; }),
       out = t.offers.filter(function (o) { return o.from === me && o.status === "PROPOSED"; }),
-      wire = t.offers.filter(function (o) { return o.status === "ACCEPTED" || o.status === "APPROVED"; }),
+      wire = t.offers.filter(function (o) { return o.status === "ACCEPTED" || o.status === "APPROVED" || (o.status === "VETOED" && Date.now() - new Date(o.updated).getTime() < 7 * 864e5); }),
       past = t.offers.filter(function (o) { return (o.from === me || o.to === me) && ["DECLINED", "WITHDRAWN", "NEGATED"].indexOf(o.status) >= 0; }).slice(0, 8),
       mine = t.picks.filter(function (p) { return p.owner === me; });
     var html = testBanner(t) + '<div class="card"><div class="eyebrow">➕ New trade</div><p style="margin:0">See every roster side by side, then tap a team.</p><p style="margin-top:12px"><button class="btn" onclick="go(\'trade\')">Browse all teams</button></p></div>';
@@ -1483,9 +1546,11 @@ SCREENS.trade.after = function (arg) {
       if (!(g.players.length + g.picks.length) || !(r.players.length + r.picks.length)) { toast("Pick something on both sides"); return; }
       if (!confirm((counterOf ? "Send this counter to " : "Send this offer to ") + oname(other) + "?\n\nYou send: " + lbl(g, me).join(", ") + "\nYou get: " + lbl(r, other).join(", "))) return;
       var btn = this; btn.disabled = true; btn.textContent = "Sending…";
-      authed("offer", { to: other, give: g, get: r, note: $("#tnote").value, counterOf: counterOf }).then(function (x) {
+      var send = function (drops) { authed("offer", { to: other, give: g, get: r, note: $("#tnote").value, counterOf: counterOf, drops: drops || [] }).then(function (x) {
+        if (!x.ok && x.needDrops) { btn.disabled = false; btn.textContent = counterOf ? "Counter" : "Send"; return dropFor(me, g.players, r.players, "Send: pick your drop", send); }
         if (!x.ok) throw new Error(x.error); TRADES = null; toast(x.dup ? "Already sent" : "✓ Offer sent to " + oname(other)); go("trades", x.offer.id);
-      }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = counterOf ? "Counter" : "Send"; });
+      }).catch(function (e) { toast(e.message); btn.disabled = false; btn.textContent = counterOf ? "Counter" : "Send"; }); };
+      send();
     };
   }).catch(function (e) { if ($("#tb")) $("#tb").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });
 };
@@ -1526,18 +1591,21 @@ SCREENS.desk.after = function () {
     var n = isOps() ? answeredActive(joeN) : answeredActive(MY || {}), qOpen = ACTIVE_Q.length - n, who = isOps() ? "Joe" : "you";
     var html = (d.mode === "test" ? '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small class="gold">🧪 Practice season: trades approved here are practice and never touch the real SPL league.</small></div>' : '') +
       '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>';
-    html += cSec("review", "⏳ Trades to approve", "cRv", d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<p class="muted" style="margin:0">Nothing waiting on ' + who + '.</p>',
-      d.review.length ? d.review.length + " need" + (d.review.length > 1 ? "" : "s") + " " + who : "none waiting", d.review.length ? "confirm" : "ok", d.review.length > 0);
+    var chal = d.review.filter(function (o) { return o.challenged && !o.lock; }).length;
+    html += cSec("review", "⏳ Trades on the wire", "cRv", '<p class="muted" style="margin:0 0 8px;font-size:13px">Trades go through by themselves when the review ends (24 h in season, 72 h off-season) unless 6 owners veto. Step in only if needed: <b>Approve now</b> or <b>Negate</b> (the league sees your reason).</p>' +
+      (d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer"' + (o.challenged ? ' style="border-color:var(--gold)"' : '')); }).join("") : '<p class="muted" style="margin:0">No trades on the wire.</p>'),
+      chal ? chal + " under a veto vote" : d.review.length ? d.review.length + " on the wire" : "none", chal ? "confirm" : "ok", chal > 0);
     if (d.espn.length) html += cSec("espn", "🏈 Do on ESPN", "cEs", '<p class="muted" style="margin:0 0 6px;font-size:13px">Approved trades the app couldn\'t move on ESPN by itself: make them in ESPN, then tap ✓ Done on ESPN.</p>' + d.espn.map(offerCard).join(""), d.espn.length + " to do", "confirm", true);
     html += phaseSec(false);
     html += cSec("drafts", "🗓️ Drafts", "cDr", '<p class="muted">Loading drafts…</p>', "…");
     html += cSec("keep", "🔒 Keeper Signing Day", "cKp", '<p class="muted">Loading…</p>', "…");
+    html += cSec("votes", "🗳️ SPL Owners Vote", "cVt", '<p class="muted">Loading…</p>', "…");
     html += cSec("q", "📋 Questions from the Ops Manager", "cQ", '<p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + who + '.</p><p style="margin-top:10px"><button class="btn' + (qOpen > 0 && !isOps() ? "" : " ghost") + '" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p>',
       qOpen > 0 ? qOpen + " open" : "all answered", qOpen > 0 ? "confirm" : "ok", qOpen > 0 && !isOps());
     if (d.recent.length) html += cSec("recent", "📜 Recent decisions", "cRc", d.recent.map(offerCard).join(""), d.recent.length + " recent", "ok");
     $("#dsk").innerHTML = html;
     loadKeep(true).then(function () { var k = $("#cKp"); if (!k) return; k.innerHTML = kdeskBody(true); var st = kdeskState(true); opsBadge("cKp", st.badge, st.cls); }).catch(function (e) { var k = $("#cKp"); if (k) k.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
-    deskDraftsFill("#cDr", true);
+    deskDraftsFill("#cDr", true); VOTES = null; deskVotesFill();
   }).catch(function (e) { if ($("#dsk")) $("#dsk").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
 };
 function wipeTrades() { if (!confirm("Wipe ALL test trades and reset every pick to its original team?")) return; authed("wipetrades").then(function (r) { if (!r.ok) throw new Error(r.error); TRADES = null; toast("Wiped"); render(); }).catch(function (e) { toast(e.message); }); }
@@ -1768,7 +1836,8 @@ var WHERE = [
     ["Weekly recaps and the GM Report", "", "W", "N", "On your Home screen."]]],
   ["Trades", [
     ["Offers, counters, accepting", "S", "W", "N", "Approved trades get moved onto your ESPN roster for you. Don't send trades on ESPN."],
-    ["Trade approval", "W", "", "N", "Joe approves or negates in the app. ESPN's veto vote isn't used."],
+    ["Trade review and vetoes", "W", "", "N", "24 h on the trade wire (72 h off-season). 6 vetoes from owners not in it kill a trade; otherwise it goes through by itself."],
+    ["League votes and rule ideas", "", "W", "N", "Yes / No / Abstain on your Home screen. Rule changes need 7 Yes."],
     ["Trade block", "", "", "N", ""],
     ["Who owns which draft picks", "", "W", "N", "ESPN doesn't track traded picks."]]],
   ["Off-season", [
@@ -1830,6 +1899,121 @@ SCREENS.rules.after = function () {
     $("#rnone").style.display = any ? "none" : "";
   };
 };
+
+// 🗳️ League votes (Mike 11/28). Joe builds + publishes an "SPL Owners Vote" on his desk → one line in league chat + a card on every
+// owner's Home (Needs you until they vote). Yes / No / Abstain, changeable until it closes. Rule changes pass with 7 Yes (rulebook C.1),
+// league matters with more Yes than No, practice votes change nothing. Owners can send a 💡 rule idea; it lands in league chat + on Joe's desk,
+// and Joe decides if it goes to a vote. Names show once a vote closes (the desk sees them as they come in). Backend: mod_votes.js.
+var VOTES = null;
+function loadVotes(fresh) {
+  if (!ME) return Promise.reject(new Error("Sign in to vote."));
+  if (!fresh && VOTES && Date.now() - VOTES._at < 20000) return Promise.resolve(VOTES);
+  return authed("votes").then(function (v) { if (!v.ok) throw new Error(v.error); v._at = Date.now(); VOTES = v; return v; });
+}
+var KIND_TXT = { rule: ["📖 Rule change", "7 Yes passes it"], matter: ["🗳️ League matter", "More Yes than No passes it"], practice: ["🧪 Practice vote", "Nothing changes"] };
+function closesTxt(iso) { var d = new Date(iso); return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + " · " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+function voteTally(m) {
+  var tot = Math.max(1, m.tally.Yes + m.tally.No + m.tally.Abstain), bar = function (k, col) { return '<div class="kv" style="border:0;padding:3px 0"><span style="width:62px">' + k + '</span><span style="flex:1;height:8px;border-radius:4px;background:var(--line);margin:0 8px;overflow:hidden"><span style="display:block;height:100%;width:' + Math.round(100 * m.tally[k] / tot) + '%;background:' + col + '"></span></span><b class="mono">' + m.tally[k] + '</b></div>'; };
+  return bar("Yes", "var(--lime)") + bar("No", "var(--coral)") + bar("Abstain", "var(--muted)") +
+    '<p class="muted" style="font-size:12px;margin:4px 0 0">' + m.voted + ' of 12 voted' + (m.need ? ' · ' + m.need + ' Yes needed' : '') + '</p>';
+}
+function voteWho(m) {
+  if (!m.who || !Object.keys(m.who).length) return "";
+  return '<details style="margin-top:6px"><summary class="muted" style="font-size:12px;cursor:pointer">Who voted what</summary>' + ["Yes", "No", "Abstain"].map(function (c) {
+    var ws = Object.keys(m.who).filter(function (o) { return m.who[o] === c; }); return ws.length ? '<p style="font-size:13px;margin:4px 0"><b>' + c + ':</b> ' + ws.map(function (o) { return esc(oname(o)); }).join(", ") + '</p>' : ""; }).join("") + '</details>';
+}
+function voteBtns(m) {
+  return '<div class="row" style="gap:8px;margin-top:10px">' + ["Yes", "No", "Abstain"].map(function (c) {
+    return '<button class="btn' + (m.mine === c ? "" : " ghost") + '" style="flex:1" onclick="castVote(\'' + esc(m.id) + '\',\'' + c + '\')">' + (m.mine === c ? "✓ " : "") + c + '</button>'; }).join("") + '</div>';
+}
+function voteCard(m) {
+  var k = KIND_TXT[m.kind] || KIND_TXT.matter, open = m.status === "open";
+  return '<div class="card"' + (open && !m.mine ? ' style="border-color:var(--gold)"' : '') + '><div class="row" style="justify-content:space-between"><div class="eyebrow" style="margin:0">' + k[0] + '</div><small class="muted">' + k[1] + '</small></div>' +
+    '<h3 style="margin-top:6px">' + esc(m.title) + '</h3>' + (m.detail ? '<p style="font-size:13px;white-space:pre-line">' + esc(m.detail) + '</p>' : '') +
+    (open ? '<p class="muted" style="font-size:12px">Closes ' + esc(closesTxt(m.closes)) + (m.mine ? ' · you voted <b>' + esc(m.mine) + '</b> (change it until then)' : '') + '</p>' + voteBtns(m) + (m.mine || isDesk() ? '<div style="margin-top:10px">' + voteTally(m) + '</div>' : '')
+      : '<p style="font-size:13px"><b>' + esc(m.result || m.note || "") + '</b></p>' + voteTally(m)) + voteWho(m) +
+    (m.by ? '<p class="muted" style="font-size:11px;margin-top:8px">Raised by ' + esc(oname(m.by)) + '</p>' : '') + '</div>';
+}
+function castVote(id, c) {
+  authed("mvote", { id: id, choice: c }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; HOME_D = null; toast("✓ " + c + ". You can change it until the vote closes."); render(); }).catch(function (e) { toast(e.message); });
+}
+SCREENS.votes = function () {
+  if (!ME) return back("league", "League") + '<h2>League votes</h2>' + needSignIn("to vote");
+  return back("league", "League") + '<h2>League votes</h2><div id="vts"><div class="card"><p class="muted">Loading…</p></div></div>';
+};
+SCREENS.votes.after = function () {
+  if (!$("#vts")) return;
+  loadVotes(true).then(function (v) {
+    var html = v.open.length ? v.open.map(voteCard).join("") : '<div class="card"><p class="muted" style="margin:0">No league vote open right now. The commish opens them from his desk; you\'ll get a card on Home when one starts.</p></div>';
+    html += '<div class="card"><div class="eyebrow">💡 Got a rule idea?</div><p style="margin:0 0 8px;font-size:13px">Send it to the commish. It also goes to league chat so everyone can weigh in. Joe decides if it goes to a vote.</p>' +
+      '<input type="text" id="riT" maxlength="140" placeholder="The idea in one line (e.g. Raise FAAB to $300)" style="margin-bottom:8px"><textarea id="riD" maxlength="1500" placeholder="Why (optional)"></textarea>' +
+      '<p style="margin-top:10px"><button class="btn" id="riS">Send to the commish</button></p></div>';
+    if (v.ideas.length) html += '<div class="eyebrow">💡 With the commish</div>' + v.ideas.map(function (m) { return '<div class="card"><b>' + esc(m.title) + '</b>' + (m.detail ? '<p style="font-size:13px;white-space:pre-line">' + esc(m.detail) + '</p>' : '') + '<p class="muted" style="font-size:12px;margin:6px 0 0">From ' + esc(oname(m.by)) + ' · ' + esc(ago(m.ts)) + '</p></div>'; }).join("");
+    if (v.past.length) html += '<details class="card"><summary class="eyebrow" style="cursor:pointer;margin:0">📜 Past votes (' + v.past.length + ')</summary>' + v.past.map(function (m) {
+      return m.status === "declined" ? '<div class="kv" style="display:block"><b style="font-size:13px">💡 ' + esc(m.title) + '</b><br><small class="muted">Not put to a vote: ' + esc(m.note) + '</small></div>' : voteCard(m); }).join("") + '</details>';
+    $("#vts").innerHTML = html;
+    $("#riS").onclick = function () {
+      var t = $("#riT").value.trim(); if (t.length < 5) { toast("Say the idea in a line first"); return; }
+      var btn = this; btn.disabled = true;
+      authed("ruleidea", { title: t, detail: $("#riD").value }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; toast("💡 Sent to the commish + league chat"); render(); }).catch(function (e) { toast(e.message); btn.disabled = false; });
+    };
+  }).catch(function (e) { if ($("#vts")) $("#vts").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
+};
+// Home cards: every open vote (Needs you until you've voted), fresh results for 3 days, and rule ideas waiting on the commish (desk only).
+function voteCards(V) {
+  var out = []; if (!ME || !V || !V.ok) return out;
+  V.open.forEach(function (m) { var k = KIND_TXT[m.kind] || KIND_TXT.matter;
+    out.push({ id: "vote:" + m.id, needs: m.mine ? 0 : 1, at: m.ts, scope: "league", eb: "🗳️ SPL Owners Vote · " + k[0].replace(/^\S+ /, ""), title: esc(m.title),
+      body: (m.detail ? '<p class="story">' + esc(m.detail) + '</p>' : '') + '<p class="muted" style="font-size:12px;margin:0">' + k[1] + ' · closes ' + esc(closesTxt(m.closes)) + '</p>' + voteBtns(m) + (m.mine ? '<div style="margin-top:10px">' + voteTally(m) + '</div>' : ''),
+      action: ["Every vote", "go('votes')"] }); });
+  V.past.filter(function (m) { return m.status === "closed" && Date.now() - new Date(m.closes).getTime() < 3 * 864e5; }).forEach(function (m) {
+    out.push({ id: "voteres:" + m.id, at: m.closes, scope: "league", eb: "🗳️ Vote result", title: esc(m.title), body: '<p><b>' + esc(m.result) + '</b></p>' + voteTally(m), action: ["Every vote", "go('votes')"] }); });
+  if (isDesk() && !isOps() && V.ideas.length) out.push({ id: "ideas:" + V.ideas.map(function (m) { return m.id; }).join(","), needs: 1, scope: "me", eb: "📥 Commish desk", title: V.ideas.length + " rule idea" + (V.ideas.length > 1 ? "s" : "") + " for you",
+    body: V.ideas.slice(0, 3).map(function (m) { return '<div class="kv"><span>' + esc(m.title) + '</span><span class="muted">' + esc(oname(m.by)) + '</span></div>'; }).join(""), action: ["Open the desk", "go('desk')"] });
+  return out;
+}
+// 📥 Desk section: build + publish an SPL Owners Vote, put owners' ideas to a vote (or not), watch open votes come in.
+var VB = { kind: "matter", days: 3 };
+function deskVotesBody(v) {
+  var chip = function (grp, val, txt) { return '<button class="chip' + (VB[grp] === val ? " on" : "") + '" onclick="VB.' + grp + '=' + (typeof val === "number" ? val : "\'" + val + "\'") + ';deskVotesFill()">' + txt + '</button>'; };
+  var html = '<div class="card" style="border-color:var(--lime)"><div class="eyebrow">🗳️ New SPL Owners Vote</div>' +
+    '<div class="chips" style="margin-bottom:8px">' + chip("kind", "rule", "📖 Rule change") + chip("kind", "matter", "🗳️ League matter") + chip("kind", "practice", "🧪 Practice") + '</div>' +
+    '<p class="muted" style="font-size:12px;margin:0 0 8px">' + (KIND_TXT[VB.kind] || KIND_TXT.matter)[1] + '. Owners vote Yes, No or Abstain and can change it until it closes.</p>' +
+    '<input type="text" id="vbT" maxlength="140" placeholder="The question (e.g. Bring back the Shoot Out in 2027?)" style="margin-bottom:8px" value="' + esc(VB.title || "") + '">' +
+    '<textarea id="vbD" maxlength="1500" placeholder="Details the league should see (optional)">' + esc(VB.detail || "") + '</textarea>' +
+    '<div class="row" style="margin-top:8px;align-items:center;gap:6px"><small class="muted">Closes in</small>' + chip("days", 1, "1 day") + chip("days", 3, "3 days") + chip("days", 7, "7 days") + '</div>' +
+    '<p style="margin-top:10px"><button class="btn" style="width:100%" onclick="votePublish()">Publish to the league</button></p>' +
+    '<p class="muted" style="font-size:12px;margin:6px 0 0">Publishing posts it in league chat and puts a card on every owner\'s Home.</p></div>';
+  if (v.ideas.length) html += '<div class="eyebrow">💡 Owners\' rule ideas</div>' + v.ideas.map(function (m) {
+    return '<div class="card"><b>' + esc(m.title) + '</b>' + (m.detail ? '<p style="font-size:13px;white-space:pre-line">' + esc(m.detail) + '</p>' : '') + '<p class="muted" style="font-size:12px">From ' + esc(oname(m.by)) + ' · ' + esc(ago(m.ts)) + '</p>' +
+      '<div class="row" style="gap:8px"><button class="btn" onclick="ideaVote(\'' + esc(m.id) + '\')">Put it to a vote</button><button class="btn ghost" onclick="ideaNo(\'' + esc(m.id) + '\')">Not now</button></div></div>'; }).join("");
+  if (v.open.length) html += '<div class="eyebrow">Open now</div>' + v.open.map(voteCard).join("");
+  if (isOps() && !v.open.concat(v.past).some(function (m) { return m.kind === "practice"; })) html += '<p><button class="btn ghost" style="width:100%" onclick="votePractice()">🧪 Start the practice vote (7 days)</button></p>';
+  return html;
+}
+function deskVotesFill() {
+  var el = $("#cVt"); if (!el) return;
+  if ($("#vbT")) { VB.title = $("#vbT").value; VB.detail = $("#vbD").value; }
+  loadVotes().then(function (v) { el.innerHTML = deskVotesBody(v); var n = v.ideas.length; opsBadge("cVt", n ? n + " idea" + (n > 1 ? "s" : "") + " waiting" : v.open.length + " open", n ? "confirm" : "ok"); })
+    .catch(function (e) { el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; });
+}
+function votePublish() {
+  var t = $("#vbT").value.trim(), d = $("#vbD").value.trim(); if (t.length < 5) { toast("Write the question first"); return; }
+  if (!confirm("Publish this vote to the league?\n\n" + t + "\n\n" + (KIND_TXT[VB.kind] || KIND_TXT.matter)[0] + " · closes in " + VB.days + " day" + (VB.days > 1 ? "s" : "") + ".\nIt goes to league chat and every owner's Home.")) return;
+  authed("voteopen", { kind: VB.kind, days: VB.days, title: t, detail: d }).then(function (r) { if (!r.ok) throw new Error(r.error); VB = { kind: "matter", days: 3 }; VOTES = null; HOME_D = null; toast("🗳️ Published to the league"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+}
+function ideaVote(id) {
+  var kind = confirm("Is this a rule change?\n\nOK = rule change (7 Yes passes it)\nCancel = league matter (more Yes than No)") ? "rule" : "matter";
+  authed("voteopen", { id: id, kind: kind, days: VB.days }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; HOME_D = null; toast("🗳️ Put to a vote · " + VB.days + " days"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+}
+function ideaNo(id) {
+  var why = prompt("Why not now? (the league sees this)"); if (!why) return;
+  authed("voteopen", { id: id, decline: true, reason: why }).then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; toast("Noted in league chat"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+}
+function votePractice() {
+  if (!confirm("Start the practice vote?\n\n“Should an in-season trade's review stay at 24 hours?”\n\nIt goes to league chat and every owner's Home. Nothing changes whatever the result.")) return;
+  authed("votepractice").then(function (r) { if (!r.ok) throw new Error(r.error); VOTES = null; HOME_D = null; toast("🧪 Practice vote is live"); deskVotesFill(); }).catch(function (e) { toast(e.message); });
+}
 
 // 🔒 Keepers (v0.16): scenarios (up to 3, saved with your sign-in) → the Signing Day declaration. Cap profile with terminate what-ifs,
 // Franchise Tag, eligibility (no extensions, terminated, under contract, roster), compare, and the league board. Backend: mod_keepers.js.
@@ -2919,6 +3103,7 @@ var SERIES = {
   live: ["you", 0, ""], result: ["you", 1, "ed"], next: ["you", 2, "prev"], cap: ["you", 3, ""], signing: ["you", 4, ""], kdecl: ["you", 4, ""], chat: ["you", 5, ""], keepers: ["you", 8, "vault"],
   slate: ["league", 0, "", "sc"], dlive: ["league", 0, ""], ddone: ["league", 1, ""], headline: ["league", 1, "ed", "hl"], awards: ["league", 2, "ed", "aw"],
   power5: ["league", 3, "ed", "race"], table: ["league", 4, "ed", "race"], wire: ["league", 5, "", "wire"], pickwire: ["league", 6, "", "wire"], wireseason: ["league", 7, "", "wire"], kboard: ["league", 1, "", "wire"],
+  vote: ["league", 0, ""], voteres: ["league", 1, ""], onwire: ["league", 4, "", "wire"], // 🗳️ SPL Owners Votes + ⏳ trades on the wire (Mike 11/28)
   gotw: ["play", 1, "play"], quiz: ["play", 2, "play"],
   rivalry: ["vault", 1, "vault", "riv"], history: ["vault", 2, "prev", "hist"], economy: ["vault", 3, "vault", "wire"] };
 var TRAYS = { hl: ["🔥", "😂", "🤯", "🤡", "💀"], aw: ["🏆", "🧠", "🔥", "😬", "👏"], race: ["📈", "😤", "🙏", "👀", "🔥"], sc: ["🔥", "😱", "🥱", "👏", "🤡"],
@@ -3255,7 +3440,8 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
 // Mike 11/28: three sections (Drafts · The league · Info), compact one-line tiles so the whole tab fits without scrolling. Keep subs ≤ ~16 chars.
 var LEAGUE_TILES = [
   ["draft", "📋", "Draft boards", "Picks since 2006"], ["history", "📚", "History", "Eras + champs"],
-  ["gm", "🎓", "GM Report", "Coming soon"], ["rivalry", "⚔️", "Rivalries", "Head to head"]
+  ["gm", "🎓", "GM Report", "Coming soon"], ["rivalry", "⚔️", "Rivalries", "Head to head"],
+  ["votes", "🗳️", "Votes", "League votes + rule ideas"]
 ]; // 💡 Ideas moved to your settings (Mike 11/28)
 var INFO_TILES = [["offseason", "🗓️", "SPL Calendar", "Every date"], ["rules", "📖", "Rules", "Rulebook + ESPN"]];
 function lgTile(t) {
@@ -3411,7 +3597,7 @@ SCREENS.joe = function () {
   if (!isDesk()) return back("home", "Home") + '<h2>Questions</h2><div class="card"><p style="margin:0">These are for the commish.</p></div>';
   var draft = joeDraft();
   return back("desk", "Commish desk") + '<h2>Questions from the Ops Manager</h2>' +
-    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, this" : "This") + ' is where Mike asks you things as the app grows. New ones add to the number on your Desk button, along with trades waiting on you. Right now: the history gaps, ESPN, and the 2027 rulebook. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
+    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, this" : "This") + ' is where Mike asks you things as the app grows. New ones add to the number on your Desk button, along with trades waiting on you. Right now: how trades and votes run, the history gaps, ESPN, and the 2027 rulebook. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
     '<div class="qlist">' + ACTIVE_Q.map(function (q) {
       var a = draft[q.qid] || {};
       return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px;white-space:pre-line">' + esc(q.why) + '</p>' +

@@ -7,6 +7,13 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Trades run by the rulebook, not by Joe** (Mike): 24 h review in season (72 h off-season), owners not in it veto, 6 kills it,
+  otherwise it goes through by itself; Joe steps in only if needed. Vetoes are public (Claude's call, in Joe's `trade_process` question).
+  Roster-legal trades: drops chosen with the trade, rechecked at the end (supersedes the 11/28 "open" note). **League votes are owned by the app:**
+  Joe publishes an SPL Owners Vote from his desk → league chat + Home card; Yes/No/Abstain; 💡 rule ideas from owners go to chat + Joe, who
+  decides what goes to a vote (Claude's call on Mike's "button or chat?": both: the button posts into chat). A practice vote to feel it out.
+  Joe confirms the whole process via `trade_process`.
+
 - 2026-11-28 · **Questions = Mike's standing channel to Joe** ("Questions from the Ops Manager"; questions come on and off as we go). Joe's Desk
   button counts open questions + trades waiting on him. **Open: roster-legal trades** (a trade that leaves a team over the roster limit needs a
   drop before ESPN will process it) — Mike raised it; proposal in chat 11/28, not decided.

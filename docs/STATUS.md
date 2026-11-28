@@ -35,6 +35,18 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.28.0 (backend v0.22.0) · ⏳🚫🗳️ **Trades by the rulebook + league votes** (Mike). **Trades:** accepted = *on the trade wire*:
+  24 h review in season, 72 h off-season (phase switch); owners not in it tap 🚫 Veto (names public, can take it back); the first veto posts
+  "veto vote on" to league chat; 6 vetoes → VETOED; review over → goes through by itself (`tradeTick_` hourly + on every trades/desk read),
+  picks move, ESPN write. Off-season: the first veto is the challenge and keeps the vote open ≥ 24 h. Joe steps in only if needed: Approve now /
+  Negate (desk). **📏 Drops:** a side that ends up over 17 (10 starters + 7 bench, IR not counted) picks drops when sending/accepting (drop
+  sheet); recheck when review ends → trade holds, that owner gets "Pick your drop"; ESPN write does the trade then one DROP per player + read back.
+  **🗳️ SPL Owners Vote** (new `mod_votes.js`, Sheet tabs Ballots + Matters): Joe builds it on his desk (rule change = 7 Yes · league matter =
+  more Yes than No · practice), publishes → league chat + a Home card (Needs you until you vote, Yes/No/Abstain right on the card, changeable
+  until close); results posted when it closes; names show after close (desk sees them live). **💡 Rule ideas:** League → 🗳️ Votes → any owner
+  sends one → league chat + Joe's desk ("Put it to a vote" / "Not now" with a reason). Ops: 🧪 Start the practice vote (desk). Joe's Desk number
+  = open questions + trades under a veto vote + ESPN to-dos + rule ideas. Ledger robot → `data/League_Votes.csv`; Trade_Log gets a drops column.
+  New Joe question `trade_process` (first of 4); `veto_vote` retired. Rules chart rows updated. Smoke +40. SW `splhq-v97`.
 - 2026-11-28 · v0.27.6 (backend v0.21.1) · 📋 **Questions from the Ops Manager** (Mike: the question list is his standing channel to Joe; questions come
   and go). Renamed on Joe's screen + Commish desk; intro says new ones show up as a number on his Desk button. **📥 Desk · N** = open questions +
   trades waiting on Joe (backend `me.review` = accepted offers he may act on, `reviewCount_`); refreshes after he approves/negates. Accuracy fix: the

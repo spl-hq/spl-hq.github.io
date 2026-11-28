@@ -33,7 +33,7 @@ function makeEnv(props, espn) {
     SpreadsheetApp: { getActive: () => ss, getUi: () => ({ alert: m => { alerts.push(m); } }) },
     ContentService: { createTextOutput: t => ({ t, setMimeType() { return this; } }), MimeType: { JSON: "json" } },
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] || null, setProperty: (k, v) => { props[k] = v; } }) },
-    Utilities: { getUuid: () => require("crypto").randomUUID(), sleep: () => {}, newBlob: (t, ty, n) => ({ t, n }), zip: (b, n) => ({ zip: n, files: b.map(x => x.n) }),
+    Utilities: { formatDate: (d) => new Date(d).toISOString().slice(0, 16).replace("T", " "), getUuid: () => require("crypto").randomUUID(), sleep: () => {}, newBlob: (t, ty, n) => ({ t, n }), zip: (b, n) => ({ zip: n, files: b.map(x => x.n) }),
       computeHmacSha256Signature: (t, k) => Array.from(require("crypto").createHmac("sha256", k).update(t).digest()).map(b => b > 127 ? b - 256 : b) },
     CacheService: { getScriptCache: () => ({ get: k => cache[k] || null, put: (k, v) => { cache[k] = v; }, remove: k => { delete cache[k]; } }) },
     LockService: { getScriptLock: () => ({ waitLock() {}, tryLock() { return true; }, releaseLock() {} }) },
@@ -191,7 +191,7 @@ ok(e.post({ action: "respond", token: glen, id: tid, decision: "accept" }).ok ==
 ok(e.sheets.Chat.rows.some(r => r[3] === "hq" && r[2] === "dm:murello,reilly" && r[6] === tid), "offer card posted in the DM");
 r = e.post({ action: "respond", token: joeTok, id: tid, decision: "accept" });
 ok(r.ok && r.offer.status === "ACCEPTED", "Joe accepts");
-ok(e.mails.some(m => /waiting on the commish/.test(m.s)), "ops emailed: trade waiting");
+ok(e.mails.some(m => /trade on the wire/.test(m.s)), "ops emailed: trade on the wire");
 ok(e.post({ action: "tradeact", token: glen, id: tid, decision: "approve" }).error === "Commish only", "owners can't approve");
 ok(e.post({ action: "tradeact", token: glen, id: tid, decision: "approve" }).error === "Commish only", "owners can't approve");
 r = e.post({ action: "desk", token: joeTok }); ok(r.ok && r.review.length === 1, "trade shows on the commish desk");
@@ -207,7 +207,7 @@ ok(r.ok, "Mike approves Glen↔Joe");
 t = e.post({ action: "trades", token: glen });
 ok(t.picks.find(p => p.pid === "2027-R2-reilly").owner === "glen" && t.picks.find(p => p.pid === "2027-R3-glen").owner === "reilly", "picks moved on approval");
 ok(t.offers.find(o => o.id === g.offer.id).espn === "none", "pick-only trade: nothing for ESPN");
-ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Trade approved/.test(r[4])), "league chat announces it");
+ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Trade done \(/.test(r[4])), "league chat announces it");
 r = e.post({ action: "tradeact", token: joeTok, id: tid, decision: "approve" });
 ok(r.ok && e.sheets.Chat.rows.some(x => /commish-to-commish trade, approved by Joe/.test(x[4])), "Mike↔Joe trade: approvable, flagged to the league");
 // counter
@@ -233,6 +233,59 @@ ok(e.post({ action: "desk", token: joeTok }).review.find(o => o.id === b1.offer.
 ok(/Joe's call/.test(e.post({ action: "trades", token: mike }).offers.find(o => o.id === b1.offer.id).lock), "trades feed carries the lock (reel card count)");
 const oc = e.sheets.Offers.rows[0].indexOf("updated_ts"), orow = e.sheets.Offers.rows.find(x => x[0] === b1.offer.id); orow[oc] = new Date(Date.now() - 49 * 36e5);
 ok(e.post({ action: "tradeact", token: mike, id: b1.offer.id, decision: "approve" }).ok, "after 48 h Mike steps in as backup");
+// 12b · ⏳ trade review + 🚫 owner vetoes + 📏 drops + 🗳️ league votes (Mike 11/28)
+{ const tok = id => e.post({ action: "login", pin: e.post({ action: "issue", token: mike, owner: id }).phrase }).token;
+  const six = ["farrington", "chappie", "hoosier", "patel", "salerno", "moyer"].map(tok);
+  const chatHas = re => e.sheets.Chat.rows.some(r => r[2] === "league" && re.test(r[4]));
+  ok(/to drop/.test(e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Bench Guy" }] }, get: { picks: ["2027-R13-reilly"] }, drops: [{ n: "Nobody" }] }).error), "a drop has to be on your roster");
+  ok(/can't be a drop/.test(e.post({ action: "offer", token: mike, to: "reilly", give: { players: [{ n: "Bench Guy" }] }, get: { picks: ["2027-R13-reilly"] }, drops: [{ n: "Bench Guy" }] }).error), "a player in the trade can't also be the drop");
+  const v = e.post({ action: "offer", token: mike, to: "reilly", give: { picks: ["2027-R12-murello"] }, get: { picks: ["2027-R12-reilly"] } });
+  e.post({ action: "respond", token: joeTok, id: v.offer.id, decision: "accept" });
+  let tv = e.post({ action: "trades", token: glen }).offers.find(o => o.id === v.offer.id);
+  ok(tv.status === "ACCEPTED" && tv.reviewEnds && tv.vetoes.length === 0 && tv.vetoNeed === 6, "accepted = on the trade wire with a review end");
+  ok(Math.abs(new Date(tv.reviewEnds) - Date.now() - 24 * 36e5) < 6e4, "in season the review runs 24 h");
+  ok(chatHas(/On the trade wire/), "league chat: trade on the wire");
+  ok(e.post({ action: "tradeveto", token: mike, id: v.offer.id, on: true }).error === "You're in this trade.", "traders can't veto");
+  ok(e.post({ action: "tradeveto", token: glen, id: v.offer.id, on: true }).vetoes.length === 1 && chatHas(/Veto vote on the Mike ⇄ Joe trade: Glen/), "first veto opens the vote in league chat");
+  ok(e.post({ action: "me", token: joeTok }).review === 1, "veto vote on a Mike ⇄ Joe trade counts for Joe (no neutral commish)");
+  ok(e.post({ action: "tradeveto", token: glen, id: v.offer.id, on: false }).vetoes.length === 0, "a veto can be taken back");
+  six.slice(0, 5).forEach(t => e.post({ action: "tradeveto", token: t, id: v.offer.id, on: true }));
+  ok(e.post({ action: "trades", token: glen }).offers.find(o => o.id === v.offer.id).status === "ACCEPTED", "5 vetoes: still alive");
+  ok(e.post({ action: "tradeveto", token: six[5], id: v.offer.id, on: true }).status === "VETOED" && chatHas(/vetoed by the league \(6 vetoes\)/), "6th veto kills it");
+  ok(e.post({ action: "trades", token: mike }).picks.find(p => p.pid === "2027-R12-murello").owner === "murello", "vetoed: nothing moves");
+  const v2 = e.post({ action: "offer", token: glen, to: "smith", give: { picks: ["2027-R13-glen"] }, get: { picks: ["2027-R13-smith"] } });
+  e.post({ action: "respond", token: sm, id: v2.offer.id, decision: "accept" });
+  e.post({ action: "tradeveto", token: six[0], id: v2.offer.id, on: true });
+  ok(e.post({ action: "me", token: joeTok }).review === 1, "a veto vote Joe can rule on counts on his Desk button");
+  const H = e.sheets.Offers.rows[0], row = e.sheets.Offers.rows.find(x => x[0] === v2.offer.id); row[H.indexOf("review_ends")] = new Date(Date.now() - 6e4);
+  const t2 = e.post({ action: "trades", token: glen });
+  ok(t2.offers.find(o => o.id === v2.offer.id).status === "APPROVED" && t2.picks.find(p => p.pid === "2027-R13-glen").owner === "smith", "review over, 1 veto: it goes through by itself");
+  ok(chatHas(/Trade done: Glen gets/), "league chat: trade done");
+  ok(e.post({ action: "tradeveto", token: six[1], id: v2.offer.id, on: true }).ok === false, "no vetoes after it's done");
+  // 🗳️ league votes
+  ok(e.post({ action: "voteopen", token: glen, title: "Bring back the Shoot Out" }).error === "Commish only", "owners can't open a vote");
+  const mv = e.post({ action: "voteopen", token: joeTok, kind: "rule", days: 3, title: "Bring back the Shoot Out in 2027", detail: "Week 14, $20 buy-in." });
+  ok(mv.ok && chatHas(/League vote: “Bring back the Shoot Out in 2027”.*7 Yes/), "Joe opens a rule vote: league chat");
+  ok(e.post({ action: "mvote", token: glen, id: mv.id, choice: "Maybe" }).ok === false, "only Yes / No / Abstain");
+  ok(e.post({ action: "mvote", token: glen, id: mv.id, choice: "Yes" }).matter.mine === "Yes", "Glen votes Yes");
+  let mm = e.post({ action: "mvote", token: glen, id: mv.id, choice: "No" }).matter;
+  ok(mm.tally.No === 1 && mm.tally.Yes === 0 && mm.who === null, "a vote can change until it closes; names hidden from owners while open");
+  ok(e.post({ action: "votes", token: joeTok }).open[0].who.glen === "No", "the commish sees who voted what");
+  six.forEach(t => e.post({ action: "mvote", token: t, id: mv.id, choice: "Yes" }));
+  const idea = e.post({ action: "ruleidea", token: sm, title: "Raise FAAB to $300", detail: "More bidding fun." });
+  ok(idea.ok && chatHas(/Rule idea from Matt: “Raise FAAB to \$300”/), "💡 an owner's rule idea goes to league chat");
+  ok(e.post({ action: "me", token: joeTok }).review === 1, "…and onto Joe's Desk number");
+  ok(e.post({ action: "voteopen", token: joeTok, id: idea.id, decline: true }).ok === false, "declining an idea needs a reason");
+  ok(e.post({ action: "voteopen", token: joeTok, id: idea.id, kind: "rule", days: 7 }).ok && e.post({ action: "votes", token: sm }).open.length === 2, "Joe puts the idea to a vote");
+  const MH = e.sheets.Matters.rows[0], mrow = e.sheets.Matters.rows.find(x => x[0] === mv.id); mrow[MH.indexOf("closes")] = new Date(Date.now() - 6e4);
+  const vs = e.post({ action: "votes", token: glen }), closed = vs.past.find(m => m.id === mv.id);
+  ok(closed && closed.status === "closed" && /^Passed: 6 Yes/.test(closed.result) === false && /^Failed: 6 Yes \(7 needed\)/.test(closed.result) && closed.who.glen === "No", "closed: 6 Yes isn't 7, names show");
+  ok(chatHas(/Vote closed: “Bring back the Shoot Out in 2027” · Failed/), "league chat: result");
+  ok(e.post({ action: "mvote", token: glen, id: mv.id, choice: "Yes" }).ok === false, "no votes after it closes");
+  ok(e.post({ action: "votepractice", token: joeTok }).ok === false && e.post({ action: "votepractice", token: mike }).ok && e.post({ action: "votepractice", token: mike }).ok === false, "ops opens the practice vote once");
+  ok(e.get({ action: "ledger" }).votes.length === 1 && e.get({ action: "ledger" }).votes[0].yes === 6, "closed votes go to the ledger robot (practice stays out)");
+}
+
 // wipe
 ok(e.post({ action: "wipetrades", token: joeTok }).ok === false, "only ops wipes");
 ok(e.post({ action: "wipetrades", token: mike }).ok && e.post({ action: "trades", token: mike }).offers.length === 0, "ops wipes test trades + reseeds picks");

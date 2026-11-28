@@ -93,6 +93,9 @@ A card with empty space under its content is missing a part: add chips or tiles,
 | ⭐ Power 3 | `power5` (id kept for reactions) | Edition | robot `power3` takes (else the sharpest fact) + Form · Points · Next tiles | 📈 😤 🙏 👀 🔥 | Your row highlighted, or "You: #7" under it. |
 | 📊 The table | `table` | Edition | data | 📈 😤 🙏 👀 🔥 | From gold games through the week; rank moves. |
 | 📰 Trade wire | `wire` | Instant | data | 💸 🤑 🤡 👀 🔥 | 7 days. |
+| ⏳ On the trade wire | `onwire` | Instant | data | 💸 🤑 🤡 👀 🔥 | Accepted trade in review (24 h / 72 h off-season): sides, drops, countdown, vetoes so far, 🚫 Veto button for owners not in it. Until it goes through or dies. |
+| 🗳️ SPL Owners Vote | `vote` | Instant | interactive | — | Joe publishes it from his desk. **Needs you** until you vote (Yes / No / Abstain on the card); after that it shows the tally. Until it closes. |
+| 🗳️ Vote result | `voteres` | Instant | data | — | 3 days after a vote closes. |
 | 🎟️ Pick trade wire | `pickwire` | Instant | data | 💸 🤑 🤡 👀 🔥 | Every pick that's changed hands. |
 | 📰 Trade wire · season | `wireseason` | Instant | data | 💸 🤑 🤡 👀 🔥 | Count + most active. |
 | 🗓️ Drafts live / done | `dlive` / `ddone` | Instant | data | | Divisional, Slot, Shoot Out drafts (+ ⏱️ `dclock` needs-you). Not the SPL Draft: everyone's in the room (Mike 11/27). |

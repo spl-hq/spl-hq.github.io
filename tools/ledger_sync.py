@@ -42,8 +42,10 @@ def side(s):
 trades = sorted(L["trades"], key=lambda t: t["approved"])
 ch2 = write(os.path.join(out, "Trade_Log.csv"),
     [tag + "Trade_Log.csv -- GOLD, robot-written by tools/ledger_sync.py: every trade approved in the app.", f"Synced {stamp}."],
-    ["trade_id", "approved", "from_owner", "to_owner", "from_sends", "to_sends", "approved_by"],
-    [{"trade_id": t["id"], "approved": t["approved"][:10], "from_owner": t["from"], "to_owner": t["to"], "from_sends": side(t["fromSends"]), "to_sends": side(t["toSends"]), "approved_by": t["by"]} for t in trades])
+    ["trade_id", "approved", "from_owner", "to_owner", "from_sends", "to_sends", "drops", "approved_by"],
+    [{"trade_id": t["id"], "approved": t["approved"][:10], "from_owner": t["from"], "to_owner": t["to"], "from_sends": side(t["fromSends"]), "to_sends": side(t["toSends"]),
+      "drops": "; ".join([t["from"] + " drops " + d["n"] for d in (t.get("drops") or {}).get("from", [])] + [t["to"] + " drops " + d["n"] for d in (t.get("drops") or {}).get("to", [])]),
+      "approved_by": t["by"]} for t in trades])
 # Keeper contracts follow their players (live: the gold file; test: a copy under data/test/)
 src = os.path.join(ROOT, "data", "Keeper_Contracts.csv"); dst = os.path.join(out, "Keeper_Contracts.csv")
 if mode != "live" and not os.path.exists(dst): shutil.copy(src, dst)
@@ -164,6 +166,13 @@ for m, folder in (("live", os.path.join(ROOT, "data")), ("test", os.path.join(RO
     if signed:
         buf = io.StringIO(); buf.writelines(khead); w = csv.DictWriter(buf, fieldnames=kf, lineterminator="\n"); w.writeheader(); w.writerows(krows)
         open(kpath, "w", encoding="utf-8").write(buf.getvalue())
-status = {"at": stamp, "keeperDecls": len(keeps), "signingDay": signed, "drafts": len(drafts), "mode": mode, "backend": L.get("version"), "trades": len(trades), "picks": len(picks), "rules": rules, "contractMoves": moved}
+# 🗳️ League votes (Mike 11/28): every closed vote (rule changes + league matters; practice votes never leave the app) → data/League_Votes.csv.
+votes = sorted(L.get("votes") or [], key=lambda v: str(v["closed"]))
+ch6 = write(os.path.join(ROOT, "data", "League_Votes.csv"),
+    ["League_Votes.csv -- GOLD, robot-written by tools/ledger_sync.py: every league vote that closed in the app (Yes / No / Abstain).",
+     "kind: rule = rulebook change (7 Yes passes) | matter = other league business (more Yes than No). A passed rule still gets written into data/SPL_Rulebook.md by hand.", f"Synced {stamp}."],
+    ["vote_id", "closed", "kind", "question", "yes", "no", "abstain", "result", "raised_by"],
+    [{"vote_id": v["id"], "closed": str(v["closed"])[:10], "kind": v["kind"], "question": v["title"], "yes": v["yes"], "no": v["no"], "abstain": v["abstain"], "result": v["result"], "raised_by": v["by"]} for v in votes]) if votes else False
+status = {"at": stamp, "votes": len(votes), "keeperDecls": len(keeps), "signingDay": signed, "drafts": len(drafts), "mode": mode, "backend": L.get("version"), "trades": len(trades), "picks": len(picks), "rules": rules, "contractMoves": moved}
 open(os.path.join(ROOT, "data", "ledger_status.json"), "w").write(json.dumps(status, indent=1) + "\n")
-print(json.dumps(status, indent=1), "\nchanged:", ch1, ch2, ch3, ch4, ch5, bool(moved), bool(signed))
+print(json.dumps(status, indent=1), "\nchanged:", ch1, ch2, ch3, ch4, ch5, ch6, bool(moved), bool(signed))

@@ -251,8 +251,22 @@ function espnTrade_(r, me) {
     var res = espnPost_("trade", r.offer_id, lmTrade_(items[0].fromTeamId, tl.sp, items.map(function (i) { return { playerId: i.playerId, type: "TRADE", fromTeamId: i.fromTeamId, toTeamId: i.toTeamId }; }), "SPL HQ " + r.offer_id), me.owner);
     var back = testLeague_(), on = {}; back.teams.forEach(function (t) { t.players.forEach(function (q) { on[q.id] = t.id; }); });
     var moved = items.filter(function (i) { return on[i.playerId] === i.toTeamId; });
-    if (moved.length === items.length) return { espn: "done", note: "Moved on ESPN test league " + WRITE_LEAGUE };
+    if (moved.length === items.length) { var dl = espnDrops_(r, me, back, teamOf); return dl ? { espn: "todo", note: "Players moved. Drops still to do on ESPN: " + dl } : { espn: "done", note: "Moved on ESPN test league " + WRITE_LEAGUE }; }
     return { espn: "todo", note: (res.ok ? "ESPN took it but " : "ESPN said " + res.code + (res.msg ? " (" + res.msg + ")" : "") + ": ") + (items.length - moved.length) + " of " + items.length + " players not moved. Check ESPN (a proposal may be pending) before doing it by hand." };
   } catch (e) { return { espn: "todo", note: "ESPN write failed: " + String(e.message || e).slice(0, 140) }; }
+}
+// 📏 The drops that make room (Mike 11/28): after the trade lands, one ESPN drop per player (like the mirror), then read back.
+// Returns "" when every drop is off the roster, else the names still to drop by hand.
+function espnDrops_(r, me, tl, teamOf) {
+  var d = parseJ_(r.drops), list = (d.from || []).map(function (p) { return { p: p, owner: r.from }; }).concat((d.to || []).map(function (p) { return { p: p, owner: r.to }; }));
+  if (!list.length) return "";
+  var sw = swid_(), miss = [];
+  list.forEach(function (x) {
+    var t = teamOf[x.owner], hit = t && t.players.filter(function (q) { return (x.p.id && q.id === x.p.id) || norm_(q.n) === norm_(x.p.n); })[0];
+    if (!hit) { miss.push(x.p.n); return; }
+    espnPost_("trade-drop", r.offer_id, { isLeagueManager: true, teamId: t.id, type: "FREEAGENT", memberId: sw, scoringPeriodId: tl.sp, executionType: "EXECUTE", items: [{ playerId: hit.id, type: "DROP", fromTeamId: t.id }] }, me.owner);
+  });
+  var after = testLeague_(), still = {}; after.teams.forEach(function (t) { t.players.forEach(function (q) { still[norm_(q.n)] = 1; }); });
+  return list.filter(function (x) { return still[norm_(x.p.n)]; }).map(function (x) { return x.p.n; }).concat(miss.filter(function (n) { return still[norm_(n)]; })).filter(function (n, i, a) { return a.indexOf(n) === i; }).join(", ");
 }
 function espnSwitch_(me, b) { setProp_("ESPN_WRITES", b.on ? "on" : "off"); CacheService.getScriptCache().remove("health"); log_("espnwrites", me.owner + " " + (b.on ? "on" : "off")); return { ok: true, writes: writesOn_() }; }

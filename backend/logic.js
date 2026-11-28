@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.21.1";
+var VERSION = "0.22.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -72,8 +72,8 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1, track: 1, usage: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
-var WRITES = { setphase: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1 }; // rate-limited per owner
+var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1, track: 1, usage: 1, votes: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
+var WRITES = { setphase: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1, tradeveto: 1, tradedrops: 1, mvote: 1, ruleidea: 1, voteopen: 1 }; // rate-limited per owner
 function doPost(e) {
   SH_ = {}; ROWS_ = {};
   var b = {};
@@ -106,6 +106,13 @@ function doPost(e) {
       case "respond":  return json(respond_(me, b));
       case "blockset": return json(blockSet_(me, b));
       case "tradeact": return json(desk ? tradeAct_(me, b) : { ok: false, error: "Commish only" });
+      case "tradeveto": return json(tradeVeto_(me, b));   // 🚫 owners not in the trade (mod_trades)
+      case "tradedrops": return json(tradeDrops_(me, b)); // 📏 pick the drop that makes room (mod_trades)
+      case "votes":    return json(votes_(me));           // 🗳️ league votes + rule ideas (mod_votes)
+      case "mvote":    return json(mvote_(me, b));
+      case "ruleidea": return json(ruleIdea_(me, b));
+      case "voteopen": return json(desk ? voteOpen_(me, b) : { ok: false, error: "Commish only" });
+      case "votepractice": return json(isRole_(me, "ops") ? votePractice_(me) : { ok: false, error: "Ops only" });
       case "drafts":   return json(drafts_(me));
       case "splpool":  return json(splPool_());
       case "reacts":   return json(reacts_(b.keys));
@@ -145,7 +152,7 @@ var HEADS = {
   Feedback: ["ts", "who", "kind", "mood", "note", "where"],
   Log:      ["ts", "kind", "detail"],
   Chat:     ["msg_id", "ts", "room", "owner", "text", "deleted", "ref"],
-  Offers:   ["offer_id", "ts", "from", "to", "give", "get", "note", "status", "updated_ts", "reason", "by", "mode", "espn", "counter_of", "espn_note"],
+  Offers:   ["offer_id", "ts", "from", "to", "give", "get", "note", "status", "updated_ts", "reason", "by", "mode", "espn", "counter_of", "espn_note", "review_ends", "drops", "challenge_ts"],
   Picks:    ["pid", "season", "round", "original", "owner", "updated_ts", "via"],
   Drafts:   ["draft_id", "ts", "kind", "season", "mode", "status", "order", "note", "by", "updated_ts"],
   DraftPicks: ["draft_id", "n", "owner", "choice", "ts", "by", "note"],
@@ -153,7 +160,9 @@ var HEADS = {
   EspnLog:  ["ts", "by", "kind", "ref", "items", "code", "msg"],
   DraftEspn: ["draft_id", "n", "owner", "player", "pid", "team_id", "status", "msg", "ts", "by"],
   Votes:     ["ts", "ref", "owner", "choice"],
-  Block:     ["owner", "player", "pos", "tm", "note", "on", "ts", "updated_ts"]
+  Block:     ["owner", "player", "pos", "tm", "note", "on", "ts", "updated_ts"],
+  Ballots:   ["ts", "ref", "owner", "choice"],
+  Matters:   ["mid", "ts", "by", "kind", "title", "detail", "status", "opens", "closes", "opened_by", "updated_ts", "result", "note"]
 };
 // ⚡ Per-request memo (one backend run = one request): a tab is opened and read once, not once per helper (auth_, rules_, desk_ …
 // each re-read Owners/Answers). Any write through append_/setRow_/dirty_ drops the tab's memo, so reads after a write are fresh.
@@ -219,12 +228,14 @@ function seedOwners_() {
 }
 function isRole_(o, r) { return String(o.role || "").split(/[,\s]+/).indexOf(r) >= 0; }
 function isBackup_(o) { return isRole_(o, "ops"); } // Mike: commish powers only as backup on Joe's desk
-// Why `me` can't approve/negate this accepted trade right now ("" = can act).
-// Trades waiting on this commish (accepted, and he's allowed to act): the number on his 📥 Desk button, with his open questions.
+// What's on this commish's plate (the number on his 📥 Desk button, with his open questions): trades under a veto vote he could rule on,
+// trades left to do on ESPN by hand, and owners' 💡 rule ideas waiting on him. Routine trades on the wire don't count: they go through by themselves.
 function reviewCount_(me) {
   if (!isRole_(me, "commish") || isRole_(me, "ops")) return 0;
-  return offers_().filter(function (r) { return r.status === "ACCEPTED" && !deskLock_(me, r); }).length;
+  var n = offers_().filter(function (r) { return (r.status === "ACCEPTED" && r.challenge_ts && !deskLock_(me, r)) || (r.status === "APPROVED" && r.espn === "todo"); }).length;
+  return n + rows_("Matters").filter(function (m) { return m.status === "idea"; }).length;
 }
+// Why `me` can't approve/negate this trade right now ("" = can act).
 function deskLock_(me, r) {
   if (!(isRole_(me, "commish") || isRole_(me, "ops"))) return "Commish only";
   var byId = {}; owners_().forEach(function (o) { byId[o.owner] = o; });
@@ -296,6 +307,7 @@ function myAnswers_(who) {
   var out = {}; rows_("Answers").forEach(function (r) { if (r.who === who) out[r.qid] = { choice: r.choice, note: r.note, ts: r.ts }; }); return out;
 }
 function desk_(me) {
+  tradeTick_();
   var latest = {}, total = 0;
   rows_("Answers").forEach(function (r) { total++; latest[r.who + ":" + r.qid] = { who: r.who, qid: r.qid, choice: r.choice, note: r.note, ts: r.ts }; });
   var fb = rows_("Feedback").slice(-20).reverse().map(function (r) { return { who: r.who, kind: r.kind, mood: r.mood, note: r.note, ts: r.ts }; });
@@ -337,7 +349,7 @@ function menuCheck() {
     "\nESPN · test " + WRITE_LEAGUE + ": " + line(h.espnTest) +
     "\nEmails left today: " + h.mailLeft + boot);
 }
-function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepAnnounce_(); keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } try { usageTick_(); } catch (e) { log_("usage_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
+function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepAnnounce_(); keepFinalize_(""); } catch (e) { log_("kfinal_error", String(e)); } try { usageTick_(); } catch (e) { log_("usage_error", String(e)); } try { tradeTick_(); votesTick_(); } catch (e) { log_("review_error", String(e)); } } // hourly Apps Script trigger (runbook §4b): watchdog, backup, checks, alerts (mod_ops) + Signing Day closing by its date (mod_keepers)
 
 // ---------------------------------------------------------------- parts: the rest of the backend, in this same scope
 // logic.js is the CORE (config, routing, Sheet helpers, sign-in, questions, health). The other parts live next to it as
@@ -346,7 +358,7 @@ function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepAnnounce
 // this is its pattern, WS6). Each part is cached 5 min under VERSION (bump VERSION when you change any part) with a 6-hour
 // last-good copy; a part that won't compile is skipped for its last good copy and ops is emailed (once an hour).
 var REPO = "spl-hq/spl-hq.github.io";
-var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_spldraft", "mod_ops", "mod_keepers", "mod_usage"];
+var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_spldraft", "mod_ops", "mod_keepers", "mod_usage", "mod_votes"];
 function compiles_(src) { try { new Function(src); return true; } catch (e) { return false; } }
 function badPush_(name, r) {
   if (!r || r.getResponseCode() !== 200) return; var c = CacheService.getScriptCache(); if (c.get("badpush_" + name)) return; c.put("badpush_" + name, "1", 3600);
