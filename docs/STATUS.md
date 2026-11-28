@@ -35,6 +35,11 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.4 · 📋 **Joe's 3 questions redone** (Mike, before Joe's first login): 1) `history_gaps` (now active, rewritten: what the app
+  already has, then a numbered "still missing" list; Drive share first), 2) **`espn_writes`** (new; replaces `espn_lm`): is he comfortable with the
+  app writing to ESPN, needs Mike's team as co-commish, Mike built a test ESPN league to show it, nothing touches the real league until he says,
+  3) `rules_rewrite` (2027 constitution around the app). `first_wish` + `veto_vote` parked (`later`). Intro card names the three; question text
+  keeps its line breaks (pre-line). SW `splhq-v92`.
 - 2026-11-28 · v0.27.3 · 📖 Rules → **📱 App · ESPN · Email** is now a side-by-side chart (Mike: wanted a comparison chart, and email as the third
   column: trades, draft picks, drafts, keepers and the GM Report all used to go by email). Columns ESPN · Email · App; ● do it here now, ○ used to
   happen here, ↻ updated for you. Trades row: App ●, Email ○, ESPN ↻ (dropped the confusing "trade on your ESPN roster = ESPN" row). SW `splhq-v91`.

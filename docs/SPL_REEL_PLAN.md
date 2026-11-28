@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Joe's day-one questions = history gaps, ESPN writes (with the test-league demo), the 2027 rulebook** (Mike). `first_wish` and
+  `veto_vote` parked; `espn_lm` retired for `espn_writes`. Supersedes the 11/27 day-one three.
+
 - 2026-11-28 · **Rules gets an owner-facing 📱 App or ESPN tab** (Mike): a who-does-what matrix for owners (lineups/FAAB/live scores = ESPN; trades,
   votes, picks, keepers, drafts, chat = app; standings and the SPL Draft = both). Not the old commish conflict list (those are Joe's questions).
 

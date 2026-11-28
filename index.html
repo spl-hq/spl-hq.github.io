@@ -552,7 +552,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.27.3";
+var APP_VERSION = "0.27.4";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -568,7 +568,7 @@ var OWNERS = [
 // Rebaselined 11/26 (Mike answered 6). Retired questions stay here (retired: why) so their answers still show on the Ops desk;
 // Joe only sees ACTIVE ones (not retired, not later:). Mike's answers already drive the rules (backend joeAnswer_ = latest answer from either commish).
 var QUESTIONS = [
-  { qid: "espn_lm", q: "Can the app do your ESPN typing?",
+  { qid: "espn_lm", retired: "Mike 11/28: reworded around the test-league demo → espn_writes", q: "Can the app do your ESPN typing?",
     why: "Approved trades, the draft board, playoff picks, Shoot Out matchups and your rulings go onto ESPN by themselves. ESPN only allows that from a league manager, so Mike's team needs co-commish on ESPN. Nothing changes on ESPN until you've seen it work.",
     choices: ["Yes", "After I see it", "Let's talk"] },
   { qid: "test_league", retired: "Mike 11/27: cut, Mike demos it instead", q: "Will you join the test league as co-commish for the demo?",
@@ -593,22 +593,22 @@ var QUESTIONS = [
     why: "", choices: ["Either of us, flagged to the league", "A third owner (name below)", "League vote", "Auto-approve after the review window"] },
   { qid: "div_draft", retired: "Mike: yes → folded into mike_calls", q: "Divisional Draft: the app runs it like this. Right?",
     why: "", choices: ["Yes, that's it", "Close (explain below)", "No (explain below)"] },
-  { qid: "first_wish", q: "If the app could do one thing for you as commish, what would it be?",
+  { qid: "first_wish", later: "Mike 11/28: swapped off day one", q: "If the app could do one thing for you as commish, what would it be?",
     why: "Your answer goes to the top of the build list.", choices: [] },
-  { qid: "veto_vote", q: "Trades go to a league vote in the app, by the constitution (6 vetoes kills it). OK?",
+  { qid: "veto_vote", later: "Mike 11/28: swapped off day one", q: "Trades go to a league vote in the app, by the constitution (6 vetoes kills it). OK?",
     why: "Same rule as always, finally enforced (ESPN needs 8). In season the vote runs 24 hours; off-season a trade is final after 72 hours unless challenged. Your trades with Mike go to the same vote.",
     choices: ["Yes", "Yes, and I can overrule", "No, I approve every trade"] },
   { qid: "mike_calls", retired: "Mike 11/27: his answers stand, Joe doesn't need to check them", q: "Mike made these calls for the app. Good with all three?",
     why: "1) A traded keeper keeps his contract as-is (KP, years left). 2) Only next season's picks can be traded (2027, 17 rounds). 3) Divisional Draft: the 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1; a pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division); if your division is full, you must assign.",
     choices: ["All good", "Change one (explain below)"] },
-  { qid: "history_gaps", later: "Mike 11/27: off-season", q: "Can you help fill the league's history gaps?",
-    why: "Anything helps: files, screenshots or memory. 1) The SPL Google Drive you set up in 2019 (minutes, votes, binders, constitutions): share it with Mike. 2) 2020-21 on NFL.com: the 2020 draft, scores or standings, 2021 records. 3) 2003-05: the original owners, records, runner-ups (and was 2005 Seth or Glen?). 4) Dues and payouts by year. 5) Did 2026 play a Week 14 Shoot Out after the 2025 vote? 6) Trophy plaques, photos, stories. Send to Mike or type below.",
-    choices: ["I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
+  { qid: "history_gaps", q: "The league's history is mostly back in one place. Can you help fill what's missing?",
+    why: "The app now has every season 2003-2026: champions from Glen's GM Report, every ESPN game and draft board since 2006, the Packet's keeper matrices for 2019-26, and 2020-21 results from the league emails.\n\nStill missing:\n1) The SPL Google Drive you set up in 2019 (minutes, votes, binders, constitutions). Sharing it with Mike is the biggest help.\n2) 2020-21 on NFL.com: the 2020 draft board and 2021 records.\n3) 2003-05: who owned the first teams, records and runner-ups.\n4) Keeper history before 2019.\n5) Dues and payouts by year.\n6) Plaques, photos, stories.\n\nFiles, screenshots or memory all work.",
+    choices: ["I'll share the Drive with Mike", "I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
   { qid: "chat_move", later: "Mike 11/27: once a few owners are in", q: "League chat is live in the app. Move the league's talk here?",
     why: "League chat, a room for each division (it follows the Divisional Draft by itself), DMs with any owner, and @ tags (an owner can choose to get an email when he's tagged). Everyone gets it once they sign in. The group text can stay for whatever you like.",
     choices: ["Yes, move the league here", "Both for now", "Keep the group text, app chat for trades"] },
-  { qid: "rules_rewrite", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "The constitution was written around ESPN. Rewrite it for 2027 around the app?",
-    why: "Trades now go to a league vote in the app, keepers get declared on Signing Day in the app, the drafts run in the app, and the app can set playoff matchups on ESPN. The 2023 draft still has ESPN doing all of that. Mike drafts a 2027 edition from the 2023 one plus your answers here, you mark it up, and the league votes it in at the Winter Meeting.",
+  { qid: "rules_rewrite", q: "The constitution was written around ESPN. Rewrite it for 2027 around the app?",
+    why: "Trades now go to a league vote in the app, keepers get declared on Signing Day in the app, the drafts run in the app, and the app could set playoff matchups on ESPN too. The 2023 draft still has ESPN doing all of that. Mike drafts a 2027 edition from the 2023 one plus your answers here, you mark it up, and the league votes it in at the Winter Meeting.",
     choices: ["Yes, draft it", "Let's talk first", "Keep the 2023 one"] },
   { qid: "playoff_rules", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "Do the playoffs still work the way the constitution says?",
     why: "Seeding: win %, then points, then head-to-head, then a coin flip (ESPN only uses points). Week 15: Seed 3 picks its opponent from Seeds 4, 5 or 6. Week 16: Seed 1 picks. ESPN can't do either, so the app would ask Seed 3 and Seed 1 and put the matchups on ESPN. Still the rule? Has someone been doing it by hand?",
@@ -618,9 +618,12 @@ var QUESTIONS = [
     choices: ["$400 flat + the prize sheet", "Changing for 2027 (explain below)", "Let's talk"] },
   { qid: "late_adds", later: "Mike 11/28: rulebook rewrite batch (was the ⚖️ vs ESPN tab)", q: "After Week 14, can teams out of the playoffs still pick up free agents?",
     why: "The constitution says no, but ESPN doesn't stop them. The app can flag those adds; it can't block them on ESPN. Section I also still has the 2021 note about Boogie and Owen working out a FAAB payout. Drop it?",
-    choices: ["No adds: flag them", "That rule's gone", "Explain below"] }
+    choices: ["No adds: flag them", "That rule's gone", "Explain below"] },
+  { qid: "espn_writes", q: "Are you comfortable with the app making changes on ESPN for you?",
+    why: "Today approved trades and rulings get typed into ESPN by hand. The app can do that itself, but ESPN only allows it from a league manager, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
+    choices: ["Yes, make Mike co-commish", "Show me the test league first", "Keep ESPN by hand", "Let's talk"] }
 ];
-var Q_ORDER = ["first_wish", "espn_lm", "veto_vote"]; // the order Joe sees (Mike 11/27: 3 on day one; later: ones come back by moving them here)
+var Q_ORDER = ["history_gaps", "espn_writes", "rules_rewrite"]; // the order Joe sees (Mike 11/28: missing history, ESPN writes + the test league, the 2027 rulebook; later: ones come back by moving them here)
 var ACTIVE_Q = QUESTIONS.filter(function (q) { return !q.retired && !q.later; }).sort(function (a, b) { return Q_ORDER.indexOf(a.qid) - Q_ORDER.indexOf(b.qid); });
 function answeredActive(ans) { return ACTIVE_Q.filter(function (q) { return ans[q.qid]; }).length; }
 
@@ -3351,10 +3354,10 @@ SCREENS.joe = function () {
   if (!isDesk()) return back("home", "Home") + '<h2>Questions</h2><div class="card"><p style="margin:0">These are for the commish.</p></div>';
   var draft = joeDraft();
   return back("desk", "Commish desk") + '<h2>Questions for the commish</h2>' +
-    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, these" : "These") + ' decide how trades, picks and keeper contracts work in the app. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
+    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, three" : "Three") + ' things Mike needs from you before the league sees the app: the history gaps, ESPN, and the 2027 rulebook. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
     '<div class="qlist">' + ACTIVE_Q.map(function (q) {
       var a = draft[q.qid] || {};
-      return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px">' + esc(q.why) + '</p>' +
+      return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px;white-space:pre-line">' + esc(q.why) + '</p>' +
         (q.choices.length ? '<div class="chips">' + q.choices.map(function (c) { return '<button class="chip' + (a.choice === c ? " on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + '</button>'; }).join("") + '</div>' : '<div style="height:10px"></div>') +
         '<textarea placeholder="' + (q.choices.length ? "Note (optional)" : "Your answer") + '">' + esc(a.note || "") + '</textarea>' +
         (a.sent ? '<div class="saved">✓ sent</div>' : '') + '</div>';
