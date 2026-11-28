@@ -28,6 +28,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.4 · 🚧 **GM Report → Coming soon** (Mike: wants it to look and feel like Glen's actual GM Report; talking to Joe first). League tile now "🎓 GM Report · Coming soon", `#gm` shows an under-construction card. The career-rankings screen is parked as `SCREENS.gmRankings` (no link to it). Tour's League stop says "the GM Report (coming soon)". SW `splhq-v67`.
 - 2026-11-27 · v0.25.3 · 📇 **Player file history v2** (Mike: McBride looked kept by two owners at once; "make it a trend, not a blob").
   **Bug:** a gold keeper contract carries its *current* holder, so a deal Seth signed in 2024 and Owen got in a trade read "Kept by Owen … '24".
   Now Keeper Matrix rows are grouped by deal (start = season − (term − years left)); the signer gets "Kept on a 3-yr deal", a later holder gets

@@ -659,7 +659,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", offseason: "league", calendar: "league", droom: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league" };
 // SPL HQ bot posts carry a ref; the button follows what it points at (T… trade offer, D… draft room unless cancelled, K…/keep: Signing Day). Unknown refs get no button.
 function hqLink(ref, text) {
   ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone
@@ -2109,10 +2109,15 @@ var GM_SORT = { titles: ["Titles", function (a, b) { return b.ti.length - a.ti.l
   pct: ["Win %", function (a, b) { return b.pct - a.pct; }, function (x) { return (x.pct * 100).toFixed(1) + "%"; }],
   playoffs: ["Playoffs", function (a, b) { return b.pw - a.pw || b.trips - a.trips; }, function (x) { return x.pw + "–" + x.pl; }],
   ppg: ["Points/gm", function (a, b) { return b.ppg - a.ppg; }, function (x) { return x.ppg.toFixed(1); }] };
-SCREENS.gm = function (arg) {
+// 🚧 GM Report: on hold (Mike 11/27). He wants it to look and feel like Glen's actual GM Report and will talk it over with Joe first.
+// The career-rankings build below is parked as SCREENS.gmRankings (no tile links to it); delete or revive once the design is settled.
+SCREENS.gm = function () {
+  return back("league", "League") + soon("GM Report", "🚧 Under construction. The league's GM Report is getting a proper home here, built to look and feel like the real thing. Check back soon.");
+};
+SCREENS.gmRankings = function (arg) {
   var k = GM_SORT[arg] ? arg : "titles", s = GM_SORT[k], list = careers().sort(s[1]);
   var ys = LD("seasons");
-  return back("league", "League") + '<h2>GM Rankings</h2><div class="hscroll">' + Object.keys(GM_SORT).map(function (x) { return '<button class="chip' + (x === k ? " on" : "") + '" onclick="go(\'gm\',\'' + x + '\')">' + GM_SORT[x][0] + '</button>'; }).join("") + '</div>' +
+  return back("league", "League") + '<h2>GM Rankings</h2><div class="hscroll">' + Object.keys(GM_SORT).map(function (x) { return '<button class="chip' + (x === k ? " on" : "") + '" onclick="go(\'gmRankings\',\'' + x + '\')">' + GM_SORT[x][0] + '</button>'; }).join("") + '</div>' +
     '<div class="card">' + list.map(function (x, i) {
       return '<div class="gmrow" onclick="gmToggle(this)"><span class="rk">' + (i + 1) + '</span><div><b>' + esc(oname(x.id)) + '</b> <small class="muted">' + esc((owner(x.id) || {}).team || "") + '</small><br>' +
         '<small class="muted">' + x.w + '–' + x.l + (x.t ? '–' + x.t : '') + ' (' + (x.pct * 100).toFixed(1) + '%) · playoffs ' + x.pw + '–' + x.pl + ' in ' + x.trips + ' trips · ' + x.ti.length + ' titles' + (x.ru.length ? ', ' + x.ru.length + ' runner-up' : '') + ' · ' + x.ppg.toFixed(1) + ' ppg</small>' +
@@ -2893,7 +2898,7 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
 // Mike 11/27: Standings → bottom of Match; Trades + Keepers live on the Team tab (GM desk). Drafts get their own row of buttons up top.
 var LEAGUE_TILES = [
   ["offseason", "📅", "SPL Calendar", "Every date, with links"], ["draft", "📝", "Draft boards", "Every pick since 2006"],
-  ["history", "📚", "History", "Champions since 2003"], ["gm", "🎓", "GM Rankings", "Careers, ranked"],
+  ["history", "📚", "History", "Champions since 2003"], ["gm", "🎓", "GM Report", "Coming soon"],
   ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + timeline"],
   ["feedback", "💡", "Ideas", "Feedback to the site"]
 ];
@@ -3286,7 +3291,7 @@ var TOUR_STEPS = [
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here; gold means it needs you (an offer waiting, keepers to declare). Every roster row shows what keeping that player costs, and Keepers lets you build up to 5 plans, compare them side by side and declare when the off-season opens."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat, your division's room and a DM with any owner. Tap @ to tag someone; anything that tags you lands in @ Mentions. Trade news and commish alerts land here too."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the SPL Calendar (every date, with links), every draft board since 2006, champions, GM rankings, rivalries, the rules, and 💡 Ideas for anything you want the site to do."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the SPL Calendar (every date, with links), every draft board since 2006, champions, the GM Report (coming soon), rivalries, the rules, and 💡 Ideas for anything you want the site to do."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish, in folding sections; one that needs you opens by itself: trades to approve, what to do on ESPN, the drafts (open, undo, cancel, load into ESPN), Signing Day, and Mike's questions for you (the number on this button).", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
 var TR = null;
