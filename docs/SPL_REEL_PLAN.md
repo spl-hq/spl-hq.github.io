@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Power 5 → Power 3** (Mike): three teams, each with a short write-up (robot `power3`, else built from the numbers). Fewer rows, more story.
 - 2026-11-27 · **Player files read as a career, not a log** (Mike): tiles + a per-season cost bar (MAFFL's auction-price chart, on SPL's KP scale) + folding owner stints. A keeper deal belongs to whoever signed it; later holders show it as "came over with his deal".
 
 - 2026-11-27 · **Chat: @mentions everywhere, division rooms, no owner-made groups** (Mike asked; group call was Claude's). Ported MAFFL REEL's

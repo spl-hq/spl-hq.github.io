@@ -165,7 +165,7 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .tl.hot{background:rgba(184,138,46,.08)} .tl.cold{background:rgba(150,190,230,.16)}
 .prow{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)} .prow:last-child{border:0}
 .prow .rk{font:800 26px var(--head);width:22px;text-align:center;color:#041E42} .prow .pt{flex:1;min-width:0;line-height:1.25} .prow .pt b{font-size:16px} .prow .pt small{display:block;font-size:12.5px;color:var(--muted)}
-.prow .pr{font:700 14px var(--mono)} .prow.mine{background:rgba(184,138,46,.10);margin:0 -10px;padding:9px 10px;border-radius:10px}
+.prow .pr{font:700 14px var(--mono)} .prow.p3{border:0;padding-bottom:4px} .p3w{margin:0 0 6px 34px;padding:0 0 12px;font-size:14px;line-height:1.4;color:var(--ink,#0B1F3A);border-bottom:1px solid var(--line)} .p3w:last-of-type{border:0} .prow.mine{background:rgba(184,138,46,.10);margin:0 -10px;padding:9px 10px;border-radius:10px}
 .up{color:#1E407C;font:700 11px var(--mono);margin-left:4px} .dn{color:#C8102E;font:700 11px var(--mono);margin-left:4px}
 .tbl{width:100%;border-collapse:collapse;font-size:14px} .tbl td{padding:7px 2px;border-bottom:1px solid var(--line)} .tbl td.n{text-align:right;font-family:var(--mono)} .tbl tr.mine td{background:rgba(184,138,46,.10);font-weight:700}
 .tbl tr.cut td{border-bottom:2px dashed #B88A2E} .tbl .rkc{width:22px;color:var(--muted);font-family:var(--mono)}
@@ -2690,13 +2690,30 @@ function weekCards(season, wk, me) {
     body: '<div class="tiles2">' + tile("🚀 High score", fmtPts(hi[1]), hi[0]) + (coach ? tile("🎖️ Coach of the Week", "+" + fmtPts(coach[2]), coach[0], fmtPts(coach[1]) + " vs his " + fmtPts(coach[3]) + " avg") : '') +
       (lo ? tile("🪫 Low score", fmtPts(lo[1]), lo[0]) : '') + (climb && climb.d > 0 ? tile("📈 Biggest climb", "▲" + climb.d, climb.o, "now #" + climb.t.rank + " · " + esc(climb.t.rec)) :
         tile("📊 League average", fmtPts(res.reduce(function (t, r) { return t + r.tot; }, 0) / Math.max(1, res.length * 2)), null, res.filter(function (r) { return r.ls > res.reduce(function (t, x) { return t + x.tot; }, 0) / (res.length * 2); }).length + " losing teams beat it")) + '</div>' });
-  // ⭐ Power 5 (robot's call when it wrote one, else record + points)
-  var p5 = (L && L.power5 && L.power5.length ? L.power5 : lead.slice(0, 5).map(function (t) { return { owner: t.owner, note: t.rec + " · " + fmtPts(t.pf) + " PF · last 3 " + t.res.slice(-3) }; }));
-  var inP5 = p5.some(function (p) { return p.owner === me; });
-  out.push({ id: "power5", scope: "league", eb: "⭐ Power 5 · Week " + wk, title: "The Power 5",
-    body: p5.map(function (p, i) { var t = T[p.owner] || {};
-      return '<div class="prow' + (p.owner === me ? " mine" : "") + '"><span class="rk">' + (i + 1) + '</span>' + av(p.owner) + '<span class="pt"><b>' + esc(oname(p.owner)) + '</b>' + arrow((P[p.owner] || {}).rank, t.rank) + '<small>' + esc(p.note) + '</small></span><span class="pr">' + esc(t.rec || "") + '</span></div>'; }).join("") +
-      (me && !inP5 && T[me] ? chips([["You: #" + T[me].rank + " · " + esc(T[me].rec), "bl"]]) : '') });
+  // ⭐ Power 3 (Mike 11/28: three teams, a short write-up each). Robot's ranking + write-ups when it wrote them, else the table's top 3
+  // and a write-up built from the numbers: form, points, what's next. (Card id stays "power5" so reactions keep their key.)
+  var nth = function (n) { return n + (n % 100 > 10 && n % 100 < 14 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th"); };
+  var byPf = lead.slice().sort(function (a, b) { return b.pf - a.pf; }), lgAvg = lead.reduce(function (s, t) { return s + t.pf; }, 0) / Math.max(1, lead.reduce(function (s, t) { return s + t.res.length; }, 0));
+  var nxS = (window.LEAGUE_DATA || {}).schedule || {}, nxG = (nxS.games || []).filter(function (g) { return g[0] === wk + 1 && g[2] && g[3]; });
+  var writeUp = function (o) { var t = T[o]; if (!t) return ""; var pr = (P[o] || {}).rank, n = +t.streak.slice(1), out = [];
+    var tied = lead.filter(function (x) { return x.owner !== o && x.w === t.w && x.l === t.l && x.t === t.t; });
+    out.push((t.streak[0] === "W" && n > 1 ? "Won " + n + " straight" : t.streak[0] === "L" && n > 1 ? "Lost " + n + " straight" : t.res.slice(-1) === "W" ? "Won this week" : "Lost this week") +
+      (pr && pr > t.rank ? " and climbed to #" + t.rank : pr && pr < t.rank ? " and slipped to #" + t.rank : ", still #" + t.rank) +
+      (tied.length ? ", level at " + t.rec + " with " + tied.map(function (x) { return oname(x.owner); }).join(" and ") + (tied.every(function (x) { return t.rank < x.rank; }) ? ", ahead on points." : tied.every(function (x) { return t.rank > x.rank; }) ? ", behind on points." : ", in the middle on points.") : "."));
+    var pk = byPf.indexOf(t) + 1, d = t.avg - lgAvg;
+    out.push((pk === 1 ? "Most points in the league" : nth(pk) + " in points") + " (" + fmtPts(t.pf) + "), " + fmtPts(Math.abs(d)) + " a week " + (d >= 0 ? "above" : "below") + " the league average.");
+    var ng = nxG.filter(function (g) { return g[2] === o || g[3] === o; })[0];
+    if (ng) { var op = ng[2] === o ? ng[3] : ng[2], ot = T[op] || {}; out.push("Next: " + (ME && op === ME.owner ? "you" : oname(op)) + (ot.rec ? " (" + ot.rec + ", #" + ot.rank + ")" : "") + "; " + (function () { var h = h2h(o, op), dd = h.all.W - h.all.L; return !h.main.length ? "their first meeting" : dd ? oname(o) + (dd > 0 ? " leads" : " trails") + " the all-time series " + recTxt(h.all) : "the all-time series is even at " + recTxt(h.all); })() + "."); }
+    return out.join(" "); };
+  var robot = L && L.power3 && L.power3.length ? L.power3 : L && L.power5 && L.power5.length ? L.power5.map(function (p) { return { owner: p.owner }; }) : null;
+  var p3 = (robot || lead.map(function (t) { return { owner: t.owner }; })).filter(function (p) { return T[p.owner]; }).slice(0, 3);
+  var inP3 = p3.some(function (p) { return p.owner === me; });
+  out.push({ id: "power5", scope: "league", eb: "⭐ Power 3 · Week " + wk, title: "The Power 3",
+    body: p3.map(function (p, i) { var t = T[p.owner] || {};
+      return '<div class="prow p3' + (p.owner === me ? " mine" : "") + '"><span class="rk">' + (i + 1) + '</span>' + av(p.owner) + '<span class="pt"><b>' + who(p.owner) + '</b>' + arrow((P[p.owner] || {}).rank, t.rank) +
+        '<small>' + fmtPts(t.pf) + ' PF · last 3 ' + esc(t.res.slice(-3)) + '</small></span><span class="pr">' + esc(t.rec || "") + '</span></div>' +
+        '<p class="p3w">' + esc(p.write || writeUp(p.owner)) + '</p>'; }).join("") +
+      (me && !inP3 && T[me] ? chips([["You: #" + T[me].rank + " · " + esc(T[me].rec), "bl"]]) : '') });
   // 📊 The table after the week (top 6 = playoffs; the dashed line is the cut)
   out.push({ id: "table", scope: "league", eb: "📊 The table · after Week " + wk,
     body: '<table class="tbl"><tr><td></td><td class="muted" style="font-size:11px">TEAM</td><td class="n muted" style="font-size:11px">W–L</td><td class="n muted" style="font-size:11px">PF</td></tr>' +
@@ -3352,7 +3369,7 @@ function tourCard(k) {
   tourPaint("", '<div class="twel tw2"><div class="tkick">How you\'ll hear about it</div>' +
     '<h2>It all lands on Home</h2><ul>' +
     li("⚡", "Your move, up top.", "Your pick in the Shoot Out, Slot or Divisional draft, a trade offer, keepers to declare. Gold cards stay first until you handle them.") +
-    li("🗞️", "Every week of the season.", "Tuesday: your result, awards, Power 5, the table. Your game live on Sunday, who you play next by Thursday, trades as they happen.") +
+    li("🗞️", "Every week of the season.", "Tuesday: your result, awards, Power 3, the table. Your game live on Sunday, who you play next by Thursday, trades as they happen.") +
     li("🎯", "Polls and trivia.", "Game of the Week vote, a weekly quiz, and a bite of league history midweek.") +
     li("🗓️", "Off-season too.", "Live drafts, the Signing Day board, keeper prices and the cap.") + '</ul>' +
     '<div class="tbtn"><button id="tskip">‹ Back</button><small>2 / 2</small><button class="go" id="tnext">Show me around ›</button></div></div>');

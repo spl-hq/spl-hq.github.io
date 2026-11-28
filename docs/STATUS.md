@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.8: ▦ grid view on the Draft boards)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.9: ⭐ Power 5 → Power 3 with write-ups)
 
 
 ## Now
@@ -28,6 +28,11 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.9 · ⭐ **Power 5 → Power 3, with a write-up per team** (Mike). Home's Edition card now ranks three teams; each row
+  (rank · avatar · @name ▲▼ · PF + last 3 · record) gets a 2–3 sentence write-up under it. Card-lines robot (`tools/card_lines.py`) now writes
+  `power3: [{owner, write}]` (≤ 260 chars, the one exception to the 110 rule); until it has a token the app builds the write-up from the numbers:
+  streak + rank move, tied records and who's ahead on points, points rank vs the league average, next game with the all-time series. Old
+  `power5` lines still supply the order. Card id stays `power5` so reactions keep their key. "You: #7" chip when you're not in it. SW `splhq-v72`.
 - 2026-11-28 · v0.25.8 · ▦ **Draft boards get a grid** (Mike: great info, needs a grid). League → Draft boards → **▦ Grid | 📋 Rounds** toggle
   (Grid is the default; the choice is remembered). Same look as the SPL Draft room's grid: 12 slot columns × rounds, owner row + round column
   stay put, cells colored by position, pick number on each cell (snake), "→ Joe" on traded picks, 🏷️ tags in gold, grey = keeper slot (no

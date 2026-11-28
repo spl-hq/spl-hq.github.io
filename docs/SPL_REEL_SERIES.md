@@ -13,7 +13,7 @@ The robots run ~6:17 AM (ESPN history pull → card lines), so the Edition opens
 
 | When | Drop | What | Cards |
 |---|---|---|---|
-| TUE 7 AM | 🗞️ The Edition | The week just went final | 🏁 Your result · 📣 The week · 🏅 Week awards · ⭐ Power 5 · 📊 The table |
+| TUE 7 AM | 🗞️ The Edition | The week just went final | 🏁 Your result · 📣 The week · 🏅 Week awards · ⭐ Power 3 · 📊 The table |
 | TUE 5 PM | 🎯 Play | Vote + one quiz on that week | 🗳️ Game of the Week · 🧠 Quiz |
 | WED 7 AM | 🗄️ Vault | History, one bite | ⚔️ Rivalry of the week · 💰 Keeper economy · 🔒 Your keepers |
 | THU 5 PM | ⏭️ Preview | The coming week | ⏭️ Up next · 📅 This week in SPL history |
@@ -42,7 +42,7 @@ Build faces from these parts (`index.html` → card kit), not from plain key/val
 - **Tiles** `tile(label, number, owner, sub)`: 2-column stat tiles (Week awards, The week's hot/cold, history records).
 - **Chips** `chips([...])`: the 2–4 supporting facts under a story (rank move, streak, series, season high). Blue = good for you, red = bad, gold = notable.
 - **Bars** `hbars()` (who holds how much: keeper economy, most active traders) and **meter** `meter(v, max)` (your KP vs the 10 cap, your share of a live game).
-- **Ranked rows** (Power 5): big rank numeral · avatar · name + ▲▼ · one-line note · record. **Table**: W–L + PF columns with the playoff cut as a dashed gold line.
+- **Ranked rows** (Power 3, Mike 11/28): big rank numeral · avatar · name + ▲▼ · PF + last 3 · record, then a 2–3 sentence write-up under each team. **Table**: W–L + PF columns with the playoff cut as a dashed gold line.
 - **Wire rows**: pick tickets (`'27 R2`) or trade pairs with avatars and arrows. **Quote** + byline for chat.
 A card with empty space under its content is missing a part: add chips or tiles, don't pad with text.
 
@@ -90,7 +90,7 @@ A card with empty space under its content is missing a part: add chips or tiles,
 | 📋 Signing Day board → 🏁 results | `kboard` | Instant (each declaration) | backend | 💸 🤑 🤡 👀 🔥 | Who's in + their keepers while open; results for 14 days after close. |
 | 📣 The week | `headline` | Edition | robot `headline`/`hot`/`cold` | 🔥 😂 🤯 🤡 💀 | Never the top score. Winners by margin. |
 | 🏅 Week awards | `awards` | Edition | data | 🏆 🧠 🔥 😬 👏 | Four tiles: High score · Coach of the Week (biggest jump over his own average) · Low score · Biggest climb in the table (or the league average). No margins: 📣 The week owns them. |
-| ⭐ Power 5 | `power5` | Edition | robot `power5` (else record + PF) | 📈 😤 🙏 👀 🔥 | Your row highlighted, or "You: #7" under it. |
+| ⭐ Power 3 | `power5` (id kept for reactions) | Edition | robot `power3` write-ups (else built from the numbers: form, points rank, next game + all-time series) | 📈 😤 🙏 👀 🔥 | Your row highlighted, or "You: #7" under it. |
 | 📊 The table | `table` | Edition | data | 📈 😤 🙏 👀 🔥 | From gold games through the week; rank moves. |
 | 📰 Trade wire | `wire` | Instant | data | 💸 🤑 🤡 👀 🔥 | 7 days. |
 | 🎟️ Pick trade wire | `pickwire` | Instant | data | 💸 🤑 🤡 👀 🔥 | Every pick that's changed hands. |
@@ -118,7 +118,7 @@ on the curve because everyone has met ~20 times since 2006. A Blood feud · B Re
 ## Card lines (the robot)
 
 `card-lines.yml` → `tools/card_lines.py` → gold `data/Card_Lines.json` (SPL's version of MAFFL's `CARD_LINES_RECIPE.md`).
-Claude writes, from gold only: `league.headline/hot/cold`, `owners.<id>.result/next`, `power5`. Lines ≤ 110 characters, the
+Claude writes, from gold only: `league.headline/hot/cold`, `owners.<id>.result/next`, `power3` (a ≤ 260-char write-up per team). Lines ≤ 110 characters, the
 one angle the numbers don't show, never the top score in the headline, never "you" on shared cards. Written once per week
 and kept. Needs the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`; without it the cards show plain facts.
 
