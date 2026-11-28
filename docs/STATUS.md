@@ -33,6 +33,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.1 · Roster rows: dropped "Joe's pick" (whose slot) from the drafted line, too much noise (Mike). SW `splhq-v81`.
 - 2026-11-28 · v0.26 · backend v0.19.0 · 🏷️ **Trade block + roster rows rethought** (Mike). Roster rows drop season total points (useless) and
   keep **Avg** with the player's **position rank** under it (QB3, WR1: by pts/game across every SPL roster). The "Drafted / Waiver" line now says
   **how he got here**: 🔒 Kept · yr 2 of 3 · from Rd 6 '24 · Drafted Rd 2 '26 · #20 · Joe's pick · Waiver · Sep 17 · Trade · Oct 21 (ESPN's

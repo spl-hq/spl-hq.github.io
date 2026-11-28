@@ -1229,7 +1229,7 @@ function howGot(p, owner) {
   var d = LD("draft").filter(function (x) { return x[0] === cur && pnorm(x[6]) === n; })[0]; // [season, rd, pick, overall, picker, slot owner, player…]
   if (p.acq === "Traded") return '<span class="hg">Trade</span>' + (when ? ' · ' + nb(when) : '') + (d && d[4] !== owner ? ' · ' + nb(esc(oname(d[4])) + "'s Rd " + d[1]) : '');
   if (p.acq === "Waiver" || p.acq === "Free agent") return '<span class="hg">' + p.acq + '</span>' + (when ? ' · ' + nb(when) : '');
-  if (d) return '<span class="hg">' + nb('Drafted Rd ' + d[1] + ' ' + yy(cur)) + '</span>' + (d[3] ? ' · #' + d[3] : '') + (d[5] && d[5] !== d[4] ? ' · ' + nb(esc(oname(d[5])) + "'s pick") : '');
+  if (d) return '<span class="hg">' + nb('Drafted Rd ' + d[1] + ' ' + yy(cur)) + '</span>' + (d[3] ? ' · #' + d[3] : '');
   return esc(p.acq || "");
 }
 function posRk(p, all) { // rank at his position among every rostered SPL player, by points per game
