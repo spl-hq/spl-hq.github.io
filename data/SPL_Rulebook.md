@@ -36,23 +36,9 @@ right under a heading sets that section's badge. Paragraphs, "- " bullets, "1. "
    - SPL Shoot Out winner = $20 × 11 = $220.
 
 ## B. Season and Off-Season Schedule
-> status: confirm -- Dates for 2027 are set at the Winter Meeting. The trade deadline is set on ESPN (2026: Nov 25, noon).
+> status: current -- Moved to the 🗓️ SPL Calendar (League → SPL Calendar) on 11/28/2026. The pick-trading windows that were here are now in D.
 
-| Event | Date and notes |
-|---|---|
-| **Off-Season** starts | Day after the Super Bowl. Trading draft picks allowed until the Season starts. |
-| **Winter Meeting** | Late Feb / early March. Target the last Wednesday in February. Vote on rule changes. Select the date for the SPL Draft. |
-| Divisional Draft and Slot Draft | April. Draft divisions. Draft slot positions for the SPL Draft. |
-| **Keeper Signing Day** | 10 days before the SPL Draft. |
-| SPL Draft | Date chosen at the Winter Meeting; target as close to NFL kickoff as possible. |
-| **Season** starts | After the SPL Draft. No trading picks until the Off-Season. |
-| Free Agent Auctions | Auctions/waivers start on the regularly scheduled day of the week after rosters are entered. |
-| Trade Deadline | Set in the league software. Typically Wednesday night of Week 12. |
-| SPL Regular Season | Weeks 1–14 |
-| SPL Shoot Out Draft | Eve of Week 14 |
-| SPL Shoot Out | Week 14 |
-| SPL Playoffs | Weeks 15–17 |
-| SPL Bowl | Week 17 |
+Every date and timing rule from this section (Off-Season, Winter Meeting, Divisional and Slot Drafts, Keeper Signing Day, SPL Draft, Season, Free Agent Auctions, Trade Deadline, Regular Season, SPL Shoot Out, Playoffs, SPL Bowl) lives on the **SPL Calendar** now, in one place, with the real dates once they are set.
 
 ## C. The Commissioner and Rule Changes
 
@@ -61,10 +47,12 @@ right under a heading sets that section's badge. Paragraphs, "- " bullets, "1. "
 3. In-season, special circumstances may require the Commissioner to make a judgement call on an ambiguous issue without a league vote. Such decisions are final.
 
 ## D. Trades and Trade Challenges
-> status: confirm -- The trade vote runs in SPL HQ: 6 vetoes kills a trade, as written here.
+> status: confirm -- Incomplete. The full trade rules (the review process, trade exceptions and the rest) are coming from Joe. Rule 3 moved here from B; rule 4 is how the app runs today.
 
 1. During the Season, trades must be completed via the league software. Completed trades are subject to a 24-hour review by the SPL owners. Owners may veto a trade if 60% of the uninvolved teams vote to veto it. (If two teams complete a trade, it passes unless six (6) owners vote to veto.)
 2. During the Off-Season, trades must be announced and accepted via email to the entire league. Off-Season trades are final unless an owner challenges within 72 hours. If an owner challenges, owners vote on it. Six (6) veto votes are required to veto the trade.
+3. **Draft picks** may be traded only during the Off-Season (from the day after the Super Bowl until the Season starts). No trading picks during the Season.
+4. Only next season's draft picks can be traded. (How the app runs today. Joe to confirm.)
 
 ## E. Divisions and Divisional Draft
 

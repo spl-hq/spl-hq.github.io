@@ -35,6 +35,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · data · 📜 **Constitution cleanup** (Mike): §B (schedule) now points to the SPL Calendar instead of repeating every date; its pick-trading rule moved to §D as rule 3 (picks trade only in the Off-Season), plus rule 4 (next season's picks only, how the app runs; Joe to confirm). §D flagged incomplete until Joe's files fill in the trade rules.
 - 2026-11-28 · app · 📜 **Rules → Constitution** (Mike): the League tile (📜 Constitution · The league rules), page title, first tab, calendar links (Constitution ›), keeper strip link (Constitution §J), the App · ESPN · Email chart and the welcome tour now say Constitution. Route stays `#rules`; search box still says "Search the rules". Many sections still "for Joe to confirm" until Joe shares the latest files.
 - 2026-11-28 · app · 🔒 **Keepers "Rules" link opens the real rulebook** (Mike): the Rules / How keepers work links on the keeper screens now go to League → Rules opened and scrolled to **J. Keeper Rules** instead of a separate pop-up summary (removed). Opened that way, the Rules page's back button says ‹ Back and returns where you came from.
 - 2026-11-28 · v0.30.0 (backend v0.25.0) · 🛠️ **Ops desk reorganized + every robot explains itself** (Mike: "jammed up… bring my attention where it needs to be").

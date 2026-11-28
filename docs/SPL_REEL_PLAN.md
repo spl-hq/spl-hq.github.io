@@ -6,6 +6,11 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 (`maffl-commish/maffl` → `_ops/docs/REEL.md`, `APP_DESIGN.md`, `REEL_OPERATIONS.md`, `REEL_SERIES.md`, `TRADE_CENTER_DESIGN.md`).
 
 ## 0. Decisions (newest on top)
+- **2026-11-28 · Rules → Constitution; dates live only on the SPL Calendar** (Mike). Constitution §B is now a pointer to the calendar;
+  its pick-trading windows moved to §D (picks trade only in the Off-Season). §D is flagged incomplete: the full trade rules
+  (review process, trade exceptions) get written in when Joe shares his latest files. **Before trades go live:** the app must
+  block draft picks in in-season trades (today `mod_trades.js` doesn't check the phase), and `BLOCK_DEADLINE` gets turned on.
+
 - **2026-11-28 · Ops desk = Needs you first, then groups; every robot has a page** (Mike). One 🤖 System & robots section (health + robots + app);
   tap any robot (GitHub or backend) for what it does and what it did each run. Joe's view on Mike's phone shows Joe's Desk number exactly as Joe sees it.
   A new robot needs its plain-English `does/when/reads/writes` + commit `msg` in `ROBOTS` (mod_ops.js), or a `JOBS` entry for a backend one.
