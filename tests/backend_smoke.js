@@ -22,7 +22,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? "ok   " : "FAIL ") + m); 
 function makeEnv(props, espn) {
   const sheets = {}, mails = [], cache = {}, alerts = [];
   const mkSheet = (name) => ({ name, rows: [], appendRow(r) { this.rows.push(r); }, setFrozenRows() {}, deleteRow(i) { this.rows.splice(i - 1, 1); },
-    getRange(r, c, nr, nc) { const s = this; return { setValues(v) { const row = (s.rows[r - 1] || []).slice(); v[0].forEach((x, i) => { row[c - 1 + i] = x; }); s.rows[r - 1] = row; } }; },
+    getRange(r, c, nr, nc) { const s = this; return { setValues(v) { v.forEach((vr, j) => { const row = (s.rows[r - 1 + j] || []).slice(); vr.forEach((x, i) => { row[c - 1 + i] = x; }); s.rows[r - 1 + j] = row; }); } }; },
     getLastColumn() { return this.rows[0] ? this.rows[0].length : 0; },
     getLastRow() { return this.rows.length; }, getName() { return this.name; },
     getDataRange() { const s = this; return { getValues() { return s.rows.map(r => r.slice()); } }; } });
@@ -592,6 +592,22 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
   ok(x.ok && /^T\d+$/.test(st1) && w.post({ action: "me", token: wm }).tour === "", "replay for one owner stamps only him");
   x = w.post({ action: "tour", token: wm, target: "*" }); const st2 = w.post({ action: "me", token: wm }).tour;
   ok(x.ok && x.n > 0 && /^T\d+$/.test(st2) && w.post({ action: "me", token: joeT }).tour === st2, "replay for everyone stamps every owner");
+  // 👀 usage: any owner posts what he opened/tapped; ops reads it; first open emails ops once; typed junk is dropped
+  const t0 = Date.now(), nm = w.mails.length;
+  x = w.post({ action: "track", token: joeT, ev: [{ k: "open", w: "app", t: t0 - 9000 }, { k: "view", s: "home", n: 42, t: t0 - 8000 }, { k: "tap", w: "Keepers", s: "team", t: t0 - 5000 }, { k: "view", s: "team", n: 30, t: t0 - 4000 }, { k: "evil", w: "x" }, { k: "tap", w: "=HYPERLINK(1)", s: "home" }] });
+  ok(x.ok && x.n === 5, "track stores the known kinds only");
+  ok(w.mails.length === nm + 1 && /Joe just opened/.test(w.mails[nm].s), "first open emails ops");
+  w.post({ action: "track", token: joeT, ev: [{ k: "open", w: "app" }] }); ok(w.mails.length === nm + 1, "…only once");
+  ok(w.post({ action: "usage", token: joeT }).ok === false, "usage is ops only");
+  x = w.post({ action: "usage", token: wm }); const uj = x.owners.filter(u => u.owner === "reilly")[0];
+  ok(x.ok && uj && uj.opens === 2 && uj.min === 1.2 && uj.taps === 2 && uj.screens[0].s === "home" && uj.tapped.some(t => t.w === "team · Keepers") && x.never.some(o => o.owner === "glen"), "Ops desk usage: visits, minutes, top screens + taps, never opened");
+  ok(w.sheets.Usage.rows.some(r => r[3] === "'=HYPERLINK(1)"), "usage rows are formula-guarded");
+  { const U = w.sheets.Usage.rows, yd = new Date(Date.now() - 5 * 3.6e6 - 864e5); yd.setUTCHours(17);
+    U.splice(1, 0, [new Date(Date.now() - 200 * 864e5), "reilly", "open", "app", "", 0]); U.push([new Date(yd.getTime() + 5 * 3.6e6), "reilly", "view", "", "match", 300]);
+    delete w.props.USAGE_DIGEST; const nd = w.mails.length; w.M.tick();
+    ok(!U.some(r => r[0] instanceof Date && r[0].getTime() < Date.now() - 150 * 864e5), "usage robot trims rows past 120 days");
+    const late = new Date(Date.now() - 5 * 3.6e6).getUTCHours() >= 7;
+    ok(!late || w.mails.slice(nd).some(m => /who was in yesterday/.test(m.s) && /Joe: .*5 min.*match 5m/.test(m.b)), "morning digest of yesterday's visits (after 7 AM ET)"); }
   GH.code = 401; x = w.post({ action: "opsx", token: wm, run: "tick" });
   ok(/401/.test(x.robots.list[0].error), "GitHub token refused shows on the desk");
   reset();

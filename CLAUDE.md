@@ -28,7 +28,7 @@ The site keeps itself current: anything that changes with the season gets a robo
 or the Apps Script backend, is safe to re-run, shows its last run on the 🛠️ Ops desk, and fails loudly (GitHub emails the org owner
 on a failed Action; backend problems email ops). When you add data that goes stale, add its robot in the same change.
 **Watchdog** (`backend/mod_ops.js`, hourly Apps Script `tick`): reads every robot's runs from GitHub (`GH_TOKEN`), runs one GitHub's schedule skipped, daily Sheet backup to the ops inbox, Pages/cookie/token/Sheet checks, emails ops on change; 🤖 card on the Ops desk. **New robot = add it to `ROBOTS` in mod_ops.js in the same change.**
-Current robots: `checks.yml` (CI: backend syntax/size + smoke test + app check on every push); `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (daily: ESPN finals → `data/SPL_Matchups.csv`, games still to play → `data/SPL_Schedule.csv` → `league-data.js`); `espn-archive.yml` (weekly + on script/registry change: everything ESPN keeps about past seasons → `data/ESPN_Draft_Boards.csv`, `ESPN_Season_Teams.csv`, `ESPN_Season_Rosters.csv`, `ESPN_Transactions.csv`, report `docs/ESPN_ARCHIVE_REPORT.md`); `card-lines.yml` (after each history pull: Claude writes the reel card lines for the newest final week → `data/Card_Lines.json`, once per week; nothing without `CLAUDE_CODE_OAUTH_TOKEN`);
+Backend tick also runs the 👀 usage upkeep (first-open email, 7 AM recap, 120-day trim; `mod_usage.js`). Current robots: `checks.yml` (CI: backend syntax/size + smoke test + app check on every push); `build-data.yml` (any push touching `data/` → rebuild `league-data.js`); `espn-history.yml` (daily: ESPN finals → `data/SPL_Matchups.csv`, games still to play → `data/SPL_Schedule.csv` → `league-data.js`); `espn-archive.yml` (weekly + on script/registry change: everything ESPN keeps about past seasons → `data/ESPN_Draft_Boards.csv`, `ESPN_Season_Teams.csv`, `ESPN_Season_Rosters.csv`, `ESPN_Transactions.csv`, report `docs/ESPN_ARCHIVE_REPORT.md`); `card-lines.yml` (after each history pull: Claude writes the reel card lines for the newest final week → `data/Card_Lines.json`, once per week; nothing without `CLAUDE_CODE_OAUTH_TOKEN`);
 `ledger-sync.yml` (every 2 h: backend `?action=ledger` → `data/Draft_Pick_Ownership.csv`, `data/Trade_Log.csv`, keeper contracts follow
 traded players in `data/Keeper_Contracts.csv`, finished drafts (Divisional, Slot, Shoot Out) → `data/Offseason_Drafts.csv`, the finished live SPL Draft board → `data/Draft_Picks.csv` (rows marked `app <id>`), final Signing Day declarations → `data/Keeper_Declarations.csv` + new contracts/terminations in `data/Keeper_Contracts.csv` (live only); test mode / rehearsals write `data/test/` instead). League rules the robots and app follow
 (pick seasons, contracts travel/reset) come from Joe's answers in the app via backend `rules_()`; defaults until he answers.
@@ -47,7 +47,7 @@ Never hand-edit robot-written gold: fix at the source (the app) and let the robo
 - Every Sheet write is formula-guarded (`safe_`). Every user string rendered in the app is escaped (`esc`).
 - Structural layout changes (tabs, navigation, page architecture) need Mike's OK. Content inside existing elements doesn't.
 - Keep each backend file under ~90 KB (Apps Script cache limit). The backend is split MAFFL-style: `logic.js` (core) evaluates
-  `PARTS` (`mod_espn`, `mod_social`, `mod_trades`, `mod_drafts`, `mod_spldraft`, `mod_ops`, `mod_keepers`) in its own scope; new areas get their own `mod_*.js` + a PARTS entry.
+  `PARTS` (`mod_espn`, `mod_social`, `mod_trades`, `mod_drafts`, `mod_spldraft`, `mod_ops`, `mod_keepers`, `mod_usage`) in its own scope; new areas get their own `mod_*.js` + a PARTS entry.
 
 ## Look and feel — "Nittany" (Penn State blue + white, Mike 11/25; replaced Stadium Lights)
 Nittany Navy `#041E42` (header bar, headings feel) · Beaver Blue `#1E407C` (buttons, accents, wins, your stuff) ·
@@ -68,7 +68,7 @@ manifest.json sw.js   Home Screen install + offline cache (never caches the back
 icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)
 backend/logic.js      backend core: config, routing, Sheet helpers, sign-in, questions, health; loads the parts (pushed = deployed)
-backend/mod_*.js      backend parts: espn (reads + guarded writes), social (chat, reactions, votes, settings), trades, drafts (engine), spldraft (SPL Draft board + player pool), ops (watchdog, backup, robot status), keepers (Signing Day) (pushed = deployed)
+backend/mod_*.js      backend parts: espn (reads + guarded writes), social (chat, reactions, votes, settings), trades, drafts (engine), spldraft (SPL Draft board + player pool), ops (watchdog, backup, robot status), keepers (Signing Day), usage (👀 who opens/taps what) (pushed = deployed)
 tests/                backend_smoke.js (mocked Apps Script, loads the parts from the working tree) · app_check.js (inline scripts compile)
 docs/MAFFL_PARITY.md  WS6: what to port MAFFL → SPL and hand back SPL → MAFFL
 data/                 gold: Keeper_Contracts, Owner Registry, SPL_Matchups (robot), Draft_Picks, SPL_Rulebook.md,

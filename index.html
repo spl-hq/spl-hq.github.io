@@ -541,7 +541,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.16";
+var APP_VERSION = "0.26.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -647,7 +647,7 @@ function authed(action, body) {
   return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
 }
 function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; if (r.handles) setHandles(r.handles); paintMe(); }
-function signOut(quiet) { try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("spl_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
+function signOut(quiet) { uvEnd(); uvFlush(true); store("uq", null); UV.opened = 0; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("spl_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
 function fullOf(id) { var o = (window.LEAGUE_DATA && LEAGUE_DATA.owners || []).filter(function (x) { return x.id === id; })[0]; return o && o.full; } // Owner Registry canonical_name
 function initials() { // Michael Murello → MM
   var w = String(fullOf(ME.owner) || ME.name || "").trim().split(/\s+/);
@@ -667,6 +667,35 @@ function flushOutbox() { // chat typed offline never reached the backend, so sen
     };
   next();
 }
+// ---- 👀 Usage (Mike 11/28: see what Joe opens and taps). First-party only: signed-in owners' screen visits (with time on them) and
+// button/chip/link taps queue on the phone and post to our own backend ("track") every minute and when the app goes to the background.
+// Never typed text, never anything for a signed-out visitor. Ops reads it on the Ops desk → 👀 Who's using it (mod_usage.js).
+var UV = { s: "", at: 0, opened: 0, away: 0 };
+function uvPush(e) {
+  if (!ME || !API_URL) return; var q = store("uq") || [], now = Date.now();
+  if (!UV.opened) { UV.opened = 1; q.push({ k: "open", w: navigator.standalone || matchMedia("(display-mode: standalone)").matches ? "app" : "browser", t: now }); setTimeout(uvFlush, 4000); }
+  e.t = e.t || now; q.push(e); store("uq", q.slice(-300));
+}
+function uvEnd() { if (UV.s && UV.at) { var n = Math.round((Date.now() - UV.at) / 1000); if (n >= 1) uvPush({ k: "view", s: UV.s, n: Math.min(n, 3600), t: UV.at }); } UV.at = 0; }
+function uvView(s) { if (s === UV.s && UV.at) return; uvEnd(); UV.s = s; UV.at = document.hidden ? 0 : Date.now(); }
+function uvFlush(leaving) {
+  var q = store("uq") || [], tok = store("token"); if (!q.length || !tok || !API_URL || !navigator.onLine || uvFlush.busy) return;
+  var batch = q.slice(0, 60), drop = function () { store("uq", (store("uq") || []).slice(batch.length)); };
+  var req = fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, keepalive: !!leaving, body: JSON.stringify({ action: "track", token: tok, ev: batch }) });
+  if (leaving) { drop(); req.catch(function () {}); return; } // the page may be gone before the answer
+  uvFlush.busy = true; req.then(function (r) { return r.json(); }).then(function (r) { if (r && r.ok) drop(); }).catch(function () {}).then(function () { uvFlush.busy = false; });
+}
+document.addEventListener("click", function (e) {
+  var el = e.target && e.target.closest && e.target.closest("button,a,summary,.chip,[onclick],[role=button]"); if (!el || !ME) return;
+  var w = String(el.getAttribute("aria-label") || el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 40); if (w) uvPush({ k: "tap", w: w, s: UV.s });
+}, true);
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) { uvEnd(); UV.away = Date.now(); uvFlush(true); return; }
+  if (UV.away && Date.now() - UV.away >= 18e5) UV.opened = 0; // back after 30+ min = a new visit
+  UV.at = Date.now();
+});
+window.addEventListener("pagehide", function () { uvEnd(); uvFlush(true); });
+setInterval(function () { if (!document.hidden) uvFlush(); }, 60000);
 function needSignIn(what) {
   return '<div class="card"><div class="eyebrow">🔑 Owners only</div><h3>Sign in ' + what + '</h3><p>Use the passphrase the commish sent you.</p>' +
     '<p style="margin-top:12px"><button class="btn" onclick="go(\'signin\')">Sign in</button></p></div>';
@@ -697,6 +726,7 @@ function render() {
   clearTimers(); var shx = document.getElementById("sheet"); if (shx) shx.remove();
   var h = (location.hash || "#home").slice(1).split("="), name = h[0] || "home", arg = h[1];
   if (!SCREENS[name]) name = "home";
+  uvView(name); // 👀 first, so a screen that errors still counts
   var tab = name === "keepers" && ME && (!arg || arg === ME.owner || /^@|!$/.test(arg)) ? "team" : TAB_OF[name]; // your keepers = your GM desk
   document.querySelectorAll("#tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === tab); });
   var dk = $("#deskBtn"); if (dk) dk.classList.toggle("on", name === "desk" || name === "ops" || name === "joe");
@@ -3277,6 +3307,7 @@ SCREENS.ops = function () {
   return deskTop("ops") +
     '<div id="issued"></div>' +
     '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
+    opsSec("usage", "👀 Who's using it", "opsUse", load, "…") +
     opsSec("drafts", "🗓️ Drafts", "opsDr", '<p class="muted">Loading drafts…</p>', "…") +
     opsSec("keep", "🔒 Keeper Signing Day", "opsKp", '<p class="muted">Loading…</p>', "…") +
     opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
@@ -3362,6 +3393,37 @@ function tlMirror(d) {
       .catch(function (e) { prog('<span class="coral">Stopped: ' + esc(e.message) + '</span>'); if (b) b.disabled = false; });
   })(0);
 }
+// 👀 Who's using it (Mike 11/28): per owner, last seen, visits + minutes (7 / 30 days), where the time goes, what gets tapped, and a
+// timeline of the latest 40 things. Ops' own rows sit last as "(you)". Fed by action "usage" (mod_usage.js); ops also gets an email
+// the first time each owner opens the app and a morning recap of yesterday.
+var SCR_NAME = { home: "Home", match: "Match", team: "Team", chat: "Chat", league: "League", standings: "Standings", keepers: "Keepers", trades: "Trades", trade: "Trade builder",
+  droom: "Draft room", calendar: "SPL Calendar", offseason: "SPL Calendar", history: "History", rules: "Rules", gm: "GM Report", desk: "Commish desk", ops: "Ops desk", joe: "Questions",
+  signin: "Sign in", you: "You", settings: "Settings", feedback: "Ideas", rivalry: "Rivalry", draft: "Draft boards" };
+function scrName(s) { return SCR_NAME[s] || (s ? s.charAt(0).toUpperCase() + s.slice(1) : "?"); }
+function durTxt(sec) { sec = Number(sec) || 0; return sec < 60 ? sec + "s" : sec < 3600 ? Math.round(sec / 60) + "m" : (Math.round(sec / 360) / 10) + "h"; }
+function loadUsage() {
+  authed("usage", { days: 30 }).then(function (d) {
+    if (!d.ok) throw new Error(d.error); var el = $("#opsUse"); if (!el) return;
+    var them = d.owners.filter(function (u) { return !u.ops; }), top = them[0];
+    opsBadge("opsUse", top ? top.name + " · " + ago(top.last) : "no one yet", top ? "ok" : "confirm");
+    el.innerHTML = '<div class="muted" style="font-size:12px">Last 30 days, signed-in owners only: screens opened (and for how long) and buttons tapped. You get an email the first time each owner opens it, and a morning recap of yesterday.</div>' +
+      (d.owners.length ? d.owners.map(function (u) {
+        var when = function (t) { return new Date(t).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }); };
+        return '<details class="kv" style="display:block"><summary style="cursor:pointer"><b>' + esc(u.name) + '</b>' + (u.ops ? ' <small class="muted">(you)</small>' : '') +
+          ' <small class="muted">· last seen ' + ago(u.last) + '</small><br><small>This week: <b>' + u.opens7 + '</b> visit' + (u.opens7 === 1 ? '' : 's') + ' · <b>' + u.min7 + '</b> min</small>' +
+          '<br><small class="muted">30 days: ' + u.opens + ' visits · ' + u.min + ' min · ' + u.activeDays + ' day' + (u.activeDays === 1 ? '' : 's') + ' · ' + u.taps + ' taps</small></summary>' +
+          (u.screens.length ? '<div class="eyebrow" style="margin-top:10px">Where the time goes</div>' + u.screens.map(function (s) {
+            return '<div class="kv" style="font-size:13px"><span>' + esc(scrName(s.s)) + '</span><span>' + s.v + '× · ' + durTxt(s.sec) + '</span></div>'; }).join("") : '') +
+          (u.tapped.length ? '<div class="eyebrow" style="margin-top:10px">What gets tapped</div>' + u.tapped.map(function (t) {
+            var p = t.w.split(" · "), sc = p.length > 1 ? p.shift() : ""; return '<div class="kv" style="font-size:13px"><span>' + esc(p.join(" · ")) + (sc ? ' <small class="muted">on ' + esc(scrName(sc)) + '</small>' : '') + '</span><span>' + t.n + '×</span></div>'; }).join("") : '') +
+          '<div class="eyebrow" style="margin-top:10px">Latest</div>' + u.recent.slice(0, 40).map(function (r) {
+            var what = r.k === "open" ? '🚪 Opened SPL HQ' + (r.w === "browser" ? ' <small class="muted">(browser)</small>' : '') : r.k === "view" ? '👁 ' + esc(scrName(r.s)) + (r.n ? ' <small class="muted">' + durTxt(r.n) + '</small>' : '') : '👆 ' + esc(r.w) + ' <small class="muted">on ' + esc(scrName(r.s)) + '</small>';
+            return '<div style="font-size:12px;padding:2px 0"><span class="muted" style="display:inline-block;min-width:92px">' + esc(when(r.t)) + '</span>' + what + '</div>'; }).join("") +
+          '</details>';
+      }).join("") : '<p style="margin:8px 0 0">Nobody has opened it signed in yet.</p>') +
+      (d.never.length ? '<div class="kv" style="display:block;font-size:13px"><span class="muted">Not in yet:</span> ' + d.never.map(function (o) { return esc(o.name) + (o.hasPass ? '' : ' <small class="muted">(no passphrase)</small>'); }).join(", ") + '</div>' : '');
+  }).catch(function (e) { var el = $("#opsUse"); if (el) el.innerHTML = '<p class="coral">' + esc(e.message) + '</p>'; opsBadge("opsUse", "error", "stale"); });
+}
 function loadDesk() {
   authed("desk").then(function (d) {
     if (!d.ok) throw new Error(d.error);
@@ -3417,7 +3479,7 @@ function loadRobots(run) {
 window.loadRobots = loadRobots;
 SCREENS.ops.after = function () {
   if (!$("#opsHealth")) return;
-  loadDesk(); loadTL(); loadRobots(); deskDraftsFill("#opsDr");
+  loadDesk(); loadTL(); loadRobots(); loadUsage(); deskDraftsFill("#opsDr");
   loadKeep(true).then(function () { var k = $("#opsKp"); if (!k) return; k.innerHTML = kdeskBody(false); var st = kdeskState(false); opsBadge("opsKp", st.badge, st.cls); }).catch(function () {});
   var bad = 0, ok = function (b, t) { if (!b) bad++; return '<span class="' + (b ? "lime" : "coral") + '">' + (b ? "✅ " : "❌ ") + esc(t) + '</span>'; };
   api("health").then(function (h) {

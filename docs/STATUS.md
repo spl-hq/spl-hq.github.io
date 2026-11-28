@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26: 🏷️ trade block + roster rows that say how you got him; backend v0.19.0)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.2: 👀 usage tracking; before it v0.26 trade block)
 
 
 ## Now
@@ -33,6 +33,14 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.2 (backend v0.20.0) · 👀 **Who's using it** (Mike: "monitor Joe's usage, what he's clicking"). First-party, no Google
+  Analytics (CLAUDE.md: no third-party scripts; and since everyone signs in, our own log already knows it's Joe). App: each screen visit
+  (with seconds on it) and every button/chip/link tap queue on the phone (never typed text, never signed-out visitors) and post as one
+  `track` call a minute + one on going to the background (keepalive). One capture click listener, nothing on the render path, so no
+  speed cost. Backend `mod_usage.js`: new Sheet tab `Usage` (ts, who, kind, what, where, n), one Sheet write per batch, `track` skips the
+  script lock and the send limit. **Ops desk → 👀 Who's using it** (first section): per owner last seen, visits + minutes this week / 30
+  days, where the time goes, what gets tapped, the latest 40 things; "Not in yet" list. **Robot (hourly tick):** ops emailed the first
+  time each owner opens the app, a 7 AM ET recap of yesterday (non-ops, nothing on a quiet day), rows past 120 days trimmed. SW `splhq-v82`.
 - 2026-11-28 · v0.26.1 · Roster rows: dropped "Joe's pick" (whose slot) from the drafted line, too much noise (Mike). SW `splhq-v81`.
 - 2026-11-28 · v0.26 · backend v0.19.0 · 🏷️ **Trade block + roster rows rethought** (Mike). Roster rows drop season total points (useless) and
   keep **Avg** with the player's **position rank** under it (QB3, WR1: by pts/game across every SPL roster). The "Drafted / Waiver" line now says
