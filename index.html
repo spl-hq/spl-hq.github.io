@@ -552,7 +552,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.26.7";
+var APP_VERSION = "0.27.0";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -643,6 +643,7 @@ function load(action, maxAgeMs) {
 
 // ---- session: passphrase once → device token kept on this phone (a new passphrase signs old phones out)
 var ME = store("me"), MY = {};
+var PHASE = store("phase") || { phase: "season" }; // 🍂 season / off-season (see offSeason())
 function isRole(r) { return !!ME && String(ME.role || "").split(/[,\s]+/).indexOf(r) >= 0; }
 function isDesk() { return isRole("commish") || isRole("ops"); }
 // 📥/🛠️ Desks live behind the login (WS1, Mike 11/26), not in League. Joe (commish) → Commish desk. Mike (ops) → Ops desk + Joe's view.
@@ -779,6 +780,11 @@ function buildFeed(d) {
   // ⚡ Needs you
   if (!ME) cards.push({ id: "signin", needs: 1, scope: "league", eb: "🔑 SPL owners", title: "Sign in", body: '<p>Got a passphrase from the commish? Sign in once on this phone and Home becomes yours: your game, your team, your trades.</p>', action: ["Sign in", "go('signin')"] });
   if (ME) draftCards(d.drafts, me).forEach(function (c) { cards.push(c); });
+  // 🍂 The off-season switch (Mike 11/28): preview banner (ops, this phone), the desk nudge once the Bowl is final, and the league's "it's open" card.
+  if (phasePreview() && PHASE.phase !== "offseason") cards.push({ id: "phprev", needs: 1, scope: "me", eb: "👁️ Preview", title: "Off-season preview", body: '<p>Only this phone sees the off-season. Everyone else is still in season.</p>', action: ["Stop previewing", "phasePrev()"] });
+  if (isDesk() && PHASE.phase !== "offseason" && bowlFinal()) cards.push({ id: "phready", needs: 1, scope: "me", eb: isOps() ? "🛠️ Ops desk" : "📥 Commish desk", title: "Ready for the off-season?", body: '<p>The SPL Bowl is final. One tap on your desk switches every tab to keepers, picks and the off-season calendar for everyone.</p>', action: ["Open the desk", isOps() ? "go('ops')" : "go('desk')"] });
+  if (PHASE.phase === "offseason" && PHASE.at && Date.now() - new Date(PHASE.at).getTime() < 14 * 864e5) cards.push({ id: "phopen:" + PHASE.at, at: PHASE.at, scope: "league", eb: "🍂 The off-season", title: "The " + nextSeason() + " off-season is open",
+    body: '<p>Keepers, picks and the off-season calendar lead every tab now. Next up below.</p>', action: ["SPL Calendar", "go('offseason')"] });
   var pc = phaseCard(d.drafts, me); if (pc) cards.push(pc);
   var kd = keeperDeadlineCard(me); if (kd) cards.push(kd);
   var kb = keeperBoardCard(me); if (kb) cards.push(kb);
@@ -941,10 +947,21 @@ function soon(title, what) {
 var WEEK = null;
 SCREENS.match = function (arg) {
   if (!ME) return '<h2>Match</h2>' + needSignIn("to see your matchup");
+  if (offSeason() && (arg == null || arg === "")) return matchRecap();
   return '<h2>Match</h2><div id="mt"><div class="card"><p class="muted">Loading from ESPN…</p></div></div><div id="mtst" class="card"><p class="muted">Standings loading…</p></div>';
 };
+// 🍂 Off-season Match (Mike 11/28): the season in the books (champion, runner-up, your finish), the playoff page one tap away, final standings below.
+function matchRecap() {
+  var y = curSeason(), h = histOf(y), me = ME.owner, mt = h ? h.teams.filter(function (t) { return t[0] === me; })[0] : null, i = h && mt ? h.teams.indexOf(mt) : -1;
+  return '<h2>Match</h2><div class="card lead"><div class="eyebrow">🏁 The ' + y + ' season is in the books</div>' +
+    (h && h.champ ? '<h2 style="margin:4px 0 2px;color:#fff">🏆 ' + esc(teamIn(h, h.champ)) + '</h2><p style="margin:0">' + esc(oname(h.champ)) + ' is the SPL champion' + (h.runner ? '. Runner-up: ' + esc(teamIn(h, h.runner)) + ' (' + esc(oname(h.runner)) + ')' : '') + '.</p>'
+      : '<p style="margin:4px 0 0">Final standings below.</p>') +
+    (mt ? '<p style="margin:8px 0 0"><b>You:</b> ' + mt[2] + '–' + mt[3] + (mt[4] ? '–' + mt[4] : '') + ', ' + ordn(i + 1) + ' of ' + h.teams.length + (mt[9] && FIN_TXT[mt[9]] ? ' · ' + esc(FIN_TXT[mt[9]]) : '') + '</p>' : '') + '</div>' +
+    '<div class="row" style="margin:0 0 12px"><button class="btn" style="flex:1" onclick="go(\'history\',\'' + y + '\')">🏆 Playoffs + the ' + y + ' season</button><button class="btn ghost" style="flex:1" onclick="go(\'match\',' + regWks() + ')">Browse the weeks</button></div>' +
+    '<div id="mtst" class="card"><p class="muted">Standings loading…</p></div>';
+}
 SCREENS.match.after = function (arg) {
-  if (!$("#mt")) return;
+  if (!$("#mt")) { if ($("#mtst")) fillStand("#mtst"); return; }
   fillStand("#mtst");
   var parts = String(arg || "").split(":"), wk = Number(parts[0]) || null, gi = parts[1] != null && parts[1] !== "" ? Number(parts[1]) : null;
   var draw = function (d) {
@@ -1049,7 +1066,7 @@ SCREENS.team = function (arg) {
       '<button class="btn ghost" onclick="go(\'keepers\',\'' + id + '\')">🔒 Keepers</button></div><div id="ct"></div>';
   var others = '<div class="card"><div class="eyebrow">👀 Other teams</div><select style="width:100%" onchange="if(this.value)go(\'team\',this.value)"><option value="">Look at another roster…</option>' +
     OWNERS.filter(function (x) { return x.id !== id; }).map(function (x) { return '<option value="' + x.id + '">' + esc(x.name) + ' · ' + esc(x.team) + '</option>'; }).join("") + '</select></div>';
-  return top + '<div id="tm"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>' + others;
+  return top + (mine && offSeason() ? '<div id="tmoff"></div>' : '') + '<div id="tm"><div class="card"><p class="muted">Loading from ESPN…</p></div></div>' + others;
 };
 // Keepers tile line: Signing Day first (declare / declared), else your current plan's room.
 function teamKeepTxt() {
@@ -1079,6 +1096,7 @@ function gmBar(on) {
   var it = [["team", "🏈", "Roster", sd ? sd.ppg.toFixed(1) + " pts/wk" : "Your roster", "Injury report…", "gmR"],
     ["trades", "🔁", "Trades", "Offers…", dlt, "gmT"],
     ["keepers", "🔒", "Keepers", k.t, k.needs ? "Signing Day is open" : sdt, "gmK"]];
+  if (offSeason()) it = [it[2], it[1], it[0]]; // 🍂 off-season: keepers lead the desk (Mike 11/28)
   return '<div class="gmhd"><div class="eyebrow">GM desk · ' + esc(o.name || "") + '</div><h2 class="gmteam">' + esc(o.team || "") + '</h2>' +
     (sd ? '<div class="gmline"><b>' + sd.rec + '</b><span>' + ordn(sd.rank) + ' of ' + sd.n + '</span><span>' + ordn(sd.drank) + ' ' + esc(sd.div || "") + '</span>' + (sd.streak ? '<span class="' + (sd.streak[0] === "W" ? "w" : "l") + '">' + sd.streak + '</span>' : '') +
       (nx ? '<span>Wk ' + nx.wk + ' vs ' + esc(oname(nx.opp)) + '</span>' : '') + '</div>' : '') + '</div>' +
@@ -1098,7 +1116,22 @@ function gmFill() {
       pk = t.picks.filter(function (p) { return p.owner === me; }).length;
     set("gmT", inb ? inb + " need" + (inb > 1 ? "" : "s") + " you" : out ? out + " open · " + pk + " picks" : pk + " picks · no offers", null, inb > 0); }).catch(function () { set("gmT", "Offers + picks"); });
 }
+// 🍂 Off-season Team (Mike 11/28): your keepers (room, count, Signing Day) and the picks you own lead, roster below.
+function teamOffFill() {
+  var el = $("#tmoff"); if (!el) return;
+  var me = ME.owner, sg = signingDay(), pk = null, draw = function () { if (!$("#tmoff")) return; var k = teamKeepTxt(), picks = pk;
+    $("#tmoff").innerHTML = '<div class="card' + (k.needs ? " needsb" : "") + '"><div class="eyebrow">🍂 Your ' + sg.y + ' off-season</div>' +
+      '<div class="kv"><span>🔒 Keepers</span><b class="' + (k.needs ? "gold" : "") + '">' + esc(k.t) + '</b></div>' +
+      '<div class="kv"><span>🗓️ Signing Day</span><span>' + (sg.date ? esc(fmtDate(sg.date).replace(/, \d{4}$/, "")) + ' · ' + esc(untilTxt(sg.date)) : "Date to be set") + '</span></div>' +
+      '<div class="kv" style="display:block"><span>🎟️ Your picks</span><div style="margin-top:6px">' + (picks == null ? '<small class="muted">Loading…</small>' : picks.length ? picks.map(function (p) {
+        return '<span class="ticket" style="margin:0 4px 4px 0;display:inline-block">\'' + String(p.season).slice(2) + ' R' + p.round + (p.original !== me ? ' · ' + esc(oname(p.original)) : '') + '</span>'; }).join("") : '<small class="muted">No picks on file.</small>') + '</div></div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn" style="flex:1" onclick="go(\'keepers\')">🔒 Plan keepers</button><button class="btn ghost" style="flex:1" onclick="go(\'trades\')">🔁 Trades</button></div></div>'; };
+  draw();
+  loadKeep().then(draw).catch(function () {});
+  loadTrades().then(function (t) { pk = (t.picks || []).filter(function (p) { return p.owner === me; }).sort(function (a, b) { return a.season - b.season || a.round - b.round; }); draw(); }).catch(function () { pk = []; draw(); });
+}
 SCREENS.team.after = function (arg) {
+  teamOffFill();
   if (!$("#tm")) return;
   var id = arg || ME.owner, o = owner(id) || {};
   var draw = function (d) {
@@ -1433,6 +1466,23 @@ SCREENS.trade.after = function (arg) {
 };
 // 📥 Commish desk (Joe; Mike sees it as "Joe's view"). Mike 11/27: same folding sections as the Ops desk, the full 🗓️ Drafts controls, and none of
 // the backend: no rehearsals, robots, watchdog, test switches or tour here (those live on the 🛠️ Ops desk). A section that needs Joe opens itself.
+// 🍂 Season / off-season switch (Mike 11/28): same card on the Commish desk and the Ops desk. Gold nudge once the SPL Bowl is final;
+// nothing changes until someone taps. Ops also gets 👁️ Preview (this phone only).
+function phaseSec(ops) {
+  var off = PHASE.phase === "offseason", ready = !off && bowlFinal(), when = PHASE.at ? new Date(PHASE.at).toLocaleDateString([], { month: "short", day: "numeric" }) : "";
+  var body = '<p style="margin:0 0 10px">' + (off ? '🍂 <b>Off-season</b>' + (PHASE.by ? ' since ' + esc(when) + ' · flipped by ' + esc(oname(PHASE.by)) : '') + '. Every tab leads with keepers, picks and the off-season calendar.'
+      : '🏈 <b>In season.</b> ' + (ready ? '<span class="gold"><b>The SPL Bowl is final. Ready to switch to the off-season?</b></span>' : 'Switch when the season is over: every tab turns to keepers, picks and the off-season calendar for everyone the next time they open the app.')) + '</p>' +
+    '<button class="btn' + (off ? " ghost" : "") + '" style="width:100%" onclick="phaseFlip(\'' + (off ? "season" : "offseason") + '\')">' + (off ? "🏈 Back to the season" : "🍂 Switch to off-season") + '</button>' +
+    (ops ? '<p style="margin:12px 0 0"><button class="btn ghost" style="width:100%" onclick="phasePrev()">' + (phasePreview() ? "👁️ Stop previewing" : "👁️ Preview off-season (only this phone)") + '</button></p>' : '');
+  var badge = off ? "off-season" : ready ? "ready to switch" : phasePreview() ? "in season · previewing" : "in season", cls = ready ? "confirm" : "ok";
+  return ops ? opsSec("phase", "🍂 Season / off-season", "opsPh", body, badge, cls) : cSec("phase", "🍂 Season / off-season", "cPh", body, badge, cls, ready);
+}
+window.phaseFlip = function (to) {
+  if (!confirm(to === "offseason" ? "Switch SPL HQ to the off-season for everyone? Every tab changes the next time owners open the app, and league chat gets one line." : "Put SPL HQ back in season mode for everyone?")) return;
+  authed("setphase", { phase: to, season: nextSeason() }).then(function (r) { if (!r.ok) throw new Error(r.error); setPhase(r.phase); HOME_D = null;
+    toast(to === "offseason" ? "🍂 Off-season is on" : "🏈 Back in season"); render(); }).catch(function (e) { toast(e.message); });
+};
+window.phasePrev = function () { store("phasePreview", phasePreview() ? null : 1); HOME_D = null; toast(phasePreview() ? "👁️ Previewing the off-season on this phone" : "Preview off"); render(); };
 function cSec(k, title, id, body, badge, cls, force) {
   return opsSec("c_" + k, title, id, body, badge, cls).replace('data-k="c_' + k + '"' + (opsOpen()["c_" + k] ? " open" : ""), 'data-k="c_' + k + '"' + (force || opsOpen()["c_" + k] ? " open" : ""));
 }
@@ -1454,6 +1504,7 @@ SCREENS.desk.after = function () {
     html += cSec("review", "⏳ Trades to approve", "cRv", d.review.length ? d.review.map(function (o) { return offerCard(o).replace('<div class="card offer"', '<div class="card offer" style="border-color:var(--gold)"'); }).join("") : '<p class="muted" style="margin:0">Nothing waiting on ' + who + '.</p>',
       d.review.length ? d.review.length + " need" + (d.review.length > 1 ? "" : "s") + " " + who : "none waiting", d.review.length ? "confirm" : "ok", d.review.length > 0);
     if (d.espn.length) html += cSec("espn", "🏈 Do on ESPN", "cEs", '<p class="muted" style="margin:0 0 6px;font-size:13px">Approved trades the app couldn\'t move on ESPN by itself: make them in ESPN, then tap ✓ Done on ESPN.</p>' + d.espn.map(offerCard).join(""), d.espn.length + " to do", "confirm", true);
+    html += phaseSec(false);
     html += cSec("drafts", "🗓️ Drafts", "cDr", '<p class="muted">Loading drafts…</p>', "…");
     html += cSec("keep", "🔒 Keeper Signing Day", "cKp", '<p class="muted">Loading…</p>', "…");
     html += cSec("q", "📋 Questions", "cQ", '<p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + who + '.</p><p style="margin-top:10px"><button class="btn' + (qOpen > 0 && !isOps() ? "" : " ghost") + '" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p>',
@@ -2374,7 +2425,7 @@ function shootPreview(y) {
     (R.length ? '<div class="eyebrow" style="margin-top:6px">Rule 1 · set for them</div>' + R.map(function (p) { return '<div class="kv"><span style="text-align:left;flex:1"><b>' + esc(oname(p[0])) + '</b> vs <b>' + esc(oname(p[1])) + '</b><br><small class="muted">' + esc(p[2]) + '</small></span></div>'; }).join("") : '<p class="muted" style="font-size:12px">No Rule 1 matchups right now: everyone drafts.</p>') +
     '<div class="eyebrow" style="margin-top:8px">Pick order</div>' + S.filter(function (t) { return !fx[t.owner]; }).map(function (t, i) { return '<div class="kv"><span style="text-align:left;flex:1"><span class="muted" style="font:600 12px var(--mono)">' + (i + 1) + '</span> <b>' + esc(oname(t.owner)) + '</b><br><small class="muted">' + esc(t.label) + '</small></span></div>'; }).join("");
 }
-// Season phase for off-season mode: "season" · "shootout" (Week 13 final, Week 14 not) · "offseason" (SPL Bowl final: no games left on ESPN).
+// Season phase for off-season mode: "season" · "shootout" (Week 13 final, Week 14 not) · "offseason" (the desk switch, Mike 11/28; see offSeason()).
 var LIVE_SEASON = 2027; // SPL HQ goes live for the league after the 2026 season (Mike 11/27): in-season prompts to owners start then; desks see them now
 function seasonPhase() { if (offSeason()) return "offseason"; var y = curSeason(), f = lastFinal(y), r = regWks(); return f >= r - 1 && f < r ? "shootout" : "season"; }
 // The next off-season events with their dates (calendar), in order; past dates drop off.
@@ -2774,7 +2825,14 @@ function weekTue(season, n) { var d = new Date(Date.UTC(season, 8, 1, 12)); whil
   return d.getTime() + 8 * 864e5 + (n - 1) * 7 * 864e5; } // 2026: Tue Sep 15 = after Week 1
 function seriesOf(x) { return SERIES[String(x.id).split(":")[0]] || ["league", 9, ""]; }
 function curSeason() { var S = (window.LEAGUE_DATA || {}).schedule, ys = LD("seasons"); return (S && S.season) || ys[ys.length - 1] || 0; }
-function offSeason() { var S = (window.LEAGUE_DATA || {}).schedule; return !S || !S.games || !S.games.length; }
+// 🍂 Season phase (Mike 11/28): the off-season is a switch Joe or Mike flips on their desk, never automatic or date-based. The backend keeps
+// it (Script property PHASE); every phone reads it on open (`me` or GET ?action=phase), when it comes back to the foreground, and keeps the
+// last answer. Ops can preview the off-season on their own phone only (👁️ on the Ops desk).
+function phasePreview() { return isOps() && store("phasePreview") === 1; }
+function offSeason() { return phasePreview() || PHASE.phase === "offseason"; }
+function bowlFinal() { var S = (window.LEAGUE_DATA || {}).schedule; return !S || !S.games || !S.games.length; } // ESPN has no games left (the old automatic trigger: now only the desk nudge)
+function setPhase(p) { if (!p || !p.phase) return false; var ch = p.phase !== PHASE.phase; PHASE = p; store("phase", p); return ch; }
+function phaseRefresh() { return api("phase").then(function (r) { if (r && r.ok && setPhase(r.phase)) { HOME_D = null; render(); } }).catch(function () {}); }
 function gamesOf(season, wk) { return LD("games").filter(function (g) { return g[0] === season && (wk == null || g[1] === wk); }); }
 function lastFinal(season) { return gamesOf(season).reduce(function (m, g) { return Math.max(m, g[1]); }, 0); }
 function tableThru(season, wk) { // regular-season table from gold games through week wk: owner → {w,l,t,pf,res,rank,streak}
@@ -3096,7 +3154,7 @@ var INFO_TILES = [["offseason", "🗓️", "SPL Calendar", "Every date"], ["rule
 function lgTile(t) {
   return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span class="ti">' + t[1] + '</span><span class="tt"><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></span></button>';
 }
-// Off-season mode (Mike 11/27): the day ESPN has no games left (SPL Bowl final). No League hero for it (Mike 11/28).
+// Off-season mode: a desk switch (Mike 11/28: never automatic). No League hero for it.
 // The Shoot Out window (Week 13 final, Week 14 not) gets its own banner. Both come from gold history (daily robot), so nobody flips a switch.
 function phaseHero() {
   var ph = seasonPhase();
@@ -3107,15 +3165,22 @@ function phaseHero() {
 SCREENS.league = function () {
   return '<div class="lgx"><h2>League</h2>' + phaseHero() +
     '<div class="eyebrow">ℹ️ Info</div><div class="grid">' + INFO_TILES.map(lgTile).join("") + '</div>' +
-    '<div class="eyebrow">🗓️ Drafts</div><div id="lgdr" class="grid">' + DRAFT_BTNS.map(function (k) { return draftBtn(k, null); }).join("") + '</div>' +
+    '<div class="eyebrow">🗓️ Drafts</div><div id="lgdr" class="grid">' + draftBtns().map(function (k) { return draftBtn(k, null); }).join("") + '</div>' +
     '<div class="eyebrow">🏛️ The league</div><div class="grid">' + LEAGUE_TILES.map(lgTile).join("") + '</div>'  + '</div>';
 };
 // 🗓️ Drafts row: one button per draft, always in the same place (Mike 11/27: "once I leave a draft room I can't find my way back").
 // Each goes to the newest live draft of its kind (else the newest rehearsal, else the SPL Calendar); 🔴 = open now, gold = you're on the clock.
 var DRAFT_BTNS = [["spl", "📝", "SPL Draft"], ["div", "🧭", "Divisional"], ["slot", "🎰", "Slot Draft"], ["shootout", "🎯", "Shoot Out"]];
+// 🍂 Off-season (Mike 11/28): the Drafts row leads with the next draft and shows each one's date (SPL Calendar), Shoot Out last.
+var DRAFT_CAL = { spl: "spl_draft", div: "div_slot_drafts", slot: "div_slot_drafts", shootout: "shootout_draft" };
+function draftDate(k) { var c = calOf(nextSeason(), DRAFT_CAL[k[0]]); return c && c.date ? c.date : ""; }
+function draftBtns() {
+  if (!offSeason()) return DRAFT_BTNS;
+  return DRAFT_BTNS.slice().sort(function (a, b) { var x = a[0] === "shootout" ? "9" : draftDate(a) || "8", y = b[0] === "shootout" ? "9" : draftDate(b) || "8"; return x < y ? -1 : x > y ? 1 : 0; });
+}
 function draftBtn(k, D) {
   var ls = D ? D.drafts.filter(function (x) { return x.kind === k[0]; }) : [], pick = ls.filter(function (x) { return x.status === "open"; })[0] || ls.filter(function (x) { return x.mode === "live"; })[0] || ls[0];
-  var mine = pick && pick.status === "open" && ME && pick.clock === ME.owner, sub = !D ? (ME ? "…" : "Sign in") : !pick ? "Not open yet" :
+  var mine = pick && pick.status === "open" && ME && pick.clock === ME.owner, od = offSeason() && (!pick || pick.status !== "open") && draftDate(k), sub = od ? new Date(od + "T12:00").toLocaleDateString([], { month: "short", day: "numeric" }) + (Math.abs(dayDiff(od)) <= 30 ? " · " + untilTxt(od) : "") : !D ? (ME ? "…" : "Sign in") : !pick ? "Not open yet" :
     (pick.mode === "test" ? "🧪 " : "") + pick.season + " · " + (pick.status === "open" ? (mine ? "On the clock" : "🔴 " + oname(pick.clock) + " up") : "Final");
   return '<button class="tile"' + (mine ? ' style="border-color:var(--gold)"' : pick && pick.status === "open" ? ' style="border-color:var(--lime)"' : '') + ' onclick="' + (pick ? "go('droom','" + pick.id + "')" : "go('offseason')") + '"><span class="ti">' + k[1] + '</span><span class="tt"><b>' + k[2] + '</b><small' + (mine ? ' class="gold"' : '') + '>' + esc(sub) + '</small></span></button>';
 }
@@ -3123,7 +3188,7 @@ SCREENS.league.after = function () {
   if (!ME) return;
   loadDrafts().then(function (D) { var g = $("#lgdr"); if (!g) return;
     var extra = D.drafts.filter(function (x) { return !DRAFT_BTNS.some(function (k) { return k[0] === x.kind; }); });
-    g.innerHTML = DRAFT_BTNS.map(function (k) { return draftBtn(k, D); }).join("");
+    g.innerHTML = draftBtns().map(function (k) { return draftBtn(k, D); }).join("");
     var all = D.drafts.slice().sort(function (a, b) { return (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1) || new Date(b.updated || b.ts) - new Date(a.updated || a.ts); });
     if (all.length > 1) g.insertAdjacentHTML("afterend", '<details class="card lgall"><summary class="muted" style="cursor:pointer;font-size:13px">Every draft room (' + all.length + ')</summary>' + all.map(function (x) {
       return '<div class="kv" style="cursor:pointer" onclick="go(\'droom\',\'' + x.id + '\')"><span style="text-align:left;flex:1">' + (x.mode === "test" ? "🧪 " : "") + x.season + ' ' + esc(x.name) + '</span><span class="muted">' + (x.status === "open" ? "Live ›" : "Final ›") + '</span></div>'; }).join("") + '</details>');
@@ -3306,6 +3371,7 @@ SCREENS.ops = function () {
     '<div id="issued"></div>' +
     '<div class="row" style="justify-content:flex-end;margin:-4px 0 8px"><button class="chip" onclick="opsAll(true)">Open all</button><button class="chip" onclick="opsAll(false)">Close all</button></div>' +
     opsSec("usage", "👀 Who's using it", "opsUse", load, "…") +
+    phaseSec(true) +
     opsSec("drafts", "🗓️ Drafts", "opsDr", '<p class="muted">Loading drafts…</p>', "…") +
     opsSec("keep", "🔒 Keeper Signing Day", "opsKp", '<p class="muted">Loading…</p>', "…") +
     opsSec("health", "🩺 System &amp; robots", "opsHealth", '<p class="muted">Checking…</p>', "…") +
@@ -3607,7 +3673,9 @@ window.addEventListener("offline", function () { pingConn(); toast("You're offli
 window.addEventListener("online", function () { pingConn(); flushOutbox(); });
 paintMe(); render(); pingConn(); setTimeout(flushOutbox, 2500);
 setTimeout(function () { pollRooms().catch(function () {}); }, 1500); setInterval(function () { if (!document.hidden) pollRooms().catch(function () {}); }, 60000);
-if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); tourStampCheck(r.tour); if (/^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
+if (store("token")) authed("me").then(function (r) { if (r.ok) { setMe(r); tourStampCheck(r.tour); var pch = setPhase(r.phase); if (pch) HOME_D = null; if (pch || /^(home|joe|ops|league)?$/.test(location.hash.replace("#", "").split("=")[0])) render(); } }).catch(function () {});
+else phaseRefresh();
+document.addEventListener("visibilitychange", function () { if (!document.hidden) phaseRefresh(); }); // 🍂 Joe flipped it while the app sat in the background
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 </script>
 <script>

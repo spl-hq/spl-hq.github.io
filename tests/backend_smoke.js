@@ -601,6 +601,18 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
     ok(!U.some(r => r[0] instanceof Date && r[0].getTime() < Date.now() - 150 * 864e5), "usage robot trims rows past 120 days");
     const late = new Date(Date.now() - 5 * 3.6e6).getUTCHours() >= 7;
     ok(!late || w.mails.slice(nd).some(m => /who was in yesterday/.test(m.s) && /Joe: .*5 min.*match 5m/.test(m.b)), "morning digest of yesterday's visits (after 7 AM ET)"); }
+  // 🍂 season phase: desk-only switch, public read, chat line on the off-season flip, never flips by itself
+  ok(w.get({ action: "phase" }).phase.phase === "season", "phase starts as season");
+  { const gT = w.post({ action: "login", pin: w.post({ action: "issue", token: wm, owner: "glen" }).phrase }).token;
+    ok(w.post({ action: "setphase", token: gT, phase: "offseason" }).ok === false && w.get({ action: "phase" }).phase.phase === "season", "owners can't flip the phase"); }
+  x = w.post({ action: "setphase", token: wm, phase: "bogus" }); ok(x.ok === false, "setphase rejects a bad phase");
+  const flips = () => (w.sheets.Chat ? w.sheets.Chat.rows : []).filter(r => /off-season is open/.test(r[4])).length;
+  x = w.post({ action: "setphase", token: wm, phase: "offseason", season: 2027 });
+  ok(x.ok && x.phase.phase === "offseason" && x.phase.by === "murello", "ops flips to the off-season");
+  ok(w.get({ action: "phase" }).phase.phase === "offseason" && w.post({ action: "me", token: joeT }).phase.phase === "offseason", "every phone reads it (GET + me)");
+  ok(flips() === 1, "flip posts one line to league chat");
+  ok(w.post({ action: "setphase", token: wm, phase: "offseason" }).same === true && flips() === 1, "flipping again is a no-op");
+  x = w.post({ action: "setphase", token: wm, phase: "season" }); ok(x.ok && w.get({ action: "phase" }).phase.phase === "season" && flips() === 1, "back to the season, quietly");
   GH.code = 401; x = w.post({ action: "opsx", token: wm, run: "tick" });
   ok(/401/.test(x.robots.list[0].error), "GitHub token refused shows on the desk");
   reset();

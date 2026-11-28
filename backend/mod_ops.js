@@ -187,3 +187,17 @@ function tourReset_(me, b) {
   var o = owners_().filter(function (x) { return x.owner === who; })[0]; if (!o) return { ok: false, error: "Pick an owner" };
   t[who] = st; setProp_("TOUR_STAMPS", JSON.stringify(t)); log_("tour", me.owner + " → " + who); return { ok: true, who: o.name };
 }
+
+// 🍂 Season phase (Mike 11/28): the whole app formats itself for the off-season, but only when the commish (Joe) or ops (Mike) flips the
+// switch on their desk. Never automatic, never date-based. One Script property PHASE {phase, by, at, season}; every phone reads it with
+// `me` (signed in) or GET ?action=phase (signed out, robots). Flipping to the off-season posts one line to league chat.
+function phase_() { var p = jsonProp_("PHASE", null); return p && (p.phase === "offseason" || p.phase === "season") ? p : { phase: "season", by: "", at: "" }; }
+function setPhase_(me, b) {
+  var to = b && (b.phase === "offseason" || b.phase === "season") ? b.phase : "";
+  if (!to) return { ok: false, error: "Pick off-season or season" };
+  var cur = phase_(); if (cur.phase === to) return { ok: true, phase: cur, same: true };
+  var p = { phase: to, by: me.owner, at: new Date().toISOString(), season: Number(b.season) || "" };
+  setProp_("PHASE", JSON.stringify(p)); log_("phase", me.owner + " → " + to);
+  if (to === "offseason") try { botPost_("league", "🍂 The off-season is open" + (p.season ? " (" + p.season + ")" : "") + ". SPL HQ now leads with keepers, picks and the off-season calendar.", "phase:" + p.at); } catch (e) {}
+  return { ok: true, phase: p };
+}

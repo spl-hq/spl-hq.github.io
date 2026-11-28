@@ -68,7 +68,7 @@ manifest.json sw.js   Home Screen install + offline cache (never caches the back
 icons/                app icons
 backend/Code.gs       loader pasted into Apps Script (rare changes)
 backend/logic.js      backend core: config, routing, Sheet helpers, sign-in, questions, health; loads the parts (pushed = deployed)
-backend/mod_*.js      backend parts: espn (reads + guarded writes), social (chat, reactions, votes, settings), trades, drafts (engine), spldraft (SPL Draft board + player pool), ops (watchdog, backup, robot status), keepers (Signing Day), usage (👀 who opens/taps what) (pushed = deployed)
+backend/mod_*.js      backend parts: espn (reads + guarded writes), social (chat, reactions, votes, settings), trades, drafts (engine), spldraft (SPL Draft board + player pool), ops (watchdog, backup, robot status, 🍂 season/off-season switch), keepers (Signing Day), usage (👀 who opens/taps what) (pushed = deployed)
 tests/                backend_smoke.js (mocked Apps Script, loads the parts from the working tree) · app_check.js (inline scripts compile)
 docs/MAFFL_PARITY.md  WS6: what to port MAFFL → SPL and hand back SPL → MAFFL
 data/                 gold: Keeper_Contracts, Owner Registry, SPL_Matchups (robot), Draft_Picks, SPL_Rulebook.md,

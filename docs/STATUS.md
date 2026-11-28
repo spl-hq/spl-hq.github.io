@@ -1,11 +1,11 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.7: no off-season button; before it v0.26.6 Info on top of League)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
 
 
 ## Now
-- **🍂 Off-season format for the whole site (Mike 11/28, next):** no off-season button; when the SPL Bowl is final every tab itself
-  switches to off-season content once Joe/Mike flips the 🍂 switch on their desk (never automatic). Plan in `docs/SPL_REEL_PLAN.md` §0 (11/28). Per-tab plan OK'd; build next.
+- **🍂 Off-season switch live (v0.27, backend v0.21.0):** 📥 Commish desk + 🛠️ Ops desk → 🍂 Season / off-season → *Switch to off-season*. Gold nudge (desk card + Home Needs you)
+  once ESPN has no games left; nothing flips by itself. **Mike:** try 👁️ *Preview off-season* on the Ops desk (your phone only) before Joe flips it.
 - **🚀 Getting Joe in (Mike 11/27, ready):** backend healthy (Sheet ✅, SPL 19583 ✅, test league ✅, ESPN writes off, 1 of 12 signed up).
   ① Preview first: 🛠️ Desk → 📥 Commish · Joe's view (exactly his desk, no test/robot tools). ② 🛠️ Ops desk → 🔑 Passphrases → Joe → Make one →
   Text it (the message has the link, the Add to Home Screen tip and "a one-minute tour shows you around"). ③ Joe signs in → the welcome tour
@@ -15,7 +15,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26
 - **Reel v0.14 (backend v0.11.0): no Pulse, the cards are the update.** Catalog: `docs/SPL_REEL_SERIES.md` (after MAFFL REEL_SERIES v2.1). **Mike: add the GitHub secret `CLAUDE_CODE_OAUTH_TOKEN`** (`claude setup-token`) so Claude writes the card lines; then Actions → Card lines → Run workflow. Until then the cards show plain facts.
 - **WS5 ready to try (v0.13, backend v0.10.0):** the 4-team ESPN test league mirrors Mike, Joe, Al and Glen's real SPL rosters, and approved trades between them move on ESPN by themselves. **Mike:** Ops desk → 🏈 ESPN test league → turn writes on → 🪞 Mirror SPL rosters (a quiet day: locked players may refuse). Then the demo: `docs/SPL_DEMO_SCRIPT.md`. **Not run yet:** ESPN writes ship off and the mirror only runs when Mike taps it (Thanksgiving: run it before the 12:30 kickoff or wait for Tue). Trade body now matches MAFFL's proven call exactly (`mod_espn.js`, APP_DESIGN §10b).
 - **🔒 Keeper Signing Day live (v0.17):** try it: 📥 Desk → Commish · Joe's view → 🔒 Keeper Signing Day → 🧪 Rehearse it, then League → Keepers → build a plan → Declare. Wipe from the same card when done.
-- **WS3 live (v0.11 → v0.21):** 🗓️ Off-season hub + Divisional + Slot + 🎯 **Shoot Out** draft rooms; the app flips into **off-season mode** by itself when the SPL Bowl is final. Try it: League → Off-season → 🧪 Rehearse Shoot Out (2026's real table). **Launch plan (Mike 11/27):** show Joe, then the league goes live after the 2026 season (`LIVE_SEASON` = 2027 in the app; desks see in-season prompts now). SPL Draft room ✅ v0.22 (League → Drafts → SPL Draft; commish: Off-season → 🧪 Rehearse SPL Draft). Next WS3: ESPN writes for the draft (key the board into ESPN's offline draft) + Seed 3 / Shoot Out ESPN `/schedule` write (capture the LM Tools call; until then the commish sets Week 14 by hand).
+- **WS3 live (v0.11 → v0.21):** 🗓️ Off-season hub + Divisional + Slot + 🎯 **Shoot Out** draft rooms; the app goes into **off-season mode** when Joe or Mike flips the 🍂 switch on their desk (v0.27, never automatic). Try it: League → Off-season → 🧪 Rehearse Shoot Out (2026's real table). **Launch plan (Mike 11/27):** show Joe, then the league goes live after the 2026 season (`LIVE_SEASON` = 2027 in the app; desks see in-season prompts now). SPL Draft room ✅ v0.22 (League → Drafts → SPL Draft; commish: Off-season → 🧪 Rehearse SPL Draft). Next WS3: ESPN writes for the draft (key the board into ESPN's offline draft) + Seed 3 / Shoot Out ESPN `/schedule` write (capture the LM Tools call; until then the commish sets Week 14 by hand).
 - **v0.2: real sign-in.** Backend deployed and healthy (11/25: Sheet ✅, SPL 19583 ✅ 12 teams, test league ✅ 4 teams). Next: Mike runs SPL HQ → Run setup check (seeds owners + shows his passphrase once) → signs in → Ops desk → makes Joe's passphrase → texts it.
 - Trade center live in test mode. Next: ESPN execution on the test league (mirror SPL rosters there, then the commish trade write), drops + reactions for the reel.
 - Next: Joe answers the 📋 Questions in the app → sign-in + desks + chat → pick-only trade center → ESPN trades on the test league → demo to Joe.
@@ -35,6 +35,15 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.0 (backend v0.21.0) · 🍂 **Off-season switch** (Mike: "we click the button, not automatic or date-based"). Backend: Script property
+  `PHASE` {phase, by, at, season}; `setphase` (commish/ops only, confirm in the app) posts one league-chat line on the flip to the off-season (none
+  going back); phase rides on `me` and public GET `?action=phase` (signed-out phones, future robots). App: `offSeason()` now reads the switch
+  (the old "no games left on ESPN" test is just `bowlFinal()`, the nudge); phones re-check on open and when they come back to the foreground.
+  Desk card on both desks (status, flip, *Back to the season*; Ops: 👁️ Preview on this phone only). **Off-season format:** Home: "off-season is open"
+  card (14 days) + the existing off-season cards/budget; Match: 🏁 season-in-the-books recap (champ, runner-up, your finish) + playoffs link + final
+  standings, weeks still browsable; Team: keepers lead the GM bar + 🍂 "Your off-season" card (keepers, Signing Day, picks owned); League: Drafts
+  row in date order with each draft's date. Robots: card-lines not gated (the Bowl recap still gets written if Joe flips that night; no games =
+  nothing new to write). Smoke +8. SW `splhq-v88`.
 - 2026-11-28 · v0.26.7 · League tab: **off-season hero card removed** (Mike: no off-season button; the whole site gets formatted for the
   off-season instead). Shoot Out banner unchanged. SW `splhq-v87`.
 - 2026-11-28 · v0.26.6 · 🏆 League tab: **ℹ️ Info moved to the top** (Mike), above Drafts and The league. Tour text follows. SW `splhq-v86`.
