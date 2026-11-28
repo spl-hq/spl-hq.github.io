@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.5: League tab sections; before it v0.26.4 pick ledger fix retired)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.6: Info on top of League; before it v0.26.5 League tab sections)
 
 
 ## Now
@@ -33,6 +33,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.6 · 🏆 League tab: **ℹ️ Info moved to the top** (Mike), above Drafts and The league. Tour text follows. SW `splhq-v86`.
 - 2026-11-28 · v0.26.5 · 🏆 **League tab tightened** (Mike): sections 🗓️ Drafts · 🏛️ The league (Draft boards, History, GM Report, Rivalries) ·
   ℹ️ Info (SPL Calendar, Rules). Tiles are compact rows (icon left, title + one-line sub, ellipsis instead of wrapping); subs shortened
   (draft subs: "On the clock", "🔴 Joe up"). Whole tab fits at 390×844 with room for the off-season card. Draft boards icon → 📋. Tour text updated. SW `splhq-v85`.

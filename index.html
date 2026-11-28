@@ -500,7 +500,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 .ro small .hg{color:#0B1F3A;font-weight:600} .gp.gblk{border-color:#B88A2E;box-shadow:0 0 0 1px #B88A2E inset}
 .bkt{padding:8px 0;border-top:1px solid var(--line)} .bkt:first-of-type{border-top:0} .bkp{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 0 2px;cursor:pointer} .bkp span{min-width:0}
 /* League tab (Mike 11/28): compact one-line tiles, whole tab fits on an iPhone without scrolling. */
-.lgx h2{margin:0 0 6px}
+.lgx h2{margin:0 0 6px} .lgx h2+.eyebrow{margin-top:4px}
 .lgx .eyebrow{margin:10px 0 6px}
 .lgx .grid{gap:8px}
 .lgx .card.lead{margin-bottom:4px}
@@ -552,7 +552,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.26.5";
+var APP_VERSION = "0.26.6";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -3109,9 +3109,9 @@ function phaseHero() {
 }
 SCREENS.league = function () {
   return '<div class="lgx"><h2>League</h2>' + phaseHero() +
+    '<div class="eyebrow">ℹ️ Info</div><div class="grid">' + INFO_TILES.map(lgTile).join("") + '</div>' +
     '<div class="eyebrow">🗓️ Drafts</div><div id="lgdr" class="grid">' + DRAFT_BTNS.map(function (k) { return draftBtn(k, null); }).join("") + '</div>' +
-    '<div class="eyebrow">🏛️ The league</div><div class="grid">' + LEAGUE_TILES.map(lgTile).join("") + '</div>' +
-    '<div class="eyebrow">ℹ️ Info</div><div class="grid">' + INFO_TILES.map(lgTile).join("") + '</div></div>';
+    '<div class="eyebrow">🏛️ The league</div><div class="grid">' + LEAGUE_TILES.map(lgTile).join("") + '</div>'  + '</div>';
 };
 // 🗓️ Drafts row: one button per draft, always in the same place (Mike 11/27: "once I leave a draft room I can't find my way back").
 // Each goes to the newest live draft of its kind (else the newest rehearsal, else the SPL Calendar); 🔴 = open now, gold = you're on the clock.
@@ -3517,7 +3517,7 @@ var TOUR_STEPS = [
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here; gold means it needs you (an offer waiting, keepers to declare). Every roster row shows what keeping that player costs, and Keepers lets you build up to 5 plans, compare them side by side and declare when the off-season opens."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat, your division's room and a DM with any owner. Tap @ to tag someone; anything that tags you lands in @ Mentions. Trade news and commish alerts land here too."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the league: every draft board since 2006, history and champions, the GM Report (coming soon), rivalries. Info at the bottom: the SPL Calendar (every date, with links) and the rules."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Info up top: the SPL Calendar (every date, with links) and the rules. Then every draft room (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the league: every draft board since 2006, history and champions, the GM Report (coming soon), rivalries."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish, in folding sections; one that needs you opens by itself: trades to approve, what to do on ESPN, the drafts (open, undo, cancel, load into ESPN), Signing Day, and Mike's questions for you (the number on this button).", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. 💡 Ideas (anything you want the site to do) and Show me around again live there too."]];
 var TR = null;
