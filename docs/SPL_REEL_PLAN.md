@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **League tab = Drafts · The league · Info, no scrolling** (Mike). Info holds SPL Calendar + Rules. Compact one-line tiles (icon left, title + short sub, no wrapping) so the tab fits an iPhone on landing. The off-season no longer re-sorts the tiles (the off-season hero card already leads).
 - 2026-11-28 · **No pick ledger fix tool** (Mike). Reconcile pre-app pick trades or mistakes as needed, by hand in the Sheet Picks tab; no formal desk tool. Replaces the 11/25–26 "Pick ledger fix on the Commish desk / Joe's" call.
 - 2026-11-28 · **💡 Ideas lives in your settings, not League** (Mike). League is league stuff only; feedback is a personal action, so it's a card on the You/settings screen (tap your initials).
 - 2026-11-28 · **Usage tracking is first-party, not Google Analytics** (Mike asked for GA + seeing what Joe clicks; Claude's call, Mike can overrule). GA would break the no-third-party-scripts rule, gets blocked by Safari/ad blockers, and can't say *who*; our sign-in already does. Owners' screens + taps go to the Sheet (`Usage`), read on the Ops desk, recapped by email.

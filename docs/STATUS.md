@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.4: pick ledger fix retired; before it v0.26.3 Ideas → settings)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.5: League tab sections; before it v0.26.4 pick ledger fix retired)
 
 
 ## Now
@@ -33,6 +33,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.5 · 🏆 **League tab tightened** (Mike): sections 🗓️ Drafts · 🏛️ The league (Draft boards, History, GM Report, Rivalries) ·
+  ℹ️ Info (SPL Calendar, Rules). Tiles are compact rows (icon left, title + one-line sub, ellipsis instead of wrapping); subs shortened
+  (draft subs: "On the clock", "🔴 Joe up"). Whole tab fits at 390×844 with room for the off-season card. Draft boards icon → 📋. Tour text updated. SW `splhq-v85`.
 - 2026-11-28 · v0.26.4 (backend v0.20.1) · 🎟️ **Pick ledger fix retired** (Mike: "we'll reconcile as necessary, no formal tool"). Card gone from the Commish desk; backend `pickfix` action + `pickFix_` removed (and its smoke tests). Pre-app pick trades get reconciled by hand in the Sheet Picks tab; the ledger robot copies them to gold as before. SW `splhq-v84`.
 - 2026-11-28 · v0.26.3 · 💡 **Ideas moved off League into your settings** (Mike). League grid is now 6 tiles (even 3×2); the You screen (tap your initials)
   gets a 💡 Ideas & feedback card → the same send screen, which now backs out to Settings. Tour stops updated (League no longer mentions Ideas; 👤 You does). SW `splhq-v83`.
