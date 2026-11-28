@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Cards from the past announce their type first** (Mike). A throwback/history card leads with a full-width ribbon (📼 Throwback)
+  before the stamp and eyebrow, looks different (old-paper card), and every year on it is a tag you can't miss. Reuse the ribbon (`flag`) for any card type
+  that isn't about this week.
+
 - 2026-11-28 · **Questions for Joe are a running Q&A run from the Ops desk** (Mike). They live in the Sheet, not code: Mike asks, parks, closes
   (with a note), re-asks and follows up; Joe's Desk number counts what he hasn't answered.
 

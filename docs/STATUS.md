@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.29.1 📼 throwback ribbon; v0.28.1 mirror drops fix + 🎲 test trades; v0.27.6 History ↔ Draft links + draft recaps; v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
 
 
 ## Now
@@ -35,6 +35,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.29.1 · 📼 **Throwback cards say so up front** (Mike: "hard to find that this was historic and what year it was"). New
+  card-type ribbon in `cardShell` (`flag: [icon, title, sub, class]`): full-width navy band as the card's first line. This week in SPL history =
+  📼 THROWBACK band, old-paper card, navy border; every year is a navy year tag (record holder, both tiles, "10 years ago"). Any future
+  non-current card (vault, history) should carry a `flag`. App only. SW `splhq-v100`.
 - 2026-11-28 · v0.29.0 (backend v0.23.0) · 📋 **Q&A with Joe** (Mike: "a running Q&A with him"). Questions moved from code into the Sheet
   (new `mod_qa.js`, tab Questions, seeded once with the 22 shipped questions: 4 open, 6 parked, 12 closed with their reasons). Ops desk section
   (now first): ✍️ Ask Joe something (question · context · answer buttons → Ask now / Save for later) · ✅ Joe answered (Close it with a note · Ask
