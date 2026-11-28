@@ -35,6 +35,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.29.2 (backend v0.24.0) · 🏠 **Saved + Done follow the sign-in** (Mike): new `mod_home.js` + `HomeCards` tab (one row per owner/kind/week/card, Done rows trimmed after 30 days, 200 per owner). Every swipe queues to the backend (`homemark`, batched, offline-safe); Home pulls the list back on open (`homeget`). A phone's first sync uploads what it already had. "How Home works" corrected: live cards (trade offers/wire, votes, your live game, chat, deadlines) show up any time; Saved/Done now go with your sign-in. sw cache v101.
 - 2026-11-28 · v0.27.6 · ℹ️ **"How Home works"** (Mike): small link at the bottom of the last Home card, closed until tapped; explains the Tuesday 7 AM turnover, Done = 7 days, Saved = no limit, Needs you, moving cards back, this-phone-only. sw cache v94.
 - 2026-11-28 · v0.29.1 · 📼 **Throwback cards say so up front** (Mike: "hard to find that this was historic and what year it was"). New
   card-type ribbon in `cardShell` (`flag: [icon, title, sub, class]`): full-width navy band as the card's first line. This week in SPL history =

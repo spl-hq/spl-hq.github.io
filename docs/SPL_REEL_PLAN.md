@@ -6,6 +6,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 (`maffl-commish/maffl` → `_ops/docs/REEL.md`, `APP_DESIGN.md`, `REEL_OPERATIONS.md`, `REEL_SERIES.md`, `TRADE_CENTER_DESIGN.md`).
 
 ## 0. Decisions (newest on top)
+- **2026-11-28 · Saved/Done are per owner, not per phone** (Mike): stored in the Sheet (`HomeCards`, mod_home), synced on every swipe and every Home open. The phone keeps a copy for speed and offline.
 
 - 2026-11-28 · **Cards from the past announce their type first** (Mike). A throwback/history card leads with a full-width ribbon (📼 Throwback)
   before the stamp and eyebrow, looks different (old-paper card), and every year on it is a tag you can't miss. Reuse the ribbon (`flag`) for any card type

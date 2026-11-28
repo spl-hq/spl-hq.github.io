@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.23.0";
+var VERSION = "0.24.0";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -72,8 +72,8 @@ function doGet(e) {
 
 // Body is sent as text/plain JSON (avoids a CORS preflight from GitHub Pages).
 // Sign-in: {action:"login", pin} → device token. Every other POST carries {token}.
-var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1, track: 1, usage: 1, votes: 1, qa: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
-var WRITES = { setphase: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1, tradeveto: 1, tradedrops: 1, mvote: 1, ruleidea: 1, voteopen: 1, qsave: 1, qset: 1 }; // rate-limited per owner
+var READS = { testleague: 1, me: 1, desk: 1, week: 1, rosters: 1, chat: 1, trades: 1, settings: 1, contacts: 1, drafts: 1, splpool: 1, reacts: 1, social: 1, opsx: 1, keepers: 1, track: 1, usage: 1, votes: 1, qa: 1, homeget: 1 }; // never wait on the script lock (opsx takes it itself when it runs the tick)
+var WRITES = { setphase: 1, answers: 1, feedback: 1, chatsend: 1, chatdel: 1, issue: 1, offer: 1, respond: 1, tradeact: 1, savesettings: 1, draftpick: 1, draftopen: 1, draftespnsync: 1, react: 1, vote: 1, kplans: 1, kdeclare: 1, blockset: 1, tradeveto: 1, tradedrops: 1, mvote: 1, ruleidea: 1, voteopen: 1, qsave: 1, qset: 1, homemark: 1 }; // rate-limited per owner
 function doPost(e) {
   SH_ = {}; ROWS_ = {};
   var b = {};
@@ -111,6 +111,8 @@ function doPost(e) {
       case "qa":       return json(desk ? qa_(me) : { ok: false, error: "Commish only" }); // 📋 Q&A with Joe (mod_qa)
       case "qsave":    return json(isRole_(me, "ops") ? qSave_(me, b) : { ok: false, error: "Ops only" });
       case "qset":     return json(isRole_(me, "ops") ? qSet_(me, b) : { ok: false, error: "Ops only" });
+      case "homeget":  return json(homeGet_(me));        // 🏠 your ⭐ Saved + ✓ Done cards, any phone (mod_home)
+      case "homemark": return json(homeMark_(me, b));
       case "votes":    return json(votes_(me));           // 🗳️ league votes + rule ideas (mod_votes)
       case "mvote":    return json(mvote_(me, b));
       case "ruleidea": return json(ruleIdea_(me, b));
@@ -167,6 +169,7 @@ var HEADS = {
   Block:     ["owner", "player", "pos", "tm", "note", "on", "ts", "updated_ts"],
   Ballots:   ["ts", "ref", "owner", "choice"],
   Questions: ["qid", "ts", "by", "q", "why", "choices", "status", "ord", "asked_ts", "note", "updated_ts"],
+  HomeCards: ["owner", "kind", "w", "id", "at", "html", "ts"],
   Matters:   ["mid", "ts", "by", "kind", "title", "detail", "status", "opens", "closes", "opened_by", "updated_ts", "result", "note"]
 };
 // ⚡ Per-request memo (one backend run = one request): a tab is opened and read once, not once per helper (auth_, rules_, desk_ …
@@ -364,7 +367,7 @@ function tick() { SH_ = {}; ROWS_ = {}; ops_tick_("trigger"); try { keepAnnounce
 // this is its pattern, WS6). Each part is cached 5 min under VERSION (bump VERSION when you change any part) with a 6-hour
 // last-good copy; a part that won't compile is skipped for its last good copy and ops is emailed (once an hour).
 var REPO = "spl-hq/spl-hq.github.io";
-var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_spldraft", "mod_ops", "mod_keepers", "mod_usage", "mod_votes", "mod_qa"];
+var PARTS = ["mod_espn", "mod_social", "mod_trades", "mod_drafts", "mod_spldraft", "mod_ops", "mod_keepers", "mod_usage", "mod_votes", "mod_qa", "mod_home"];
 function compiles_(src) { try { new Function(src); return true; } catch (e) { return false; } }
 function badPush_(name, r) {
   if (!r || r.getResponseCode() !== 200) return; var c = CacheService.getScriptCache(); if (c.get("badpush_" + name)) return; c.put("badpush_" + name, "1", 3600);

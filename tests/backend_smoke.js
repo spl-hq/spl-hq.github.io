@@ -706,6 +706,26 @@ ok(h.ok && h.espnRead.ok === false && /401/.test(h.espnRead.error), "ESPN 401 re
   reset();
 }
 
+// 6h · 🏠 Saved / Done follow the sign-in (mod_home)
+{
+  const e = makeEnv({ ESPN_S2: "abc", SWID: "{X}" }, espnOk); e.M.menuCheck(); const mike = e.post({ action: "login", pin: (/\n([A-Z]+-[A-Z]+-\d{3})\n/.exec(e.alerts[e.alerts.length - 1]) || [])[1] }).token;
+  let x = e.post({ action: "homemark", token: mike, kind: "pin", w: 11, id: "p3", on: 1, html: "<div class=\"dcard\">=SUM(A1)</div>", at: 1000 });
+  ok(x.ok, "save a card");
+  e.post({ action: "homemark", token: mike, kind: "pin", w: 11, id: "p3", on: 1, html: "<div>v2</div>", at: 2000 });
+  x = e.post({ action: "homeget", token: mike });
+  ok(x.ok && x.cards.length === 1 && x.cards[0].html === "<div>v2</div>" && x.cards[0].w === 11, "re-saving the same card updates it, no dupes");
+  e.post({ action: "homemark", token: mike, kind: "clr", w: 11, id: "aw", on: 1, html: "<div>aw</div>", at: Date.now() });
+  e.post({ action: "homemark", token: mike, kind: "clr", w: 2, id: "old", on: 1, html: "x", at: Date.now() - 40 * 864e5 });
+  e.post({ action: "homemark", token: mike, kind: "pin", w: 11, id: "p3", on: 0 });
+  x = e.post({ action: "homeget", token: mike });
+  ok(x.cards.length === 1 && x.cards[0].id === "aw", "unsave removes it; Done older than 30 days is trimmed");
+  ok(!e.post({ action: "homemark", token: mike, kind: "bogus", w: 1, id: "a", on: 1 }).ok, "unknown kind refused");
+  ok(e.post({ action: "homeget", token: "murello.bogus" }).auth === true, "needs sign-in");
+  x = e.post({ action: "homemark", token: mike, items: [{ kind: "pin", w: 12, id: "a", on: 1, html: "a" }, { kind: "pin", w: 12, id: "b", on: 1, html: "b" }, { kind: "pin", w: 12, id: "a", on: 0 }] });
+  ok(x.ok && x.n === 3 && e.post({ action: "homeget", token: mike }).cards.filter(c => c.kind === "pin").map(c => c.id).join() === "b", "a batch applies in order");
+  e.post({ action: "homemark", token: mike, kind: "clr", w: 11, id: "aw", on: 0 });
+}
+
 // 7 · size limit for the loader cache
 ok(src.length < 90000, "logic.js under 90 KB (" + src.length + ")");
 Object.keys(parts).forEach(n => ok(parts[n].length < 90000, n + ".js under 90 KB (" + parts[n].length + ")"));

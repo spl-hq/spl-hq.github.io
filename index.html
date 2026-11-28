@@ -570,7 +570,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.29.1";
+var APP_VERSION = "0.29.2";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -742,8 +742,42 @@ function bk(kind) {
 }
 function markCard(kind, it, on) {
   var m = wkMap(kind, it.w); if (on) m[it.id] = 1; else delete m[it.id]; store(fk(kind) + "_" + it.w, m);
-  var a = bk(kind).filter(function (y) { return !(y.w === it.w && y.id === it.id); }); if (on) a.unshift({ w: it.w, id: it.id, html: it.html, at: Date.now() });
+  var at = Date.now(), a = bk(kind).filter(function (y) { return !(y.w === it.w && y.id === it.id); }); if (on) a.unshift({ w: it.w, id: it.id, html: it.html, at: at });
   store(fk("bk_" + kind), a.slice(0, 60));
+  homePush([{ kind: kind, w: it.w, id: it.id, on: on ? 1 : 0, html: on ? it.html : "", at: at }]);
+}
+// ⭐ Saved / ✓ Done follow your sign-in, not your phone (Mike 11/28; backend mod_home). Every swipe is queued here and sent; Home
+// pulls the list back each time it opens (only once nothing is waiting to send, so an offline swipe is never undone).
+function homePush(ops) { if (!ME) return; homePush.n = (homePush.n || 0) + 1; store(fk("hq"), (store(fk("hq")) || []).concat(ops).slice(-150)); homeFlush(); }
+function homeFlush() {
+  if (!ME) return Promise.resolve(); if (homeFlush.p) return homeFlush.p;
+  var q = store(fk("hq")) || []; if (!q.length) return Promise.resolve();
+  homeFlush.p = authed("homemark", { items: q }).then(function (r) {
+    homeFlush.p = null; if (!r || r.busy) return; // server busy: try again next time
+    store(fk("hq"), (store(fk("hq")) || []).slice(q.length)); return homeFlush(); // sent (or refused as bad: dropped either way)
+  }).catch(function () { homeFlush.p = null; });
+  return homeFlush.p;
+}
+function homeSync() {
+  if (!ME) return Promise.resolve();
+  return homeFlush().then(function () {
+    if ((store(fk("hq")) || []).length) return; // still offline: this phone's view stands
+    var n0 = homePush.n || 0;
+    return authed("homeget", {}).then(function (r) {
+      if (!r || !r.ok || !Array.isArray(r.cards) || (homePush.n || 0) !== n0) return; // swiped while it loaded: next open catches up
+      if (!r.cards.length && !store(fk("hsync"))) { // first sync for this sign-in on this phone: send up what it already has
+        store(fk("hsync"), 1); var up = [];
+        ["pin", "clr"].forEach(function (k) { (store(fk("bk_" + k)) || []).slice().reverse().forEach(function (y) { up.push({ kind: k, w: y.w, id: y.id, on: 1, html: y.html, at: y.at }); }); });
+        if (up.length) homePush(up); return;
+      }
+      store(fk("hsync"), 1);
+      var b = { pin: [], clr: [] }, m = { pin: {}, clr: {} }, wks = {};
+      if (FEED_W != null) { wks[FEED_W] = 1; wks[FEED_W - 1] = 1; }
+      r.cards.forEach(function (c) { if (!b[c.kind]) return; b[c.kind].push({ w: c.w, id: c.id, html: c.html, at: c.at }); (m[c.kind][c.w] = m[c.kind][c.w] || {})[c.id] = 1; wks[c.w] = 1; });
+      store(fk("bk_pin"), b.pin.slice(0, 60)); store(fk("bk_clr"), b.clr.slice(0, 60));
+      ["pin", "clr"].forEach(function (k) { Object.keys(wks).forEach(function (w) { store(fk(k) + "_" + w, m[k][w] || {}); }); });
+    });
+  }).catch(function () {});
 }
 function cardShell(x) {
   var stamp = x.scope === "me" ? '<span class="stamp me">' + esc(ME ? ME.team : "") + '</span>' : '<span class="stamp lg">SPL</span>';
@@ -842,7 +876,8 @@ SCREENS.home.after = function () {
     jobs.push(loadTrades(true).then(function (t) { d.trades = t; }).catch(function () {}));
     jobs.push(loadDrafts(true).then(function (x) { d.drafts = x; }).catch(function () {}));
     jobs.push(loadKeep(true).then(function (k) { d.keep = k; }).catch(function () {}));
-    jobs.push(loadVotes(true).then(function (v) { d.votes = v; }).catch(function () {})); }
+    jobs.push(loadVotes(true).then(function (v) { d.votes = v; }).catch(function () {}));
+    jobs.push(homeSync()); }
   var drawn = false; if (!HOME_D && ME) { var kd = kept("home", 24); if (kd) HOME_D = kd; }
   if (HOME_D) { drawFeed(0); drawn = true; } // instant: last reel (memory or this phone), refreshed below
   Promise.all(jobs).then(function () { if (!$("#feed")) return; HOME_D = d; if (ME) keep("home", d); drawFeed(drawn ? FPOS : 0); });
@@ -863,12 +898,13 @@ function drawFeed(keep) {
     (FEED.length > 1 ? '<p style="margin-top:12px"><button class="back" onclick="document.getElementById(\'feed\').scrollTo({top:0,behavior:\'smooth\'})">Back to the top</button></p>' : '') +
     // Tucked-away explainer for the curious (Mike 11/28): only on the last card, closed until tapped.
     '<details class="howhome"><summary>How Home works</summary><ul>' +
-    '<li><b>New cards every Tuesday, 7 AM.</b> Once the week\'s games are final, a fresh set lands and last week\'s roll off Home.</li>' +
+    '<li><b>The week\'s cards land Tuesday, 7 AM</b> (in season), once the games are final. Last week\'s roll off Home then.</li>' +
+    '<li><b>Live cards show up any time:</b> trade offers and the trade wire, league votes, your game while it\'s on, new chat, draft and keeper deadlines.</li>' +
     '<li><b>Swipe ← ✓ Done.</b> Off Home and into ✓ Done for ' + DONE_DAYS + ' days, then it drops off for good.</li>' +
     '<li><b>Swipe → ⭐ Save.</b> Kept in ⭐ Saved with no time limit, until you clear it.</li>' +
     '<li><b>Needs you</b> cards (gold) can\'t be swiped. They stay on top until it\'s handled.</li>' +
     '<li><b>Changed your mind?</b> Open ⭐ Saved or ✓ Done up top. A card can go back to Home while its week is still up, or flip between Saved and Done. Moving one to Done starts its ' + DONE_DAYS + ' days fresh.</li>' +
-    '<li><b>This phone only.</b> What you save or clear here doesn\'t follow you to another device.</li>' +
+    '<li><b>It follows you.</b> Saved and Done go with your sign-in, so another phone shows the same cards.</li>' +
     '</ul></details></div>';
   f.innerHTML = FEED.map(function (x, k) { return '<div class="fslot" data-k="' + k + '"><div class="swu"><span class="sv">⭐ Save</span><span class="dn">✓ Done</span></div>' + cardShell(x) + '</div>'; }).join("") + '<div class="fslot" data-k="' + FEED.length + '">' + end + '</div>';
   FPOS = Math.max(0, Math.min(keep || 0, FEED.length)); f.scrollTop = FPOS * f.clientHeight; rail();
