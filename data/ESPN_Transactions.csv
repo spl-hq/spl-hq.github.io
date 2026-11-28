@@ -1,5 +1,5 @@
 # ESPN_Transactions.csv  --  GOLD (robot-written by tools/pull_espn_archive.py from ESPN league 19583; never hand-edit, re-run to refresh).
-# Pulled 2026-11-28T05:55Z. Executed moves ESPN still has, one row per player moved (TRADE_* = trades).
+# Pulled 2026-11-28T17:24Z. Executed moves ESPN still has, one row per player moved (TRADE_* = trades).
 season,date,scoring_period,transaction_id,type,move,player_id,player,position,from_owner,to_owner
 2018,2018-08-30T03:00,1,202fa577-1b96-3b50-8bb9-f62c6123543a,WAIVER,ADD,3915381,John Kelly,RB,,reilly
 2018,2018-08-30T03:00,1,202fa577-1b96-3b50-8bb9-f62c6123543a,WAIVER,DROP,14885,Doug Martin,RB,reilly,

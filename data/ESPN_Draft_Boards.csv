@@ -1,5 +1,5 @@
 # ESPN_Draft_Boards.csv  --  GOLD (robot-written by tools/pull_espn_archive.py from ESPN league 19583; never hand-edit, re-run to refresh).
-# Pulled 2026-11-28T05:55Z. One row per pick; keeper=Y = a keeper slot on the board. owner_id blank = unresolved (report).
+# Pulled 2026-11-28T17:24Z. One row per pick; keeper=Y = a keeper slot on the board. owner_id blank = unresolved (report).
 season,round,pick_in_round,overall_pick,owner_id,team_name,player_id,player,position,nfl_team,keeper
 2026,1,1,1,reilly,Reilly's RaMPaGe,3918298,Josh Allen,QB,BUF,N
 2026,1,2,2,patel,Cheater's Streakers,4432577,C.J. Stroud,QB,HOU,N
