@@ -5,7 +5,7 @@ _Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26
 
 ## Now
 - **🍂 Off-season format for the whole site (Mike 11/28, next):** no off-season button; when the SPL Bowl is final every tab itself
-  switches to off-season content. Plan in `docs/SPL_REEL_PLAN.md` §0 (11/28). Awaiting Mike's corrections before building.
+  switches to off-season content once Joe/Mike flips the 🍂 switch on their desk (never automatic). Plan in `docs/SPL_REEL_PLAN.md` §0 (11/28). Per-tab plan OK'd; build next.
 - **🚀 Getting Joe in (Mike 11/27, ready):** backend healthy (Sheet ✅, SPL 19583 ✅, test league ✅, ESPN writes off, 1 of 12 signed up).
   ① Preview first: 🛠️ Desk → 📥 Commish · Joe's view (exactly his desk, no test/robot tools). ② 🛠️ Ops desk → 🔑 Passphrases → Joe → Make one →
   Text it (the message has the link, the Add to Home Screen tip and "a one-minute tour shows you around"). ③ Joe signs in → the welcome tour
