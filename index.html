@@ -552,7 +552,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.27.2";
+var APP_VERSION = "0.27.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -1741,44 +1741,54 @@ function untilTxt(iso) { var n = dayDiff(iso); return n > 1 ? "in " + n + " days
 function calOf(season, key) { return LD("calendar").filter(function (c) { return +c.season === season && c.key === key; })[0]; }
 function nextSeason() { var d = new Date(); return d.getMonth() >= 8 ? d.getFullYear() + 1 : d.getFullYear(); } // the season whose Signing Day + draft are next (draft ≈ early Sept)
 
-// 📖 Rules: the rulebook (search, status per section) + 📱 App or ESPN (owner-facing: which site you use for what; Mike 11/28).
+// 📖 Rules: the rulebook (search, status per section) + 📱 App · ESPN · Email (owner-facing chart: where you do what now; Mike 11/28).
 // Dates live on 📅 SPL Calendar, league lore on 📚 History (eras). The old commish-facing ⚖️ vs ESPN tab is gone (Mike 11/28): its open
 // items are Joe's questions (rules_rewrite, playoff_rules, money_rules, late_adds). Keep WHERE honest: only list what the app does today.
+// Side-by-side chart (Mike 11/28): ESPN · Email · App. N = where you do it now, W = where it used to happen, S = updated for you automatically.
 var WHERE = [
   ["Every week", [
-    ["Set your lineup", "espn", ""],
-    ["Free agents and FAAB bids", "espn", "Waivers run on ESPN."],
-    ["Live scores, news, injuries", "espn", "The app shows your matchup and the results, pulled from ESPN."],
-    ["Standings", "both", "ESPN breaks ties on points only. The app follows the rulebook: win %, then points."],
-    ["League chat and trash talk", "app", "League room, a room for your division, DMs, @ tags."]]],
+    ["Set your lineup", "N", "", "", ""],
+    ["Free agents and FAAB bids", "N", "", "", ""],
+    ["Live scores, news, injuries", "N", "", "S", "Your matchup and results show up here."],
+    ["Standings", "N", "", "N", "The app breaks ties by the rulebook (win %, then points). ESPN uses points only."],
+    ["League talk", "", "W", "N", "League room, division rooms, DMs, @ tags."],
+    ["Weekly recaps and the GM Report", "", "W", "N", "On your Home screen."]]],
   ["Trades", [
-    ["Make an offer, counter, accept", "app", "Players and draft picks."],
-    ["The league veto vote", "app", "6 vetoes kills a trade, per the rulebook."],
-    ["Trade block", "app", "Put a player out there with a note on what you want."],
-    ["Your ESPN roster after a trade", "both", "Approved trades get moved onto ESPN for you. Don't send trades on ESPN."],
-    ["Who owns which draft picks", "app", "ESPN doesn't track traded picks."]]],
+    ["Offers, counters, accepting", "S", "W", "N", "Approved trades get moved onto your ESPN roster for you. Don't send trades on ESPN."],
+    ["The veto vote", "W", "", "N", "6 vetoes kills a trade, per the rulebook."],
+    ["Trade block", "", "", "N", ""],
+    ["Who owns which draft picks", "", "W", "N", "ESPN doesn't track traded picks."]]],
   ["Off-season", [
-    ["Keepers and Signing Day", "app", "Contracts, the keeper calculator, your declaration. Keepers are off on ESPN."],
-    ["Divisional, Slot and Shoot Out drafts", "app", "Draft rooms in the app."],
-    ["The SPL Draft", "both", "Draft in the app; the full board goes onto ESPN in one go afterward."]]],
+    ["Keeper declarations", "", "W", "N", "Contracts, the keeper calculator and Signing Day."],
+    ["Divisional, Slot and Shoot Out drafts", "", "W", "N", "Draft rooms in the app."],
+    ["The SPL Draft", "S", "W", "N", "The full board goes onto ESPN in one go afterward."],
+    ["Dates and announcements", "", "W", "N", "SPL Calendar, plus a chat message when something opens."]]],
   ["Around the league", [
-    ["Rules, dates, history, rivalries", "app", ""],
-    ["Your history: drafts, keepers, records", "app", "Every season back to 2006."]]]
+    ["The rulebook", "", "W", "N", ""],
+    ["History, records, rivalries", "", "", "N", "Every season back to 2006."]]]
 ];
-var WHERE_TAG = { app: ["📱 App", "var(--lime)"], espn: ["🏈 ESPN", "var(--muted)"], both: ["Both", "var(--gold)"] };
+function whereMark(c) {
+  return c === "N" ? '<span style="color:var(--lime);font-size:18px">●</span>' : c === "W" ? '<span class="muted" style="font-size:16px">○</span>' :
+    c === "S" ? '<span class="muted" style="font-size:16px">↻</span>' : '<span style="color:var(--line)">·</span>';
+}
 function whereHtml() {
-  return '<div class="card" style="border-color:var(--lime)"><p style="margin:0"><b>Rule of thumb:</b> game day lives on ESPN. Everything between the games lives here: trades, keepers, drafts, chat.</p></div>' +
+  var cols = "grid-template-columns:1fr 46px 46px 46px;", cell = "text-align:center;align-self:start;padding-top:1px";
+  return '<div class="card" style="border-color:var(--lime)"><p style="margin:0"><b>Rule of thumb:</b> game day lives on ESPN. Everything between the games, the stuff that used to go around by email, lives here now.</p>' +
+    '<p class="muted" style="margin:8px 0 0;font-size:12px"><span style="white-space:nowrap"><span style="color:var(--lime)">●</span> do it here now</span> &nbsp; <span style="white-space:nowrap">○ used to happen here</span> &nbsp; <span style="white-space:nowrap">↻ updated for you</span></p></div>' +
+    '<div class="card" style="padding:0 12px 4px">' +
+    '<div class="muted" style="display:grid;' + cols + 'gap:4px;padding:10px 0 8px;border-bottom:2px solid var(--line);font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.04em">' +
+    '<span></span><span style="text-align:center">🏈<br>ESPN</span><span style="text-align:center">✉️<br>Email</span><span style="text-align:center;color:var(--lime)">📱<br>App</span></div>' +
     WHERE.map(function (g) {
-      return '<div class="eyebrow" style="margin:14px 2px 6px">' + esc(g[0]) + '</div><div class="card" style="padding:4px 14px">' + g[1].map(function (r, i) {
-        var t = WHERE_TAG[r[1]];
-        return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0' + (i ? ';border-top:1px solid var(--line)' : '') + '"><div style="flex:1"><b style="font-size:14px">' + esc(r[0]) + '</b>' +
-          (r[2] ? '<br><small class="muted">' + esc(r[2]) + '</small>' : '') + '</div><span class="pill" style="white-space:nowrap;color:' + t[1] + ';border-color:' + t[1] + '">' + t[0] + '</span></div>';
-      }).join("") + '</div>';
-    }).join("");
+      return '<div class="eyebrow" style="margin:12px 0 2px">' + esc(g[0]) + '</div>' + g[1].map(function (r) {
+        return '<div style="display:grid;' + cols + 'gap:4px;padding:9px 0;border-top:1px solid var(--line)"><div><b style="font-size:14px">' + esc(r[0]) + '</b>' +
+          (r[4] ? '<br><small class="muted">' + esc(r[4]) + '</small>' : '') + '</div><div style="' + cell + '">' + whereMark(r[1]) + '</div><div style="' + cell + '">' + whereMark(r[2]) +
+          '</div><div style="' + cell + '">' + whereMark(r[3]) + '</div></div>';
+      }).join("");
+    }).join("") + '</div>';
 }
 SCREENS.rules = function (arg) {
   var view = arg === "where" ? "where" : "book";
-  var html = back("league", "League") + '<h2>Rules</h2><div class="hscroll" style="margin-bottom:10px">' + [["book", "📖 Rulebook"], ["where", "📱 App or ESPN"]].map(function (t) {
+  var html = back("league", "League") + '<h2>Rules</h2><div class="hscroll" style="margin-bottom:10px">' + [["book", "📖 Rulebook"], ["where", "📱 App · ESPN · Email"]].map(function (t) {
     return '<button class="chip' + (t[0] === view ? " on" : "") + '" onclick="go(\'rules\'' + (t[0] === "book" ? "" : ",\'" + t[0] + "\'") + ')">' + t[1] + '</button>';
   }).join("") + '</div>';
   if (view === "where") return html + whereHtml();

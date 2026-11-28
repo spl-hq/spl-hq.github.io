@@ -35,6 +35,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.3 · 📖 Rules → **📱 App · ESPN · Email** is now a side-by-side chart (Mike: wanted a comparison chart, and email as the third
+  column: trades, draft picks, drafts, keepers and the GM Report all used to go by email). Columns ESPN · Email · App; ● do it here now, ○ used to
+  happen here, ↻ updated for you. Trades row: App ●, Email ○, ESPN ↻ (dropped the confusing "trade on your ESPN roster = ESPN" row). SW `splhq-v91`.
 - 2026-11-28 · v0.27.2 · 📖 Rules: new **📱 App or ESPN** tab (Mike: owner-facing "which site do I use for what", not commish detail). Side-by-side list
   by Every week / Trades / Off-season / Around the league, each row tagged App, ESPN or Both with one line of why; "rule of thumb" card on top
   (game day = ESPN, everything between the games = the app). Content is the `WHERE` array in index.html: list only what the app does today. SW `splhq-v90`.
