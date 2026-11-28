@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.2: 👀 usage tracking; before it v0.26 trade block)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.3: Ideas → settings; before it v0.26.2 usage tracking)
 
 
 ## Now
@@ -33,6 +33,8 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.3 · 💡 **Ideas moved off League into your settings** (Mike). League grid is now 6 tiles (even 3×2); the You screen (tap your initials)
+  gets a 💡 Ideas & feedback card → the same send screen, which now backs out to Settings. Tour stops updated (League no longer mentions Ideas; 👤 You does). SW `splhq-v83`.
 - 2026-11-28 · v0.26.2 (backend v0.20.0) · 👀 **Who's using it** (Mike: "monitor Joe's usage, what he's clicking"). First-party, no Google
   Analytics (CLAUDE.md: no third-party scripts; and since everyone signs in, our own log already knows it's Joe). App: each screen visit
   (with seconds on it) and every button/chip/link tap queue on the phone (never typed text, never signed-out visitors) and post as one

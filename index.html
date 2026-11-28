@@ -541,7 +541,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.26.2";
+var APP_VERSION = "0.26.3";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -702,7 +702,7 @@ function needSignIn(what) {
 }
 
 // ---- router
-var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "league", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league" };
+var SCREENS = {}, TAB_OF = { signin: "home", you: "home", settings: "home", home: "home", match: "match", team: "team", chat: "chat", league: "league", standings: "match", joe: "", feedback: "home", ops: "", soon: "league", trades: "team", trade: "team", desk: "", rivalry: "league", rules: "league", keepers: "league", draft: "league", history: "league", gm: "league", gmRankings: "league", offseason: "league", calendar: "league", droom: "league" };
 // SPL HQ bot posts carry a ref; the button follows what it points at (T… trade offer, D… draft room unless cancelled, K…/keep: Signing Day). Unknown refs get no button.
 function hqLink(ref, text) {
   ref = String(ref || ""); if (/^D/.test(ref) && / cancelled by /.test(String(text || ""))) return ""; // a cancelled draft's room is gone
@@ -3092,9 +3092,8 @@ function keeperBoardCard(me) { // 📋 who's declared (while open) → 🏁 resu
 var LEAGUE_TILES = [
   ["offseason", "📅", "SPL Calendar", "Every date, with links"], ["draft", "📝", "Draft boards", "Every pick since 2006"],
   ["history", "📚", "History", "Eras + champions since 2003"], ["gm", "🎓", "GM Report", "Coming soon"],
-  ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + vs ESPN"],
-  ["feedback", "💡", "Ideas", "Feedback to the site"]
-];
+  ["rivalry", "⚔️", "Rivalries", "Head to head since 2006"], ["rules", "📖", "Rules", "Rulebook + vs ESPN"]
+]; // 💡 Ideas moved to your settings (Mike 11/28)
 // Off-season mode (Mike 11/27): the day ESPN has no games left (SPL Bowl final), League leads with the off-season and Off-season is the first tile.
 // The Shoot Out window (Week 13 final, Week 14 not) gets its own banner. Both come from gold history (daily robot), so nobody flips a switch.
 function phaseHero() {
@@ -3224,6 +3223,7 @@ SCREENS.you = function () { // the avatar opens this: your settings (Mike 11/26:
   if (!ME) return SCREENS.signin();
   return back("home", "Home") + '<h2>' + esc(fullName()) + '</h2><p class="muted" style="margin:-6px 0 12px">' + esc(ME.team) + '</p>' +
     '<div id="set"><div class="card"><p class="muted">Loading your settings…</p></div></div>' +
+    '<div class="card"><div class="eyebrow">💡 Ideas &amp; feedback</div><p style="margin:0 0 10px;font-size:13px">Ideas, gripes, kudos: anything you want the site to do. Goes straight to Mike.</p><button class="btn ghost" onclick="go(\'feedback\')">💡 Send an idea</button></div>' +
     '<div class="card"><div class="eyebrow">👋 Welcome tour</div><p style="margin:0 0 10px;font-size:13px">A one-minute walk through every tab.</p><button class="btn ghost" onclick="tourReplay()">👋 Show me around again</button></div>' +
     '<div class="card"><p style="margin:0">Signed in on this phone. A new passphrase from the commish signs every phone out.</p><p style="margin-top:12px"><button class="btn ghost" onclick="signOut()">Sign out</button></p></div>' +
     '<p class="muted" style="font-size:12px;text-align:center">SPL HQ app v' + APP_VERSION + '</p>';
@@ -3281,8 +3281,8 @@ SCREENS.joe.after = function () {
 
 // ---- Ideas & feedback
 SCREENS.feedback = function () {
-  if (!ME) return back("league", "League") + '<h2>Ideas &amp; feedback</h2>' + needSignIn("to send a note");
-  return back("league", "League") + '<h2>Ideas &amp; feedback</h2><div class="card">' +
+  if (!ME) return back("home", "Home") + '<h2>Ideas &amp; feedback</h2>' + needSignIn("to send a note");
+  return back("you", "Settings") + '<h2>Ideas &amp; feedback</h2><div class="card">' +
     '<div class="chips" id="fbMood">' + ["😍 Love it", "👍 Good", "🤔 Confusing", "👎 Not for me"].map(function (m) { return '<button class="chip" data-m="' + m + '">' + m + '</button>'; }).join("") + '</div>' +
     '<textarea id="fbNote" placeholder="Ideas, gripes, kudos, what you want to see…" style="min-height:120px"></textarea>' +
     '<p style="margin-top:12px"><button class="btn" id="fbSend">Send</button></p></div>';
@@ -3294,7 +3294,7 @@ SCREENS.feedback.after = function () {
   $("#fbSend").onclick = function () {
     var btn = this; btn.disabled = true;
     authed("feedback", { mood: mood, note: $("#fbNote").value, kind: "idea", where: "feedback" }).then(function (r) {
-      if (!r.ok) throw new Error(r.error); toast("✓ Sent. Thanks!"); go("home");
+      if (!r.ok) throw new Error(r.error); toast("✓ Sent. Thanks!"); go("you");
     }).catch(function (e) { toast(e.message); btn.disabled = false; });
   };
 };
@@ -3516,9 +3516,9 @@ var TOUR_STEPS = [
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here; gold means it needs you (an offer waiting, keepers to declare). Every roster row shows what keeping that player costs, and Keepers lets you build up to 5 plans, compare them side by side and declare when the off-season opens."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat, your division's room and a DM with any owner. Tap @ to tag someone; anything that tags you lands in @ Mentions. Trade news and commish alerts land here too."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the SPL Calendar (every date, with links), every draft board since 2006, champions, the GM Report (coming soon), rivalries, the rules, and 💡 Ideas for anything you want the site to do."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Every draft room up top (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the SPL Calendar (every date, with links), every draft board since 2006, champions, the GM Report (coming soon), rivalries and the rules."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish, in folding sections; one that needs you opens by itself: trades to approve, what to do on ESPN, the drafts (open, undo, cancel, load into ESPN), Signing Day, and Mike's questions for you (the number on this button).", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
-  ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. Show me around again lives there too."]];
+  ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. 💡 Ideas (anything you want the site to do) and Show me around again live there too."]];
 var TR = null;
 function tourKey() { return "tour_seen_" + (ME ? ME.owner : ""); }
 function tourScreen() { var n = (location.hash || "#home").slice(1).split("=")[0] || "home"; return SCREENS[n] ? n : "home"; }
