@@ -35,6 +35,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · app · 📜 **Rules → Constitution** (Mike): the League tile (📜 Constitution · The league rules), page title, first tab, calendar links (Constitution ›), keeper strip link (Constitution §J), the App · ESPN · Email chart and the welcome tour now say Constitution. Route stays `#rules`; search box still says "Search the rules". Many sections still "for Joe to confirm" until Joe shares the latest files.
 - 2026-11-28 · app · 🔒 **Keepers "Rules" link opens the real rulebook** (Mike): the Rules / How keepers work links on the keeper screens now go to League → Rules opened and scrolled to **J. Keeper Rules** instead of a separate pop-up summary (removed). Opened that way, the Rules page's back button says ‹ Back and returns where you came from.
 - 2026-11-28 · v0.30.0 (backend v0.25.0) · 🛠️ **Ops desk reorganized + every robot explains itself** (Mike: "jammed up… bring my attention where it needs to be").
   **🎯 Needs you** on top: every section whose badge is gold/red, red first, tap = open + scroll there (the desk no longer pops red sections open by itself).

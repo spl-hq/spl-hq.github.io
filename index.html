@@ -1840,7 +1840,7 @@ var WHERE = [
     ["Set your lineup", "N", "", "", ""],
     ["Free agents and FAAB bids", "N", "", "", ""],
     ["Live scores, news, injuries", "N", "", "S", "Your matchup and results show up here."],
-    ["Standings", "N", "", "N", "The app breaks ties by the rulebook (win %, then points). ESPN uses points only."],
+    ["Standings", "N", "", "N", "The app breaks ties by the constitution (win %, then points). ESPN uses points only."],
     ["League talk", "", "W", "N", "League room, division rooms, DMs, @ tags."],
     ["Weekly recaps and the GM Report", "", "W", "N", "On your Home screen."]]],
   ["Trades", [
@@ -1855,7 +1855,7 @@ var WHERE = [
     ["The SPL Draft", "S", "W", "N", "The full board goes onto ESPN in one go afterward."],
     ["Dates and announcements", "", "W", "N", "SPL Calendar, plus a chat message when something opens."]]],
   ["Around the league", [
-    ["The rulebook", "", "W", "N", ""],
+    ["The constitution", "", "W", "N", ""],
     ["History, records, rivalries", "", "", "N", "Every season back to 2006."]]]
 ];
 function whereMark(c) {
@@ -1879,7 +1879,7 @@ function whereHtml() {
 }
 SCREENS.rules = function (arg) {
   var view = arg === "where" ? "where" : "book";
-  var html = (arg && arg !== "where" ? '<button class="back" onclick="history.length > 1 ? history.back() : go(\'league\')">‹ Back</button>' : back("league", "League")) + '<h2>Rules</h2><div class="hscroll" style="margin-bottom:10px">' + [["book", "📖 Rulebook"], ["where", "📱 App · ESPN · Email"]].map(function (t) {
+  var html = (arg && arg !== "where" ? '<button class="back" onclick="history.length > 1 ? history.back() : go(\'league\')">‹ Back</button>' : back("league", "League")) + '<h2>Constitution</h2><div class="hscroll" style="margin-bottom:10px">' + [["book", "📜 Constitution"], ["where", "📱 App · ESPN · Email"]].map(function (t) {
     return '<button class="chip' + (t[0] === view ? " on" : "") + '" onclick="go(\'rules\'' + (t[0] === "book" ? "" : ",\'" + t[0] + "\'") + ')">' + t[1] + '</button>';
   }).join("") + '</div>';
   if (view === "where") return html + whereHtml();
@@ -1890,7 +1890,7 @@ SCREENS.rules = function (arg) {
       return '<details class="card sec" data-i="' + i + '"' + (arg === r.id ? " open" : "") + '><summary><b>' + esc(r.title) + '</b>' + stBadge(r.status) + '</summary>' +
         (r.note ? '<div class="rnote">' + esc(r.note) + '</div>' : '') + '<div class="rbody">' + r.html + '</div></details>';
     }).join("") + '</div><p id="rnone" class="muted" style="display:none">Nothing matches.</p>' +
-    '<p class="muted" style="font-size:12px">Source: SPL Constitution, draft 6/12/2023. Rule changes the league votes in get written into the rulebook here.</p>';
+    '<p class="muted" style="font-size:12px">Source: SPL Constitution, draft 6/12/2023. Rule changes the league votes in get written into it here.</p>';
   return html;
 };
 SCREENS.rules.after = function (arg) {
@@ -2134,7 +2134,7 @@ function kMineView(id, edit) {
   // ① slim status strip (Mike 11/27: the big blue box clogged the screen; the grid already shows KP by year)
   var used = Math.round((10 - t0.room) * 10) / 10;
   html += '<div class="kstrip' + (C.errors.length ? " bad" : "") + '"><div><b>' + y0 + ':</b> ' + used + ' / 10 KP · ' + C.count + ' of 3 kept' +
-    '<small>' + esc(kstatusLine(W, KW, dec, sd)) + '</small></div><a href="javascript:void 0" onclick="kRules()">Rules</a></div>' +
+    '<small>' + esc(kstatusLine(W, KW, dec, sd)) + '</small></div><a href="javascript:void 0" onclick="kRules()">Constitution §J</a></div>' +
     (C.errors.length ? '<div class="kstripw">⚠ ' + esc(C.errors.join(" · ")) + '</div>' : '');
   // ② your keepers = one grid (Mike 11/27: the 3-year outlook and the keepers are the same thing). One row per keeper with his KP for
   // each of the next three seasons; tap a row for its menu (terminate / term / tag / remove); empty slots add; Total + KP left at the bottom.
@@ -2747,11 +2747,11 @@ function calRows() {
     add(cy, "trade_deadline", "⏰", "Trade deadline", "Set on ESPN", ["trades", "Trades ›"]);
     add(cy, "shootout_draft", "🎯", "Shoot Out Draft", "Eve of Week " + regWks(), ["kind:shootout", "Room ›"], lastFinal(cy) ? "shootout" : "", iso(weekTue(cy, regWks() - 1)));
     add(cy, "shootout", "🔥", "SPL Shoot Out", "Week " + regWks() + " · highest score takes the pot", ["match", "Match ›"], "", sun(regWks()));
-    add(cy, "playoffs", "🏆", "SPL Playoffs", "Weeks 15–17 · Seed 3 picks its Week 15 opponent", ["rules", "Rules ›"], "", sun(15));
+    add(cy, "playoffs", "🏆", "SPL Playoffs", "Weeks 15–17 · Seed 3 picks its Week 15 opponent", ["rules", "Constitution ›"], "", sun(15));
     add(cy, "spl_bowl", "🥇", "SPL Bowl", "Week 17", ["history", "Past champs ›"], "", sun(17));
   }
   add(ns, "offseason", "🏈", "Off-season starts", "Day after the Super Bowl · pick trading opens", ["trades", "Trades ›"]);
-  add(ns, "winter_meeting", "🗳️", "Winter Meeting", "Rule votes · the SPL Draft date gets picked", ["rules", "Rules ›"]);
+  add(ns, "winter_meeting", "🗳️", "Winter Meeting", "Rule votes · the SPL Draft date gets picked", ["rules", "Constitution ›"]);
   add(ns, "div_slot_drafts", "🧭", "Divisional Draft", "April · four owners build the four divisions", ["kind:div", "Room ›"], "div");
   add(ns, "div_slot_drafts", "🎰", "Slot Draft", "April · everyone claims an SPL Draft slot", ["kind:slot", "Room ›"], "slot");
   add(ns, "signing_day", "🔒", "Keeper Signing Day", "10 days before the SPL Draft · 10 KP, three keepers max", ["keepers", "Your keepers ›"]);
@@ -3445,7 +3445,7 @@ var LEAGUE_TILES = [
   ["gm", "🎓", "GM Report", "Coming soon"], ["rivalry", "⚔️", "Rivalries", "Head to head"],
   ["votes", "🗳️", "Votes", "League votes + rule ideas"]
 ]; // 💡 Ideas moved to your settings (Mike 11/28)
-var INFO_TILES = [["offseason", "🗓️", "SPL Calendar", "Every date"], ["rules", "📖", "Rules", "Rulebook + ESPN"]];
+var INFO_TILES = [["offseason", "🗓️", "SPL Calendar", "Every date"], ["rules", "📜", "Constitution", "The league rules"]];
 function lgTile(t) {
   return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span class="ti">' + t[1] + '</span><span class="tt"><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></span></button>';
 }
@@ -3778,7 +3778,7 @@ function tlMirror(d) {
 // timeline of the latest 40 things. Ops' own rows sit last as "(you)". Fed by action "usage" (mod_usage.js); ops also gets an email
 // the first time each owner opens the app and a morning recap of yesterday.
 var SCR_NAME = { home: "Home", match: "Match", team: "Team", chat: "Chat", league: "League", standings: "Standings", keepers: "Keepers", trades: "Trades", trade: "Trade builder",
-  droom: "Draft room", calendar: "SPL Calendar", offseason: "SPL Calendar", history: "History", rules: "Rules", gm: "GM Report", desk: "Commish desk", ops: "Ops desk", joe: "Questions",
+  droom: "Draft room", calendar: "SPL Calendar", offseason: "SPL Calendar", history: "History", rules: "Constitution", gm: "GM Report", desk: "Commish desk", ops: "Ops desk", joe: "Questions",
   signin: "Sign in", you: "You", settings: "Settings", feedback: "Ideas", rivalry: "Rivalry", draft: "Draft boards" };
 function scrName(s) { return SCR_NAME[s] || (s ? s.charAt(0).toUpperCase() + s.slice(1) : "?"); }
 function durTxt(sec) { sec = Number(sec) || 0; return sec < 60 ? sec + "s" : sec < 3600 ? Math.round(sec / 60) + "m" : (Math.round(sec / 360) / 10) + "h"; }
@@ -4093,7 +4093,7 @@ var TOUR_STEPS = [
   ["team", "#tabs [data-t='team']", "🏈 Team = your GM desk", "Your roster, your trades and your keepers in one place. Other teams' rosters are at the bottom."],
   ["team", ".gmbar", "Roster · Trades · Keepers", "Switch here; gold means it needs you (an offer waiting, keepers to declare). Every roster row shows what keeping that player costs, and Keepers lets you build up to 5 plans, compare them side by side and declare when the off-season opens."],
   ["chat", "#tabs [data-t='chat']", "💬 Chat", "League chat, your division's room and a DM with any owner. Tap @ to tag someone; anything that tags you lands in @ Mentions. Trade news and commish alerts land here too."],
-  ["league", "#tabs [data-t='league']", "🏆 League", "Info up top: the SPL Calendar (every date, with links) and the rules. Then every draft room (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the league: every draft board since 2006, history and champions, the GM Report (coming soon), rivalries."],
+  ["league", "#tabs [data-t='league']", "🏆 League", "Info up top: the SPL Calendar (every date, with links) and the SPL Constitution. Then every draft room (SPL Draft, Divisional, Slot, Shoot Out): red when one's live, gold when you're on the clock. Then the league: every draft board since 2006, history and champions, the GM Report (coming soon), rivalries."],
   ["", "#deskBtn", "📥 Your Commish desk", "Everything that needs the commish, in folding sections; one that needs you opens by itself: trades to approve, what to do on ESPN, the drafts (open, undo, cancel, load into ESPN), Signing Day, and Mike's questions for you (the number on this button).", function () { return isDesk() && !isOps(); }], // Joe's desk; Mike (ops) built his, no stop
   ["", "#meBtn", "👤 You", "Tap your initials for settings: your @handle, your email and mobile (only signed-in owners see them) and which emails you get. 💡 Ideas (anything you want the site to do) and Show me around again live there too."]];
 var TR = null;
