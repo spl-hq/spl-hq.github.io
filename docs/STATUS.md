@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.3: player file history v2)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.4: pre-app trades from league email)
 
 
 ## Now
@@ -28,6 +28,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.4 · 🔁 **Pre-app trades: new gold `data/Trade_History.csv`** (Mike: "email often had trade info"). Trades made before SPL HQ, from the
+  league's "SPL Trade Announcement" email threads (and later the Packet notes), one row per player/pick moved, grouped by `deal`. First deal:
+  **Aug 19 2026, Seth → Owen: Trey McBride for J.J. McCarthy + Owen's 2026 R7** (league confirmed that night). `build_data.py` feeds it into
+  player files ("Traded from Seth for J.J. McCarthy + 2026 R7 pick · Aug 19"); a later holder of a keeper deal reads "Took over his deal from …". SW `splhq-v67`.
 - 2026-11-27 · v0.25.4 · 🚧 **GM Report → Coming soon** (Mike: wants it to look and feel like Glen's actual GM Report; talking to Joe first). League tile now "🎓 GM Report · Coming soon", `#gm` shows an under-construction card. The career-rankings screen is parked as `SCREENS.gmRankings` (no link to it). Tour's League stop says "the GM Report (coming soon)". SW `splhq-v67`.
 - 2026-11-27 · v0.25.3 · 📇 **Player file history v2** (Mike: McBride looked kept by two owners at once; "make it a trend, not a blob").
   **Bug:** a gold keeper contract carries its *current* holder, so a deal Seth signed in 2024 and Owen got in a trade read "Kept by Owen … '24".

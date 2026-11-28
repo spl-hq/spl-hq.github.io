@@ -114,11 +114,16 @@ for r in opt_rows("ESPN_Transactions.csv"):
     k = (r["season"], r["date"][:10], mv, r["player"], r["to_owner"])
     if k in seen_t: continue
     seen_t.add(k); ph["t"].append([int(r["season"]), r["date"][:10], mv, r["from_owner"], r["to_owner"], r["player"]])
+# pre-app trades (league email / Packet, gold Trade_History.csv): same shape + [6] = what came back the other way
+th = list(opt_rows("Trade_History.csv"))
+for r in th:
+    back = [x["asset"] for x in th if x["deal"] == r["deal"] and x["from_owner"] == r["to_owner"]]
+    ph["t"].append([int(r["season"]), r["date"], "TRADE", r["from_owner"], r["to_owner"], r["asset"], " + ".join(back)])
 for r in opt_rows("ESPN_Season_Rosters.csv"):
     if r["player"]: ph["r"].append([int(r["season"]), r["owner_id"], r["player"], r["acquired"]])
 open(os.path.join(ROOT, "player-history.js"), "w", encoding="utf-8").write(
     "// DERIVED DATA -- DO NOT HAND-EDIT. Regenerate: python3 tools/build_data.py\n"
-    "// Sources: data/Draft_Picks.csv, ESPN_Draft_Boards.csv, Keeper_Matrix_History.csv, ESPN_Season_Rosters.csv. Loaded on demand by player files.\n"
+    "// Sources: data/Draft_Picks.csv, ESPN_Draft_Boards.csv, Keeper_Matrix_History.csv, ESPN_Season_Rosters.csv, ESPN_Transactions.csv, Trade_History.csv. Loaded on demand by player files.\n"
     f"var PLAYER_HISTORY = {json.dumps(ph, ensure_ascii=False, separators=(',', ':'))};\n")
 print("player-history.js:", len(ph["d"]), "picks ·", len(ph["k"]), "keeper rows ·", len(ph["r"]), "roster rows ·", len(ph["t"]), "moves")
 

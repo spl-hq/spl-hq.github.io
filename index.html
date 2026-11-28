@@ -1134,13 +1134,13 @@ function pcard(name) {
   Object.keys(deals).forEach(function (key) { var D = deals[key], yrs = Object.keys(D.kp).sort(), line = yrs.map(function (yy) { return "'" + yy.slice(2) + " " + D.kp[yy]; }).join(" → ") + " KP";
     D.by.forEach(function (b, i) { ev.push(i === 0
       ? { y: D.st, w: b.o, o: 1, ic: b.tag ? "🏷️" : "🔒", t: (b.tag ? "Franchise-tagged" : "Kept") + (D.term ? " on a " + D.term + "-yr deal" : "") + ": " + line }
-      : { y: b.y, w: b.o, o: 1, ic: "🔁", t: "Came over from <b>" + esc(oname(D.by[i - 1].o)) + "</b> with his deal: " + yrs.filter(function (yy) { return +yy >= b.y; }).map(function (yy) { return "'" + yy.slice(2) + " " + D.kp[yy]; }).join(" → ") + " KP left" }); }); });
+      : { y: b.y, w: b.o, o: 1, ic: "🔁", t: "Took over his deal from <b>" + esc(oname(D.by[i - 1].o)) + "</b>: " + yrs.filter(function (yy) { return +yy >= b.y; }).map(function (yy) { return "'" + yy.slice(2) + " " + D.kp[yy]; }).join(" → ") + " KP left" }); }); });
   ((TRADES && TRADES.offers) || []).filter(function (o) { return o.status === "APPROVED" && [].concat((o.give || {}).players || [], (o.get || {}).players || []).some(function (x) { return pnorm(x.n) === n; }); }).forEach(function (o) {
     var fromGive = ((o.give || {}).players || []).some(function (x) { return pnorm(x.n) === n; }), a = fromGive ? o.from : o.to, b = fromGive ? o.to : o.from, ts = o.ts || o.at || o.created;
     ev.push({ y: ts ? new Date(ts).getFullYear() : cy, w: b, o: 2.5, ic: "🔁", t: "Traded from <b>" + esc(oname(a)) + "</b>" + (o.mode === "test" ? ' <small class="muted">(test)</small>' : '') }); });
   PH.t.filter(function (t) { return pnorm(t[5]) === n; }).forEach(function (t) { var s = sea(t[0]);
     if (t[2] !== "TRADE" && s.lab == null) { s.lab = "FA"; s.kp = 0; }
-    ev.push({ y: t[0], w: t[4], o: 2.5, ic: t[2] === "TRADE" ? "🔁" : "➕", t: (t[2] === "TRADE" ? "Traded" + (t[3] ? " from <b>" + esc(oname(t[3])) + "</b>" : " in") : "Picked up off waivers") + ' <small class="muted">· ' + esc(fmtDay(t[1])) + '</small>' }); });
+    ev.push({ y: t[0], w: t[4], o: 2.5, ic: t[2] === "TRADE" ? "🔁" : "➕", t: (t[2] === "TRADE" ? "Traded" + (t[3] ? " from <b>" + esc(oname(t[3])) + "</b>" : " in") + (t[6] ? " for " + esc(t[6]) : "") : "Picked up off waivers") + ' <small class="muted">· ' + esc(fmtDay(t[1])) + '</small>' }); });
   var champ = {}; LD("history").forEach(function (hh) { if (hh.champ) champ[hh.y] = hh.champ; });
   var ys = Object.keys(S).map(Number).sort(function (a, b) { return a - b; });
   ys.forEach(function (y) { var s = S[y]; if (s.lab == null) { s.lab = s.how === "add" ? "FA" : s.how === "trade" ? "🔁" : "·"; s.kp = 0; } s.title = s.fin && champ[y] && champ[y] === s.o; });
@@ -1167,7 +1167,7 @@ function pcard(name) {
         '<div class="ptl">' + (x.ev.length ? x.ev.map(function (e) { return '<div><span class="py">' + e.y + '</span><span>' + e.ic + '</span><span>' + e.t + '</span></div>'; }).join("") : '<div><span class="py"></span><span></span><span class="muted">On his roster' + (S[x.b] && S[x.b].fin ? " at season's end" : "") + '.</span></div>') +
         (x.ys.some(function (y) { return S[y].fin; }) ? '<div><span class="py">' + x.ys.filter(function (y) { return S[y].fin; }).slice(-1)[0] + '</span><span>🏁</span><span class="muted">On his final roster ' + x.ys.filter(function (y) { return S[y].fin; }).map(function (y) { return "'" + String(y).slice(2); }).join(", ") + '</span></div>' : '') + '</div></details>'; }).join("");
   } else h += '<p class="muted" style="margin:0">No SPL draft, keeper or trade on file for him yet.</p>';
-  h += '<p class="muted" style="font-size:11px;margin:10px 0 0">' + (window.PLAYER_HISTORY ? 'SPL Drafts 2006–2026 (2020 not on file) · Keeper Matrix 2019–2026 · final rosters 2006–2025 · ESPN trades + pickups 2018–26 (not 2020–21) · trades in the app.' : 'Loading the full history…') + '</p></div>';
+  h += '<p class="muted" style="font-size:11px;margin:10px 0 0">' + (window.PLAYER_HISTORY ? 'SPL Drafts 2006–2026 (2020 not on file) · Keeper Matrix 2019–2026 · final rosters 2006–2025 · ESPN trades + pickups 2018–26 (not 2020–21) · league-email trades · trades in the app.' : 'Loading the full history…') + '</p></div>';
   if (cur && ME && cur.o !== ME.owner) h += '<div class="row" style="gap:8px"><button class="btn" onclick="pclose();go(\'trade\',\'' + cur.o + '\')">🔁 Trade for him</button><button class="btn ghost" onclick="pclose();go(\'team\',\'' + cur.o + '\')">' + esc(oname(cur.o)) + '\'s roster</button></div>';
   sh.innerHTML = h + '</div>'; sh.style.display = ""; sh.scrollTop = 0; var pb = $("#pbars"); if (pb) pb.scrollLeft = pb.scrollWidth;
   if (ME && !TRADES) loadTrades().then(function () { if ($("#sheet") && $(".pfile")) pcard(name); }).catch(function () {});

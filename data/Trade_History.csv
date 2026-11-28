@@ -1,0 +1,7 @@
+# Trade_History.csv  --  GOLD (hand-entered). Trades made BEFORE SPL HQ (league email threads, SPL Packet), one row per player/pick that moved.
+#   Trades made in the app are robot-written to Trade_Log.csv instead. deal = rows that were one trade. Never put email addresses here (public repo).
+#   2026-11-27: first row, from the "SPL Trade Announcement" email thread (Owen's announcement Aug 19 2026, confirmed by the league that night).
+deal,date,season,from_owner,to_owner,asset,source
+2026-08-19-salerno-bucher,2026-08-19,2026,bucher,salerno,Trey McBride,league email
+2026-08-19-salerno-bucher,2026-08-19,2026,salerno,bucher,J.J. McCarthy,league email
+2026-08-19-salerno-bucher,2026-08-19,2026,salerno,bucher,2026 R7 pick (Owen's),league email
