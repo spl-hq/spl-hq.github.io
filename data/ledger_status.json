@@ -1,10 +1,10 @@
 {
- "at": "2026-11-28T02:56+00:00",
+ "at": "2026-11-28T07:19+00:00",
  "keeperDecls": 0,
  "signingDay": [],
  "drafts": 0,
  "mode": "test",
- "backend": "0.18.0",
+ "backend": "0.20.0",
  "trades": 0,
  "picks": 204,
  "rules": {
