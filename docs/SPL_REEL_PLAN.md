@@ -7,6 +7,8 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **History and Draft boards link both ways** (Mike). Each season shows its draft's highlights (computed from the boards, no robot) and opens its board; eras list their boards; boards link back to their season.
+
 - 2026-11-28 · **Joe's day-one questions = history gaps, ESPN writes (with the test-league demo), the 2027 rulebook** (Mike). `first_wish` and
   `veto_vote` parked; `espn_lm` retired for `espn_writes`. Supersedes the 11/27 day-one three.
 
