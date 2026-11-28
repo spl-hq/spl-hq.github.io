@@ -1,5 +1,5 @@
 # Season_Calendar.csv  --  GOLD (hand-edited; the commish's dates once set). The 📖 Rules timeline and 🔒 keeper countdown read it.
-# date = YYYY-MM-DD (or YYYY-MM-DDTHH:MM in ET) when known; blank = not set yet. kind: set | target | rule.
+# date = YYYY-MM-DD (or YYYY-MM-DDTHH:MM in ET) when known; blank = not set yet. kind: set | target | rule. (League history milestones moved to data/League_Timeline.csv 2026-11-28.)
 # Rule source: constitution §B. Set real dates here as the Winter Meeting decides them.
 season,key,event,date,kind,note
 2026,trade_deadline,Trade deadline,2026-11-25T12:00,set,Set on ESPN
@@ -12,11 +12,3 @@ season,key,event,date,kind,note
 2027,div_slot_drafts,Divisional Draft + Slot Draft,,rule,April
 2027,signing_day,Keeper Signing Day,,rule,10 days before the SPL Draft
 2027,spl_draft,SPL Draft,,rule,Date picked at the Winter Meeting · as close to NFL kickoff as possible
-2003,founded,First season,,milestone,EST. 2003 per Glen's 2025 GM Report (Muffins won 2003) · 2003–05 results aren't on ESPN
-2006,espn,First season on ESPN,,milestone,Every game from here on is in SPL HQ (2020–21 excepted)
-2019,keepers,Keeper contracts era,,milestone,Keeper Matrix sheets start in 2019
-2020,kicker,Kicker out + an extra Flex,,milestone,Constitution Appendix Two
-2021,ppr,Half-point PPR,,milestone,0.5 per reception
-2022,ir,IR spot + 14-week regular season,,milestone,Playoffs move to Weeks 15–17 · SPL Shoot Out in Week 14
-2023,superflex,Super Flex (QB-eligible),,milestone,ESPN's OP slot: the QB premium
-2026,app,SPL HQ,2026-11-25,milestone,The league's own app

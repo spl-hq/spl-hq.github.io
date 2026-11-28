@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.13: draft grid fixes)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.14: History eras + Gmail timeline)
 
 
 ## Now
@@ -21,6 +21,12 @@ _Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25
 ## History: what's missing
 `docs/HISTORY_NEEDS.md`: what's on file, what robots will pull from ESPN (drafts 2006–25, transactions, team names, final rosters, retry 2020–21), and Mike's ranked list (keeper history 2019–23 first; then 2020–21 + 2004–05 if ESPN can't; pre-app trades; off-season drafts before 2024; ownership changes; payouts; rule changes; lore). Mike: drop the raw SPL Packet(s) as-is.
 
+## ⚠️ Found in email, needs Joe/Mike (11/28)
+- **Shoot Out:** the league voted it out in Jul 2025 (random Week 4 games instead, Joe confirmed in the 8/28/25 draft email), but the app
+  (rulebook, SPL Calendar, Shoot Out Draft room, card-lines robot) still runs the 2023 Week 14 rules. Did 2026 play a Shoot Out? If not, retire it.
+- **2005 champ:** History/GM Report say Seth; Glen signed his 2007 email "2005 SPL Champ" (and Rich in 2012 disputes Glen's "first" title).
+- **Founders:** Owner Registry says every owner is `inception`, but Joe's Mar 2006 email has Mike accepting the 11th seat in 2006 (Pete's Gunz also first appear in 2006).
+
 ## Open questions (in the app: 📥 Commish desk → 📋 Questions, rebaselined 11/26)
 Joe sees 8 (history_gaps added 11/27): ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
 **Mike's calls** (traded contracts travel, next-season picks only, Divisional Draft rules) · 2027 dates · move league talk to app chat · Joe's #1 wish.
@@ -28,6 +34,16 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.14 · 📚 **History by era + "How the league got here" from Gmail** (Mike: the timeline doesn't belong in Rules, the SPL
+  Calendar covers dates; make it lore, MAFFL-style eras). Rules loses its 🗓️ Timeline tab (`#rules=timeline` falls back to the rulebook).
+  New gold `data/League_Timeline.csv` (eras + milestones; milestones moved out of `Season_Calendar.csv`) → `timeline` in league-data.js.
+  History: Trophy case, then one card per era (newest first): name, blurb, that era's champs, a folding 📜 How we got here, then its seasons.
+  Draft eras: The Founding (2003–05) · The Road Show (2006–18) · The Paper Trail (2019–21) · The Modern SPL (2022–25) · The SPL HQ Era (2026–).
+  16 new milestones from league email (Mike's Gmail): Mike takes the 11th seat + 12 teams/4 divisions (2006), Vegas draft at the Mirage (2006),
+  online draft + Glen's wiki (2007), PSU draft weekend (2008), first GM Report (2011), rule votes on draft day (2012), NFL.com 2020–21,
+  Divisional Draft, first constitution + COVID amendment, Signing Day → 10 days out, trophy rebuild (2020), back on ESPN (2022), Shoot Out fix +
+  6/12/2023 constitution, State College draft (2023), flat fees (2024), **Week 14 Shoot Out scrapped (Jul 2025, Proposal A 7–4: random Week 4
+  cross-division games, $100 to the SPL Bowl prize)**. SW `splhq-v77`.
 - 2026-11-28 · v0.25.13 · ▦ **Draft boards grid fixes** (Mike): keepers moved to the **top**, right under each team name (🔒 rows, gold
   rule under them, no banner), rounds below. **Bug:** Grid ↔ Rounds didn't redraw (same hash, no hashchange) until you changed year; now
   `draftV` re-renders. **One scroller:** the grid now fills the screen below the chips (`fitHistGrid`, refit on resize / opening the note)
