@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.16: Parity Years era)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26: 🏷️ trade block + roster rows that say how you got him; backend v0.19.0)
 
 
 ## Now
@@ -33,6 +33,14 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26 · backend v0.19.0 · 🏷️ **Trade block + roster rows rethought** (Mike). Roster rows drop season total points (useless) and
+  keep **Avg** with the player's **position rank** under it (QB3, WR1: by pts/game across every SPL roster). The "Drafted / Waiver" line now says
+  **how he got here**: 🔒 Kept · yr 2 of 3 · from Rd 6 '24 · Drafted Rd 2 '26 · #20 · Joe's pick · Waiver · Sep 17 · Trade · Oct 21 (ESPN's
+  acquisition date, new `ad` in `rosters_`). The KP badge on roster rows is just the price now (the round moved to that line).
+  **Trade block:** ＋ Block on each of your players (optional "looking for" note) → new Sheet tab `Block`, `blockset` action, `block` in the
+  trades feed; one line to league chat when someone goes on. The league sees it on Trades (🏷️ Trade block card, Trade › per team), other
+  teams' rosters (🏷️ Block tag + note), the trade grid (gold outline) and the player file. **Not gated by the trade deadline** while in test
+  mode (Mike: so Joe can see it); `BLOCK_DEADLINE` in mod_trades.js is the switch for launch. Smoke test +5. SW `splhq-v80`.
 - 2026-11-28 · v0.25.16 · 📚 **The Road Show split** (Mike): 2006–12 stays The Road Show; **2013–18 = The Parity Years** (six seasons, six
   different champions). No milestones in 2013–18 yet (the Gmail Packet sweep should add some). Seasons with no runner-up on file (2003–05) say
   "SPL champion (runner-up not on file)" instead of "beat ?". SW `splhq-v79`.

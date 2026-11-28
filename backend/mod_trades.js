@@ -79,7 +79,7 @@ function trades_(me) {
   var rl = rules_();
   return { ok: true, mode: TRADE_MODE, seasons: rl.pickSeasons, rounds: PICK_ROUNDS, rules: rl,
     picks: picks.map(function (p) { return { pid: p.pid, season: Number(p.season), round: Number(p.round), original: p.original, owner: p.owner, via: p.via }; }),
-    offers: mine.map(function (r) { var o = pub_offer_(r); if (desk && r.status === "ACCEPTED") o.lock = deskLock_(me, r); return o; }).reverse().slice(0, 80), moves: moves };
+    offers: mine.map(function (r) { var o = pub_offer_(r); if (desk && r.status === "ACCEPTED") o.lock = deskLock_(me, r); return o; }).reverse().slice(0, 80), moves: moves, block: block_() };
 }
 function offer_(me, b) {
   var to = String(b.to || ""); if (!oid_(to) || to === me.owner) return { ok: false, error: "Pick a team to trade with." };
@@ -153,4 +153,28 @@ function wipeTrades_(me) {
   if (TRADE_MODE !== "test") return { ok: false, error: "Only test trades can be wiped." };
   var ss = SpreadsheetApp.getActive(); ["Offers", "Picks"].forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) ss.deleteSheet(sh); delete SH_[n]; dirty_(n); });
   seedPicks_(); log_("wipetrades", me.owner); return { ok: true };
+}
+
+// ---------------------------------------------------------------- 🏷️ Trade block (Mike 11/28)
+// An owner flags players he'd move, with an optional "looking for" note. The league sees every block on the Trades page, the
+// roster pages and the trade grid; putting someone on posts one line to league chat. Rows are kept (on = Y/N) so re-listing
+// updates the same row. Not gated by the trade deadline yet (test mode, Mike 11/28): BLOCK_DEADLINE gates it once live.
+var BLOCK_DEADLINE = false;
+function block_() {
+  return rows_("Block").filter(function (r) { return r.on === "Y"; }).map(function (r) {
+    return { owner: r.owner, n: r.player, pos: r.pos, tm: r.tm, note: r.note, at: r.updated_ts || r.ts }; });
+}
+function blockSet_(me, b) {
+  var name = clip_(b.player, 60), on = !!b.on; if (!name) return { ok: false, error: "Which player?" };
+  var all = rows_("Block"), idx = -1; all.forEach(function (r, i) { if (r.owner === me.owner && String(r.player).toLowerCase() === name.toLowerCase()) idx = i; });
+  var now = new Date();
+  if (!on) { if (idx >= 0) { var x = all[idx]; x.on = "N"; x.updated_ts = now; setRow_("Block", idx, x); } log_("block", me.owner + " - " + name); return { ok: true, block: block_() }; }
+  var p = (rosterOf_(me.owner) || []).filter(function (x) { return String(x.n).toLowerCase() === name.toLowerCase(); })[0];
+  if (!p) return { ok: false, error: name + " isn't on your ESPN roster." };
+  var note = clip_(b.note, 140), was = idx >= 0 && all[idx].on === "Y";
+  if (idx >= 0) { var r = all[idx]; r.on = "Y"; r.note = note; r.pos = p.pos; r.tm = p.tm; r.updated_ts = now; setRow_("Block", idx, r); }
+  else append_("Block", [me.owner, p.n, p.pos, p.tm, note, "Y", now, now]);
+  if (!was) botPost_("league", "🏷️ " + (TRADE_MODE === "test" ? "🧪 " : "") + me.name + " put " + p.n + " (" + p.pos + ", " + p.tm + ") on the trade block" + (note ? ": “" + note + "”" : "") + ". SPL HQ → Team → Trades.", "block:" + me.owner);
+  log_("block", me.owner + " + " + p.n);
+  return { ok: true, block: block_() };
 }

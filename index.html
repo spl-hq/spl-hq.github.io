@@ -492,6 +492,13 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 .srch{position:relative;display:block}.srch input{padding-right:40px !important}
 .srchx{display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:#E8EAED;color:#5F666D;font:700 13px var(--body);padding:0;line-height:30px;text-align:center;cursor:pointer}
 .srch.has .srchx{display:block}
+
+/* 🏷️ Trade block + roster rows (Mike 11/28) */
+.ro td.bk{width:58px;padding-left:2px;text-align:right} .ro td small.prk{display:block;font:600 10px var(--mono);color:#7A8288;margin-top:2px}
+.blk{font:700 10px var(--mono);border:1px solid #C9D6EA;background:#fff;color:#1E407C;border-radius:8px;padding:5px 5px;white-space:nowrap;cursor:pointer}
+.blk.on{background:#B88A2E;color:#fff;border-color:#B88A2E} .kpb.kblk{color:#fff;background:#B88A2E;border-color:#B88A2E}
+.ro small .hg{color:#0B1F3A;font-weight:600} .gp.gblk{border-color:#B88A2E;box-shadow:0 0 0 1px #B88A2E inset}
+.bkt{padding:8px 0;border-top:1px solid var(--line)} .bkt:first-of-type{border-top:0} .bkp{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 0 2px;cursor:pointer} .bkp span{min-width:0}
 </style>
 </head>
 <body>
@@ -1061,14 +1068,17 @@ SCREENS.team.after = function (arg) {
     var cs = contractsOf(id), kept = {}; cs.forEach(function (c) { if (c.status === "active") kept[c.player.toLowerCase()] = c; });
     var html = '';
     if (!t) { $("#tm").innerHTML = html + '<div class="card"><p class="muted">Couldn\'t match this team on ESPN.</p></div>'; return; }
+    var mineT = id === ME.owner, all = []; d.teams.forEach(function (x) { x.players.forEach(function (p) { all.push(p); }); });
     var group = function (label, list) {
       if (!list.length) return "";
-      return '<div class="card" style="padding:12px 14px"><div class="eyebrow">' + label + '</div><table class="ro"><tr><th></th><th>Player</th><th class="n">Pts</th><th class="n">Avg</th></tr>' +
+      return '<div class="card" style="padding:12px 14px"><div class="eyebrow">' + label + '</div><table class="ro"><tr><th></th><th>Player</th><th class="n">Avg</th>' + (mineT ? '<th></th>' : '') + '</tr>' +
         list.map(function (p) {
-          var k = kept[p.n.toLowerCase()];
-          return '<tr class="pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><td class="muted" style="font:600 10px var(--mono);width:40px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? '' : ' ' + kpBadge(p.n)) +
-            '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + (p.acq ? ' · ' + esc(p.acq) : '') + '</small>' + (p.inj ? ' <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</td>' +
-            '<td class="n">' + fmtPts(p.sp) + '</td><td class="n">' + fmtPts(p.avg) + '</td></tr>';
+          var bl = onBlock(id, p.n), rk = posRk(p, all);
+          return '<tr class="pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><td class="muted" style="font:600 10px var(--mono);width:34px">' + esc(p.slot) + '</td><td><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? '' : ' ' + kpBadge(p.n, 1)) + (bl && !mineT ? ' <span class="kpb kblk">🏷️ Block</span>' : '') +
+            '<br><small class="muted">' + esc(p.pos) + ' · ' + esc(p.tm) + ' · ' + howGot(p, id) + '</small>' + (p.inj ? ' <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') +
+            (bl && bl.note && !mineT ? '<br><small class="gold">“' + esc(bl.note) + '”</small>' : '') + '</td>' +
+            '<td class="n">' + fmtPts(p.avg) + (rk ? '<small class="prk">' + rk + '</small>' : '') + '</td>' +
+            (mineT ? '<td class="bk">' + (p.pos === "D/ST" ? '' : '<button class="blk' + (bl ? ' on' : '') + '" data-p="' + esc(p.n) + '" onclick="event.stopPropagation();blockTog(this.dataset.p)">' + (bl ? '🏷️ On block' : '＋ Block') + '</button>') + '</td>' : '') + '</tr>';
         }).join("") + '</table></div>';
     };
     html += group("Starters", t.players.filter(function (p) { return p.slot !== "BE" && p.slot !== "IR"; }));
@@ -1078,6 +1088,7 @@ SCREENS.team.after = function (arg) {
       '<p class="muted" style="font-size:12px">Tap a player for his SPL file. Rosters from ESPN · ' + new Date(d.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (d.stale ? " (ESPN hiccup: last good copy)" : "") + '</p>';
     $("#tm").innerHTML = html;
     if (id !== ME.owner) loadContacts().then(function () { var c = $("#ct"); if (c) c.innerHTML = contactRow(id); }).catch(function () {});
+    if (!TRADES) loadTrades().then(function () { draw(d); }).catch(function () {});
   };
   (ROSTERS && Date.now() - new Date(ROSTERS.at).getTime() < 600000 ? Promise.resolve(ROSTERS) : authed("rosters")).then(draw)
     .catch(function (e) { if ($("#tm")) $("#tm").innerHTML = '<div class="card"><p class="coral">' + esc(e.message) + '</p></div>'; });
@@ -1098,6 +1109,7 @@ function pcard(name) {
   var why = kblocked(name, ""), c = contractOf(name), r = draftedRound(name, y0 - 1);
   var h = '<div class="sbody pfile"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="min-width:0"><div class="eyebrow">' + esc([p.pos, p.tm].filter(Boolean).join(" · ") || "Player") + '</div><h2 style="margin:2px 0 0">' + esc(name) + '</h2>' +
     (p.inj ? '<span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</div><button class="btn ghost" onclick="pclose()">Close</button></div>';
+  var blk = cur && onBlock(cur.o, name); if (blk) h += '<div class="card" style="border-color:#B88A2E;padding:10px 14px"><b class="gold">🏷️ On ' + (cur.o === ME.owner ? 'your' : esc(oname(cur.o)) + "'s") + ' trade block</b>' + (blk.note ? '<br><small>“' + esc(blk.note) + '”</small>' : '') + (cur.o !== ME.owner ? ' <button class="back" onclick="pclose();go(\'trade\',\'' + cur.o + '\')">Trade ›</button>' : '') + '</div>';
   // now
   h += '<div class="card"><div class="eyebrow">📍 Now</div>' + (cur ? '<div class="byline" style="margin-bottom:8px">' + av(cur.o, "sm") + '<span><b>' + esc((owner(cur.o) || {}).team || oname(cur.o)) + '</b><br><small class="muted">' + esc(oname(cur.o)) + (p.slot ? ' · ' + (p.slot === "BE" ? "bench" : p.slot === "IR" ? "IR" : "starting " + esc(p.slot)) : '') + (p.acq ? ' · ' + esc(p.acq) : '') + '</small></span></div>' +
       '<div class="pft">' + [[fmtPts(p.sp), "season pts"], [fmtPts(p.avg), "per game"], [posRank ? esc(p.pos) + " #" + posRank : "·", "on SPL rosters"]].map(function (x) { return '<div><b>' + x[0] + '</b><small>' + x[1] + '</small></div>'; }).join("") + '</div>'
@@ -1200,11 +1212,45 @@ function pickInfo(pid) { var m = /^(\d+)-R(\d+)-(\w+)$/.exec(pid) || []; return 
 function pickLabel(pid, holder) { var p = pickInfo(pid); return "'" + String(p.season).slice(2) + " Rd " + p.round + (p.original !== holder ? " (" + oname(p.original) + "'s)" : ""); }
 // Keeper price on any roster row: 🔒 the contract he carries (next season's KP, through when), else what keeping him would cost
 // (KP by the round he went in last season's SPL Draft; undrafted = 2), or ✗ if he can't be kept (no extensions, terminated).
-function kpBadge(name) {
+function kpBadge(name, short) {
   var y0 = KP_YRS[0], c = contractOf(name);
   if (c) { var v = c.kp[y0], last = Math.max.apply(null, Object.keys(c.kp).map(Number)); return '<span class="kpb kc">🔒 ' + (v === "F" ? "TAG" : v + " KP") + (last > y0 ? " → '" + String(last).slice(2) : "") + '</span>'; }
   var why = kblocked(name, ""); if (why && !/under contract/.test(why)) return '<span class="kpb kx" title="' + esc(why) + '">✗ ' + (/terminated/.test(why) ? "cut" : "no ext.") + '</span>';
-  var r = draftedRound(name, y0 - 1); return '<span class="kpb">' + (r ? "R" + r : "UD") + ' · ' + KP_ROUND(r) + ' KP</span>';
+  var r = draftedRound(name, y0 - 1); return '<span class="kpb"' + (short ? ' title="Keeping him costs ' + KP_ROUND(r) + ' KP in ' + y0 + '"' : '') + '>' + (short ? "" : (r ? "R" + r : "UD") + ' · ') + KP_ROUND(r) + ' KP</span>';
+}
+// 🏷️ How he landed on this roster (Mike 11/28: "Drafted" alone is useless, say which round): keeper deal (year of term + the
+// pick it came from), this season's SPL Draft round + overall pick, or the waiver / free-agent / trade date ESPN keeps.
+function howGot(p, owner) {
+  var cur = KP_YRS[0] - 1, n = pnorm(p.n), yy = function (y) { return "'" + String(y).slice(2); };
+  var c = LD("contracts").filter(function (x) { return pnorm(x.player) === n && x.owner === owner && x.kp && x.kp[cur] != null; })[0];
+  var when = p.ad ? fmtDay(p.ad) : "", nb = function (t) { return t.replace(/ /g, "\u00a0"); };
+  if (c) { var o = LD("draft").filter(function (d) { return pnorm(d[6]) === n && d[0] < c.signed; }).sort(function (a, b) { return b[0] - a[0]; })[0];
+    return '<span class="hg">🔒 Kept' + (c.tag ? ' (tag)' : '') + ' · ' + (c.term > 1 ? 'yr ' + (cur - c.signed + 1) + ' of ' + c.term : '1-yr deal') + '</span>' + (o ? ' · ' + nb('from Rd ' + o[1] + ' ' + yy(o[0])) : ''); }
+  var d = LD("draft").filter(function (x) { return x[0] === cur && pnorm(x[6]) === n; })[0]; // [season, rd, pick, overall, picker, slot owner, player…]
+  if (p.acq === "Traded") return '<span class="hg">Trade</span>' + (when ? ' · ' + nb(when) : '') + (d && d[4] !== owner ? ' · ' + nb(esc(oname(d[4])) + "'s Rd " + d[1]) : '');
+  if (p.acq === "Waiver" || p.acq === "Free agent") return '<span class="hg">' + p.acq + '</span>' + (when ? ' · ' + nb(when) : '');
+  if (d) return '<span class="hg">' + nb('Drafted Rd ' + d[1] + ' ' + yy(cur)) + '</span>' + (d[3] ? ' · #' + d[3] : '') + (d[5] && d[5] !== d[4] ? ' · ' + nb(esc(oname(d[5])) + "'s pick") : '');
+  return esc(p.acq || "");
+}
+function posRk(p, all) { // rank at his position among every rostered SPL player, by points per game
+  if (p.avg == null || !p.pos) return ""; return p.pos.replace("D/ST", "DST") + (all.filter(function (x) { return x.pos === p.pos && (x.avg || 0) > p.avg; }).length + 1);
+}
+// 🏷️ Trade block (Mike 11/28). Lives with the trades feed (backend mod_trades.js block_). Not gated by the deadline in test mode.
+function onBlock(owner, name) { var n = pnorm(name); return ((TRADES && TRADES.block) || []).filter(function (b) { return b.owner === owner && pnorm(b.n) === n; })[0] || null; }
+function blockTog(name) {
+  var on = !onBlock(ME.owner, name), note = "";
+  if (on) { note = prompt("Put " + name + " on the trade block. What are you looking for? (optional, the league sees it)", ""); if (note === null) return; }
+  else if (!confirm("Take " + name + " off the trade block?")) return;
+  authed("blockset", { player: name, on: on, note: note }).then(function (r) { if (!r.ok) throw new Error(r.error); if (TRADES) TRADES.block = r.block; toast(on ? "🏷️ " + name + " is on the block · league chat told" : name + " is off the block"); render(); }).catch(function (e) { toast(e.message); });
+}
+function blockCard(t) {
+  var b = (t.block || []).slice(), me = ME.owner; if (!b.length) return '<div class="card"><div class="eyebrow">🏷️ Trade block</div><p class="muted" style="margin:0">Nobody\'s shopping anyone yet. Put a player on yours from <a href="#team">your roster</a> (＋ Block).</p></div>';
+  var by = {}; b.forEach(function (x) { (by[x.owner] = by[x.owner] || []).push(x); });
+  var ids = Object.keys(by).sort(function (a, c) { return (a === me ? -1 : 0) - (c === me ? -1 : 0) || oname(a).localeCompare(oname(c)); });
+  return '<div class="card"><div class="eyebrow">🏷️ Trade block · ' + b.length + ' player' + (b.length > 1 ? 's' : '') + '</div>' + ids.map(function (id) {
+    return '<div class="bkt"><div class="row" style="justify-content:space-between"><b>' + (id === me ? 'Yours' : esc(oname(id))) + '</b>' + (id === me ? '' : '<button class="back" onclick="go(\'trade\',\'' + id + '\')">Trade ›</button>') + '</div>' +
+      by[id].map(function (x) { return '<div class="bkp pclk" data-p="' + esc(x.n) + '" onclick="pcard(this.dataset.p)"><span><b>' + esc(x.n) + '</b> <small class="muted">' + esc(x.pos) + ' · ' + esc(x.tm) + '</small>' + (x.pos === "D/ST" ? '' : ' ' + kpBadge(x.n, 1)) + (x.note ? '<br><small class="gold">“' + esc(x.note) + '”</small>' : '') + '</span>' +
+        (id === me ? '<button class="blk on" data-p="' + esc(x.n) + '" onclick="event.stopPropagation();blockTog(this.dataset.p)">✕ Off</button>' : '') + '</div>'; }).join("") + '</div>'; }).join("") + '</div>';
 }
 function contractOf(name) { // the keeper contract that travels with this player, if any
   var c = ((window.LEAGUE_DATA || {}).contracts || []).filter(function (x) { return x.status === "active" && x.player.toLowerCase() === String(name).toLowerCase(); })[0];
@@ -1259,6 +1305,7 @@ SCREENS.trades.after = function (focus) {
       past = t.offers.filter(function (o) { return (o.from === me || o.to === me) && ["DECLINED", "WITHDRAWN", "NEGATED"].indexOf(o.status) >= 0; }).slice(0, 8),
       mine = t.picks.filter(function (p) { return p.owner === me; });
     var html = testBanner(t) + '<div class="card"><div class="eyebrow">➕ New trade</div><p style="margin:0">See every roster side by side, then tap a team.</p><p style="margin-top:12px"><button class="btn" onclick="go(\'trade\')">Browse all teams</button></p></div>';
+    html += blockCard(t);
     if (inb.length) html += '<div class="eyebrow">📥 Needs your answer</div>' + inb.map(offerCard).join("");
     if (out.length) html += '<div class="eyebrow">📤 Your open offers</div>' + out.map(offerCard).join("");
     html += '<div class="eyebrow">📰 Trade wire</div>' + (wire.length ? wire.map(offerCard).join("") : '<div class="card"><p class="muted" style="margin:0">No agreed trades yet.</p></div>');
@@ -1293,12 +1340,12 @@ SCREENS.trade.after = function (arg) {
     Promise.all([loadRosters(), loadTrades()]).then(function (res) {
       var ro = res[0], t = res[1], st = sortTeams((HOME_D && HOME_D.stand && HOME_D.stand.teams) || []).map(function (x) { return x.owner; });
       var ids = [me].concat(OWNERS.map(function (o) { return o.id; }).filter(function (id) { return id !== me; }).sort(function (a, b) { var ia = st.indexOf(a), ib = st.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }));
-      var html = '<div class="gtop"><span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade, a player for his SPL file. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted).</span></div><div class="tgrid2">' + ids.map(function (id) {
+      var html = '<div class="gtop"><span class="muted" style="font-size:12px">Scroll across the league. Tap a team to trade, a player for his SPL file. 🔒 = keeper contract (next season KP → final year) · R3 · 6 KP = keeper price by ' + (KP_YRS[0] - 1) + ' draft round (UD = undrafted) · 🏷️ = on the trade block.</span></div><div class="tgrid2">' + ids.map(function (id) {
         var tm = teamRoster(ro, id); if (!tm) return ""; var mine = id === me, np = t.picks.filter(function (p) { return p.owner === id; }).length;
         var head = mine ? '<div class="ghead me"><b>You</b><small>' + esc(tm.rec) + ' · 🎟️ ' + np + ' picks</small></div>'
           : '<button class="ghead" onclick="go(\'trade\',\'' + id + '\')"><b>' + esc(tm.team) + '</b><small>' + esc(oname(id)) + ' · ' + esc(tm.rec) + ' · 🎟️ ' + np + '</small><span class="gtrade">Trade ›</span></button>';
         return '<div class="gcol' + (mine ? " mine" : "") + '">' + head + grouped(tm.players.filter(function (p) { return p.slot !== "IR"; }), function (p) {
-          return '<div class="gp pclk" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><b>' + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</small></div>'; }) + '</div>';
+          return '<div class="gp pclk' + (onBlock(id, p.n) ? ' gblk' : '') + '" data-p="' + esc(p.n) + '" onclick="pcard(this.dataset.p)"><b>' + (onBlock(id, p.n) ? '🏷️ ' : '') + esc(p.n) + '</b>' + (p.pos === "D/ST" ? "" : kpBadge(p.n)) + '<small>' + esc(p.tm) + (p.avg != null ? ' · ' + fmtPts(p.avg) + '/g' : '') + (p.inj ? ' · <span class="inj">' + esc(injAb(p.inj)) + '</span>' : '') + '</small></div>'; }) + '</div>';
       }).join("") + '</div>';
       if ($("#tg")) $("#tg").innerHTML = html;
     }).catch(function (e) { if ($("#tg")) $("#tg").innerHTML = '<p class="coral" style="padding:14px">' + esc(e.message) + '</p>'; });

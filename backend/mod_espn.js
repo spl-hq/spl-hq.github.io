@@ -138,7 +138,7 @@ function rosters_() {
             var ppe = e.playerPoolEntry || {}, pl = ppe.player || {}, st = pl.stats || [];
             var season = st.filter(function (x) { return x.scoringPeriodId === 0 && x.statSourceId === 0 && (!x.seasonId || x.seasonId === SEASON); })[0];
             return { id: e.playerId || pl.id || null, n: pl.fullName || "?", pos: POS[pl.defaultPositionId] || "", tm: PRO[pl.proTeamId] || "FA", slot: SLOT[e.lineupSlotId] || "", so: SLOT_ORDER.indexOf(e.lineupSlotId),
-              acq: ACQ[e.acquisitionType] || "", inj: pl.injuryStatus && pl.injuryStatus !== "ACTIVE" ? String(pl.injuryStatus).replace(/_/g, " ") : "",
+              acq: ACQ[e.acquisitionType] || "", ad: e.acquisitionDate ? Utilities.formatDate(new Date(e.acquisitionDate), "America/New_York", "yyyy-MM-dd") : "", inj: pl.injuryStatus && pl.injuryStatus !== "ACTIVE" ? String(pl.injuryStatus).replace(/_/g, " ") : "",
               sp: season ? Math.round(season.appliedTotal * 10) / 10 : null, avg: season && season.appliedAverage != null ? Math.round(season.appliedAverage * 10) / 10 : null,
               own: pl.ownership && pl.ownership.percentOwned != null ? Math.round(pl.ownership.percentOwned) : null };
           }).sort(function (a, b) { return a.so - b.so || (b.sp || 0) - (a.sp || 0); }) };

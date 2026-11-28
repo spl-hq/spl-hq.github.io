@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Trade block + roster rows say how you got him** (Mike). Rows: Avg + position rank, no season totals; the acquisition line names the round/year, keeper year of term, or waiver/trade date. Trade block: owners flag players (+ note), league sees it everywhere trades live, chat gets one line. Open past the deadline for now (test mode, Joe preview); gate with the deadline at launch.
 - 2026-11-28 · **Era 2019–21 = The NFL.com Experiment; Mike + Pete = the 2006 expansion** (Mike). History gaps: Claude sweeps Mike's Gmail attachments first, then one short ask goes to Joe (`HISTORY_NEEDS.md` top + app question `history_gaps`).
 - 2026-11-28 · **Power 5 → Power 3** (Mike): three teams. Paragraph write-ups read as a blob, so each team gets one take line + Form · Points · Next tiles (robot writes the take).
 - 2026-11-28 · **League lore lives on History, by era** (Mike). Rules = rulebook + vs ESPN only; dates = SPL Calendar; "how the league got here" = eras + milestones on History from gold `data/League_Timeline.csv` (era names are Mike's to rename).

@@ -211,6 +211,13 @@ ok(e.sheets.Chat.rows.some(r => r[2] === "league" && /Trade approved/.test(r[4])
 r = e.post({ action: "tradeact", token: joeTok, id: tid, decision: "approve" });
 ok(r.ok && e.sheets.Chat.rows.some(x => /commish-to-commish trade, approved by Joe/.test(x[4])), "Mike↔Joe trade: approvable, flagged to the league");
 // counter
+// 🏷️ trade block
+r = e.post({ action: "blockset", token: mike, player: "Josh Allen", on: true, note: "=need a WR" });
+ok(r.ok && r.block.length === 1 && r.block[0].owner === "murello" && !/^=/.test(r.block[0].note), "block: list a player, note formula-guarded");
+ok(e.post({ action: "blockset", token: mike, player: "Chris Olave", on: true }).error.includes("isn't on your"), "block: only your own players");
+ok(e.post({ action: "blockset", token: mike, player: "Josh Allen", on: true, note: "WR2" }).block.length === 1, "block: re-listing updates the row");
+ok(e.post({ action: "trades", token: glen }).block[0].n === "Josh Allen", "block: the league sees it on trades");
+ok(e.post({ action: "blockset", token: mike, player: "Josh Allen", on: false }).block.length === 0, "block: take him off");
 const c1 = e.post({ action: "offer", token: glen, to: "reilly", give: { picks: ["2027-R4-glen"] }, get: { players: [{ n: "Omarion Hampton" }] } });
 const c2 = e.post({ action: "offer", token: joeTok, to: "glen", counterOf: c1.offer.id, give: { players: [{ n: "Chris Olave" }] }, get: { picks: ["2027-R4-glen", "2027-R5-glen"] } });
 ok(c2.ok && e.post({ action: "trades", token: glen }).offers.find(o => o.id === c1.offer.id).reason === "Countered", "counter declines the original");
