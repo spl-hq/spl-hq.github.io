@@ -8,7 +8,7 @@
  * Rules: no secrets in the repo (cookies live in Script properties); every Sheet write is formula-guarded;
  * ESPN writes only ever go to WRITE_LEAGUE.
  */
-var VERSION = "0.21.0";
+var VERSION = "0.21.1";
 var SEASON = 2026;
 var READ_LEAGUE = 19583;        // real SPL league: read-only (rosters, standings, schedule, history)
 var WRITE_LEAGUE = 1722387564;  // "Testing MAFFL HQ": the ONLY league the backend may ever write to (until Joe signs off)
@@ -86,7 +86,7 @@ function doPost(e) {
     if (!READS[b.action]) { lock = LockService.getScriptLock(); try { lock.waitLock(10000); } catch (x) { lock = null; return json({ ok: false, busy: true, error: "The league server is busy. Try again in a few seconds." }); } }
     var desk = isRole_(me, "commish") || isRole_(me, "ops");
     switch (b.action) {
-      case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner), tour: tourStampOf_(me.owner), handles: handles_(), phase: phase_() });
+      case "me":       return json({ ok: true, me: pub_(me), myAnswers: myAnswers_(me.owner), tour: tourStampOf_(me.owner), handles: handles_(), phase: phase_(), review: reviewCount_(me) });
       case "setphase": return json(desk ? setPhase_(me, b) : { ok: false, error: "Commish only" }); // 🍂 Joe or Mike flips the off-season (mod_ops)
       case "tour":     return json(isRole_(me, "ops") ? tourReset_(me, b) : { ok: false, error: "Ops only" }); // 👋 replay the welcome tour (mod_ops)
       case "answers":  return json(saveAnswers_(me, b));
@@ -220,6 +220,11 @@ function seedOwners_() {
 function isRole_(o, r) { return String(o.role || "").split(/[,\s]+/).indexOf(r) >= 0; }
 function isBackup_(o) { return isRole_(o, "ops"); } // Mike: commish powers only as backup on Joe's desk
 // Why `me` can't approve/negate this accepted trade right now ("" = can act).
+// Trades waiting on this commish (accepted, and he's allowed to act): the number on his 📥 Desk button, with his open questions.
+function reviewCount_(me) {
+  if (!isRole_(me, "commish") || isRole_(me, "ops")) return 0;
+  return offers_().filter(function (r) { return r.status === "ACCEPTED" && !deskLock_(me, r); }).length;
+}
 function deskLock_(me, r) {
   if (!(isRole_(me, "commish") || isRole_(me, "ops"))) return "Commish only";
   var byId = {}; owners_().forEach(function (o) { byId[o.owner] = o; });

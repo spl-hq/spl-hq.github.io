@@ -626,7 +626,7 @@ var QUESTIONS = [
     why: "The constitution says no, but ESPN doesn't stop them. The app can flag those adds; it can't block them on ESPN. Section I also still has the 2021 note about Boogie and Owen working out a FAAB payout. Drop it?",
     choices: ["No adds: flag them", "That rule's gone", "Explain below"] },
   { qid: "espn_writes", q: "Are you comfortable with the app making changes on ESPN for you?",
-    why: "Today trades run on ESPN: owners send them there, the league votes there (ESPN needs 8 vetoes, the rulebook says 6), and ESPN moves the players. With the app, trades happen here instead: the league votes by the rulebook, then the app makes the trade on ESPN itself. It can also load the SPL Draft board, keepers included, onto ESPN after the draft, so nobody keys it in by hand. ESPN only lets a league manager do that, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
+    why: "Today trades run on ESPN: owners send them there, the league votes there (ESPN needs 8 vetoes, the rulebook says 6), and ESPN moves the players. With the app, trades happen here instead: owners agree in the app, you approve or negate them here, then the app makes the trade on ESPN itself. It can also load the SPL Draft board, keepers included, onto ESPN after the draft, so nobody keys it in by hand. ESPN only lets a league manager do that, so Mike's team would need co-commish on the SPL league. Mike built a test ESPN league to show you: a trade gets approved in the app, lands on ESPN by itself, and the app reads ESPN back to check it. Nothing touches the real SPL league until you say so.",
     choices: ["Yes, make Mike co-commish", "Show me the test league first", "Keep trades on ESPN", "Let's talk"] }
 ];
 var Q_ORDER = ["history_gaps", "espn_writes", "rules_rewrite"]; // the order Joe sees (Mike 11/28: missing history, ESPN writes + the test league, the 2027 rulebook; later: ones come back by moving them here)
@@ -679,7 +679,7 @@ function authed(action, body) {
   body = body || {}; body.token = store("token");
   return api(action, body).then(function (r) { if (r && r.auth) { signOut(true); throw new Error("Please sign in again."); } return r; });
 }
-function setMe(r) { ME = r.me; store("me", ME); if (r.myAnswers) MY = r.myAnswers; if (r.handles) setHandles(r.handles); paintMe(); }
+function setMe(r) { ME = r.me; if (typeof r.review === "number") ME.review = r.review; store("me", ME); if (r.myAnswers) MY = r.myAnswers; if (r.handles) setHandles(r.handles); paintMe(); }
 function signOut(quiet) { uvEnd(); uvFlush(true); store("uq", null); UV.opened = 0; try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("spl_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} store("token", null); store("me", null); ME = null; MY = {}; paintMe(); if (!quiet) { toast("Signed out"); go("home"); } }
 function fullOf(id) { var o = (window.LEAGUE_DATA && LEAGUE_DATA.owners || []).filter(function (x) { return x.id === id; })[0]; return o && o.full; } // Owner Registry canonical_name
 function initials() { // Michael Murello → MM
@@ -687,9 +687,10 @@ function initials() { // Michael Murello → MM
   return (w.length > 1 ? w[0][0] + w[w.length - 1][0] : w[0].slice(0, 2)).toUpperCase();
 }
 function fullName() { return (ME && (fullOf(ME.owner) || ME.name)) || ""; }
+// 📥 Joe's Desk button number = his open questions from the Ops Manager + trades waiting on him (backend me.review).
 function paintMe() {
   var b = $("#meBtn"); if (b) { b.textContent = ME ? initials() : "Sign in"; b.setAttribute("aria-label", ME ? "Your settings" : "Sign in"); }
-  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); var qOpen = isOps() ? 0 : ACTIVE_Q.length - answeredActive(MY || {}); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk" + (qOpen > 0 ? " · " + qOpen : ""); d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
+  var d = $("#deskBtn"); if (d) { d.hidden = !isDesk(); var qOpen = isOps() ? 0 : ACTIVE_Q.length - answeredActive(MY || {}) + ((ME && +ME.review) || 0); d.textContent = isOps() ? "🛠️ Desk" : "📥 Desk" + (qOpen > 0 ? " · " + qOpen : ""); d.setAttribute("aria-label", isOps() ? "Ops desk" : "Commish desk"); }
 }
 function flushOutbox() { // chat typed offline never reached the backend, so sending it now can't double-post
   var ob = store("outbox") || []; if (!ob.length || !ME || !navigator.onLine || flushOutbox.busy) return; flushOutbox.busy = true;
@@ -1387,7 +1388,7 @@ function deskTrade(id, d) {
   var body = { id: id, decision: d };
   if (d === "negate") { var why = prompt("Why negate it? (the league sees this)"); if (!why) return; body.reason = why; }
   else if (d === "approve" && !confirm("Approve this trade? Picks move now and the league is told.")) return;
-  authed("tradeact", body).then(function (r) { if (!r.ok) throw new Error(r.error); toast(d === "approve" ? "✓ Approved" : d === "negate" ? "Negated" : "✓ Marked done"); TRADES = null; render(); }).catch(function (e) { toast(e.message); });
+  authed("tradeact", body).then(function (r) { if (!r.ok) throw new Error(r.error); toast(d === "approve" ? "✓ Approved" : d === "negate" ? "Negated" : "✓ Marked done"); TRADES = null; render(); authed("me").then(function (m) { if (m.ok) setMe(m); }).catch(function () {}); }).catch(function (e) { toast(e.message); });
 }
 function testBanner(t) { return t && t.mode === "test" ? '<div class="card" style="border-color:var(--gold);padding:10px 14px"><small class="gold">🧪 Test mode: trades here are practice. Mike can wipe them. Trades between Mike, Joe, Al and Glen move on the ESPN test league when Mike has ESPN writes on; nothing ever touches the real SPL league. Rules use defaults until Joe answers his questions.</small></div>' : ''; }
 SCREENS.trades = function (focus) {
@@ -1531,7 +1532,7 @@ SCREENS.desk.after = function () {
     html += phaseSec(false);
     html += cSec("drafts", "🗓️ Drafts", "cDr", '<p class="muted">Loading drafts…</p>', "…");
     html += cSec("keep", "🔒 Keeper Signing Day", "cKp", '<p class="muted">Loading…</p>', "…");
-    html += cSec("q", "📋 Questions", "cQ", '<p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + who + '.</p><p style="margin-top:10px"><button class="btn' + (qOpen > 0 && !isOps() ? "" : " ghost") + '" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p>',
+    html += cSec("q", "📋 Questions from the Ops Manager", "cQ", '<p style="margin:0">' + n + ' of ' + ACTIVE_Q.length + ' answered by ' + who + '.</p><p style="margin-top:10px"><button class="btn' + (qOpen > 0 && !isOps() ? "" : " ghost") + '" onclick="go(\'joe\')">' + (isOps() ? "See the questions" : n ? "Keep going" : "Answer them") + '</button></p>',
       qOpen > 0 ? qOpen + " open" : "all answered", qOpen > 0 ? "confirm" : "ok", qOpen > 0 && !isOps());
     if (d.recent.length) html += cSec("recent", "📜 Recent decisions", "cRc", d.recent.map(offerCard).join(""), d.recent.length + " recent", "ok");
     $("#dsk").innerHTML = html;
@@ -1767,7 +1768,7 @@ var WHERE = [
     ["Weekly recaps and the GM Report", "", "W", "N", "On your Home screen."]]],
   ["Trades", [
     ["Offers, counters, accepting", "S", "W", "N", "Approved trades get moved onto your ESPN roster for you. Don't send trades on ESPN."],
-    ["The veto vote", "W", "", "N", "6 vetoes kills a trade, per the rulebook."],
+    ["Trade approval", "W", "", "N", "Joe approves or negates in the app. ESPN's veto vote isn't used."],
     ["Trade block", "", "", "N", ""],
     ["Who owns which draft picks", "", "W", "N", "ESPN doesn't track traded picks."]]],
   ["Off-season", [
@@ -3406,11 +3407,11 @@ function joeDraft() {
   return d;
 }
 SCREENS.joe = function () {
-  if (!ME) return back("home", "Home") + '<h2>Questions for the commish</h2>' + needSignIn("to answer");
+  if (!ME) return back("home", "Home") + '<h2>Questions from the Ops Manager</h2>' + needSignIn("to answer");
   if (!isDesk()) return back("home", "Home") + '<h2>Questions</h2><div class="card"><p style="margin:0">These are for the commish.</p></div>';
   var draft = joeDraft();
-  return back("desk", "Commish desk") + '<h2>Questions for the commish</h2>' +
-    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, three" : "Three") + ' things Mike needs from you before the league sees the app: the history gaps, ESPN, and the 2027 rulebook. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
+  return back("desk", "Commish desk") + '<h2>Questions from the Ops Manager</h2>' +
+    '<div class="card"><p style="margin:0">' + (ME.owner === "reilly" ? "Joe, this" : "This") + ' is where Mike asks you things as the app grows. New ones add to the number on your Desk button, along with trades waiting on you. Right now: the history gaps, ESPN, and the 2027 rulebook. Tap an answer, add a note if you want, and hit <b>Send answers</b>. Skip anything; come back anytime and change an answer.</p></div>' +
     '<div class="qlist">' + ACTIVE_Q.map(function (q) {
       var a = draft[q.qid] || {};
       return '<div class="card q" data-q="' + q.qid + '"><h3>' + esc(q.q) + '</h3><p style="font-size:13px;white-space:pre-line">' + esc(q.why) + '</p>' +

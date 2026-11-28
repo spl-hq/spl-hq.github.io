@@ -7,6 +7,10 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Questions = Mike's standing channel to Joe** ("Questions from the Ops Manager"; questions come on and off as we go). Joe's Desk
+  button counts open questions + trades waiting on him. **Open: roster-legal trades** (a trade that leaves a team over the roster limit needs a
+  drop before ESPN will process it) — Mike raised it; proposal in chat 11/28, not decided.
+
 - 2026-11-28 · **History and Draft boards link both ways** (Mike). Each season shows its draft's highlights (computed from the boards, no robot) and opens its board; eras list their boards; boards link back to their season.
 
 - 2026-11-28 · **Joe's day-one questions = history gaps, ESPN writes (with the test-league demo), the 2027 rulebook** (Mike). `first_wish` and

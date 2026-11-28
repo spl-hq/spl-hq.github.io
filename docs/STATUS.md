@@ -35,6 +35,11 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.6 (backend v0.21.1) · 📋 **Questions from the Ops Manager** (Mike: the question list is his standing channel to Joe; questions come
+  and go). Renamed on Joe's screen + Commish desk; intro says new ones show up as a number on his Desk button. **📥 Desk · N** = open questions +
+  trades waiting on Joe (backend `me.review` = accepted offers he may act on, `reviewCount_`); refreshes after he approves/negates. Accuracy fix: the
+  app has **commish approval**, not a league veto vote (that's the parked `veto_vote` question), so the App · ESPN · Email row is now "Trade approval:
+  Joe approves or negates in the app" and `espn_writes` says the same. SW `splhq-v96`.
 - 2026-11-28 · v0.27.5 · 📋 `espn_writes` reworded (Mike): trades aren't typed into ESPN by hand today, ESPN runs them (owner sends, league votes,
   ESPN moves the players); the app would take that over and write the trade to ESPN. Dropped the vague "rulings"; named the real hand work instead
   (keying the SPL Draft board, keepers included, into ESPN). SW `splhq-v95`.
