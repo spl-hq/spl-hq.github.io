@@ -28,6 +28,8 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.5 · 📇 Player file bars: your seasons no longer turn into unreadable blue pills (the bar used class `me`, which the
+  header's "me" button style grabbed). Now `mine`: Beaver Blue bar + your name in blue. SW `splhq-v68`.
 - 2026-11-27 · v0.25.4 · 🔁 **Pre-app trades: new gold `data/Trade_History.csv`** (Mike: "email often had trade info"). Trades made before SPL HQ, from the
   league's "SPL Trade Announcement" email threads (and later the Packet notes), one row per player/pick moved, grouped by `deal`. First deal:
   **Aug 19 2026, Seth → Owen: Trey McBride for J.J. McCarthy + Owen's 2026 R7** (league confirmed that night). `build_data.py` feeds it into
