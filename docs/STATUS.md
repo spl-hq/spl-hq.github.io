@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.27.5 Saved/Done card actions; v0.27.0: 🍂 off-season switch; before it v0.26.7 no off-season button)
 
 
 ## Now
@@ -35,6 +35,7 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.5 · ⭐/✓ **Saved + Done actions moved into the card** (Mike): each card in the sheet gets a top bar with ↩ *Back to Home* + ⭐ Save / ✓ Done instead of buttons under it. Fix: *Back to Home* was keyed to the Match screen's week (`WEEK`), so it vanished unless Match had been opened; now keyed to the Home week (`FEED_W`). Cards from a finished week say "Week N is over" (Home only builds the current week). sw cache v93.
 - 2026-11-28 · v0.27.4 · 📋 **Joe's 3 questions redone** (Mike, before Joe's first login): 1) `history_gaps` (now active, rewritten: what the app
   already has, then a numbered "still missing" list; Drive share first), 2) **`espn_writes`** (new; replaces `espn_lm`): is he comfortable with the
   app writing to ESPN, needs Mike's team as co-commish, Mike built a test ESPN league to show it, nothing touches the real league until he says,

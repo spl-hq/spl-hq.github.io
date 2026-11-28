@@ -130,6 +130,10 @@ pre{white-space:pre-wrap;font:12px var(--mono);color:var(--soft)}
 .sheet{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);overflow-y:auto;padding:calc(var(--top) + 30px) 0 calc(var(--bot) + 20px)}
 .sheet .sbody{background:var(--night);border:1px solid var(--line);border-radius:20px;margin:0 10px;padding:16px;max-width:540px;margin:0 auto}
 .sheet .dcard{min-height:0}
+.bkbar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:-6px -6px 12px;padding:0 0 10px;border-bottom:1px solid var(--line)}
+.bka{flex:none;padding:6px 12px;border-radius:99px;border:1.5px solid var(--lime);background:transparent;color:var(--lime);font:700 13px var(--body);cursor:pointer}
+.bka.home{background:var(--lime);color:#fff}.bka.sv{border-color:var(--gold);color:var(--gold)}
+.bkold{margin-right:auto;font:600 11px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 /* WS4: rivalry grade, reactions, up next, votes, awards (docs/SPL_REEL_SERIES.md) */
 .grade{display:inline-block;min-width:22px;height:22px;border-radius:6px;font:800 13px/22px var(--head);text-align:center;background:#D6DFEC;color:#0B1F3A}
 .grade.gA{background:#B88A2E;color:#fff} .grade.gB{background:#1E407C;color:#fff} .grade.gC{background:#96BEE6;color:#041E42}
@@ -552,7 +556,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.27.4";
+var APP_VERSION = "0.27.5";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -769,7 +773,7 @@ function back(to, label) { return '<button class="back" onclick="go(\'' + to + '
 // ---- 🏠 Home = the reel (ported from MAFFL REEL, 11/8–11/9 rules): one card per screen, scroll up for the next.
 // Swipe ← = ✓ Done (gone for the week), → = ⭐ Save (kept up top until you act on it). "Needs you" cards lead and can't be
 // swiped. Done empties itself after 7 days. Per owner, per week, on this phone.
-var FEED = [], FEED_N = 0, FPOS = 0, DONE_DAYS = 7;
+var FEED = [], FEED_N = 0, FPOS = 0, DONE_DAYS = 7, FEED_W = null;
 function fk(k) { return "fd_" + k + "_" + (ME ? ME.owner : "guest"); }
 function wkMap(kind, wk) { return store(fk(kind) + "_" + wk) || {}; }
 function bk(kind) {
@@ -880,7 +884,7 @@ SCREENS.home.after = function () {
 var HOME_D = null;
 function drawFeed(keep) {
   var f = $("#feed"); if (!f) return;
-  var b = buildFeed(HOME_D || {}), wk = b.wk, clr = wkMap("clr", wk), pin = wkMap("pin", wk);
+  var b = buildFeed(HOME_D || {}), wk = b.wk; FEED_W = wk; var clr = wkMap("clr", wk), pin = wkMap("pin", wk);
   FEED_N = b.cards.length;
   FEED = b.cards.filter(function (x) { return x.needs || (!clr[x.id] && !pin[x.id]); }).map(function (x) { x.w = wk; if (x.tray && x.scope === "league") x.rk = rxKey(x); return x; });
   var left = FEED.filter(function (x) { return !x.needs; }).length, nn = FEED.length - left, nSv = bk("pin").length, nDn = bk("clr").length;
@@ -934,18 +938,21 @@ function openBucket(kind) {
   var a = bk(kind), saved = kind === "pin"; var sh = $("#sheet");
   if (!a.length) { if (sh) sh.remove(); drawFeed(FPOS); return; }
   if (!sh) { sh = document.createElement("div"); sh.id = "sheet"; sh.className = "sheet"; document.body.appendChild(sh); }
-  var curW = WEEK ? WEEK.week : 0;
+  var curW = FEED_W != null ? FEED_W : buildFeed(HOME_D || {}).wk;
   sh.innerHTML = '<div class="sbody"><div class="row" style="justify-content:space-between"><h2 style="margin:0">' + (saved ? "⭐ Saved" : "✓ Done") + '</h2><button class="btn ghost" onclick="closeBucket()">Close</button></div>' +
     '<p class="muted" style="margin:6px 0 12px">' + (saved ? "Stays here until you send it back or mark it done." : "Cleared cards stay " + DONE_DAYS + " days, then drop off.") + '</p>' +
-    a.map(function (it, i) { var old = it.w !== curW; return '<div style="margin-bottom:14px">' + it.html + '<div class="row" style="margin-top:6px">' +
-      (old ? '' : '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'back\')">↩ Back to Home</button>') +
-      (saved ? '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'done\')">✓ Done</button>' : '<button class="btn ghost" style="flex:1" onclick="bucketAct(\'' + kind + '\',' + i + ',\'save\')">⭐ Save</button>') + '</div></div>'; }).join("") + '</div>';
+    a.map(function (it, i) { var old = it.w !== curW;
+      // Actions live in the card's own top bar (Mike 11/28): send it back to Home, or flip Done ⇄ Saved.
+      var bar = '<div class="bkbar">' + (old ? '<span class="bkold">Week ' + esc(String(it.w)) + ' is over</span>' :
+          '<button class="bka home" onclick="bucketAct(\'' + kind + '\',' + i + ',\'back\')">↩ Back to Home</button>') +
+        (saved ? '<button class="bka" onclick="bucketAct(\'' + kind + '\',' + i + ',\'done\')">✓ Done</button>' : '<button class="bka sv" onclick="bucketAct(\'' + kind + '\',' + i + ',\'save\')">⭐ Save</button>') + '</div>';
+      return '<div style="margin-bottom:14px">' + it.html.replace(/^(<div class="dcard[^"]*">)/, "$1" + bar) + '</div>'; }).join("") + '</div>';
 }
 function closeBucket() { var sh = $("#sheet"); if (sh) sh.remove(); drawFeed(FPOS); }
 function bucketAct(kind, i, op) {
   var it = bk(kind)[i]; if (!it) return; markCard(kind, it, false);
   if (op === "done") markCard("clr", it, true); if (op === "save") markCard("pin", it, true);
-  toast(op === "done" ? "✓ Done" : op === "save" ? "⭐ Saved" : "Back on Home"); openBucket(kind);
+  toast(op === "done" ? "✓ Done" : op === "save" ? "⭐ Saved" : "↩ Back on Home"); openBucket(kind);
 }
 
 // ---- shared bits for Match / Team / Chat
