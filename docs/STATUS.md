@@ -35,6 +35,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.27.2 · 📖 Rules: new **📱 App or ESPN** tab (Mike: owner-facing "which site do I use for what", not commish detail). Side-by-side list
+  by Every week / Trades / Off-season / Around the league, each row tagged App, ESPN or Both with one line of why; "rule of thumb" card on top
+  (game day = ESPN, everything between the games = the app). Content is the `WHERE` array in index.html: list only what the app does today. SW `splhq-v90`.
 - 2026-11-28 · v0.27.1 · 📖 Rules: **⚖️ vs ESPN tab removed** (Mike: it was build scaffolding for Mike + Joe, owners never see it). Rules is the
   rulebook only. Its open items became 4 **Questions for Joe**, parked as a "rulebook rewrite" batch (`later:`, visible on the Ops desk):
   `rules_rewrite` (2027 constitution written around the app), `playoff_rules` (tiebreaks + Seed 3/Seed 1 picks), `money_rules` (dues/prizes),

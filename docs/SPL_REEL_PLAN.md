@@ -7,6 +7,9 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Rules gets an owner-facing 📱 App or ESPN tab** (Mike): a who-does-what matrix for owners (lineups/FAAB/live scores = ESPN; trades,
+  votes, picks, keepers, drafts, chat = app; standings and the SPL Draft = both). Not the old commish conflict list (those are Joe's questions).
+
 - 2026-11-28 · **No ⚖️ vs ESPN tab; constitution gaps are Joe's questions** (Mike). The tab was for Mike + Joe while building, never for owners. The rulebook
   needs a 2027 rewrite that accounts for the app (trades, keepers, drafts, playoff picks run here); Mike takes that to Joe. Open items live as questions
   in the "rulebook rewrite" batch (rules_rewrite, playoff_rules, money_rules, late_adds), parked until Mike moves them into Joe's queue (Q_ORDER).
