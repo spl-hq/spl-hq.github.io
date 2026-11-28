@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.15: era rename, 2006 expansion, Joe's gap list)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.16: Parity Years era)
 
 
 ## Now
@@ -33,6 +33,9 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.16 · 📚 **The Road Show split** (Mike): 2006–12 stays The Road Show; **2013–18 = The Parity Years** (six seasons, six
+  different champions). No milestones in 2013–18 yet (the Gmail Packet sweep should add some). Seasons with no runner-up on file (2003–05) say
+  "SPL champion (runner-up not on file)" instead of "beat ?". SW `splhq-v79`.
 - 2026-11-28 · v0.25.15 · 📚 Era renamed **The NFL.com Experiment** (2019–21, Mike). **Mike + Pete joined in 2006** as the expansion to 12 (Mike):
   registry `first_season` 2006 for both, the 2006 milestone says so. **History gaps → one short list for Joe** (`docs/HISTORY_NEEDS.md` top:
   his 2019 SPL Google Drive, 2020–21 NFL.com, 2003–05 + the 2005 champ, money, Shoot Out 2026, lore; Glen: 2012 keeper report + old GM Reports),

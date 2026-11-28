@@ -534,7 +534,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.15";
+var APP_VERSION = "0.25.16";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2163,7 +2163,7 @@ function seasonRow(y) {
     var h = histOf(y);
     if (!h) { html += '<div class="trophy" style="cursor:default"><span class="yr gap">' + y + '</span><div><b class="muted">' + (y < 2006 ? "Before ESPN" : "ESPN kept no scores") + '</b><br><small>Results wanted from Joe or Glen</small></div></div>'; return html; }
     var best = h.teams[0];
-    html += '<div class="trophy" onclick="go(\'history\',\'' + y + '\')"><span class="yr">' + y + '</span><div>' + (h.champ ? '<b>🏆 ' + esc(teamIn(h, h.champ)) + '</b><br><small>' + esc(oname(h.champ)) + ' · beat ' + esc(oname(h.runner)) + ' in the SPL Bowl</small>'
+    html += '<div class="trophy" onclick="go(\'history\',\'' + y + '\')"><span class="yr">' + y + '</span><div>' + (h.champ ? '<b>🏆 ' + esc(teamIn(h, h.champ)) + '</b><br><small>' + esc(oname(h.champ)) + (h.runner ? ' · beat ' + esc(oname(h.runner)) + ' in the SPL Bowl' : ' · SPL champion (runner-up not on file)') + '</small>'
       : '<b>In progress</b><br><small>Best record: ' + esc(oname(best[0])) + ' ' + best[2] + '–' + best[3] + '</small>') + '</div><span class="muted">›</span></div>';
   }
   return html;
