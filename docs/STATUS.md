@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.12: keepers carved out of the draft boards)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.13: draft grid fixes)
 
 
 ## Now
@@ -28,6 +28,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.13 · ▦ **Draft boards grid fixes** (Mike): keepers moved to the **top**, right under each team name (🔒 rows, gold
+  rule under them, no banner), rounds below. **Bug:** Grid ↔ Rounds didn't redraw (same hash, no hashchange) until you changed year; now
+  `draftV` re-renders. **One scroller:** the grid now fills the screen below the chips (`fitHistGrid`, refit on resize / opening the note)
+  and the page itself doesn't scroll in grid view; legend + notes folded into "ⓘ About this board" above the grid. SW `splhq-v76`.
 - 2026-11-28 · v0.25.12 · 🔒 **Draft boards: keepers carved out** (Mike: use the keeper data as gold; keepers aren't part of a round, put
   them locked in at the bottom under each team). Grid: rounds first, then a gold **Keepers** band and K1…Kn rows under each team (🔒 + deal
   length, 🏷️ tag), tap → player file. Rounds view + owner view get a 🔒 Keepers card. Source: new `keep` in league-data.js from

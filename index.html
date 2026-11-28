@@ -481,6 +481,8 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 .dgrid td.gkp,.chips span.gkp{background:#F6EEDC} .dgrid td.gtg{background:#F6EEDC;outline:1px dashed #B88A2E;outline-offset:-3px}
 .dgrid td.now{box-shadow:inset 0 0 0 2px #B88A2E;background:#FFF8E6}
 .dgrid td.mine small.pk{color:#1E407C;font-weight:800}
+.dgridw.hist{overscroll-behavior:contain;margin-bottom:0}
+.dgrid tr.klast td,.dgrid tr.klast th{border-bottom:2px solid #B88A2E}
 /* ✕ clear button on search boxes */
 .srch{position:relative;display:block}.srch input{padding-right:40px !important}
 .srchx{display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;border-radius:50%;background:#E8EAED;color:#5F666D;font:700 13px var(--body);padding:0;line-height:30px;text-align:center;cursor:pointer}
@@ -527,7 +529,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.12";
+var APP_VERSION = "0.25.13";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -2054,7 +2056,7 @@ SCREENS.draft = function (arg) {
   var gv = store("draftv") !== "rounds";
   if (!who) html += '<div class="hscroll" style="margin-bottom:10px"><button class="chip' + (gv ? " on" : "") + '" onclick="draftV(\'grid\',' + y + ')">▦ Grid</button><button class="chip' + (gv ? "" : " on") + '" onclick="draftV(\'rounds\',' + y + ')">📋 Rounds</button></div>';
   if (!who && gv) {
-    html += histGrid(ps, sp);
+    html += "<!--about-->" + histGrid(ps, sp); setTimeout(fitHistGrid, 0);
   } else if (!who) {
     var net = {}; OWNERS.forEach(function (o) { net[o.id] = { got: 0, gave: 0 }; }); traded.forEach(function (d) { if (net[d[4]]) net[d[4]].got++; if (net[d[5]]) net[d[5]].gave++; });
     html += '<div class="card"><div class="eyebrow">🔁 ' + traded.length + ' traded picks in ' + y + '</div>' + OWNERS.filter(function (o) { return net[o.id].got || net[o.id].gave; }).sort(function (a, b) { return (net[b.id].got - net[b.id].gave) - (net[a.id].got - net[a.id].gave); }).map(function (o) {
@@ -2068,10 +2070,18 @@ SCREENS.draft = function (arg) {
     html += '<div class="card"><div class="eyebrow">📝 ' + esc(oname(who)) + "'s " + y + ' draft · ' + mine.length + ' picks</div>' + mine.map(pickRow).join("") + '</div>' +
       (gone.length ? '<div class="card"><div class="eyebrow">➡️ ' + esc(oname(who)) + "'s picks someone else made</div>" + gone.map(pickRow).join("") + '</div>' : '') + keepCard(sp, who);
   }
-  if (ps[0] && ps[0][9] === "e") return html + '<p class="muted" style="font-size:12px">' + y + ' board from ESPN. ESPN doesn\'t record traded picks, so every pick shows under the team that made it' + (sp.src === "espn" ? '. Keepers come from ESPN\'s keeper flags; ESPN slotted them into the early rounds, so they\'re pulled out and each pick sits under the team that made it, in the round ESPN logged it (which may not be the order it really went)' : '; picks sit under the team that made them, in the order the league entered them on ESPN (which may not be exactly how it was drafted). No keeper list on file for ' + y + ', so any keepers show as normal picks') + '. 2020 and 2021 aren\'t on ESPN.</p>';
-  return html + '<p class="muted" style="font-size:12px">' + (y === 2026 ? "2026 board from Mike\'s screenshot" : "Board from the SPL Packet, names matched to ESPN") + '. Keepers come from that season\'s Keeper Matrix and sit apart from the rounds. ? = board shorthand, name not confirmed. 2020 was played off ESPN and the Packet has no picks for it; 2006–2018 boards come from ESPN (tap a year).</p>';
+  var foot = (ps[0] && ps[0][9] === "e") ? y + ' board from ESPN. ESPN doesn\'t record traded picks, so every pick shows under the team that made it' + (sp.src === "espn" ? '. Keepers come from ESPN\'s keeper flags; ESPN slotted them into the early rounds, so they\'re pulled out and each pick sits under the team that made it, in the round ESPN logged it (which may not be the order it really went)' : '; picks sit under the team that made them, in the order the league entered them on ESPN (which may not be exactly how it was drafted). No keeper list on file for ' + y + ', so any keepers show as normal picks') + '. 2020 and 2021 aren\'t on ESPN.' : (y === 2026 ? "2026 board from Mike\'s screenshot" : "Board from the SPL Packet, names matched to ESPN") + '. Keepers come from that season\'s Keeper Matrix and sit apart from the rounds. ? = board shorthand, name not confirmed. 2020 was played off ESPN and the Packet has no picks for it; 2006–2018 boards come from ESPN (tap a year).';
+  if (!who && gv) return html.replace("<!--about-->", '<details style="margin:0 0 8px" ontoggle="fitHistGrid()"><summary class="muted" style="font-size:12px;cursor:pointer">ⓘ About this board</summary>' +
+    '<div class="chips" style="margin:6px 0"><span class="gqb">QB</span><span class="grb">RB</span><span class="gwr">WR</span><span class="gte">TE</span><span class="gdst">D/ST</span><span class="gkp">🔒 keeper · 🏷️ tag</span></div>' +
+    '<p class="muted" style="font-size:12px;margin:0">Swipe the board any way; the team row and the round column stay put. Keepers sit right under each team. ' + (ps[0] && ps[0][9] === "e" ? '' : '"→ Joe" = traded pick, made by Joe. ') + 'Blank = no pick for that team that round. Tap a player for his file. ' + foot + '</p></details>');
+  return html + '<p class="muted" style="font-size:12px">' + foot + '</p>';
 };
-window.draftV = function (v, y) { store("draftv", v); go("draft", String(y)); };
+window.draftV = function (v, y) { store("draftv", v); render(); };
+// One scroller (Mike 11/28): the board fills the screen below the chips, so the page itself doesn't scroll in grid view.
+function fitHistGrid() { var w = document.querySelector(".dgridw.hist"), v = $("#view"); if (!w || !v) return;
+  var h = v.getBoundingClientRect().bottom - w.getBoundingClientRect().top - 10; w.style.maxHeight = "none"; w.style.height = Math.max(280, Math.floor(h)) + "px";
+  var over = v.scrollHeight - v.clientHeight; if (over > 0) w.style.height = Math.max(280, Math.floor(h) - over) + "px"; }
+window.addEventListener("resize", function () { setTimeout(fitHistGrid, 50); });
 // 🔒 Keepers sit apart from the rounds (Mike 11/28): locked under each team, no round number. Gold = the Keeper Matrix (LD keep, 2019–);
 // ESPN-only seasons use ESPN's keeper flags (2013). Returns { picks: board without keeper rows, keeps: [{o, n, pos, f, term}] }.
 function draftSplit(y, ps) {
@@ -2106,14 +2116,13 @@ function histGrid(ps, sp) {
       var cs = by[r + ":" + o]; if (!cs) return '<td class="gx"></td>';
       var d = cs[0], cls = d[7].indexOf("F") >= 0 ? "gtg" : "g" + String(d[8] || "x").replace("/", "").toLowerCase();
       return '<td class="' + cls + (cs.some(function (x) { return x[4] === my; }) ? " mine" : "") + '"' + (cs.length > 1 ? ' style="height:auto"' : '') + '>' + cs.map(function (x) { return one(x, o); }).join('<hr style="border:0;border-top:1px dashed #C9CED4;margin:3px 0">') + '</td>'; }).join("") + '</tr>'; }
+  var kb = "";
   if (sp.keeps.length) {
     var ko = {}, kmax = 0; sp.keeps.forEach(function (k) { (ko[k.o] = ko[k.o] || []).push(k); kmax = Math.max(kmax, ko[k.o].length); });
-    body += '<tr><th class="rc" style="background:#B88A2E;color:#fff">🔒</th><td colspan="' + n + '" style="background:#B88A2E;color:#fff;font:800 11px var(--body);letter-spacing:.08em;text-transform:uppercase;height:auto;max-width:none;padding:5px 8px">Keepers · locked in, not part of a round</td></tr>';
-    for (var j = 0; j < kmax; j++) body += '<tr><th class="rc"><small>K' + (j + 1) + '</small></th>' + order.map(function (o) { var k = (ko[o] || [])[j]; if (!k) return '<td class="gx"></td>';
+    for (var j = 0; j < kmax; j++) kb += '<tr' + (j === kmax - 1 ? ' class="klast"' : '') + '><th class="rc">' + (j ? '' : '🔒') + '</th>' + order.map(function (o) { var k = (ko[o] || [])[j]; if (!k) return '<td class="gx"></td>';
       return '<td class="' + (k.f ? "gtg" : "gkp") + (o === my ? " mine" : "") + '" data-p="' + esc(k.n) + '" onclick="pcard(this.dataset.p)" style="cursor:pointer"><small class="pk">' + (k.f ? "🏷️ tag" : "🔒" + (k.term ? " " + esc(k.term) + "-yr" : "")) + '</small><b>' + esc(shortPl(k.n)) + '</b><small>' + esc(k.pos || "") + '</small></td>'; }).join("") + '</tr>';
   }
-  return '<div class="dgridw"><table class="dgrid">' + th + body + '</table></div><div class="chips" style="margin:8px 0 12px"><span class="gqb">QB</span><span class="grb">RB</span><span class="gwr">WR</span><span class="gte">TE</span><span class="gdst">D/ST</span><span class="gkp">🔒 keeper · 🏷️ tag</span></div>' +
-    '<p class="muted" style="font-size:12px;margin-top:0">Scroll both ways; the team row and rounds stay put. ' + (esp ? '' : '"→ Joe" = traded pick, made by Joe. ') + 'Blank cells: no pick on the board for that team in that round. Keepers sit at the bottom under their team. Tap a player for his file.</p>';
+  return '<div class="dgridw hist"><table class="dgrid">' + th + kb + body + '</table></div>';
 }
 function keepCard(sp, who) {
   var ks = sp.keeps.filter(function (k) { return !who || k.o === who; }); if (!ks.length) return "";
