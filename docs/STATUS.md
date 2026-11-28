@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.1: tour + Joe's questions caught up, Joe launch checklist)
+_Read first. Newest on top._ **Last updated:** 2026-11-27 by Claude (chat, v0.25.3: player file history v2)
 
 
 ## Now
@@ -28,6 +28,12 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-27 · v0.25.3 · 📇 **Player file history v2** (Mike: McBride looked kept by two owners at once; "make it a trend, not a blob").
+  **Bug:** a gold keeper contract carries its *current* holder, so a deal Seth signed in 2024 and Owen got in a trade read "Kept by Owen … '24".
+  Now Keeper Matrix rows are grouped by deal (start = season − (term − years left)); the signer gets "Kept on a 3-yr deal", a later holder gets
+  "🔁 Came over from Seth with his deal". **New layout:** 4 tiles (seasons · owners · drafted/kept · titles with him), a bar per season of what he
+  cost (R = round, n KP = kept, TAG, FA; bar on the KP scale, gold = won the SPL with him, scrolled to the latest), then one folding row per owner
+  stint (latest open, 🏆 years on the row). **Now** falls back to the current season's owner from the matrix/draft before rosters load. SW `splhq-v66`.
 - 2026-11-27 · v0.25.2 · 📋 **Joe's day-one questions cut to 3** (Mike): his one wish (now first), "Can the app do your ESPN typing?" (espn_lm reworded around saving him work) and a short veto vote. Retired: `test_league` (Mike demos it instead), `mike_calls` (Mike's answers stand). New `later:` flag holds `deadlines`, `chat_move`, `history_gaps` off Joe's list (Ops desk shows them greyed as Later); bring one back by adding it to `Q_ORDER` and removing `later`. SW `splhq-v65`.
 - 2026-11-27 · v0.25.1 · 👋 **Tour + Joe's questions caught up with today's ships** (Mike: getting Joe in). Tour: GM desk stop covers keeper
   plans (up to 5, side by side, declare when the off-season opens); League stop = Drafts row (red live / gold on the clock), SPL Calendar, draft

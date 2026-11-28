@@ -1,6 +1,6 @@
 // SPL HQ service worker: cached copy first for the app's own files (refreshed in the background), network when there is no copy.
 // Never caches the backend (script.google.com): live data is always fetched fresh.
-var CACHE = "splhq-v65";
+var CACHE = "splhq-v66";
 self.addEventListener("install", function (e) { self.skipWaiting(); });
 // Drop every older splhq-v* cache (WS7: phones were keeping one full copy of the app per version, 27 and counting).
 self.addEventListener("activate", function (e) {
