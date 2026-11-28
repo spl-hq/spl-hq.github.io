@@ -1,19 +1,19 @@
 # League_Timeline.csv  --  GOLD (hand-edited). How the league got here: eras + milestones, shown on League -> History.
 # kind: era (starts that season, runs until the next era) | milestone (a change or a moment, in that season). Notes stay short (one phone line or two).
 # Sources: Glen's GM Reports, the SPL constitution, and the league email in Mike's Gmail (winter-meeting minutes, vote threads, draft logistics), 2006-2026.
-# Era names are Mike's call; first draft by Claude 2026-11-28.
+# Era names are Mike's call (2026-11-28: The NFL.com Experiment replaces The Paper Trail).
 season,kind,key,title,note
 2003,era,founding,The Founding,Before ESPN: the first champs (from Glen's GM Report) and the first Vegas draft weekends
 2003,milestone,founded,First season,EST. 2003 per Glen's 2025 GM Report (Muffins won 2003) · 2003–05 results aren't on ESPN
 2006,era,road_show,The Road Show,"Twelve teams on ESPN, four divisions, and draft weekends from the Mirage to State College"
 2006,milestone,espn,First season on ESPN,Every game from here on is in SPL HQ (2020–21 excepted)
-2006,milestone,twelve,"12 teams, 4 divisions","Mike's BAG took the 11th seat (Mar 2006) · East Coast, North, Philly, West Coast first sketched by Joe and Al"
+2006,milestone,twelve,"12 teams, 4 divisions","Expansion: Mike (BAG) and Pete (Gunz) join · East Coast, North, Philly, West Coast first sketched by Joe and Al"
 2006,milestone,vegas,Draft weekend in Vegas,"The Mirage, Aug 24–27 · skip the trip, lose your 3rd-rounder · one of three Vegas drafts by 2008"
 2007,milestone,wiki,Draft goes online,No Vegas: ESPN's draft room plus Glen's SPL wiki carrying the Packet's draft matrix
 2008,milestone,psu,Draft weekend at Penn State,"The PSU trip won the owners' draft survey · State College, late August"
 2011,milestone,gm_report,First GM Report,Glen's annual grades · 2012 added a Special Report on every keeper contract
 2012,milestone,draft_day_votes,Rule votes wait for draft day,A May TE-flex vote got pushed to the draft: that's when rules change
-2019,era,paper_trail,The Paper Trail,"The Keeper Matrix, a written constitution, the Binder, a Divisional Draft and a two-year detour to NFL.com"
+2019,era,nfl_experiment,The NFL.com Experiment,"Two seasons off ESPN, plus the Keeper Matrix, a written constitution, the Binder and the Divisional Draft"
 2019,milestone,keepers,The Keeper Matrix,Keeper Matrix sheets start in 2019 · contracts are older: Glen's 2012 keeper report counted 155 since day one
 2020,milestone,kicker,Kicker out + an extra Flex,Constitution Appendix Two
 2020,milestone,nfl,Two seasons on NFL.com,2020–21 played on NFL Fantasy (the Winter Meeting picked it) · ESPN lost those years

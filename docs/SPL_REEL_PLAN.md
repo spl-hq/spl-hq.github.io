@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **Era 2019–21 = The NFL.com Experiment; Mike + Pete = the 2006 expansion** (Mike). History gaps: Claude sweeps Mike's Gmail attachments first, then one short ask goes to Joe (`HISTORY_NEEDS.md` top + app question `history_gaps`).
 - 2026-11-28 · **Power 5 → Power 3** (Mike): three teams. Paragraph write-ups read as a blob, so each team gets one take line + Form · Points · Next tiles (robot writes the take).
 - 2026-11-28 · **League lore lives on History, by era** (Mike). Rules = rulebook + vs ESPN only; dates = SPL Calendar; "how the league got here" = eras + milestones on History from gold `data/League_Timeline.csv` (era names are Mike's to rename).
 - 2026-11-27 · **Player files read as a career, not a log** (Mike): tiles + a per-season cost bar (MAFFL's auction-price chart, on SPL's KP scale) + folding owner stints. A keeper deal belongs to whoever signed it; later holders show it as "came over with his deal".

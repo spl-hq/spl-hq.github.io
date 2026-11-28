@@ -534,7 +534,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.25.14";
+var APP_VERSION = "0.25.15";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -583,8 +583,8 @@ var QUESTIONS = [
   { qid: "mike_calls", retired: "Mike 11/27: his answers stand, Joe doesn't need to check them", q: "Mike made these calls for the app. Good with all three?",
     why: "1) A traded keeper keeps his contract as-is (KP, years left). 2) Only next season's picks can be traded (2027, 17 rounds). 3) Divisional Draft: the 4 drafters (best 2 to miss the playoffs, then the 2 wildcard losers) each start a division and snake 1-2-3-4-4-3-2-1; a pick takes an owner into your division or assigns him to another drafter's (one assigned-in per division); if your division is full, you must assign.",
     choices: ["All good", "Change one (explain below)"] },
-  { qid: "history_gaps", later: "Mike 11/27: off-season", q: "Can you fill the league history gaps NFL.com took with it?",
-    why: "2020-21 were on NFL.com and its old leagues are gone. Still missing: the 2020 draft picks, 2021 records for the 6 playoff teams, a few points totals (Mike 2020, Al + Rich 2021), and 2003-05 records + runner-ups. Champions and playoff seeds are already in (league emails, the Packet, Glen's GM Report). Old binders, spreadsheets, screenshots or memory all help: send them to Mike or type below.",
+  { qid: "history_gaps", later: "Mike 11/27: off-season", q: "Can you help fill the league's history gaps?",
+    why: "Anything helps: files, screenshots or memory. 1) The SPL Google Drive you set up in 2019 (minutes, votes, binders, constitutions): share it with Mike. 2) 2020-21 on NFL.com: the 2020 draft, scores or standings, 2021 records. 3) 2003-05: the original owners, records, runner-ups (and was 2005 Seth or Glen?). 4) Dues and payouts by year. 5) Did 2026 play a Week 14 Shoot Out after the 2025 vote? 6) Trophy plaques, photos, stories. Send to Mike or type below.",
     choices: ["I have some (sending to Mike)", "From memory (below)", "Don't have it"] },
   { qid: "chat_move", later: "Mike 11/27: once a few owners are in", q: "League chat is live in the app. Move the league's talk here?",
     why: "League chat, a room for each division (it follows the Divisional Draft by itself), DMs with any owner, and @ tags (an owner can choose to get an email when he's tagged). Everyone gets it once they sign in. The group text can stay for whatever you like.",

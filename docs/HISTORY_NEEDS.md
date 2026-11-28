@@ -1,5 +1,24 @@
 # SPL history: what's on file, what's missing, who gets it
 
+## 📋 The short list for Joe (2026-11-28)
+_Anything he sends is gold: raw files, screenshots, memory. Mike forwards it in chat; Claude transcribes. In the app: Joe's question `history_gaps`._
+
+1. **The SPL Google Drive** Joe set up in Dec 2019 (agendas, minutes, voting registers, binders, every constitution draft). Share it with Mike: the single biggest unlock.
+2. **2020–21 on NFL.com**: the 2020 draft board, weekly scores or final standings, 2021 W-L for the six playoff teams, missing points (Mike 2020, Al + Rich 2021).
+3. **2003–05**: who owned the original 10 teams, records, runner-ups, draft boards. Settle the **2005 champ** (Glen's GM Report says Seth; Glen signed a 2007 email "2005 SPL Champ").
+4. **Keepers before 2019**: only for years Claude can't find in the old Packets in Mike's Gmail (list comes after the sweep below).
+5. **Money**: dues and payouts by year (Al was Treasurer from 2019), and how the June 2024 flat-fee vote landed (the $350 dues?).
+6. **The Shoot Out**: the league scrapped it in July 2025. Did 2026 play one? (The app still runs it.)
+7. **Lore**: the trophy plaque list (Rich: 2015/16 are swapped), draft-weekend photos, nicknames, the stories worth a card.
+
+**Glen, separately:** the full 2012 "SPL Special Report on Keepers" (all 155 contracts to date) and every GM Report since the first (2011).
+
+## 🔎 Claude mines next (no one needed)
+Mike's Gmail has ~186 SPL threads with attachments back to 2006 (old Packets, the 2008 package, 2010 draft package, binders, minutes):
+keeper history 2006–18, draft boards with keeper slots, Divisional + Slot results 2020–23, payouts in the binders, winter-meeting votes.
+Whatever that sweep can't fill goes on the list above.
+
+
 _2026-11-27 · Mike asked "what historic info do you need from me?" This is the checklist. Newest decisions in STATUS.md._
 
 ## ✅ Done 11/27 (round 1)

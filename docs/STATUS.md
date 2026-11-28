@@ -1,6 +1,6 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.14: History eras + Gmail timeline)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25.15: era rename, 2006 expansion, Joe's gap list)
 
 
 ## Now
@@ -25,7 +25,6 @@ _Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.25
 - **Shoot Out:** the league voted it out in Jul 2025 (random Week 4 games instead, Joe confirmed in the 8/28/25 draft email), but the app
   (rulebook, SPL Calendar, Shoot Out Draft room, card-lines robot) still runs the 2023 Week 14 rules. Did 2026 play a Shoot Out? If not, retire it.
 - **2005 champ:** History/GM Report say Seth; Glen signed his 2007 email "2005 SPL Champ" (and Rich in 2012 disputes Glen's "first" title).
-- **Founders:** Owner Registry says every owner is `inception`, but Joe's Mar 2006 email has Mike accepting the 11th seat in 2006 (Pete's Gunz also first appear in 2006).
 
 ## Open questions (in the app: 📥 Commish desk → 📋 Questions, rebaselined 11/26)
 Joe sees 8 (history_gaps added 11/27): ESPN co-commish · test-league demo · **league veto vote in the app** (constitution: 24 h / 6 vetoes in season, 72 h challenge off-season) ·
@@ -34,6 +33,10 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.25.15 · 📚 Era renamed **The NFL.com Experiment** (2019–21, Mike). **Mike + Pete joined in 2006** as the expansion to 12 (Mike):
+  registry `first_season` 2006 for both, the 2006 milestone says so. **History gaps → one short list for Joe** (`docs/HISTORY_NEEDS.md` top:
+  his 2019 SPL Google Drive, 2020–21 NFL.com, 2003–05 + the 2005 champ, money, Shoot Out 2026, lore; Glen: 2012 keeper report + old GM Reports),
+  same list in Joe's app question `history_gaps` (still `later`). Next: Claude sweeps the ~186 SPL attachment threads in Mike's Gmail first. SW `splhq-v78`.
 - 2026-11-28 · v0.25.14 · 📚 **History by era + "How the league got here" from Gmail** (Mike: the timeline doesn't belong in Rules, the SPL
   Calendar covers dates; make it lore, MAFFL-style eras). Rules loses its 🗓️ Timeline tab (`#rules=timeline` falls back to the rulebook).
   New gold `data/League_Timeline.csv` (eras + milestones; milestones moved out of `Season_Calendar.csv`) → `timeline` in league-data.js.
