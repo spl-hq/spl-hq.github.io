@@ -7,6 +7,7 @@ Building SPL HQ as a REEL-style app (owner sign-in, ESPN link, trades with autom
 
 ## 0. Decisions (newest on top)
 
+- 2026-11-28 · **No off-season button: the whole site formats itself for the off-season** (Mike). The League hero card is gone. When `seasonPhase()` = offseason (SPL Bowl final, robot-driven, nobody flips a switch), each tab's own content changes. First cut, for Mike to correct: **Home** cards turn to the off-season (next event + countdown, Signing Day, draft orders, trade/keeper news; no matchup cards). **Match** shows the final season recap (champion, final standings, playoff bracket) instead of a live matchup. **Team** leads with keepers (contracts, KP, Signing Day plan) and picks owned, then roster. **Chat** unchanged. **League** Drafts row leads with the next draft and its date; Info's SPL Calendar shows the off-season timeline.
 - 2026-11-28 · **League tab order: Info · Drafts · The league** (Mike, same morning: Info on top).
 - 2026-11-28 · **League tab = Drafts · The league · Info, no scrolling** (Mike). Info holds SPL Calendar + Rules. Compact one-line tiles (icon left, title + short sub, no wrapping) so the tab fits an iPhone on landing. The off-season no longer re-sorts the tiles (the off-season hero card already leads).
 - 2026-11-28 · **No pick ledger fix tool** (Mike). Reconcile pre-app pick trades or mistakes as needed, by hand in the Sheet Picks tab; no formal desk tool. Replaces the 11/25–26 "Pick ledger fix on the Commish desk / Joe's" call.

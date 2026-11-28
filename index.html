@@ -552,7 +552,7 @@ nav.tabs button{color:#7A8288} nav.tabs button.on{color:#041E42}
 "use strict";
 // ---- Config. API_URL = the Apps Script web app URL (Deploy → Web app). Public by design: it's not a secret.
 var API_URL = "https://script.google.com/macros/s/AKfycbyGjG8LNEpCBceV5DulbfyMGLk7_NnW_W8q_y0sq47-5LEbE9dOu9Rp3rSVK9YEmD_IRw/exec";
-var APP_VERSION = "0.26.6";
+var APP_VERSION = "0.26.7";
 
 // ---- Owners (from data/SPL_Owner_Registry.csv; names + teams only, no contact info ever).
 var OWNERS = [
@@ -3096,14 +3096,11 @@ var INFO_TILES = [["offseason", "🗓️", "SPL Calendar", "Every date"], ["rule
 function lgTile(t) {
   return '<button class="tile' + (t[4] ? " soon" : "") + '" onclick="go(\'' + t[0].split("=")[0] + '\',\'' + (t[0].split("=")[1] || "") + '\')"><span class="ti">' + t[1] + '</span><span class="tt"><b>' + t[2] + '</b><small>' + (t[4] ? "Coming soon" : t[3]) + '</small></span></button>';
 }
-// Off-season mode (Mike 11/27): the day ESPN has no games left (SPL Bowl final), League leads with the off-season (hero card below).
+// Off-season mode (Mike 11/27): the day ESPN has no games left (SPL Bowl final). No League hero for it (Mike 11/28).
 // The Shoot Out window (Week 13 final, Week 14 not) gets its own banner. Both come from gold history (daily robot), so nobody flips a switch.
 function phaseHero() {
   var ph = seasonPhase();
-  if (ph === "offseason") { var nx = offNext(), a = nx[0];
-    return '<div class="card lead" style="cursor:pointer" onclick="go(\'offseason\')"><div class="eyebrow">🗓️ The ' + nextSeason() + ' off-season</div>' +
-      (a ? '<div style="font:800 22px var(--head);text-transform:uppercase">' + a.icon + ' ' + esc(a.name) + '</div><p style="margin:4px 0 0">' + (a.date ? esc(fmtDate(a.date)) + ' · ' + esc(untilTxt(a.date)) : 'Date to be set') + '</p>' : '<p style="margin:0">Every off-season event runs here.</p>') +
-      (nx.length > 1 ? '<small class="muted">Then: ' + nx.slice(1, 4).map(function (e) { return esc(e.name); }).join(" · ") + '</small>' : '') + ' ›</div>'; }
+  // Mike 11/28: no off-season button here; the whole site gets formatted for the off-season instead (plan §0).
   if (ph === "shootout" && (curSeason() >= LIVE_SEASON || isDesk())) return '<div class="card lead" style="cursor:pointer" onclick="go(\'offseason\')"><div class="eyebrow">🎯 Shoot Out Draft · eve of Week ' + regWks() + '</div><p style="margin:0">Week ' + (regWks() - 1) + ' is final. Rule 1 matchups, then the top seeds pick their Week ' + regWks() + ' opponents. ›</p></div>';
   return '';
 }

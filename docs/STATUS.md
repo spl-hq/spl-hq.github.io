@@ -1,9 +1,11 @@
 # SPL HQ — Status
 
-_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.6: Info on top of League; before it v0.26.5 League tab sections)
+_Read first. Newest on top._ **Last updated:** 2026-11-28 by Claude (chat, v0.26.7: no off-season button; before it v0.26.6 Info on top of League)
 
 
 ## Now
+- **🍂 Off-season format for the whole site (Mike 11/28, next):** no off-season button; when the SPL Bowl is final every tab itself
+  switches to off-season content. Plan in `docs/SPL_REEL_PLAN.md` §0 (11/28). Awaiting Mike's corrections before building.
 - **🚀 Getting Joe in (Mike 11/27, ready):** backend healthy (Sheet ✅, SPL 19583 ✅, test league ✅, ESPN writes off, 1 of 12 signed up).
   ① Preview first: 🛠️ Desk → 📥 Commish · Joe's view (exactly his desk, no test/robot tools). ② 🛠️ Ops desk → 🔑 Passphrases → Joe → Make one →
   Text it (the message has the link, the Add to Home Screen tip and "a one-minute tour shows you around"). ③ Joe signs in → the welcome tour
@@ -33,6 +35,8 @@ Settled by Mike (retired, answers kept on the Ops desk): keeper_travels, pick_ye
 Question cleanup done 11/27 (espn_lm now covers the SPL Draft load; chat_move covers division rooms, DMs and @ tags).
 
 ## Recently shipped
+- 2026-11-28 · v0.26.7 · League tab: **off-season hero card removed** (Mike: no off-season button; the whole site gets formatted for the
+  off-season instead). Shoot Out banner unchanged. SW `splhq-v87`.
 - 2026-11-28 · v0.26.6 · 🏆 League tab: **ℹ️ Info moved to the top** (Mike), above Drafts and The league. Tour text follows. SW `splhq-v86`.
 - 2026-11-28 · v0.26.5 · 🏆 **League tab tightened** (Mike): sections 🗓️ Drafts · 🏛️ The league (Draft boards, History, GM Report, Rivalries) ·
   ℹ️ Info (SPL Calendar, Rules). Tiles are compact rows (icon left, title + one-line sub, ellipsis instead of wrapping); subs shortened
